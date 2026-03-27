@@ -5,9 +5,19 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: "jsdom",
+    environment: "node",
     globals: true,
     setupFiles: [],
+    pool: "vmForks",
+    teardownTimeout: 5000,
+    include: ["tests/**/*.test.ts"],
+    watch: false,
+    fileParallelism: false,
+    server: {
+      deps: {
+        inline: true,
+      },
+    },
   },
   resolve: {
     alias: {
