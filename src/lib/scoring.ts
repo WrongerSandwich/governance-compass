@@ -1,4 +1,4 @@
-import type { QuizResponses, PerModalityScores, TensionInfo } from "./scoring-types";
+import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult } from "./scoring-types";
 import {
   BUDGET_BASELINE,
   BUDGET_SIGMOID_K,
@@ -6,6 +6,8 @@ import {
   TENSION_THRESHOLDS,
   STATED_FC_WEIGHT,
   STATED_SC_WEIGHT,
+  SD_ECONOMIC_WEIGHTS,
+  SD_CULTURAL_WEIGHTS,
 } from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
@@ -239,4 +241,31 @@ export function detectContradiction(
   }
 
   return { detected, magnitude, level, direction };
+}
+
+/**
+ * Stage 5 — Reduce 12 axis scores to two super-dimension coordinates for the
+ * political compass plot.
+ *
+ * Economic super-dimension:  0.65 × axis1 + 0.35 × axis2
+ * Cultural super-dimension:  0.30 × axis7 + 0.20 × axis8 + 0.20 × axis9
+ *                           + 0.15 × axis5 + 0.15 × axis4
+ *
+ * Missing axes default to 0. Both outputs are in [-1.0, +1.0] because the
+ * weights in each group sum to 1.0 and inputs are bounded to [-1.0, +1.0].
+ */
+export function computeSuperDimensions(
+  axisScores: Record<number, number>
+): CompassResult {
+  let economic = 0;
+  for (const [axisId, weight] of Object.entries(SD_ECONOMIC_WEIGHTS)) {
+    economic += weight * (axisScores[Number(axisId)] ?? 0);
+  }
+
+  let cultural = 0;
+  for (const [axisId, weight] of Object.entries(SD_CULTURAL_WEIGHTS)) {
+    cultural += weight * (axisScores[Number(axisId)] ?? 0);
+  }
+
+  return { economic, cultural };
 }
