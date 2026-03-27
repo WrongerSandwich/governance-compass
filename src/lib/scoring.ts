@@ -1,5 +1,12 @@
-import type { QuizResponses, PerModalityScores } from "./scoring-types";
-import { BUDGET_BASELINE, BUDGET_SIGMOID_K, AXIS_WEIGHT_PROFILES } from "./scoring-types";
+import type { QuizResponses, PerModalityScores, TensionInfo } from "./scoring-types";
+import {
+  BUDGET_BASELINE,
+  BUDGET_SIGMOID_K,
+  AXIS_WEIGHT_PROFILES,
+  TENSION_THRESHOLDS,
+  STATED_FC_WEIGHT,
+  STATED_SC_WEIGHT,
+} from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { ministryAxisMappings } from "@/data/ministries";
@@ -174,4 +181,62 @@ export function computeAllPerModalityScores(
   }
 
   return result;
+}
+
+/**
+ * Stage 4 — Detect contradiction between stated preferences (FC + SC)
+ * and revealed preferences (budget).
+ *
+ * Stated score = (STATED_FC_WEIGHT × fcScore) + (STATED_SC_WEIGHT × scScore).
+ * Magnitude = |stated - bgScore|.
+ *
+ * Tension levels:
+ *   0.00 – 0.50 → "none"  (detected=false)
+ *   0.51 – 1.00 → "mild"  (detected=true)
+ *   1.01 – 1.50 → "moderate" (detected=true)
+ *   1.51 – 2.00 → "strong"   (detected=true)
+ *
+ * Direction (only when detected AND stated/budget are on opposite sides of 0):
+ *   stated < 0 and bgScore > 0 → "principles_A_but_budget_B"
+ *   stated > 0 and bgScore < 0 → "principles_B_but_budget_A"
+ *   otherwise → null
+ */
+export function detectContradiction(
+  fcScore: number,
+  scScore: number,
+  bgScore: number | null,
+  axisId: number
+): TensionInfo {
+  if (bgScore === null) {
+    return { detected: false, magnitude: 0, level: "none", direction: null };
+  }
+
+  const statedScore = STATED_FC_WEIGHT * fcScore + STATED_SC_WEIGHT * scScore;
+  const magnitude = Math.abs(statedScore - bgScore);
+
+  let level: TensionInfo["level"];
+  let detected: boolean;
+
+  if (magnitude >= TENSION_THRESHOLDS.strong) {
+    level = "strong";
+    detected = true;
+  } else if (magnitude >= TENSION_THRESHOLDS.moderate) {
+    level = "moderate";
+    detected = true;
+  } else if (magnitude >= TENSION_THRESHOLDS.mild) {
+    level = "mild";
+    detected = true;
+  } else {
+    level = "none";
+    detected = false;
+  }
+
+  let direction: TensionInfo["direction"] = null;
+  if (detected && statedScore < 0 && bgScore > 0) {
+    direction = "principles_A_but_budget_B";
+  } else if (detected && statedScore > 0 && bgScore < 0) {
+    direction = "principles_B_but_budget_A";
+  }
+
+  return { detected, magnitude, level, direction };
 }
