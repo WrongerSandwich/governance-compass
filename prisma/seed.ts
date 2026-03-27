@@ -1,29 +1,77 @@
 import { PrismaClient } from "@prisma/client";
-import { topics } from "../src/data/topics";
-import { questions } from "../src/data/questions";
+import { axes } from "../src/data/axes";
+import { forcedChoiceItems } from "../src/data/forced-choice-items";
+import { scaledItems } from "../src/data/scaled-items";
+import { ministries, ministryAxisMappings } from "../src/data/ministries";
+import { archetypes } from "../src/data/archetypes";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Upsert topics
-  for (const topic of topics) {
-    await prisma.topic.upsert({
-      where: { id: topic.id },
-      update: topic,
-      create: topic,
+  // Upsert axes
+  for (const axis of axes) {
+    await prisma.axis.upsert({
+      where: { id: axis.id },
+      update: axis,
+      create: axis,
     });
   }
+  console.log(`Seeded ${axes.length} axes.`);
 
-  // Upsert questions
-  for (const question of questions) {
-    await prisma.question.upsert({
-      where: { id: question.id },
-      update: question,
-      create: question,
+  // Upsert forced-choice items
+  for (const item of forcedChoiceItems) {
+    await prisma.forcedChoiceItem.upsert({
+      where: { id: item.id },
+      update: item,
+      create: item,
     });
   }
+  console.log(`Seeded ${forcedChoiceItems.length} forced-choice items.`);
 
-  console.log(`Seeded ${topics.length} topics and ${questions.length} questions.`);
+  // Upsert scaled items
+  for (const item of scaledItems) {
+    await prisma.scaledItem.upsert({
+      where: { id: item.id },
+      update: item,
+      create: item,
+    });
+  }
+  console.log(`Seeded ${scaledItems.length} scaled items.`);
+
+  // Upsert ministries
+  for (const ministry of ministries) {
+    await prisma.ministry.upsert({
+      where: { id: ministry.id },
+      update: ministry,
+      create: ministry,
+    });
+  }
+  console.log(`Seeded ${ministries.length} ministries.`);
+
+  // Upsert ministry-axis mappings
+  for (const mapping of ministryAxisMappings) {
+    await prisma.ministryAxisMapping.upsert({
+      where: {
+        ministryId_axisId: {
+          ministryId: mapping.ministryId,
+          axisId: mapping.axisId,
+        },
+      },
+      update: { direction: mapping.direction },
+      create: mapping,
+    });
+  }
+  console.log(`Seeded ${ministryAxisMappings.length} ministry-axis mappings.`);
+
+  // Upsert archetypes
+  for (const archetype of archetypes) {
+    await prisma.archetype.upsert({
+      where: { id: archetype.id },
+      update: archetype,
+      create: archetype,
+    });
+  }
+  console.log(`Seeded ${archetypes.length} archetypes.`);
 }
 
 main()
