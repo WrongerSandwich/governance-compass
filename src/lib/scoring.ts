@@ -1,5 +1,5 @@
 import type { QuizResponses, PerModalityScores } from "./scoring-types";
-import { BUDGET_BASELINE, BUDGET_SIGMOID_K } from "./scoring-types";
+import { BUDGET_BASELINE, BUDGET_SIGMOID_K, AXIS_WEIGHT_PROFILES } from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { ministryAxisMappings } from "@/data/ministries";
@@ -95,6 +95,62 @@ export function scoreBudgetAxis(
     signedDeviations.reduce((sum, s) => sum + s, 0) / signedDeviations.length;
 
   return Math.tanh(mean / BUDGET_SIGMOID_K);
+}
+
+/**
+ * Stage 3 — Fuse fc, sc, and optional bg scores for a single axis using
+ * the axis-specific weight profile.
+ *
+ * When bg is null and the profile has bg > 0 (the axis has a budget mapping
+ * but no budget response was produced), the fc and sc weights are renormalised
+ * so they sum to 1.0.  When bg is null and profile.bg == 0 (no budget mapping
+ * for this axis), fc and sc weights already sum to 1.0 and are used as-is.
+ *
+ * Returns a weighted sum in [-1.0, +1.0].
+ */
+export function fuseModalityScores(
+  fc: number,
+  sc: number,
+  bg: number | null,
+  axisId: number
+): number {
+  const profile = AXIS_WEIGHT_PROFILES[axisId];
+
+  if (bg !== null) {
+    // All three modalities present — use profile weights directly.
+    return profile.fc * fc + profile.sc * sc + profile.bg * bg;
+  }
+
+  if (profile.bg === 0) {
+    // No budget mapping for this axis; fc + sc already sum to 1.0.
+    return profile.fc * fc + profile.sc * sc;
+  }
+
+  // Budget mapping exists but bg was not produced — renormalise fc and sc.
+  const fcScSum = profile.fc + profile.sc;
+  const normFcW = profile.fc / fcScSum;
+  const normScW = profile.sc / fcScSum;
+  return normFcW * fc + normScW * sc;
+}
+
+/**
+ * Stage 3 — Compute final fused scores for all 12 axes.
+ *
+ * Returns an array of objects containing axisId, finalScore, and the
+ * individual modality scores (fcScore, scScore, bgScore).
+ */
+export function computeAllFinalScores(
+  perModalityScores: PerModalityScores
+): { axisId: number; finalScore: number; fcScore: number; scScore: number; bgScore: number | null }[] {
+  const results: { axisId: number; finalScore: number; fcScore: number; scScore: number; bgScore: number | null }[] = [];
+
+  for (let axisId = 1; axisId <= 12; axisId++) {
+    const { fc, sc, bg } = perModalityScores[axisId];
+    const finalScore = fuseModalityScores(fc, sc, bg, axisId);
+    results.push({ axisId, finalScore, fcScore: fc, scScore: sc, bgScore: bg });
+  }
+
+  return results;
 }
 
 /**
