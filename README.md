@@ -41,7 +41,7 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 ## Project Structure
 
 - `src/app/` — Next.js App Router pages and API routes
-- `src/components/` — React components organized by feature (quiz, results, comparison, groups, annotations)
+- `src/components/` — React components by feature (quiz, results, comparison, groups, annotations) plus shared NavBar, SessionProvider
 - `src/data/` — Axis, item, ministry, and archetype definitions
 - `src/lib/` — Pure logic: scoring, comparison, validation, auth, db, design tokens
 - `docs/system_proposal/` — Design specs (scoring engine, results UI, question bank, design system)
