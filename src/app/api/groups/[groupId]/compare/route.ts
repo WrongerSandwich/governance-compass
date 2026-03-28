@@ -22,7 +22,7 @@ export async function GET(
             include: {
               profiles: {
                 include: {
-                  topicScores: { include: { topic: true } },
+                  axisScores: { include: { axis: true } },
                 },
                 orderBy: { updatedAt: "desc" },
                 take: 1,
@@ -45,57 +45,59 @@ export async function GET(
     return NextResponse.json({ error: "Not a member" }, { status: 403 });
   }
 
-  // Gather hidden topic IDs for each member
+  // Gather hidden axis IDs for each member
   const memberUserIds = group.members.map((m) => m.userId);
-  const allVisibilities = await db.topicVisibility.findMany({
+  const allVisibilities = await db.axisVisibility.findMany({
     where: { userId: { in: memberUserIds }, hidden: true },
   });
-  const hiddenByUser = new Map<string, Set<string>>();
+  const hiddenByUser = new Map<string, Set<number>>();
   for (const v of allVisibilities) {
     if (!hiddenByUser.has(v.userId)) hiddenByUser.set(v.userId, new Set());
-    hiddenByUser.get(v.userId)!.add(v.topicId);
+    hiddenByUser.get(v.userId)!.add(v.axisId);
   }
 
   const members = group.members.map((m) => {
     const profile = m.user.profiles[0];
-    const hidden = hiddenByUser.get(m.userId) || new Set();
+    const hidden = hiddenByUser.get(m.userId) || new Set<number>();
     return {
       userId: m.userId,
       name: group.showNames ? m.user.name : null,
       scores:
-        profile?.topicScores
-          .filter((ts) => !hidden.has(ts.topicId) && !ts.insufficientData)
-          .map((ts) => ({
-            topicId: ts.topicId,
-            topicName: ts.topic.name,
-            score: ts.score,
+        profile?.axisScores
+          .filter((as) => !hidden.has(as.axisId))
+          .map((as) => ({
+            axisId: as.axisId,
+            axisName: as.axis.name,
+            score: as.finalScore,
           })) || [],
     };
   });
 
-  // Calculate per-topic stats
-  const topics = await db.topic.findMany({ orderBy: { order: "asc" } });
-  const topicStats = topics.map((topic) => {
+  // Calculate per-axis stats
+  const axes = await db.axis.findMany({ orderBy: { order: "asc" } });
+  const axisStats = axes.map((axis) => {
     const memberScores = members
-      .map((m) => m.scores.find((s) => s.topicId === topic.id)?.score)
+      .map((m) => m.scores.find((s) => s.axisId === axis.id)?.score)
       .filter((s): s is number => s !== undefined);
 
     const avg =
       memberScores.length > 0
         ? memberScores.reduce((a, b) => a + b, 0) / memberScores.length
         : null;
+    // Spread is max - min; on [-1, +1] scale the max possible spread is 2.0
     const spread =
       memberScores.length > 1
         ? Math.max(...memberScores) - Math.min(...memberScores)
         : 0;
 
     return {
-      topicId: topic.id,
-      topicName: topic.name,
-      spectrumLabelLeft: topic.spectrumLabelLeft,
-      spectrumLabelRight: topic.spectrumLabelRight,
-      average: avg !== null ? Math.round(avg * 100) / 100 : null,
-      spread: Math.round(spread * 100) / 100,
+      axisId: axis.id,
+      axisName: axis.name,
+      poleALabel: axis.poleALabel,
+      poleBLabel: axis.poleBLabel,
+      domain: axis.domain,
+      average: avg !== null ? Math.round(avg * 1000) / 1000 : null,
+      spread: Math.round(spread * 1000) / 1000,
       memberScores,
     };
   });
@@ -109,6 +111,6 @@ export async function GET(
       creatorId: group.creatorId,
     },
     members,
-    topicStats,
+    axisStats,
   });
 }
