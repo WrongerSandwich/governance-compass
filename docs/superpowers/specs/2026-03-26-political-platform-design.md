@@ -1,4 +1,6 @@
-# PoliticalPlatform — Design Spec
+> **DEPRECATED:** This spec describes the original topic-based quiz architecture (v1), which was fully replaced by the Governance Compass rebuild on 2026-03-27. See `docs/system_proposal/` for current specs and `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` for the current implementation plan.
+
+# PoliticalPlatform — Design Spec (v1, superseded)
 
 A web-based political self-assessment tool where users take a research-backed questionnaire and receive a multi-dimensional profile of their political views. Users can refine their profile over time, annotate their positions with personal reasoning, and compare views with friends one-on-one or in private groups.
 

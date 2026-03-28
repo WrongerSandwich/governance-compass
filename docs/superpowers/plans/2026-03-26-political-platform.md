@@ -1,4 +1,6 @@
-# PoliticalPlatform Implementation Plan
+> **DEPRECATED:** This plan describes the original topic-based quiz architecture (v1), which was fully replaced by the Governance Compass rebuild on 2026-03-27. See `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` for the current plan.
+
+# PoliticalPlatform Implementation Plan (v1, superseded)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

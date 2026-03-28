@@ -2,7 +2,7 @@
 
 # PoliticalPlatform
 
-Political self-assessment web app. Users take a research-backed questionnaire across 12 topics and receive a multi-dimensional profile with visualizations and plain-language insights. Supports annotations, one-on-one comparisons, and private group comparisons.
+Political self-assessment web app ("The Governance Compass"). Users complete a 3-phase questionnaire (forced-choice dilemmas, calibrated scales, budget allocation) measuring 12 governance axes, then receive a multi-dimensional profile with visualizations, archetype matching, and tension detection. Supports annotations, one-on-one comparisons, and private group comparisons.
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ npm run dev
 - **Database:** PostgreSQL in Docker container `political-platform-db` on port 5433
   - User: `ppuser`, Password: `ppdevpass`, DB: `political_platform`
   - If the container doesn't exist: `docker run -d --name political-platform-db -e POSTGRES_USER=ppuser -e POSTGRES_PASSWORD=ppdevpass -e POSTGRES_DB=political_platform -p 5433:5432 postgres:16-alpine`
-- **Seed data:** `npx prisma db seed` (12 topics, 60 questions)
+- **Seed data:** `npx prisma db seed` (12 axes, 72 questions — 36 forced-choice + 36 scaled — plus 10 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
 
 ## Testing
@@ -33,16 +33,16 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 
 ## Key Directories
 
-- `src/lib/` — Pure logic: scoring, insights, comparison, validation, auth, db
-- `src/data/` — Topic and question definitions (edit these to change quiz content)
+- `src/lib/` — Pure logic: scoring, scoring-types, comparison, validation, auth, db, design-tokens
+- `src/data/` — Axis, item, ministry, and archetype definitions (edit these to change quiz content)
 - `src/components/` — React components organized by feature (quiz, results, comparison, groups, annotations)
 - `src/app/api/` — API routes
-- `docs/superpowers/specs/` — Design spec
-- `docs/superpowers/plans/` — Implementation plan
+- `docs/system_proposal/` — Authoritative specs: design system, scoring engine, results UI, question bank
+- `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` — Current implementation plan
 
 ## Architecture Notes
 
-- Scoring: `value * polarity` gives directional score (positive = left endpoint). Normalized via `((2 - mean) / 4) * 100` to 0-100 scale.
+- Scoring is a 6-stage pipeline: (1) raw scoring per modality — FC maps A/B→±1.0, SC maps Likert 1-5→[-2,+2] then /2, budget uses tanh normalization; (2) per-axis modality computation; (3) weighted fusion (FC 40%, SC 35%, Budget 25%, adjusted for coverage); (4) tension/contradiction detection between stated and revealed preferences; (5) compass super-dimension reduction (economic + cultural-authority); (6) archetype matching via weighted Euclidean distance against 12 prototype vectors.
 - Anonymous users get a UUID token in localStorage. Creating an account lets them "claim" the profile via `/api/auth/claim`.
 - Groups resolve membership by invite code only (no group ID needed to join).
 
