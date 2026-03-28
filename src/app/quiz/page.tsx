@@ -12,6 +12,10 @@ export default async function QuizPage() {
   const ministries = await db.ministry.findMany({
     orderBy: { id: "asc" },
   });
+  const axes = await db.axis.findMany({
+    orderBy: { id: "asc" },
+    select: { id: true, name: true, poleALabel: true, poleBLabel: true },
+  });
 
   return (
     <main className="min-h-screen px-4">
@@ -20,6 +24,7 @@ export default async function QuizPage() {
           forcedChoiceItems={forcedChoiceItems}
           scaledItems={scaledItems}
           ministries={ministries}
+          axes={axes}
         />
       </QuizProvider>
     </main>

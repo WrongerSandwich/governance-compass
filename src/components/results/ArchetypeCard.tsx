@@ -90,12 +90,17 @@ export function ArchetypeCard({
       {/* Divider */}
       <div className="border-t border-border-secondary my-4" style={{ borderWidth: '0.5px' }} />
 
-      {/* Adjacent type — inline per spec */}
-      <p className="text-xs text-text-tertiary">
+      {/* Adjacent type */}
+      <p className="text-xs">
         <span className="font-medium text-text-secondary">Adjacent:</span>{" "}
-        {secondary.name} — {secondary.matchPercentage}% match
-        {secondary.summary ? `... ${secondary.summary}` : ""}
+        <span className="text-text-secondary">{secondary.name}</span>
+        <span className="text-text-tertiary"> — </span>
+        <span className="font-mono text-text-tertiary">{secondary.matchPercentage}%</span>
+        <span className="text-text-tertiary"> match</span>
       </p>
+      {secondary.summary && (
+        <p className="text-xs text-text-tertiary mt-1 leading-relaxed">{secondary.summary}</p>
+      )}
     </div>
   );
 }
