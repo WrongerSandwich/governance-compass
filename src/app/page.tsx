@@ -1,46 +1,86 @@
 import Link from "next/link";
+import { ReturningUserLink } from "@/components/ReturningUserLink";
 
 export default function Home() {
   return (
-    <main className="min-h-screen px-4 py-20">
-      <div className="max-w-[640px] mx-auto text-center">
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-4">
+    <main className="min-h-screen px-4">
+      {/* Hero */}
+      <div className="max-w-xl mx-auto pt-16 pb-12 text-center">
+        <h1 className="text-[32px] font-serif font-medium text-text-primary mb-5 leading-tight">
           The governance compass
         </h1>
-        <p className="text-sm text-text-secondary mb-3 leading-relaxed">
-          Explore where you stand across 12 governance axes — from
-          economic philosophy to international engagement. A research-backed
-          assessment that goes far beyond left and right.
+        <p className="text-[15px] text-text-secondary mb-3 leading-relaxed max-w-md mx-auto">
+          A research-backed assessment across 12 governance axes — from
+          economic philosophy to international engagement. Far beyond left
+          and right.
         </p>
-        <p className="text-sm text-text-tertiary mb-8 leading-relaxed">
+        <p className="text-sm text-text-tertiary mb-8 leading-relaxed max-w-md mx-auto">
           Compare your positions with friends axis by axis. See where
-          you align, where you diverge, and gain a deeper understanding of each
+          you align, where you diverge, and understand each
           other&apos;s perspectives on how society should be governed.
         </p>
         <Link
           href="/quiz"
-          className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+          className="block mx-auto max-w-xs bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150 text-center focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
         >
           Begin assessment
         </Link>
         <p className="mt-3 text-xs font-serif italic text-text-tertiary">
           ~20 minutes &middot; 3 question modalities &middot; No account required
         </p>
+        <ReturningUserLink />
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pt-16 pb-20">
-        <div className="grid min-[560px]:grid-cols-3 gap-5">
-          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
-            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-              12 axes
-            </h3>
-            <p className="text-text-secondary text-sm leading-relaxed">
-              Your positions mapped across 12 governance axes spanning
-              economic, political, social, and international domains. No
-              oversimplified quadrants.
+      {/* Features */}
+      <div className="max-w-3xl mx-auto pb-20">
+        <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-10">
+          What you&apos;ll discover
+        </h2>
+
+        {/* 12 axes — typographic breakout */}
+        <div className="text-center mb-8">
+          <span className="text-[56px] font-serif font-medium text-text-primary leading-none">
+            12
+          </span>
+          <p className="text-[17px] font-serif font-medium text-text-primary mt-1">
+            governance axes
+          </p>
+          <p className="text-sm text-text-secondary mt-2 max-w-md mx-auto">
+            Your positions mapped across economic, political, social, and
+            international domains. No oversimplified quadrants.
+          </p>
+        </div>
+
+        {/* Axis poles preview — cartographic reference grid */}
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-8 gap-y-1.5 max-w-lg mx-auto mb-14">
+          {[
+            ["Collective", "Market"],
+            ["Ecological", "Growth"],
+            ["Distributed", "Centralized"],
+            ["Popular", "Institutional"],
+            ["Liberty", "Security"],
+            ["Electoral", "Performance"],
+            ["Progressive", "Traditional"],
+            ["Pluralism", "Cohesion"],
+            ["Constructivism", "Essentialism"],
+            ["Internationalism", "Sovereignty"],
+            ["Non-Intervention", "Intervention"],
+            ["Precautionary", "Innovation"],
+          ].map(([a, b]) => (
+            <p
+              key={a}
+              className="text-xs font-mono text-text-tertiary text-center min-[480px]:text-left"
+            >
+              {a}{" "}
+              <span className="text-border-primary">&larr;&rarr;</span>{" "}
+              {b}
             </p>
-          </div>
-          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+          ))}
+        </div>
+
+        {/* Other features — editorial text blocks, not cards */}
+        <div className="grid min-[560px]:grid-cols-2 gap-8 max-w-xl mx-auto">
+          <div>
             <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
               Compare and discuss
             </h3>
@@ -49,7 +89,7 @@ export default function Home() {
               groups to see where your circle stands on each axis.
             </p>
           </div>
-          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+          <div>
             <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
               Living profile
             </h3>
