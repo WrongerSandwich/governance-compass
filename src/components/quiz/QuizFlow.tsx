@@ -40,18 +40,10 @@ interface MinistryData {
   belowBaselineWarning: string;
 }
 
-interface AxisData {
-  id: number;
-  name: string;
-  poleALabel: string;
-  poleBLabel: string;
-}
-
 export interface QuizFlowProps {
   forcedChoiceItems: ForcedChoiceItemData[];
   scaledItems: ScaledItemData[];
   ministries: MinistryData[];
-  axes: AxisData[];
 }
 
 // ---------- seeded shuffle ----------
@@ -73,18 +65,10 @@ export function QuizFlow({
   forcedChoiceItems,
   scaledItems,
   ministries,
-  axes,
 }: QuizFlowProps) {
   const { state, dispatch } = useQuiz();
   const router = useRouter();
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Build axis lookup for context labels
-  const axisMap = useMemo(() => {
-    const map = new Map<number, AxisData>();
-    axes.forEach((a) => map.set(a.id, a));
-    return map;
-  }, [axes]);
 
   const shuffledFC = useMemo(
     () => seededShuffle(forcedChoiceItems, Math.floor(state.randomSeed * 2147483647)),
@@ -257,13 +241,6 @@ export function QuizFlow({
           currentIndex={state.currentQuestionIndex}
           totalInPhase={shuffledFC.length}
         />
-
-        {/* Axis context — shows what dimension this dilemma belongs to */}
-        {axisMap.has(item.axisId) && (
-          <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-3">
-            {axisMap.get(item.axisId)!.poleALabel} vs. {axisMap.get(item.axisId)!.poleBLabel}
-          </p>
-        )}
 
         <ForcedChoiceCard
           key={item.id}

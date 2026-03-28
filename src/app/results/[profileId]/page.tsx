@@ -123,9 +123,8 @@ export default async function ResultsPage({
             />
           </div>
 
-          {/* Share + compare actions */}
-          <div className="flex flex-wrap items-center gap-2 mt-5">
-            <CompareButton profileId={profileId} />
+          {/* Share buttons — spec order: image, link, data */}
+          <div className="flex gap-2 mt-5">
             <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2">
               Copy image
             </button>
@@ -176,8 +175,11 @@ export default async function ResultsPage({
 
         {/* Radar section */}
         <section>
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
+            Full profile
+          </p>
           <h2 className="text-[18px] font-serif font-medium text-text-primary mb-4">
-            Your 12-axis profile
+            Radar
           </h2>
           <div className="bg-surface-2 rounded-[12px] p-6">
             <RadarChart
@@ -217,6 +219,8 @@ export default async function ResultsPage({
           </div>
         </section>
 
+        {/* Compare Button */}
+        <CompareButton profileId={profileId} />
       </div>
     </main>
   );
