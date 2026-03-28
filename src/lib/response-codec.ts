@@ -20,8 +20,6 @@ import type { QuizResponses } from "./scoring-types";
 const VERSION = 0x01;
 const AXIS_COUNT = 12;
 const ITEMS_PER_AXIS = 3;
-const FC_COUNT = AXIS_COUNT * ITEMS_PER_AXIS; // 36
-const SC_COUNT = AXIS_COUNT * ITEMS_PER_AXIS; // 36
 const MINISTRY_COUNT = 10;
 const BUDGET_OFFSET = 5;
 
