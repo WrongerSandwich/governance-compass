@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   const profile = await db.$transaction(async (tx) => {
     const newProfile = await tx.userProfile.create({
       data: {
-        anonymousToken: anonymousToken || crypto.randomUUID(),
+        anonymousToken: crypto.randomUUID(),
       },
     });
 

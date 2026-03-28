@@ -39,12 +39,7 @@ export function ForcedChoiceCard({
   const firstStatement = swapped ? statementB : statementA;
   const secondStatement = swapped ? statementA : statementB;
 
-  function cardClasses(visualPole: "A" | "B"): string {
-    const logicalPole = swapped
-      ? visualPole === "A"
-        ? "B"
-        : "A"
-      : visualPole;
+  function cardClasses(logicalPole: "A" | "B"): string {
     const isSelected = selectedPole === logicalPole;
     const hasSelection = selectedPole !== undefined;
 
@@ -60,15 +55,6 @@ export function ForcedChoiceCard({
     return `${base} border-gray-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-md`;
   }
 
-  function handleClick(visualPole: "A" | "B") {
-    const logicalPole = swapped
-      ? visualPole === "A"
-        ? "B"
-        : "A"
-      : visualPole;
-    onSelect(logicalPole);
-  }
-
   return (
     <div>
       {questionType === "PT" && (
@@ -79,21 +65,19 @@ export function ForcedChoiceCard({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <button
           type="button"
-          aria-pressed={
-            selectedPole === (swapped ? "B" : "A")
-          }
-          onClick={() => handleClick(firstPole)}
+          aria-pressed={selectedPole === firstPole}
+          onClick={() => onSelect(firstPole)}
           className={cardClasses(firstPole)}
         >
           <div className="flex items-start gap-3">
             <span
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                selectedPole === (swapped ? "B" : "A")
+                selectedPole === firstPole
                   ? "border-indigo-500 bg-indigo-500"
                   : "border-gray-300 bg-white"
               }`}
             >
-              {selectedPole === (swapped ? "B" : "A") && (
+              {selectedPole === firstPole && (
                 <span className="block h-2 w-2 rounded-full bg-white" />
               )}
             </span>
@@ -103,21 +87,19 @@ export function ForcedChoiceCard({
 
         <button
           type="button"
-          aria-pressed={
-            selectedPole === (swapped ? "A" : "B")
-          }
-          onClick={() => handleClick(secondPole)}
+          aria-pressed={selectedPole === secondPole}
+          onClick={() => onSelect(secondPole)}
           className={cardClasses(secondPole)}
         >
           <div className="flex items-start gap-3">
             <span
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                selectedPole === (swapped ? "A" : "B")
+                selectedPole === secondPole
                   ? "border-indigo-500 bg-indigo-500"
                   : "border-gray-300 bg-white"
               }`}
             >
-              {selectedPole === (swapped ? "A" : "B") && (
+              {selectedPole === secondPole && (
                 <span className="block h-2 w-2 rounded-full bg-white" />
               )}
             </span>

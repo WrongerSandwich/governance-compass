@@ -82,11 +82,12 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
   }
 }
 
-// Initialize budgetAllocations with all 10 ministries at 10 each
+// Initialize budgetAllocations with all 10 ministries at the minimum floor (5 each).
+// 50 units are committed, leaving 50 discretionary units to distribute.
 function createInitialBudget(): Record<number, number> {
   const allocations: Record<number, number> = {};
   for (let i = 1; i <= 10; i++) {
-    allocations[i] = 10;
+    allocations[i] = 5;
   }
   return allocations;
 }
