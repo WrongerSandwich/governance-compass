@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     ),
     scaled: Object.fromEntries(
       scaledResponses.map(r => [r.itemId, r.value])
-    ),
+    ) as Record<string, 1 | 2 | 3 | 4 | 5>,
     budget: Object.fromEntries(
       budgetAllocations.map(a => [a.ministryId, a.amount])
     ),

@@ -28,7 +28,7 @@ export async function GET() {
     }),
   ]);
 
-  const hiddenSet = new Set(visibilities.filter((v) => v.hidden).map((v) => v.axisId));
+  const hiddenSet = new Set(visibilities.filter((v: { hidden: boolean; axisId: number }) => v.hidden).map((v: { axisId: number }) => v.axisId));
 
   return NextResponse.json({
     profileId: profile?.id || null,

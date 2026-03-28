@@ -32,7 +32,7 @@ export function scoreForcedChoiceAxis(
   const items = forcedChoiceItems.filter((item) => item.axisId === axisId);
   if (items.length === 0) return 0;
 
-  const scores = items.map((item) => {
+  const scores: number[] = items.map((item) => {
     const selected = responses[item.id];
     if (selected === "A") return -1.0;
     if (selected === "B") return 1.0;

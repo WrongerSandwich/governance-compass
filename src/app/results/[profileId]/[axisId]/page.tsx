@@ -64,7 +64,7 @@ export default async function AxisDetailPage({
     session?.user?.id && axisScore.profile.userId === session.user.id;
 
   const existingAnnotation = isOwner
-    ? axisScore.annotations.find((a) => a.userId === session.user.id)
+    ? axisScore.annotations.find((a) => a.userId === session.user!.id)
     : null;
 
   const { axis } = axisScore;
