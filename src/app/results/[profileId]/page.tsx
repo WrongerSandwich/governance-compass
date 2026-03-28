@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { archetypes } from "@/data/archetypes";
+import { CompassPlot } from "@/components/results/CompassPlot";
+import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { RadarChart } from "@/components/results/RadarChart";
-import { SpectrumBar } from "@/components/results/SpectrumBar";
+import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
 import { CompareButton } from "@/components/results/CompareButton";
 
 export default async function ResultsPage({
@@ -18,58 +21,125 @@ export default async function ResultsPage({
         include: { axis: true },
         orderBy: { axis: { order: "asc" } },
       },
+      compassScore: true,
+      archetypeResult: true,
     },
   });
 
-  if (!profile) notFound();
+  if (!profile || !profile.compassScore || !profile.archetypeResult) {
+    notFound();
+  }
 
-  const radarData = profile.axisScores.map((as) => ({
-    axisId: as.axisId,
-    name: as.axis.name,
-    poleALabel: as.axis.poleALabel,
-    poleBLabel: as.axis.poleBLabel,
-    domain: as.axis.domain,
-    finalScore: as.finalScore,
-    confidence: as.confidence,
+  // Look up archetype details
+  const primaryArchetype = archetypes.find(
+    (a) => a.id === profile.archetypeResult!.primaryArchetypeId
+  );
+  const secondaryArchetype = archetypes.find(
+    (a) => a.id === profile.archetypeResult!.secondaryArchetypeId
+  );
+
+  // Prepare axis data
+  const axisData = profile.axisScores.map((s) => ({
+    axisId: s.axisId,
+    name: s.axis.name,
+    poleALabel: s.axis.poleALabel,
+    poleBLabel: s.axis.poleBLabel,
+    domain: s.axis.domain,
+    finalScore: s.finalScore,
+    confidence: s.confidence,
+    tension: {
+      detected: s.tensionLevel !== "none",
+      level: s.tensionLevel,
+      direction: s.tensionDirection,
+      narrative: s.tensionNarrative,
+    },
+    components: {
+      fc: s.fcScore,
+      sc: s.scScore,
+      bg: s.bgScore,
+    },
   }));
+
+  // Group axes by domain for breakdown section
+  const domains = [
+    {
+      name: "Economic Organization",
+      axes: axisData.filter((a) => a.domain === "Economic Organization"),
+    },
+    {
+      name: "Power and Authority",
+      axes: axisData.filter((a) => a.domain === "Power and Authority"),
+    },
+    {
+      name: "Society and Identity",
+      axes: axisData.filter((a) => a.domain === "Society and Identity"),
+    },
+    {
+      name: "The State in the World",
+      axes: axisData.filter((a) => a.domain === "The State in the World"),
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Your Political Profile
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Based on your responses across {profile.axisScores.length} axes
-            </p>
-          </div>
-          <CompareButton profileId={profileId} />
-        </div>
+      <div className="mx-auto max-w-3xl space-y-8">
+        <h1 className="text-3xl font-bold text-gray-900 text-center">
+          Your Governance Compass
+        </h1>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Overview
-          </h2>
-          <RadarChart axisScores={radarData} />
+        {/* Layer 1: Compass Plot */}
+        <section className="flex justify-center">
+          <CompassPlot
+            economic={profile.compassScore.economic}
+            cultural={profile.compassScore.cultural}
+          />
         </section>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            By Axis
-          </h2>
-          {profile.axisScores.map((as) => (
-            <SpectrumBar
-              key={as.axisId}
-              topicName={as.axis.name}
-              score={as.finalScore}
-              labelLeft={as.axis.poleALabel}
-              labelRight={as.axis.poleBLabel}
-              insufficientData={as.confidence === "low"}
-            />
+        {/* Layer 2: Archetype Card */}
+        <section>
+          <ArchetypeCard
+            primary={{
+              name: primaryArchetype?.name ?? "Unknown",
+              matchPercentage: profile.archetypeResult.primaryMatchPct,
+              summary: primaryArchetype?.summary ?? "",
+              description: primaryArchetype?.description ?? "",
+              tension: primaryArchetype?.characteristicTension ?? "",
+            }}
+            secondary={{
+              name: secondaryArchetype?.name ?? "Unknown",
+              matchPercentage: profile.archetypeResult.secondaryMatchPct,
+              summary: secondaryArchetype?.summary ?? "",
+            }}
+            isBlended={profile.archetypeResult.isBlended}
+          />
+        </section>
+
+        {/* Layer 3: Radar Chart */}
+        <section>
+          <RadarChart
+            axisScores={axisData}
+            archetypePrototype={primaryArchetype?.prototype}
+          />
+        </section>
+
+        {/* Layer 4: Axis Breakdown by Domain */}
+        <section className="space-y-6">
+          {domains.map((domain) => (
+            <div key={domain.name}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                {domain.name}
+              </h2>
+              <div className="space-y-4">
+                {domain.axes.map((axis) => (
+                  <AxisBreakdownCard key={axis.axisId} {...axis} />
+                ))}
+              </div>
+            </div>
           ))}
         </section>
+
+        {/* Compare Button */}
+        <CompareButton profileId={profileId} />
       </div>
     </main>
   );
