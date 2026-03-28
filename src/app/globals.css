@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   Cartographic Stone Design System
+   ============================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  /* --- Stone accent palette --- */
+  --stone-50:  #f7f4f0;
+  --stone-100: #efe9e3;
+  --stone-200: #e0d6cc;
+  --stone-300: #cdbfb2;
+  --stone-400: #b5a594;
+  --stone-500: #9d8b78;
+  --stone-600: #85735e;
+  --stone-700: #6e5a48;
+  --stone-800: #5a4636;
+  --stone-900: #3d2e1f;
+
+  /* --- Surfaces (light mode) --- */
+  --surface-1: #ffffff;
+  --surface-2: #f7f4f0;
+  --surface-3: #efe9e3;
+
+  /* --- Text (light mode) --- */
+  --text-primary:   #3d2e1f;
+  --text-secondary: #6e5a48;
+  --text-tertiary:  #9d8b78;
+
+  /* --- Borders (light mode) --- */
+  --border-primary:   #cdbfb2;
+  --border-secondary: #e0d6cc;
+  --border-tertiary:  #efe9e3;
+
+  /* --- Semantic --- */
+  --warning:        #d97706;
+  --warning-text:   #92400e;
+  --warning-bg:     #fffbeb;
+  --warning-border: #fde68a;
+  --info:           #2563eb;
+  --info-light:     #dbeafe;
+
+  /* --- Focus --- */
+  --focus-ring: var(--stone-600);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --surface-1: #2a2118;
+    --surface-2: #1f1812;
+    --surface-3: #17120d;
+
+    --text-primary:   #efe9e3;
+    --text-secondary: #cdbfb2;
+    --text-tertiary:  #9d8b78;
+
+    --border-primary:   #5a4636;
+    --border-secondary: #3d2e1f;
+    --border-tertiary:  #2a2118;
+
+    --warning-bg:     #451a03;
+    --warning-text:   #fbbf24;
+    --warning-border: #92400e;
   }
 }
 
+@theme inline {
+  --color-stone-50:  var(--stone-50);
+  --color-stone-100: var(--stone-100);
+  --color-stone-200: var(--stone-200);
+  --color-stone-300: var(--stone-300);
+  --color-stone-400: var(--stone-400);
+  --color-stone-500: var(--stone-500);
+  --color-stone-600: var(--stone-600);
+  --color-stone-700: var(--stone-700);
+  --color-stone-800: var(--stone-800);
+  --color-stone-900: var(--stone-900);
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary:  var(--text-tertiary);
+
+  --color-border-primary:   var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+  --color-border-tertiary:  var(--border-tertiary);
+
+  --color-warning:    var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-info:       var(--info);
+
+  --font-serif: Georgia, 'Times New Roman', 'Noto Serif', serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
 }

@@ -19,55 +19,35 @@ export function PhaseTransition({
 }: PhaseTransitionProps) {
   return (
     <div className="mx-auto max-w-lg py-12">
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm text-center">
-        {/* Completion badge */}
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
-          <svg
-            className="h-8 w-8 text-indigo-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </svg>
-        </div>
-
+      <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
         {/* Completion message */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">
-          Phase {completedPhase} Complete
-        </h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
+          Phase {completedPhase} complete
+        </p>
+        <p className="text-text-tertiary text-sm mb-6">
           You answered {completedCount} question{completedCount !== 1 ? "s" : ""}.
-          Great work!
         </p>
 
         {/* Divider */}
-        <div className="border-t border-gray-200 mb-6" />
+        <div className="border-t border-border-secondary mb-6" />
 
         {/* Next phase info */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600 mb-2">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
           Up next
         </p>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-[18px] font-serif font-medium text-text-primary mb-2">
           {nextPhaseTitle}
         </h3>
-        <p className="text-sm text-gray-600 mb-4">{nextPhaseDescription}</p>
-        <p className="text-sm text-gray-400 mb-8">
-          Estimated time:&nbsp;
-          <span className="font-medium text-gray-600">{estimatedTime}</span>
+        <p className="text-[13px] text-text-secondary mb-4">{nextPhaseDescription}</p>
+        <p className="text-xs font-serif italic text-text-tertiary mb-8">
+          Estimated time: {estimatedTime}
         </p>
 
-        {/* CTA */}
+        {/* CTA — ghost button (not one of the two filled buttons) */}
         <button
           type="button"
           onClick={onContinue}
-          className="w-full rounded-lg bg-indigo-600 py-3 px-6 text-base font-medium text-white hover:bg-indigo-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          className="w-full rounded-[12px] border border-stone-600 py-3 px-6 text-sm font-medium text-stone-600 hover:bg-stone-100 transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
         >
           Continue
         </button>

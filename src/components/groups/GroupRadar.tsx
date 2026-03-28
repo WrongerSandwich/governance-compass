@@ -6,20 +6,12 @@ interface AxisAverage {
   poleALabel: string;
   poleBLabel: string;
   domain: string;
-  average: number; // -1.0 to +1.0
+  average: number;
 }
 
 interface GroupRadarProps {
   data: AxisAverage[];
 }
-
-// Domain groupings matching the results RadarChart
-const DOMAINS = [
-  { name: "Economic", color: "#6366f1", axes: [1, 2] },
-  { name: "Power", color: "#0ea5e9", axes: [3, 4, 5, 6] },
-  { name: "Society", color: "#10b981", axes: [7, 8, 9] },
-  { name: "World", color: "#f59e0b", axes: [10, 11, 12] },
-] as const;
 
 const TOTAL_AXES = 12;
 const SIZE = 500;
@@ -27,12 +19,9 @@ const CX = SIZE / 2;
 const CY = SIZE / 2;
 const MAX_RADIUS = 170;
 const LABEL_PADDING = 28;
-
-// Rings at score values -1.0 (center), -0.5, 0.0, +0.5, +1.0 (perimeter)
-const RING_SCORES = [-1.0, -0.5, 0.0, 0.5, 1.0];
+const RING_FRACTIONS = [0.33, 0.67, 1.0];
 
 function scoreToRadius(score: number): number {
-  // score -1.0 → 0 (center), score +1.0 → MAX_RADIUS
   return ((score + 1) / 2) * MAX_RADIUS;
 }
 
@@ -44,7 +33,16 @@ function polarToCart(angle: number, radius: number): [number, number] {
   return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
 }
 
-function polygonPoints(scores: number[]): string {
+function ringPolygonPoints(radiusFraction: number): string {
+  const r = MAX_RADIUS * radiusFraction;
+  return Array.from({ length: TOTAL_AXES }, (_, i) => {
+    const angle = spokeAngle(i);
+    const [x, y] = polarToCart(angle, r);
+    return `${x},${y}`;
+  }).join(" ");
+}
+
+function scorePolygonPoints(scores: number[]): string {
   return scores
     .map((score, i) => {
       const angle = spokeAngle(i);
@@ -55,21 +53,7 @@ function polygonPoints(scores: number[]): string {
     .join(" ");
 }
 
-function domainArcPath(startIdx: number, endIdx: number): string {
-  const outerR = MAX_RADIUS + 14;
-  const startAngle = spokeAngle(startIdx) - Math.PI / TOTAL_AXES;
-  const endAngle = spokeAngle(endIdx - 1) + Math.PI / TOTAL_AXES;
-  const [x1, y1] = polarToCart(startAngle, outerR);
-  const [x2, y2] = polarToCart(endAngle, outerR);
-  return `M ${x1} ${y1} A ${outerR} ${outerR} 0 0 1 ${x2} ${y2}`;
-}
-
-function getDomainForAxis(axisId: number) {
-  return DOMAINS.find((d) => (d.axes as readonly number[]).includes(axisId));
-}
-
 export function GroupRadar({ data }: GroupRadarProps) {
-  // Pad to 12 axes (score 0 = neutral) so the polygon is always complete
   const padded: AxisAverage[] = Array.from({ length: TOTAL_AXES }, (_, i) => {
     const found = data.find((d) => d.axisId === i + 1);
     return (
@@ -85,7 +69,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
   });
 
   const averageValues = padded.map((d) => d.average);
-  const points = polygonPoints(averageValues);
+  const points = scorePolygonPoints(averageValues);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -94,62 +78,34 @@ export function GroupRadar({ data }: GroupRadarProps) {
         className="w-full max-w-xl"
         aria-label="Group average radar chart"
       >
-        <defs>
-          <radialGradient id="groupFill" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.12" />
-          </radialGradient>
-        </defs>
+        {/* Concentric 12-sided polygon rings */}
+        {RING_FRACTIONS.map((frac) => (
+          <polygon
+            key={frac}
+            points={ringPolygonPoints(frac)}
+            fill="none"
+            style={{ stroke: 'var(--border-tertiary)' }}
+            strokeWidth={frac === 0.67 ? 0.6 : 0.5}
+            opacity={frac === 0.67 ? 0.5 : 0.4}
+          />
+        ))}
 
-        {/* Concentric rings */}
-        {RING_SCORES.map((score) => {
-          const r = scoreToRadius(score);
-          if (r <= 0) return null;
-          return (
-            <circle
-              key={score}
-              cx={CX}
-              cy={CY}
-              r={r}
-              fill="none"
-              stroke="#e2e8f0"
-              strokeWidth={score === 0 ? 1.5 : 0.8}
-              strokeDasharray={score === 0 ? "4 3" : undefined}
-            />
-          );
-        })}
-
-        {/* Spoke lines */}
-        {padded.map((axis, i) => {
-          const angle = spokeAngle(i);
-          const [x, y] = polarToCart(angle, MAX_RADIUS);
+        {/* 6 spoke lines */}
+        {[0, 1, 2, 3, 4, 5].map((i) => {
+          const angle1 = spokeAngle(i);
+          const angle2 = spokeAngle(i + 6);
+          const [x1, y1] = polarToCart(angle1, MAX_RADIUS);
+          const [x2, y2] = polarToCart(angle2, MAX_RADIUS);
           return (
             <line
-              key={axis.axisId}
-              x1={CX}
-              y1={CY}
-              x2={x}
-              y2={y}
-              stroke="#cbd5e1"
-              strokeWidth={0.8}
-            />
-          );
-        })}
-
-        {/* Domain separator arcs */}
-        {DOMAINS.map((domain) => {
-          const startIdx = domain.axes[0] - 1;
-          const endIdx = domain.axes[domain.axes.length - 1];
-          const path = domainArcPath(startIdx, endIdx);
-          return (
-            <path
-              key={domain.name}
-              d={path}
-              fill="none"
-              stroke={domain.color}
-              strokeWidth={3}
-              strokeLinecap="round"
-              opacity={0.7}
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              style={{ stroke: 'var(--border-secondary)' }}
+              strokeWidth={0.5}
+              opacity={0.25}
             />
           );
         })}
@@ -157,19 +113,34 @@ export function GroupRadar({ data }: GroupRadarProps) {
         {/* Group average polygon */}
         <polygon
           points={points}
-          fill="url(#groupFill)"
-          stroke="#6366f1"
-          strokeWidth={2}
+          style={{ fill: 'var(--stone-600)', stroke: 'var(--stone-600)' }}
+          fillOpacity={0.12}
+          strokeOpacity={0.55}
+          strokeWidth={1.5}
           strokeLinejoin="round"
         />
+
+        {/* Vertex dots */}
+        {padded.map((axis, i) => {
+          const angle = spokeAngle(i);
+          const r = scoreToRadius(axis.average);
+          const [x, y] = polarToCart(angle, r);
+          return (
+            <circle
+              key={axis.axisId}
+              cx={x}
+              cy={y}
+              r={3}
+              style={{ fill: 'var(--stone-600)' }}
+            />
+          );
+        })}
 
         {/* Pole B perimeter labels */}
         {padded.map((axis, i) => {
           const angle = spokeAngle(i);
           const labelR = MAX_RADIUS + LABEL_PADDING;
           const [x, y] = polarToCart(angle, labelR);
-          const domain = getDomainForAxis(axis.axisId);
-          const color = domain?.color ?? "#64748b";
 
           const normAngle =
             ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
@@ -190,9 +161,8 @@ export function GroupRadar({ data }: GroupRadarProps) {
               y={y}
               textAnchor={anchor}
               dominantBaseline="central"
-              fontSize={9}
-              fill={color}
-              fontWeight={500}
+              fontSize={10}
+              style={{ fill: 'var(--text-tertiary)' }}
             >
               {parts.map((part, pi) => (
                 <tspan
@@ -208,41 +178,16 @@ export function GroupRadar({ data }: GroupRadarProps) {
         })}
 
         {/* Center dot */}
-        <circle cx={CX} cy={CY} r={3} fill="#94a3b8" />
-
-        {/* Ring score labels */}
-        {["-0.5", "0", "+0.5", "+1"].map((label, i) => {
-          const scoreVal = [-0.5, 0, 0.5, 1.0][i];
-          const r = scoreToRadius(scoreVal);
-          return (
-            <text
-              key={label}
-              x={CX + 3}
-              y={CY - r + 3}
-              fontSize={7.5}
-              fill="#94a3b8"
-              textAnchor="start"
-            >
-              {label}
-            </text>
-          );
-        })}
+        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
       </svg>
 
-      {/* Domain legend */}
-      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-2">
-        {DOMAINS.map((d) => (
-          <div
-            key={d.name}
-            className="flex items-center gap-1.5 text-xs text-gray-500"
-          >
-            <span
-              className="inline-block w-3 h-1.5 rounded-full"
-              style={{ backgroundColor: d.color }}
-            />
-            {d.name}
-          </div>
-        ))}
+      {/* Legend */}
+      <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-2">
+        <span
+          className="inline-block w-2 h-2 rounded-full"
+          style={{ backgroundColor: 'var(--stone-600)' }}
+        />
+        Group average
       </div>
     </div>
   );

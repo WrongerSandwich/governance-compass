@@ -35,25 +35,25 @@ export default function SignUpPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-8 w-full max-w-md shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Create Account
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-8 w-full max-w-md">
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">
+          Create account
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               Name (optional)
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600 focus:ring-offset-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               Email
             </label>
             <input
@@ -61,11 +61,11 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600 focus:ring-offset-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               Password (min 8 characters)
             </label>
             <input
@@ -74,28 +74,28 @@ export default function SignUpPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600 focus:ring-offset-2"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            className="w-full border border-stone-600 text-stone-600 py-2 rounded-[8px] font-medium hover:bg-stone-100 transition-colors duration-150"
           >
-            Create Account
+            Create account
           </button>
         </form>
         <div className="mt-4">
           <button
             onClick={() => signIn("google", { callbackUrl: "/account" })}
-            className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            className="w-full border border-border-primary text-text-secondary py-2 rounded-[8px] font-medium hover:bg-surface-2 transition-colors duration-150"
           >
             Continue with Google
           </button>
         </div>
-        <p className="mt-4 text-sm text-center text-gray-500">
+        <p className="mt-4 text-sm text-center text-text-tertiary">
           Already have an account?{" "}
-          <Link href="/auth/signin" className="text-indigo-600 hover:text-indigo-800">
+          <Link href="/auth/signin" className="text-stone-600 hover:text-stone-800">
             Sign in
           </Link>
         </p>

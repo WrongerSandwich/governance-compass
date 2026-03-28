@@ -19,9 +19,9 @@ export function CompareButton({ profileId }: { profileId: string }) {
   return (
     <button
       onClick={() => router.push(`/compare/${myProfileId}/${profileId}`)}
-      className="bg-purple-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-purple-700 transition-colors"
+      className="border border-stone-600 text-stone-600 py-2 px-6 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
     >
-      Compare with Mine
+      Compare with mine
     </button>
   );
 }

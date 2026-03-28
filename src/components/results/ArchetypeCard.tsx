@@ -27,83 +27,81 @@ export function ArchetypeCard({
   const lowMatch = primary.matchPercentage < 55;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-5">
+      {/* Section label */}
+      <p className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
+        Primary archetype
+      </p>
+
+      {/* Match percentage — visual anchor */}
+      <p className="text-[36px] font-serif font-medium text-text-primary leading-none mb-1">
+        {primary.matchPercentage}%
+      </p>
+
+      {/* Archetype name */}
+      <h2 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+        {primary.name}
+      </h2>
+
       {isBlended && (
-        <div className="mb-4">
-          <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-            Blended Type
-          </span>
-          <p className="mt-1 text-sm text-purple-700">
-            Your profile draws nearly equally from both types
-          </p>
-        </div>
+        <p className="text-xs text-text-tertiary mb-2">
+          Blended type — your profile draws nearly equally from both types
+        </p>
       )}
 
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <h2 className="text-2xl font-bold text-gray-900">{primary.name}</h2>
-        <span className="inline-block bg-indigo-100 text-indigo-700 text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-          {primary.matchPercentage}% match
-        </span>
-      </div>
-
       {lowMatch && (
-        <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+        <p className="text-xs mb-2" style={{ color: 'var(--warning)' }}>
           Your profile is unusually distributed and doesn&apos;t map cleanly to
           any single governance philosophy.
         </p>
       )}
 
-      <p className="mt-3 text-gray-700">{primary.summary}</p>
+      {/* Description */}
+      <p className="text-[13px] text-text-secondary leading-relaxed">
+        {primary.summary}
+      </p>
 
+      {/* Expand toggle — text-only with triangle */}
       <button
         onClick={() => setExpanded((prev) => !prev)}
-        className="mt-3 flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+        className="mt-3 text-[13px] text-text-secondary hover:text-text-primary transition-colors duration-120"
         aria-expanded={expanded}
       >
-        {expanded ? "Show less" : "Learn more"}
-        <svg
-          className={`w-4 h-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        {expanded ? "\u25BE Hide details" : "\u25B8 Learn more"}
       </button>
 
       {expanded && (
-        <div className="mt-4 space-y-4">
-          <p className="text-gray-700 text-sm leading-relaxed">
+        <div className="mt-3 space-y-3">
+          <p className="text-[13px] text-text-secondary leading-relaxed">
             {primary.description}
           </p>
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-              Characteristic Tension
-            </h3>
-            <p className="text-gray-700 text-sm">{primary.tension}</p>
-          </div>
+          {primary.tension && (
+            <div className="bg-surface-2 rounded-[8px] p-3">
+              <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
+                Characteristic tension
+              </p>
+              <p className="text-[13px] text-text-secondary">{primary.tension}</p>
+            </div>
+          )}
         </div>
       )}
 
-      <hr className="my-5 border-gray-200" />
+      {/* Divider */}
+      <div className="border-t border-border-secondary my-4" style={{ borderWidth: '0.5px' }} />
 
-      <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-          Adjacent Type
-        </p>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <span className="font-semibold text-gray-800">{secondary.name}</span>
-          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-            {secondary.matchPercentage}% match
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 mt-0.5">Your second-closest match</p>
-        {secondary.summary && (
-          <p className="text-sm text-gray-600 mt-2">{secondary.summary}</p>
-        )}
+      {/* Adjacent type */}
+      <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
+        Adjacent
+      </p>
+      <div className="flex items-baseline gap-2">
+        <span className="text-sm font-medium text-text-primary">{secondary.name}</span>
+        <span className="text-xs text-text-tertiary">
+          — {secondary.matchPercentage}% match
+        </span>
       </div>
+      {secondary.summary && (
+        <p className="text-xs text-text-tertiary mt-1">{secondary.summary}</p>
+      )}
     </div>
   );
 }

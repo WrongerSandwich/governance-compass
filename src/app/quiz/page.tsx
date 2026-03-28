@@ -14,7 +14,7 @@ export default async function QuizPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4">
+    <main className="min-h-screen px-4">
       <QuizProvider>
         <QuizFlow
           forcedChoiceItems={forcedChoiceItems}

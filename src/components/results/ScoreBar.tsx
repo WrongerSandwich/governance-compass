@@ -4,20 +4,23 @@ export interface ScoreBarProps {
   score: number; // -1.0 to +1.0
   poleALabel: string;
   poleBLabel: string;
-  height?: number; // default 8
+  height?: number; // default 6
 }
 
 export function ScoreBar({
   score,
   poleALabel,
   poleBLabel,
-  height = 8,
+  height = 6,
 }: ScoreBarProps) {
-  // Clamp score to [-1, 1]
   const clamped = Math.max(-1, Math.min(1, score));
 
-  // Convert score to a left percentage (0% = -1.0, 50% = 0.0, 100% = +1.0)
+  // Marker position: 0% = -1.0, 50% = 0.0, 100% = +1.0
   const markerLeft = ((clamped + 1) / 2) * 100;
+
+  // Fill extends from center (50%) toward the score
+  const fillLeft = Math.min(50, markerLeft);
+  const fillWidth = Math.abs(markerLeft - 50);
 
   const formattedScore =
     clamped === 0
@@ -26,47 +29,70 @@ export function ScoreBar({
 
   return (
     <div className="w-full">
-      {/* Bar */}
-      <div
-        className="relative w-full rounded-full overflow-hidden"
-        style={{ height }}
-      >
-        {/* Left half: Pole A side (indigo-200) */}
-        <div
-          className="absolute inset-y-0 left-0 bg-indigo-200"
-          style={{ width: "50%" }}
-        />
-        {/* Right half: Pole B side (rose-200) */}
-        <div
-          className="absolute inset-y-0 right-0 bg-rose-200"
-          style={{ width: "50%" }}
-        />
-        {/* Center marker line */}
-        <div
-          className="absolute inset-y-0 left-1/2 -translate-x-px w-px bg-gray-400"
-          aria-hidden="true"
-        />
-        {/* Score marker dot */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-indigo-600 shadow-md ring-2 ring-white"
+      {/* Score value above the bar, positioned at marker */}
+      <div className="relative mb-1" style={{ height: 14 }}>
+        <span
+          className="absolute text-[10px] font-mono tabular-nums -translate-x-1/2"
           style={{
             left: `${markerLeft}%`,
-            width: height + 4,
-            height: height + 4,
+            color: 'var(--text-secondary)',
+          }}
+        >
+          {formattedScore}
+        </span>
+      </div>
+
+      {/* Track */}
+      <div
+        className="relative w-full rounded-[3px] overflow-visible"
+        style={{
+          height,
+          backgroundColor: 'var(--border-tertiary)',
+        }}
+      >
+        {/* Fill from center toward score */}
+        <div
+          className="absolute inset-y-0 rounded-[3px]"
+          style={{
+            left: `${fillLeft}%`,
+            width: `${fillWidth}%`,
+            backgroundColor: 'var(--stone-600)',
+            opacity: 0.45,
+          }}
+        />
+
+        {/* Center zero mark */}
+        <div
+          className="absolute left-1/2 -translate-x-px"
+          style={{
+            top: -3,
+            width: 0.5,
+            height: height + 6,
+            backgroundColor: 'var(--border-secondary)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Dot marker */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full"
+          style={{
+            left: `${markerLeft}%`,
+            width: 12,
+            height: 12,
+            border: '2px solid var(--stone-600)',
+            backgroundColor: 'var(--surface-1)',
           }}
           aria-hidden="true"
         />
       </div>
 
-      {/* Labels row */}
-      <div className="flex items-center justify-between mt-1">
-        <span className="text-xs text-gray-500 truncate max-w-[40%]">
+      {/* Pole labels */}
+      <div className="flex items-center justify-between mt-1.5">
+        <span className="text-xs text-text-tertiary truncate" style={{ width: 82 }}>
           {poleALabel}
         </span>
-        <span className="text-xs font-semibold text-indigo-700 tabular-nums">
-          {formattedScore}
-        </span>
-        <span className="text-xs text-gray-500 truncate max-w-[40%] text-right">
+        <span className="text-xs text-text-tertiary truncate text-right" style={{ width: 82 }}>
           {poleBLabel}
         </span>
       </div>

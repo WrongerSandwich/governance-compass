@@ -2,58 +2,58 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          The Governance Compass
+    <main className="min-h-screen px-4 py-20">
+      <div className="max-w-[640px] mx-auto text-center">
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-4">
+          The governance compass
         </h1>
-        <p className="text-xl text-gray-600 mb-4 max-w-2xl mx-auto">
+        <p className="text-sm text-text-secondary mb-3 leading-relaxed">
           Explore where you stand across 12 governance dimensions — from
           economic philosophy to international engagement. A research-backed
           assessment that goes far beyond left and right.
         </p>
-        <p className="text-gray-500 mb-10 max-w-xl mx-auto">
+        <p className="text-sm text-text-tertiary mb-8 leading-relaxed">
           Compare your positions with friends dimension by dimension. See where
           you align, where you diverge, and gain a deeper understanding of each
           other&apos;s perspectives on how society should be governed.
         </p>
         <Link
           href="/quiz"
-          className="inline-block bg-indigo-600 text-white py-3 px-8 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
         >
-          Take the Assessment
+          Begin assessment
         </Link>
-        <p className="mt-4 text-sm text-gray-400">
+        <p className="mt-3 text-xs font-serif italic text-text-tertiary">
           ~20 minutes &middot; 3 question modalities &middot; No account required
         </p>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pb-20">
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              12 Dimensions
+      <div className="max-w-4xl mx-auto px-4 pt-16 pb-20">
+        <div className="grid md:grid-cols-3 gap-5">
+          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+              12 dimensions
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-text-secondary text-sm leading-relaxed">
               Measure your positions across 12 governance axes spanning
               economic, political, social, and international domains. No
               oversimplified quadrants.
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Compare &amp; Discuss
+          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+              Compare and discuss
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-text-secondary text-sm leading-relaxed">
               Share your results and compare side-by-side with friends. Create
               groups to see where your circle stands on each dimension.
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Living Profile
+          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+              Living profile
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-text-secondary text-sm leading-relaxed">
               Add annotations explaining your reasoning on any dimension.
               Revisit your results and share nuanced context with others.
             </p>

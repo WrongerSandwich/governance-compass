@@ -70,23 +70,23 @@ export default async function AxisDetailPage({
   const { axis } = axisScore;
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <Link
           href={`/results/${profileId}`}
-          className="text-sm text-indigo-600 hover:text-indigo-800 mb-4 inline-block"
+          className="text-sm text-stone-600 hover:text-stone-800 mb-4 inline-block"
         >
           &larr; Back to full results
         </Link>
 
         <div className="mb-1">
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <span className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium">
             {axis.domain}
           </span>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">{axis.name}</h1>
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">{axis.name}</h1>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
           <ScoreBar
             score={axisScore.finalScore}
             poleALabel={axis.poleALabel}
@@ -95,23 +95,23 @@ export default async function AxisDetailPage({
           />
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Forced Choice</div>
-              <div className="font-semibold text-gray-800 tabular-nums">
+            <div className="bg-surface-2 rounded-[8px] p-3">
+              <div className="text-[11px] text-text-tertiary mb-1">Forced choice</div>
+              <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.fcScore >= 0 ? "+" : ""}
                 {axisScore.fcScore.toFixed(2)}
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Scaled</div>
-              <div className="font-semibold text-gray-800 tabular-nums">
+            <div className="bg-surface-2 rounded-[8px] p-3">
+              <div className="text-[11px] text-text-tertiary mb-1">Scaled</div>
+              <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.scScore >= 0 ? "+" : ""}
                 {axisScore.scScore.toFixed(2)}
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Budget</div>
-              <div className="font-semibold text-gray-800 tabular-nums">
+            <div className="bg-surface-2 rounded-[8px] p-3">
+              <div className="text-[11px] text-text-tertiary mb-1">Budget</div>
+              <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.bgScore != null
                   ? (axisScore.bgScore >= 0 ? "+" : "") +
                     axisScore.bgScore.toFixed(2)
@@ -121,8 +121,8 @@ export default async function AxisDetailPage({
           </div>
 
           {axisScore.tensionLevel !== "none" && axisScore.tensionNarrative && (
-            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-sm text-amber-800">{axisScore.tensionNarrative}</p>
+            <div className="mt-4 rounded-[8px] p-3" style={{ backgroundColor: 'var(--warning-bg)', borderColor: 'var(--warning-border)', borderWidth: '1px' }}>
+              <p className="text-[13px] text-text-secondary">{axisScore.tensionNarrative}</p>
             </div>
           )}
         </div>
@@ -130,23 +130,23 @@ export default async function AxisDetailPage({
         {/* Forced-choice responses */}
         {fcResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Forced-Choice Responses
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-3">
+              Forced-choice responses
             </h2>
             <div className="space-y-3">
               {fcResponses.map((r) => (
                 <div
                   key={r.id}
-                  className="bg-white rounded-lg border border-gray-200 p-4"
+                  className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
                 >
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div
-                      className={`p-2 rounded ${r.selectedPole === "A" ? "bg-indigo-100 font-medium text-indigo-900" : "text-gray-500"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-stone-100 font-medium text-stone-800" : "text-text-tertiary"}`}
                     >
                       {r.item.statementA}
                     </div>
                     <div
-                      className={`p-2 rounded ${r.selectedPole === "B" ? "bg-rose-100 font-medium text-rose-900" : "text-gray-500"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "B" ? "bg-stone-100 font-medium text-stone-800" : "text-text-tertiary"}`}
                     >
                       {r.item.statementB}
                     </div>
@@ -160,19 +160,19 @@ export default async function AxisDetailPage({
         {/* Scaled responses */}
         {scResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Scaled Responses
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-3">
+              Scaled responses
             </h2>
             <div className="space-y-3">
               {scResponses.map((r) => (
                 <div
                   key={r.id}
-                  className="bg-white rounded-lg border border-gray-200 p-4"
+                  className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
                 >
-                  <p className="text-gray-900 text-sm mb-2">
+                  <p className="text-text-primary text-sm mb-2">
                     {r.item.questionStem}
                   </p>
-                  <p className="text-sm font-medium text-indigo-600">
+                  <p className="text-sm font-medium text-stone-600">
                     {getScaledOptionText(r.item, r.value)}
                   </p>
                 </div>
@@ -184,7 +184,7 @@ export default async function AxisDetailPage({
         {/* Annotations */}
         {isOwner && (
           <section className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-[18px] font-serif font-medium text-text-primary">
               Annotations
             </h2>
             <AnnotationEditor
@@ -196,13 +196,13 @@ export default async function AxisDetailPage({
 
         {!isOwner && axisScore.annotations.length > 0 && (
           <section className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">
+            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Notes
             </h2>
             {axisScore.annotations.map((a) => (
               <div
                 key={a.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 text-sm text-gray-700"
+                className="bg-surface-1 rounded-[8px] border border-border-secondary p-4 text-sm text-text-secondary"
               >
                 {a.text}
               </div>

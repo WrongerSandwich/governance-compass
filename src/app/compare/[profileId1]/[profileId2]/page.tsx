@@ -82,16 +82,16 @@ export default async function ComparePage({
   }));
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen px-4 py-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Comparison</h1>
-        <p className="text-gray-500 mb-6">
-          <span className="text-indigo-600 font-medium">{labelA}</span>
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-1">Comparison</h1>
+        <p className="text-text-secondary text-sm mb-6">
+          <span className="font-medium text-text-primary">{labelA}</span>
           {" vs "}
-          <span className="text-rose-500 font-medium">{labelB}</span>
+          <span className="font-medium text-text-primary">{labelB}</span>
         </p>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
+        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
           <AlignmentScore score={comparison.alignmentScore} />
           <ComparisonRadar
             axisScoresA={axisScoresA}
@@ -101,8 +101,10 @@ export default async function ComparePage({
           />
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">By Axis</h2>
+        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+            By axis
+          </h2>
           {comparison.perAxisDeltas
             .sort((a, b) => {
               const axisA = axisMap.get(a.axisId);
@@ -129,27 +131,29 @@ export default async function ComparePage({
 
         {comparison.closestAxes.length > 0 && (
           <div className="grid md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h3 className="font-semibold text-green-700 mb-3">
-                Most Aligned
+            <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+              <h3 className="font-medium text-text-primary mb-3 text-sm">
+                Most aligned
               </h3>
               {comparison.closestAxes.map((d) => (
-                <div key={d.axisId} className="text-sm text-gray-700 mb-1">
+                <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                   {axisMap.get(d.axisId)?.name} —{" "}
-                  <span className="text-green-600">
+                  <span className="font-mono text-xs text-text-tertiary">
                     {d.delta.toFixed(2)} apart
                   </span>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h3 className="font-semibold text-red-700 mb-3">
-                Most Divergent
+            <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+              <h3 className="font-medium text-text-primary mb-3 text-sm">
+                Most divergent
               </h3>
               {comparison.furthestAxes.map((d) => (
-                <div key={d.axisId} className="text-sm text-gray-700 mb-1">
+                <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                   {axisMap.get(d.axisId)?.name} —{" "}
-                  <span className="text-red-600">{d.delta.toFixed(2)} apart</span>
+                  <span className="font-mono text-xs text-text-tertiary">
+                    {d.delta.toFixed(2)} apart
+                  </span>
                 </div>
               ))}
             </div>

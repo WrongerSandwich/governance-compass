@@ -19,7 +19,7 @@ export function ProgressBar({
   return (
     <div className="mb-8">
       {/* Phase label and count */}
-      <div className="flex justify-between text-sm text-gray-600 mb-2">
+      <div className="flex justify-between text-xs text-text-secondary mb-2">
         <span>
           Phase {currentPhase}: {PHASE_LABELS[currentPhase - 1]}
         </span>
@@ -31,7 +31,7 @@ export function ProgressBar({
       </div>
 
       {/* 3-segment progress bar */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-[2px]">
         {[1, 2, 3].map((phase) => {
           const isCompleted = phase < currentPhase;
           const isActive = phase === currentPhase;
@@ -39,15 +39,11 @@ export function ProgressBar({
           return (
             <div
               key={phase}
-              className="flex-1 h-2 rounded-full overflow-hidden bg-gray-200"
+              className="flex-1 h-[3px] overflow-hidden bg-border-tertiary"
             >
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  isCompleted
-                    ? "bg-indigo-600"
-                    : isActive
-                      ? "bg-indigo-600"
-                      : "bg-transparent"
+                className={`h-full transition-all duration-300 ${
+                  isCompleted || isActive ? "bg-stone-600" : "bg-transparent"
                 }`}
                 style={{
                   width: isCompleted

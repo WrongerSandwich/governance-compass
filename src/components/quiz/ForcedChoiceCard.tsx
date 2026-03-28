@@ -25,7 +25,6 @@ export function ForcedChoiceCard({
   // visual swap is consistent within a session but varies across items.
   const swapped = useMemo(() => {
     if (!randomizeOrder) return false;
-    // Simple deterministic hash of the itemId
     let hash = 0;
     for (let i = 0; i < itemId.length; i++) {
       hash = (hash * 31 + itemId.charCodeAt(i)) >>> 0;
@@ -33,7 +32,6 @@ export function ForcedChoiceCard({
     return hash % 2 === 1;
   }, [itemId, randomizeOrder]);
 
-  // Visual poles after optional swap — the logical pole values remain "A"/"B"
   const firstPole = swapped ? "B" : "A";
   const secondPole = swapped ? "A" : "B";
   const firstStatement = swapped ? statementB : statementA;
@@ -44,21 +42,21 @@ export function ForcedChoiceCard({
     const hasSelection = selectedPole !== undefined;
 
     const base =
-      "rounded-lg border p-6 cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+      "rounded-[12px] p-6 cursor-pointer transition-all duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
 
     if (isSelected) {
-      return `${base} border-indigo-500 bg-indigo-50 shadow-md`;
+      return `${base} border-2 border-stone-600 bg-surface-1`;
     }
     if (hasSelection) {
-      return `${base} border-gray-200 bg-white shadow-sm opacity-50`;
+      return `${base} border border-border-secondary bg-surface-1 opacity-60`;
     }
-    return `${base} border-gray-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-md`;
+    return `${base} border border-border-secondary bg-surface-1 hover:border-border-primary`;
   }
 
   return (
     <div>
       {questionType === "PT" && (
-        <p className="mb-4 text-sm font-medium text-gray-500 uppercase tracking-wide">
+        <p className="mb-4 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium">
           Which person&apos;s view is closer to your own?
         </p>
       )}
@@ -69,20 +67,9 @@ export function ForcedChoiceCard({
           onClick={() => onSelect(firstPole)}
           className={cardClasses(firstPole)}
         >
-          <div className="flex items-start gap-3">
-            <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                selectedPole === firstPole
-                  ? "border-indigo-500 bg-indigo-500"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              {selectedPole === firstPole && (
-                <span className="block h-2 w-2 rounded-full bg-white" />
-              )}
-            </span>
-            <p className="text-left text-base text-gray-900">{firstStatement}</p>
-          </div>
+          <p className="text-left text-sm text-text-primary leading-relaxed">
+            {firstStatement}
+          </p>
         </button>
 
         <button
@@ -91,20 +78,9 @@ export function ForcedChoiceCard({
           onClick={() => onSelect(secondPole)}
           className={cardClasses(secondPole)}
         >
-          <div className="flex items-start gap-3">
-            <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                selectedPole === secondPole
-                  ? "border-indigo-500 bg-indigo-500"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              {selectedPole === secondPole && (
-                <span className="block h-2 w-2 rounded-full bg-white" />
-              )}
-            </span>
-            <p className="text-left text-base text-gray-900">{secondStatement}</p>
-          </div>
+          <p className="text-left text-sm text-text-primary leading-relaxed">
+            {secondStatement}
+          </p>
         </button>
       </div>
     </div>

@@ -111,8 +111,8 @@ export default function AccountPage() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-text-tertiary">Loading...</p>
       </main>
     );
   }
@@ -128,55 +128,55 @@ export default function AccountPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen px-4 py-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Account</h1>
-        <p className="text-gray-500 mb-8">{session?.user?.email}</p>
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-1">Account</h1>
+        <p className="text-text-tertiary text-sm mb-8">{session?.user?.email}</p>
 
         {/* Profile link / claim */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            Your Profile
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            Your profile
           </h2>
           {profileId ? (
             <Link
               href={`/results/${profileId}`}
-              className="text-indigo-600 hover:text-indigo-800"
+              className="text-stone-600 hover:text-stone-800 text-sm"
             >
               View your results &rarr;
             </Link>
           ) : (
             <div>
-              <p className="text-gray-600 text-sm mb-3">
+              <p className="text-text-secondary text-sm mb-3">
                 If you took the assessment before creating an account, you can
                 link those results to your account.
               </p>
               <button
                 onClick={handleClaim}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
               >
-                Claim Anonymous Profile
+                Claim anonymous profile
               </button>
               {claimStatus && (
-                <p className="text-sm mt-2 text-gray-600">{claimStatus}</p>
+                <p className="text-sm mt-2 text-text-secondary">{claimStatus}</p>
               )}
             </div>
           )}
         </section>
 
         {/* Axis visibility */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
             Privacy
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-text-tertiary mb-4">
             Hide governance dimensions from comparisons. Hidden dimensions
             won&apos;t appear when others compare with you.
           </p>
           <div className="space-y-5">
             {Object.entries(axesByDomain).map(([domain, domainAxes]) => (
               <div key={domain}>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h3 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
                   {domain}
                 </h3>
                 <div className="space-y-1">
@@ -185,12 +185,12 @@ export default function AccountPage() {
                       key={a.axisId}
                       className="flex items-center justify-between py-1"
                     >
-                      <span className="text-gray-700 text-sm">{a.axisName}</span>
+                      <span className="text-text-secondary text-sm">{a.axisName}</span>
                       <input
                         type="checkbox"
                         checked={!a.hidden}
                         onChange={() => toggleVisibility(a.axisId, !a.hidden)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-border-primary text-stone-600 focus:ring-stone-600"
                       />
                     </label>
                   ))}
@@ -201,8 +201,8 @@ export default function AccountPage() {
         </section>
 
         {/* Groups */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-4">
             Groups
           </h2>
           {groups.length > 0 ? (
@@ -211,55 +211,55 @@ export default function AccountPage() {
                 <Link
                   key={g.id}
                   href={`/groups/${g.id}`}
-                  className="block bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
+                  className="block bg-surface-2 rounded-[8px] p-3 hover:bg-stone-100 transition-colors duration-120"
                 >
-                  <div className="font-medium text-gray-900">{g.name}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-medium text-text-primary">{g.name}</div>
+                  <div className="text-xs text-text-tertiary">
                     {g.memberCount} members &middot; {g.inviteCode}
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-text-tertiary mb-4">
               You&apos;re not in any groups yet.
             </p>
           )}
 
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Create a Group
+          <div className="border-t border-border-secondary pt-4 mt-4">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">
+              Create a group
             </h3>
             <div className="flex gap-2">
               <input
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Group name"
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600"
               />
               <button
                 onClick={handleCreateGroup}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
               >
                 Create
               </button>
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Join a Group
+          <div className="border-t border-border-secondary pt-4 mt-4">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">
+              Join a group
             </h3>
             <div className="flex gap-2">
               <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
                 placeholder="Invite code (e.g., ABCD-1234)"
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600"
               />
               <button
                 onClick={handleJoinGroup}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
               >
                 Join
               </button>

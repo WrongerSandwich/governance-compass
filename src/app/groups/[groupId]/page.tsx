@@ -50,7 +50,7 @@ export default function GroupPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center">
         <p className="text-red-600">{error}</p>
       </main>
     );
@@ -58,8 +58,8 @@ export default function GroupPage() {
 
   if (!data) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-text-tertiary">Loading...</p>
       </main>
     );
   }
@@ -76,32 +76,32 @@ export default function GroupPage() {
     }));
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen px-4 py-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-[22px] font-serif font-medium text-text-primary">
               {data.group.name}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-text-tertiary text-sm mt-1">
               {data.members.length} members &middot; Invite code:{" "}
-              <code className="bg-gray-100 px-2 py-0.5 rounded text-sm">
+              <code className="bg-surface-2 px-2 py-0.5 rounded-[4px] text-xs font-mono text-text-secondary">
                 {data.group.inviteCode}
               </code>
             </p>
           </div>
         </div>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Group Average
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+            Group average
           </h2>
           <GroupRadar data={radarData} />
         </section>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Agreement &amp; Spread
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+            Agreement and spread
           </h2>
           <GroupHeatMap
             stats={data.axisStats
@@ -113,9 +113,9 @@ export default function GroupPage() {
           />
         </section>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            By Axis
+        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+            By axis
           </h2>
           {data.axisStats
             .filter((as) => as.memberScores.length > 0)

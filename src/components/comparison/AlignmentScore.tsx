@@ -3,17 +3,10 @@ interface AlignmentScoreProps {
 }
 
 export function AlignmentScore({ score }: AlignmentScoreProps) {
-  const color =
-    score >= 75
-      ? "text-green-600"
-      : score >= 50
-        ? "text-amber-600"
-        : "text-red-600";
-
   return (
     <div className="text-center py-6">
-      <div className={`text-5xl font-bold ${color}`}>{score}%</div>
-      <div className="text-gray-500 mt-1">Overall Alignment</div>
+      <div className="text-[36px] font-serif font-medium text-text-primary">{score}%</div>
+      <div className="text-text-tertiary text-sm mt-1">Overall alignment</div>
     </div>
   );
 }

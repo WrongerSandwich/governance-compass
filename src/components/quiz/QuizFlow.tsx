@@ -52,7 +52,6 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
   const out = [...array];
   let s = seed;
   for (let i = out.length - 1; i > 0; i--) {
-    // Simple LCG-style PRNG
     s = (s * 16807 + 0) % 2147483647;
     const j = s % (i + 1);
     [out[i], out[j]] = [out[j], out[i]];
@@ -71,7 +70,6 @@ export function QuizFlow({
   const router = useRouter();
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Shuffled item orders, stable for the lifetime of the quiz
   const shuffledFC = useMemo(
     () => seededShuffle(forcedChoiceItems, Math.floor(state.randomSeed * 2147483647)),
     [forcedChoiceItems, state.randomSeed]
@@ -82,7 +80,6 @@ export function QuizFlow({
     [scaledItems, state.randomSeed]
   );
 
-  // Clear timer on unmount
   useEffect(() => {
     return () => {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
@@ -95,7 +92,6 @@ export function QuizFlow({
     (itemId: string, pole: "A" | "B") => {
       dispatch({ type: "SET_FC_RESPONSE", itemId, selectedPole: pole });
 
-      // Auto-advance after a short delay
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
         if (state.currentQuestionIndex < shuffledFC.length - 1) {
@@ -114,7 +110,6 @@ export function QuizFlow({
     (itemId: string, value: 1 | 2 | 3 | 4 | 5) => {
       dispatch({ type: "SET_SC_RESPONSE", itemId, value });
 
-      // Auto-advance after a short delay
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
         if (state.currentQuestionIndex < shuffledSC.length - 1) {
@@ -139,7 +134,6 @@ export function QuizFlow({
   const handleBudgetFinalize = useCallback(async () => {
     dispatch({ type: "START_COMPUTING" });
 
-    // Build submission payload
     const forcedChoiceResponses = Object.entries(state.forcedChoiceResponses).map(
       ([itemId, selectedPole]) => ({ itemId, selectedPole })
     );
@@ -169,9 +163,11 @@ export function QuizFlow({
         localStorage.setItem("anonymousToken", data.anonymousToken);
         localStorage.setItem("profileId", data.profileId);
         dispatch({ type: "COMPLETE" });
-        router.push(`/results/${data.profileId}`);
+        // Artificial delay per spec (1.5-2s) before redirect
+        setTimeout(() => {
+          router.push(`/results/${data.profileId}`);
+        }, 1800);
       } else {
-        // On failure, revert to phase3 so user can retry
         dispatch({ type: "START_PHASE3" });
       }
     } catch {
@@ -209,24 +205,24 @@ export function QuizFlow({
   // Intro screen
   if (state.phase === "intro") {
     return (
-      <div className="mx-auto max-w-2xl py-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          The Governance Compass
+      <div className="mx-auto max-w-[640px] py-12 text-center">
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-4">
+          The governance compass
         </h1>
-        <p className="text-lg text-gray-600 mb-2">
+        <p className="text-sm text-text-secondary mb-2 leading-relaxed">
           A multi-dimensional assessment of your political priorities and values.
           You will work through three phases: dilemma choices, calibrated scales,
           and a budget allocation exercise.
         </p>
-        <p className="text-gray-500 mb-8">
+        <p className="text-xs font-serif italic text-text-tertiary mb-8">
           Estimated time: ~20 minutes
         </p>
         <button
           type="button"
           onClick={() => dispatch({ type: "START_QUIZ" })}
-          className="rounded-lg bg-indigo-600 px-8 py-3 text-lg font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          className="rounded-[12px] bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
         >
-          Begin Assessment
+          Begin assessment
         </button>
       </div>
     );
@@ -262,7 +258,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-lg bg-gray-100 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -270,7 +266,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {state.currentQuestionIndex === shuffledFC.length - 1
               ? "Continue"
@@ -287,7 +283,7 @@ export function QuizFlow({
       <PhaseTransition
         completedPhase={1}
         completedCount={Object.keys(state.forcedChoiceResponses).length}
-        nextPhaseTitle="Calibrated Scales"
+        nextPhaseTitle="Calibrated scales"
         nextPhaseDescription="Now you will rate your position on a series of nuanced statements, giving us a finer-grained picture of your views."
         estimatedTime="~8 minutes"
         onContinue={() => dispatch({ type: "START_PHASE2" })}
@@ -327,7 +323,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-lg bg-gray-100 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -335,7 +331,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {state.currentQuestionIndex === shuffledSC.length - 1
               ? "Continue"
@@ -352,7 +348,7 @@ export function QuizFlow({
       <PhaseTransition
         completedPhase={2}
         completedCount={Object.keys(state.scaledResponses).length}
-        nextPhaseTitle="The Chancellor's Budget"
+        nextPhaseTitle="The chancellor's budget"
         nextPhaseDescription="Finally, allocate a fixed budget across government ministries. Your spending choices reveal priorities beyond what words alone can capture."
         estimatedTime="~4 minutes"
         onContinue={() => dispatch({ type: "START_PHASE3" })}
@@ -376,21 +372,35 @@ export function QuizFlow({
     );
   }
 
-  // Computing / submitting
+  // Computing / submitting — thin animated Stone 600 line
   if (state.phase === "computing" || state.phase === "done") {
     return (
       <div className="mx-auto max-w-lg py-24 text-center">
-        <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        {/* Animated loading line */}
+        <div className="w-full h-[2px] bg-border-tertiary rounded-full overflow-hidden mb-8">
+          <div
+            className="h-full bg-stone-600 rounded-full"
+            style={{
+              animation: 'loading-slide 1.5s ease-in-out infinite',
+              width: '40%',
+            }}
+          />
+        </div>
+        <style>{`
+          @keyframes loading-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+          }
+        `}</style>
+        <h2 className="text-[18px] font-serif font-medium text-text-primary mb-2">
           Computing your results
         </h2>
-        <p className="text-gray-500">
+        <p className="text-sm text-text-tertiary">
           Analyzing your responses across all three modalities...
         </p>
       </div>
     );
   }
 
-  // Fallback (should not reach)
   return null;
 }
