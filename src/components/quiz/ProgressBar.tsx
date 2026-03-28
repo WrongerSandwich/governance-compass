@@ -1,32 +1,65 @@
 "use client";
 
 interface ProgressBarProps {
+  currentPhase: 1 | 2 | 3;
   currentIndex: number;
-  totalTopics: number;
-  topicNames: string[];
+  totalInPhase: number;
 }
 
+const PHASE_LABELS = ["Dilemmas", "Calibration", "Budget"];
+
 export function ProgressBar({
+  currentPhase,
   currentIndex,
-  totalTopics,
-  topicNames,
+  totalInPhase,
 }: ProgressBarProps) {
-  const progress = ((currentIndex + 1) / totalTopics) * 100;
+  const progressInPhase =
+    totalInPhase > 0 ? ((currentIndex + 1) / totalInPhase) * 100 : 0;
 
   return (
     <div className="mb-8">
+      {/* Phase label and count */}
       <div className="flex justify-between text-sm text-gray-600 mb-2">
         <span>
-          Topic {currentIndex + 1} of {totalTopics}:{" "}
-          <span className="font-medium">{topicNames[currentIndex]}</span>
+          Phase {currentPhase}: {PHASE_LABELS[currentPhase - 1]}
         </span>
-        <span>{Math.round(progress)}%</span>
+        {totalInPhase > 1 && (
+          <span>
+            {currentIndex + 1} of {totalInPhase}
+          </span>
+        )}
       </div>
-      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
+
+      {/* 3-segment progress bar */}
+      <div className="flex gap-1.5">
+        {[1, 2, 3].map((phase) => {
+          const isCompleted = phase < currentPhase;
+          const isActive = phase === currentPhase;
+
+          return (
+            <div
+              key={phase}
+              className="flex-1 h-2 rounded-full overflow-hidden bg-gray-200"
+            >
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  isCompleted
+                    ? "bg-indigo-600"
+                    : isActive
+                      ? "bg-indigo-600"
+                      : "bg-transparent"
+                }`}
+                style={{
+                  width: isCompleted
+                    ? "100%"
+                    : isActive
+                      ? `${progressInPhase}%`
+                      : "0%",
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

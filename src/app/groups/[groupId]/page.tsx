@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { GroupSpectrum } from "@/components/groups/GroupSpectrum";
+import { GroupScoreBar } from "@/components/groups/GroupScoreBar";
 import { GroupHeatMap } from "@/components/groups/GroupHeatMap";
 import { GroupRadar } from "@/components/groups/GroupRadar";
 
-interface TopicStat {
-  topicId: string;
-  topicName: string;
-  spectrumLabelLeft: string;
-  spectrumLabelRight: string;
+interface AxisStat {
+  axisId: number;
+  axisName: string;
+  poleALabel: string;
+  poleBLabel: string;
+  domain: string;
   average: number | null;
   spread: number;
   memberScores: number[];
@@ -24,8 +25,12 @@ interface GroupData {
     showNames: boolean;
     creatorId: string;
   };
-  members: { userId: string; name: string | null; scores: { topicId: string; score: number }[] }[];
-  topicStats: TopicStat[];
+  members: {
+    userId: string;
+    name: string | null;
+    scores: { axisId: number; score: number }[];
+  }[];
+  axisStats: AxisStat[];
 }
 
 export default function GroupPage() {
@@ -59,9 +64,16 @@ export default function GroupPage() {
     );
   }
 
-  const radarData = data.topicStats
-    .filter((ts) => ts.average !== null)
-    .map((ts) => ({ topic: ts.topicName, average: ts.average! }));
+  const radarData = data.axisStats
+    .filter((as) => as.average !== null)
+    .map((as) => ({
+      axisId: as.axisId,
+      axisName: as.axisName,
+      poleALabel: as.poleALabel,
+      poleBLabel: as.poleBLabel,
+      domain: as.domain,
+      average: as.average!,
+    }));
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8">
@@ -89,32 +101,32 @@ export default function GroupPage() {
 
         <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Agreement & Spread
+            Agreement &amp; Spread
           </h2>
           <GroupHeatMap
-            stats={data.topicStats
-              .filter((ts) => ts.average !== null)
-              .map((ts) => ({
-                topicName: ts.topicName,
-                spread: ts.spread,
+            stats={data.axisStats
+              .filter((as) => as.average !== null)
+              .map((as) => ({
+                axisName: as.axisName,
+                spread: as.spread,
               }))}
           />
         </section>
 
         <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            By Topic
+            By Axis
           </h2>
-          {data.topicStats
-            .filter((ts) => ts.memberScores.length > 0)
-            .map((ts) => (
-              <GroupSpectrum
-                key={ts.topicId}
-                topicName={ts.topicName}
-                labelLeft={ts.spectrumLabelLeft}
-                labelRight={ts.spectrumLabelRight}
-                memberScores={ts.memberScores}
-                average={ts.average}
+          {data.axisStats
+            .filter((as) => as.memberScores.length > 0)
+            .map((as) => (
+              <GroupScoreBar
+                key={as.axisId}
+                axisName={as.axisName}
+                poleALabel={as.poleALabel}
+                poleBLabel={as.poleBLabel}
+                memberScores={as.memberScores}
+                average={as.average}
               />
             ))}
         </section>

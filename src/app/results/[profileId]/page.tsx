@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { generateInsights } from "@/lib/insights";
+import { archetypes } from "@/data/archetypes";
+import { CompassPlot } from "@/components/results/CompassPlot";
+import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { RadarChart } from "@/components/results/RadarChart";
-import { SpectrumBar } from "@/components/results/SpectrumBar";
-import { InsightCard } from "@/components/results/InsightCard";
+import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
 import { CompareButton } from "@/components/results/CompareButton";
 
 export default async function ResultsPage({
@@ -16,87 +17,129 @@ export default async function ResultsPage({
   const profile = await db.userProfile.findUnique({
     where: { id: profileId },
     include: {
-      topicScores: {
-        include: { topic: true },
-        orderBy: { topic: { order: "asc" } },
+      axisScores: {
+        include: { axis: true },
+        orderBy: { axis: { order: "asc" } },
       },
+      compassScore: true,
+      archetypeResult: true,
     },
   });
 
-  if (!profile) notFound();
+  if (!profile || !profile.compassScore || !profile.archetypeResult) {
+    notFound();
+  }
 
-  const topics = profile.topicScores.map((ts) => ({
-    id: ts.topic.id,
-    name: ts.topic.name,
-    spectrumLabelLeft: ts.topic.spectrumLabelLeft,
-    spectrumLabelRight: ts.topic.spectrumLabelRight,
-    spectrumLabelCenter: ts.topic.spectrumLabelCenter,
+  // Look up archetype details
+  const primaryArchetype = archetypes.find(
+    (a) => a.id === profile.archetypeResult!.primaryArchetypeId
+  );
+  const secondaryArchetype = archetypes.find(
+    (a) => a.id === profile.archetypeResult!.secondaryArchetypeId
+  );
+
+  // Prepare axis data
+  const axisData = profile.axisScores.map((s) => ({
+    axisId: s.axisId,
+    name: s.axis.name,
+    poleALabel: s.axis.poleALabel,
+    poleBLabel: s.axis.poleBLabel,
+    domain: s.axis.domain,
+    finalScore: s.finalScore,
+    confidence: s.confidence,
+    tension: {
+      detected: s.tensionLevel !== "none",
+      level: s.tensionLevel,
+      direction: s.tensionDirection,
+      narrative: s.tensionNarrative,
+    },
+    components: {
+      fc: s.fcScore,
+      sc: s.scScore,
+      bg: s.bgScore,
+    },
   }));
 
-  const scores = profile.topicScores.map((ts) => ({
-    topicId: ts.topicId,
-    score: ts.score,
-    answeredCount: ts.answeredCount,
-    insufficientData: ts.insufficientData,
-  }));
-
-  const insights = generateInsights(scores, topics);
-
-  const radarData = profile.topicScores
-    .filter((ts) => !ts.insufficientData)
-    .map((ts) => ({
-      topicName: ts.topic.name,
-      score: ts.score,
-    }));
+  // Group axes by domain for breakdown section
+  const domains = [
+    {
+      name: "Economic Organization",
+      axes: axisData.filter((a) => a.domain === "Economic Organization"),
+    },
+    {
+      name: "Power and Authority",
+      axes: axisData.filter((a) => a.domain === "Power and Authority"),
+    },
+    {
+      name: "Society and Identity",
+      axes: axisData.filter((a) => a.domain === "Society and Identity"),
+    },
+    {
+      name: "The State in the World",
+      axes: axisData.filter((a) => a.domain === "The State in the World"),
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Your Political Profile
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Based on your responses across {profile.topicScores.length} topics
-            </p>
-          </div>
-          <CompareButton profileId={profileId} />
-        </div>
+      <div className="mx-auto max-w-3xl space-y-8">
+        <h1 className="text-3xl font-bold text-gray-900 text-center">
+          Your Governance Compass
+        </h1>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Overview
-          </h2>
-          <RadarChart scores={radarData} />
+        {/* Layer 1: Compass Plot */}
+        <section className="flex justify-center">
+          <CompassPlot
+            economic={profile.compassScore.economic}
+            cultural={profile.compassScore.cultural}
+          />
         </section>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            By Topic
-          </h2>
-          {profile.topicScores.map((ts) => (
-            <SpectrumBar
-              key={ts.topicId}
-              topicName={ts.topic.name}
-              score={ts.score}
-              labelLeft={ts.topic.spectrumLabelLeft}
-              labelRight={ts.topic.spectrumLabelRight}
-              insufficientData={ts.insufficientData}
-            />
+        {/* Layer 2: Archetype Card */}
+        <section>
+          <ArchetypeCard
+            primary={{
+              name: primaryArchetype?.name ?? "Unknown",
+              matchPercentage: profile.archetypeResult.primaryMatchPct,
+              summary: primaryArchetype?.summary ?? "",
+              description: primaryArchetype?.description ?? "",
+              tension: primaryArchetype?.characteristicTension ?? "",
+            }}
+            secondary={{
+              name: secondaryArchetype?.name ?? "Unknown",
+              matchPercentage: profile.archetypeResult.secondaryMatchPct,
+              summary: secondaryArchetype?.summary ?? "",
+            }}
+            isBlended={profile.archetypeResult.isBlended}
+          />
+        </section>
+
+        {/* Layer 3: Radar Chart */}
+        <section>
+          <RadarChart
+            axisScores={axisData}
+            archetypePrototype={primaryArchetype?.prototype}
+          />
+        </section>
+
+        {/* Layer 4: Axis Breakdown by Domain */}
+        <section className="space-y-6">
+          {domains.map((domain) => (
+            <div key={domain.name}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                {domain.name}
+              </h2>
+              <div className="space-y-4">
+                {domain.axes.map((axis) => (
+                  <AxisBreakdownCard key={axis.axisId} {...axis} />
+                ))}
+              </div>
+            </div>
           ))}
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Insights
-          </h2>
-          <div className="grid gap-3">
-            {insights.map((insight, i) => (
-              <InsightCard key={i} insight={insight} />
-            ))}
-          </div>
-        </section>
+        {/* Compare Button */}
+        <CompareButton profileId={profileId} />
       </div>
     </main>
   );

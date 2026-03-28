@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { generateInsights } from "@/lib/insights";
+import { archetypes } from "@/data/archetypes";
 
 export async function GET(
   _request: NextRequest,
@@ -11,12 +11,15 @@ export async function GET(
   const profile = await db.userProfile.findUnique({
     where: { id: profileId },
     include: {
-      topicScores: {
+      axisScores: {
         include: {
-          topic: true,
+          axis: true,
           annotations: true,
         },
+        orderBy: { axisId: "asc" },
       },
+      compassScore: true,
+      archetypeResult: true,
     },
   });
 
@@ -24,39 +27,59 @@ export async function GET(
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
 
-  const topics = profile.topicScores.map((ts) => ({
-    id: ts.topic.id,
-    name: ts.topic.name,
-    spectrumLabelLeft: ts.topic.spectrumLabelLeft,
-    spectrumLabelRight: ts.topic.spectrumLabelRight,
-    spectrumLabelCenter: ts.topic.spectrumLabelCenter,
-  }));
+  if (!profile.compassScore || !profile.archetypeResult) {
+    return NextResponse.json({ error: "Results not yet computed" }, { status: 404 });
+  }
 
-  const scores = profile.topicScores.map((ts) => ({
-    topicId: ts.topicId,
-    score: ts.score,
-    answeredCount: ts.answeredCount,
-    insufficientData: ts.insufficientData,
-  }));
-
-  const insights = generateInsights(scores, topics);
+  // Look up archetype details
+  const primaryArchetype = archetypes.find(a => a.id === profile.archetypeResult!.primaryArchetypeId);
+  const secondaryArchetype = archetypes.find(a => a.id === profile.archetypeResult!.secondaryArchetypeId);
 
   return NextResponse.json({
     profileId: profile.id,
     createdAt: profile.createdAt,
-    updatedAt: profile.updatedAt,
-    scores: profile.topicScores.map((ts) => ({
-      topicId: ts.topicId,
-      topicName: ts.topic.name,
-      topicIcon: ts.topic.icon,
-      spectrumLabelLeft: ts.topic.spectrumLabelLeft,
-      spectrumLabelRight: ts.topic.spectrumLabelRight,
-      spectrumLabelCenter: ts.topic.spectrumLabelCenter,
-      score: ts.score,
-      answeredCount: ts.answeredCount,
-      insufficientData: ts.insufficientData,
-      annotations: ts.annotations,
+    axes: profile.axisScores.map(s => ({
+      id: s.axisId,
+      name: s.axis.name,
+      poleA: s.axis.poleALabel,
+      poleB: s.axis.poleBLabel,
+      domain: s.axis.domain,
+      score: s.finalScore,
+      confidence: s.confidence,
+      tension: {
+        detected: s.tensionLevel !== "none",
+        level: s.tensionLevel,
+        direction: s.tensionDirection,
+        narrative: s.tensionNarrative,
+      },
+      components: {
+        fc: s.fcScore,
+        sc: s.scScore,
+        bg: s.bgScore,
+      },
+      annotations: s.annotations,
     })),
-    insights,
+    compass: {
+      economic: profile.compassScore.economic,
+      cultural: profile.compassScore.cultural,
+    },
+    archetype: {
+      primary: {
+        id: profile.archetypeResult.primaryArchetypeId,
+        name: primaryArchetype?.name ?? "Unknown",
+        matchPercentage: profile.archetypeResult.primaryMatchPct,
+        summary: primaryArchetype?.summary ?? "",
+        description: primaryArchetype?.description ?? "",
+        tension: primaryArchetype?.characteristicTension ?? "",
+        prototype: primaryArchetype?.prototype ?? [],
+      },
+      secondary: {
+        id: profile.archetypeResult.secondaryArchetypeId,
+        name: secondaryArchetype?.name ?? "Unknown",
+        matchPercentage: profile.archetypeResult.secondaryMatchPct,
+        summary: secondaryArchetype?.summary ?? "",
+      },
+      isBlended: profile.archetypeResult.isBlended,
+    },
   });
 }

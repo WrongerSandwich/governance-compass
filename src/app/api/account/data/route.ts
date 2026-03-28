@@ -10,14 +10,14 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const [profile, allTopics, visibilities, groups] = await Promise.all([
+  const [profile, allAxes, visibilities, groups] = await Promise.all([
     db.userProfile.findFirst({
       where: { userId },
       orderBy: { updatedAt: "desc" },
       select: { id: true },
     }),
-    db.topic.findMany({ orderBy: { order: "asc" } }),
-    db.topicVisibility.findMany({ where: { userId } }),
+    db.axis.findMany({ orderBy: { order: "asc" } }),
+    db.axisVisibility.findMany({ where: { userId } }),
     db.groupMember.findMany({
       where: { userId },
       include: {
@@ -28,14 +28,15 @@ export async function GET() {
     }),
   ]);
 
-  const hiddenSet = new Set(visibilities.filter((v) => v.hidden).map((v) => v.topicId));
+  const hiddenSet = new Set(visibilities.filter((v) => v.hidden).map((v) => v.axisId));
 
   return NextResponse.json({
     profileId: profile?.id || null,
-    topicVisibility: allTopics.map((t) => ({
-      topicId: t.id,
-      topicName: t.name,
-      hidden: hiddenSet.has(t.id),
+    axisVisibility: allAxes.map((a) => ({
+      axisId: a.id,
+      axisName: a.name,
+      domain: a.domain,
+      hidden: hiddenSet.has(a.id),
     })),
     groups: groups.map((gm) => ({
       id: gm.group.id,

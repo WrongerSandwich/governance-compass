@@ -1,82 +1,93 @@
 import { describe, it, expect } from "vitest";
 import { compareProfiles, type ComparisonResult } from "@/lib/comparison";
-import { type TopicScoreResult } from "@/lib/scoring";
 
-const makeScore = (
-  topicId: string,
-  score: number,
-  insufficientData = false
-): TopicScoreResult => ({
-  topicId,
-  score,
-  answeredCount: insufficientData ? 1 : 5,
-  insufficientData,
+const makeScore = (axisId: number, finalScore: number) => ({
+  axisId,
+  finalScore,
 });
 
 describe("compareProfiles", () => {
   it("returns 100% alignment for identical profiles", () => {
-    const scoresA = [makeScore("t1", 50), makeScore("t2", 75)];
-    const scoresB = [makeScore("t1", 50), makeScore("t2", 75)];
+    const scoresA = [makeScore(1, 0.5), makeScore(2, -0.25)];
+    const scoresB = [makeScore(1, 0.5), makeScore(2, -0.25)];
     const result = compareProfiles(scoresA, scoresB);
     expect(result.alignmentScore).toBe(100);
-    expect(result.perTopicDeltas).toHaveLength(2);
-    expect(result.perTopicDeltas.every((d) => d.delta === 0)).toBe(true);
+    expect(result.perAxisDeltas).toHaveLength(2);
+    expect(result.perAxisDeltas.every((d) => d.delta === 0)).toBe(true);
   });
 
   it("returns 0% alignment for maximally divergent profiles", () => {
-    const scoresA = [makeScore("t1", 0), makeScore("t2", 0)];
-    const scoresB = [makeScore("t1", 100), makeScore("t2", 100)];
+    const scoresA = [makeScore(1, -1.0), makeScore(2, -1.0)];
+    const scoresB = [makeScore(1, 1.0), makeScore(2, 1.0)];
     const result = compareProfiles(scoresA, scoresB);
     expect(result.alignmentScore).toBe(0);
   });
 
-  it("calculates correct per-topic deltas", () => {
-    const scoresA = [makeScore("t1", 30), makeScore("t2", 80)];
-    const scoresB = [makeScore("t1", 70), makeScore("t2", 60)];
+  it("calculates correct per-axis deltas", () => {
+    const scoresA = [makeScore(1, -0.4), makeScore(2, 0.6)];
+    const scoresB = [makeScore(1, 0.4), makeScore(2, -0.6)];
     const result = compareProfiles(scoresA, scoresB);
-    const t1Delta = result.perTopicDeltas.find((d) => d.topicId === "t1");
-    expect(t1Delta?.delta).toBe(40);
-    const t2Delta = result.perTopicDeltas.find((d) => d.topicId === "t2");
-    expect(t2Delta?.delta).toBe(20);
+    const a1Delta = result.perAxisDeltas.find((d) => d.axisId === 1);
+    expect(a1Delta?.delta).toBeCloseTo(0.8);
+    const a2Delta = result.perAxisDeltas.find((d) => d.axisId === 2);
+    expect(a2Delta?.delta).toBeCloseTo(1.2);
   });
 
-  it("identifies closest and furthest topics", () => {
+  it("calculates alignment score with new formula", () => {
+    // meanDelta = 0.5 → alignmentScore = 100 * (1 - 0.5/2.0) = 75
+    const scoresA = [makeScore(1, 0.0)];
+    const scoresB = [makeScore(1, 0.5)];
+    const result = compareProfiles(scoresA, scoresB);
+    expect(result.alignmentScore).toBe(75);
+  });
+
+  it("identifies closest and furthest axes", () => {
     const scoresA = [
-      makeScore("t1", 50),
-      makeScore("t2", 30),
-      makeScore("t3", 80),
+      makeScore(1, 0.0),
+      makeScore(2, -0.5),
+      makeScore(3, 0.8),
     ];
     const scoresB = [
-      makeScore("t1", 52), // delta 2 (closest)
-      makeScore("t2", 80), // delta 50 (furthest)
-      makeScore("t3", 60), // delta 20
+      makeScore(1, 0.02), // delta 0.02 (closest)
+      makeScore(2, 0.5),  // delta 1.0 (furthest)
+      makeScore(3, 0.6),  // delta 0.2
     ];
     const result = compareProfiles(scoresA, scoresB);
-    expect(result.closestTopics[0].topicId).toBe("t1");
-    expect(result.furthestTopics[0].topicId).toBe("t2");
+    expect(result.closestAxes[0].axisId).toBe(1);
+    expect(result.furthestAxes[0].axisId).toBe(2);
   });
 
-  it("excludes hidden topics", () => {
-    const scoresA = [makeScore("t1", 50), makeScore("t2", 50)];
-    const scoresB = [makeScore("t1", 50), makeScore("t2", 100)];
-    const hidden = new Set(["t2"]);
+  it("excludes hidden axes", () => {
+    const scoresA = [makeScore(1, 0.0), makeScore(2, 0.0)];
+    const scoresB = [makeScore(1, 0.0), makeScore(2, 1.0)];
+    const hidden = new Set([2]);
     const result = compareProfiles(scoresA, scoresB, hidden);
-    expect(result.perTopicDeltas).toHaveLength(1);
-    expect(result.alignmentScore).toBe(100); // only t1 compared, identical
+    expect(result.perAxisDeltas).toHaveLength(1);
+    expect(result.alignmentScore).toBe(100); // only axis 1 compared, identical
   });
 
-  it("excludes topics with insufficient data", () => {
-    const scoresA = [makeScore("t1", 50), makeScore("t2", 50, true)];
-    const scoresB = [makeScore("t1", 50), makeScore("t2", 100)];
+  it("only compares axes present in both profiles", () => {
+    const scoresA = [makeScore(1, 0.5), makeScore(2, 0.3)];
+    const scoresB = [makeScore(1, 0.7), makeScore(3, 0.8)];
     const result = compareProfiles(scoresA, scoresB);
-    expect(result.perTopicDeltas).toHaveLength(1);
+    expect(result.perAxisDeltas).toHaveLength(1);
+    expect(result.perAxisDeltas[0].axisId).toBe(1);
   });
 
-  it("only compares topics present in both profiles", () => {
-    const scoresA = [makeScore("t1", 50), makeScore("t2", 50)];
-    const scoresB = [makeScore("t1", 75), makeScore("t3", 80)];
+  it("returns 100% alignment for empty common axes", () => {
+    const scoresA = [makeScore(1, 0.5)];
+    const scoresB = [makeScore(2, 0.5)];
     const result = compareProfiles(scoresA, scoresB);
-    expect(result.perTopicDeltas).toHaveLength(1);
-    expect(result.perTopicDeltas[0].topicId).toBe("t1");
+    expect(result.alignmentScore).toBe(100);
+    expect(result.perAxisDeltas).toHaveLength(0);
+  });
+
+  it("clamps alignment score to [0, 100]", () => {
+    // Even with max possible delta, score should not go below 0
+    const scoresA = [makeScore(1, -1.0)];
+    const scoresB = [makeScore(1, 1.0)];
+    const result = compareProfiles(scoresA, scoresB);
+    expect(result.alignmentScore).toBeGreaterThanOrEqual(0);
+    expect(result.alignmentScore).toBeLessThanOrEqual(100);
   });
 });

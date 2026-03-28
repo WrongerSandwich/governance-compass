@@ -3,12 +3,12 @@
 import { useState } from "react";
 
 interface AnnotationEditorProps {
-  topicScoreId: string;
+  axisScoreId: string;
   initialText: string;
 }
 
 export function AnnotationEditor({
-  topicScoreId,
+  axisScoreId,
   initialText,
 }: AnnotationEditorProps) {
   const [text, setText] = useState(initialText);
@@ -21,7 +21,7 @@ export function AnnotationEditor({
     await fetch("/api/annotations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicScoreId, text }),
+      body: JSON.stringify({ axisScoreId, text }),
     });
     setSaving(false);
     setSaved(true);

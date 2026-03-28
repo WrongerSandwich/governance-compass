@@ -2,60 +2,105 @@
 
 import { createContext, useContext, useReducer, type ReactNode } from "react";
 
-interface QuizAnswer {
-  value: number | null;
-  skipped: boolean;
+export interface QuizState {
+  phase:
+    | "intro"
+    | "phase1"
+    | "transition1"
+    | "phase2"
+    | "transition2"
+    | "phase3"
+    | "computing"
+    | "done";
+  forcedChoiceResponses: Record<string, "A" | "B">;
+  scaledResponses: Record<string, 1 | 2 | 3 | 4 | 5>;
+  budgetAllocations: Record<number, number>; // ministryId -> amount
+  currentQuestionIndex: number; // within current phase
+  randomSeed: number; // for consistent randomization
 }
 
-interface QuizState {
-  phase: "intro" | "questions" | "review" | "submitting";
-  currentTopicIndex: number;
-  answers: Record<string, QuizAnswer>;
-}
-
-type QuizAction =
+export type QuizAction =
   | { type: "START_QUIZ" }
-  | { type: "SET_ANSWER"; questionId: string; value: number }
-  | { type: "SKIP_QUESTION"; questionId: string }
-  | { type: "NEXT_TOPIC" }
-  | { type: "PREV_TOPIC" }
-  | { type: "GO_TO_REVIEW" }
-  | { type: "GO_TO_TOPIC"; index: number }
-  | { type: "SUBMIT" };
+  | { type: "SET_FC_RESPONSE"; itemId: string; selectedPole: "A" | "B" }
+  | { type: "SET_SC_RESPONSE"; itemId: string; value: 1 | 2 | 3 | 4 | 5 }
+  | { type: "SET_BUDGET"; ministryId: number; amount: number }
+  | { type: "NEXT_QUESTION" }
+  | { type: "PREV_QUESTION" }
+  | { type: "COMPLETE_PHASE1" }
+  | { type: "COMPLETE_PHASE2" }
+  | { type: "START_PHASE2" }
+  | { type: "START_PHASE3" }
+  | { type: "START_COMPUTING" }
+  | { type: "COMPLETE" };
 
 function quizReducer(state: QuizState, action: QuizAction): QuizState {
   switch (action.type) {
     case "START_QUIZ":
-      return { ...state, phase: "questions", currentTopicIndex: 0 };
-    case "SET_ANSWER":
+      return { ...state, phase: "phase1", currentQuestionIndex: 0 };
+    case "SET_FC_RESPONSE":
       return {
         ...state,
-        answers: {
-          ...state.answers,
-          [action.questionId]: { value: action.value, skipped: false },
+        forcedChoiceResponses: {
+          ...state.forcedChoiceResponses,
+          [action.itemId]: action.selectedPole,
         },
       };
-    case "SKIP_QUESTION":
+    case "SET_SC_RESPONSE":
       return {
         ...state,
-        answers: {
-          ...state.answers,
-          [action.questionId]: { value: null, skipped: true },
+        scaledResponses: {
+          ...state.scaledResponses,
+          [action.itemId]: action.value,
         },
       };
-    case "NEXT_TOPIC":
-      return { ...state, currentTopicIndex: state.currentTopicIndex + 1 };
-    case "PREV_TOPIC":
-      return { ...state, currentTopicIndex: state.currentTopicIndex - 1 };
-    case "GO_TO_REVIEW":
-      return { ...state, phase: "review" };
-    case "GO_TO_TOPIC":
-      return { ...state, phase: "questions", currentTopicIndex: action.index };
-    case "SUBMIT":
-      return { ...state, phase: "submitting" };
+    case "SET_BUDGET":
+      return {
+        ...state,
+        budgetAllocations: {
+          ...state.budgetAllocations,
+          [action.ministryId]: action.amount,
+        },
+      };
+    case "NEXT_QUESTION":
+      return { ...state, currentQuestionIndex: state.currentQuestionIndex + 1 };
+    case "PREV_QUESTION":
+      return { ...state, currentQuestionIndex: state.currentQuestionIndex - 1 };
+    case "COMPLETE_PHASE1":
+      return { ...state, phase: "transition1" };
+    case "COMPLETE_PHASE2":
+      return { ...state, phase: "transition2" };
+    case "START_PHASE2":
+      return { ...state, phase: "phase2", currentQuestionIndex: 0 };
+    case "START_PHASE3":
+      return { ...state, phase: "phase3" };
+    case "START_COMPUTING":
+      return { ...state, phase: "computing" };
+    case "COMPLETE":
+      return { ...state, phase: "done" };
     default:
       return state;
   }
+}
+
+// Initialize budgetAllocations with all 10 ministries at the minimum floor (5 each).
+// 50 units are committed, leaving 50 discretionary units to distribute.
+function createInitialBudget(): Record<number, number> {
+  const allocations: Record<number, number> = {};
+  for (let i = 1; i <= 10; i++) {
+    allocations[i] = 5;
+  }
+  return allocations;
+}
+
+function createInitialState(): QuizState {
+  return {
+    phase: "intro",
+    forcedChoiceResponses: {},
+    scaledResponses: {},
+    budgetAllocations: createInitialBudget(),
+    currentQuestionIndex: 0,
+    randomSeed: Math.random(),
+  };
 }
 
 interface QuizContextValue {
@@ -72,11 +117,7 @@ export function useQuiz() {
 }
 
 export function QuizProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(quizReducer, {
-    phase: "intro",
-    currentTopicIndex: 0,
-    answers: {},
-  });
+  const [state, dispatch] = useReducer(quizReducer, undefined, createInitialState);
 
   return (
     <QuizContext.Provider value={{ state, dispatch }}>

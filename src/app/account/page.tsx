@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface TopicVisibility {
-  topicId: string;
-  topicName: string;
+interface AxisVisibility {
+  axisId: number;
+  axisName: string;
+  domain: string;
   hidden: boolean;
 }
 
@@ -21,7 +22,7 @@ interface GroupInfo {
 export default function AccountPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [topics, setTopics] = useState<TopicVisibility[]>([]);
+  const [axes, setAxes] = useState<AxisVisibility[]>([]);
   const [groups, setGroups] = useState<GroupInfo[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState("");
@@ -37,14 +38,13 @@ export default function AccountPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    // Load profile, topics, groups
     const stored = localStorage.getItem("profileId");
     setProfileId(stored);
 
     fetch("/api/account/data")
       .then((r) => r.json())
       .then((data) => {
-        setTopics(data.topicVisibility || []);
+        setAxes(data.axisVisibility || []);
         setGroups(data.groups || []);
         if (data.profileId) setProfileId(data.profileId);
       })
@@ -72,14 +72,14 @@ export default function AccountPage() {
     }
   };
 
-  const toggleVisibility = async (topicId: string, hidden: boolean) => {
+  const toggleVisibility = async (axisId: number, hidden: boolean) => {
     await fetch("/api/account/visibility", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicId, hidden }),
+      body: JSON.stringify({ axisId, hidden }),
     });
-    setTopics((prev) =>
-      prev.map((t) => (t.topicId === topicId ? { ...t, hidden } : t))
+    setAxes((prev) =>
+      prev.map((a) => (a.axisId === axisId ? { ...a, hidden } : a))
     );
   };
 
@@ -92,7 +92,6 @@ export default function AccountPage() {
     });
     if (res.ok) {
       setNewGroupName("");
-      // Reload groups
       window.location.reload();
     }
   };
@@ -118,6 +117,16 @@ export default function AccountPage() {
     );
   }
 
+  // Group axes by domain
+  const axesByDomain = axes.reduce<Record<string, AxisVisibility[]>>(
+    (acc, axis) => {
+      if (!acc[axis.domain]) acc[axis.domain] = [];
+      acc[axis.domain].push(axis);
+      return acc;
+    },
+    {}
+  );
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-2xl mx-auto">
@@ -139,8 +148,8 @@ export default function AccountPage() {
           ) : (
             <div>
               <p className="text-gray-600 text-sm mb-3">
-                If you took the quiz before creating an account, you can link
-                those results to your account.
+                If you took the assessment before creating an account, you can
+                link those results to your account.
               </p>
               <button
                 onClick={handleClaim}
@@ -155,29 +164,38 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* Topic visibility */}
+        {/* Axis visibility */}
         <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">
             Privacy
           </h2>
           <p className="text-sm text-gray-500 mb-4">
-            Hide topics from comparisons. Hidden topics won&apos;t appear when
-            others compare with you.
+            Hide governance dimensions from comparisons. Hidden dimensions
+            won&apos;t appear when others compare with you.
           </p>
-          <div className="space-y-2">
-            {topics.map((t) => (
-              <label
-                key={t.topicId}
-                className="flex items-center justify-between py-1"
-              >
-                <span className="text-gray-700 text-sm">{t.topicName}</span>
-                <input
-                  type="checkbox"
-                  checked={!t.hidden}
-                  onChange={() => toggleVisibility(t.topicId, !t.hidden)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
+          <div className="space-y-5">
+            {Object.entries(axesByDomain).map(([domain, domainAxes]) => (
+              <div key={domain}>
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  {domain}
+                </h3>
+                <div className="space-y-1">
+                  {domainAxes.map((a) => (
+                    <label
+                      key={a.axisId}
+                      className="flex items-center justify-between py-1"
+                    >
+                      <span className="text-gray-700 text-sm">{a.axisName}</span>
+                      <input
+                        type="checkbox"
+                        checked={!a.hidden}
+                        onChange={() => toggleVisibility(a.axisId, !a.hidden)}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>
