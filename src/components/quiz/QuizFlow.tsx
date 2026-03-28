@@ -289,7 +289,7 @@ export function QuizFlow({
         completedPhase={1}
         completedCount={Object.keys(state.forcedChoiceResponses).length}
         nextPhaseTitle="Calibrated scales"
-        nextPhaseDescription="Now you will rate your position on a series of nuanced statements, giving us a finer-grained picture of your views."
+        nextPhaseDescription="Now you will place yourself on a series of nuanced scales — from one governance philosophy to its counterpart — giving us a finer-grained picture of your views."
         estimatedTime="~8 minutes"
         onContinue={() => dispatch({ type: "START_PHASE2" })}
       />
@@ -316,7 +316,6 @@ export function QuizFlow({
 
         <ScaledQuestionCard
           key={item.id}
-          itemId={item.id}
           questionStem={item.questionStem}
           option1Label={item.option1Label}
           option1Detail={item.option1Detail}

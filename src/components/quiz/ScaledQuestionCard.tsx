@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface ScaledQuestionCardProps {
-  itemId: string;
   questionStem: string;
   option1Label: string;
   option1Detail: string;
@@ -42,6 +43,19 @@ export function ScaledQuestionCard({
 
   const selectedDetail = options.find((o) => o.value === selectedValue)?.detail;
 
+  // Keyboard 1-5 shortcuts for efficient scale selection
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const num = parseInt(e.key);
+      if (num >= 1 && num <= 5) {
+        onSelect(num as 1 | 2 | 3 | 4 | 5);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onSelect]);
+
   function buttonClasses(value: 1 | 2 | 3 | 4 | 5): string {
     const isSelected = selectedValue === value;
     const hasSelection = selectedValue !== undefined;
@@ -50,7 +64,7 @@ export function ScaledQuestionCard({
       "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:z-10";
 
     if (isSelected) {
-      return `${base} bg-stone-100 text-stone-600`;
+      return `${base} bg-stone-200 text-stone-600`;
     }
     if (hasSelection) {
       return `${base} bg-surface-1 text-text-tertiary hover:bg-surface-2`;
@@ -116,14 +130,20 @@ export function ScaledQuestionCard({
         ))}
       </div>
 
-      {/* Detail text for selected option */}
-      {selectedDetail && (
-        <div className="mt-3 rounded-[8px] bg-surface-2 p-3 transition-all duration-200">
-          <p className="text-[13px] text-text-secondary leading-relaxed">
-            {selectedDetail}
+      {/* Detail text / hint */}
+      <div aria-live="polite" className="mt-3">
+        {selectedDetail ? (
+          <div className="rounded-[8px] bg-surface-2 p-3">
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              {selectedDetail}
+            </p>
+          </div>
+        ) : (
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center">
+            Select to see full description
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
