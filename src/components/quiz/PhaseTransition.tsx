@@ -21,7 +21,7 @@ export function PhaseTransition({
     <div className="mx-auto max-w-lg py-12">
       <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
         {/* Completion message */}
-        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
           Phase {completedPhase} complete
         </p>
         <p className="text-text-tertiary text-sm mb-6">
@@ -32,7 +32,7 @@ export function PhaseTransition({
         <div className="border-t border-border-secondary mb-6" />
 
         {/* Next phase info */}
-        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium mb-2">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
           Up next
         </p>
         <h3 className="text-[18px] font-serif font-medium text-text-primary mb-2">

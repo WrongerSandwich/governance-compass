@@ -101,7 +101,7 @@ export default async function ResultsPage({
 
         {/* Hero region: Compass + Archetype side by side */}
         <section className="bg-surface-2 rounded-[12px] p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-5">
             <CompassPlot
               economic={profile.compassScore.economic}
               cultural={profile.compassScore.cultural}
@@ -123,15 +123,15 @@ export default async function ResultsPage({
             />
           </div>
 
-          {/* Share buttons */}
+          {/* Share buttons — spec order: image, link, data */}
           <div className="flex gap-2 mt-5">
-            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-120">
-              Copy link
-            </button>
-            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-120">
+            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2">
               Copy image
             </button>
-            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-120">
+            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2">
+              Copy link
+            </button>
+            <button className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2">
               Download raw data
             </button>
           </div>
@@ -148,13 +148,13 @@ export default async function ResultsPage({
                 <div className="flex items-center gap-2 mb-2">
                   <span
                     className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium"
-                    style={{ backgroundColor: 'var(--warning-bg)', color: 'var(--warning)' }}
+                    style={{ backgroundColor: 'var(--warning-bg)', color: 'var(--warning-text)' }}
                   >
                     !
                   </span>
                   <span
                     className="text-xs font-medium capitalize"
-                    style={{ color: 'var(--warning)' }}
+                    style={{ color: 'var(--warning-text)' }}
                   >
                     {axis.tension.level} tension — Axis {axis.axisId}: {axis.name}
                   </span>
@@ -185,6 +185,7 @@ export default async function ResultsPage({
             <RadarChart
               axisScores={axisData}
               archetypePrototype={primaryArchetype?.prototype}
+              showArchetypeOverlay={!!primaryArchetype?.prototype}
             />
           </div>
         </section>
@@ -201,7 +202,7 @@ export default async function ResultsPage({
           <div className="space-y-5">
             {domains.map((domain) => (
               <div key={domain.name}>
-                <div className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0">
+                <div className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0">
                   {domain.name}
                 </div>
                 <div className="space-y-0">

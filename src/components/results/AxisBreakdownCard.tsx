@@ -54,7 +54,7 @@ export function AxisBreakdownCard({
 
   return (
     <div
-      className={`rounded-[8px] px-3 py-2.5 ${alternateRow ? "bg-surface-2" : ""}`}
+      className={`rounded-[8px] px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}
     >
       {/* Axis name row */}
       <div className="flex items-center justify-between mb-2">
@@ -66,7 +66,7 @@ export function AxisBreakdownCard({
               className="text-[10px] px-1.5 py-0.5 rounded-[8px]"
               style={{
                 backgroundColor: 'var(--warning-bg)',
-                color: 'var(--warning)',
+                color: 'var(--warning-text)',
               }}
             >
               ! tension
@@ -86,8 +86,9 @@ export function AxisBreakdownCard({
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className="mt-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors duration-120"
+        className="mt-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors duration-150"
         aria-expanded={expanded}
+        aria-label={expanded ? `Hide scoring breakdown for ${name}` : `Show scoring breakdown for ${name}`}
       >
         {expanded ? "\u25BE Hide scoring breakdown" : "\u25B8 See how this was scored"}
       </button>

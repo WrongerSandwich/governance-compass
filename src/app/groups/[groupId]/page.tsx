@@ -93,14 +93,14 @@ export default function GroupPage() {
         </div>
 
         <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
-          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-4">
             Group average
           </h2>
           <GroupRadar data={radarData} />
         </section>
 
         <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
-          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-4">
             Agreement and spread
           </h2>
           <GroupHeatMap
@@ -114,7 +114,7 @@ export default function GroupPage() {
         </section>
 
         <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
-          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-4">
+          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-4">
             By axis
           </h2>
           {data.axisStats

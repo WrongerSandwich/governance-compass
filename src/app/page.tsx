@@ -8,12 +8,12 @@ export default function Home() {
           The governance compass
         </h1>
         <p className="text-sm text-text-secondary mb-3 leading-relaxed">
-          Explore where you stand across 12 governance dimensions — from
+          Explore where you stand across 12 governance axes — from
           economic philosophy to international engagement. A research-backed
           assessment that goes far beyond left and right.
         </p>
         <p className="text-sm text-text-tertiary mb-8 leading-relaxed">
-          Compare your positions with friends dimension by dimension. See where
+          Compare your positions with friends axis by axis. See where
           you align, where you diverge, and gain a deeper understanding of each
           other&apos;s perspectives on how society should be governed.
         </p>
@@ -29,13 +29,13 @@ export default function Home() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-16 pb-20">
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid min-[560px]:grid-cols-3 gap-5">
           <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
             <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-              12 dimensions
+              12 axes
             </h3>
             <p className="text-text-secondary text-sm leading-relaxed">
-              Measure your positions across 12 governance axes spanning
+              Your positions mapped across 12 governance axes spanning
               economic, political, social, and international domains. No
               oversimplified quadrants.
             </p>
@@ -46,7 +46,7 @@ export default function Home() {
             </h3>
             <p className="text-text-secondary text-sm leading-relaxed">
               Share your results and compare side-by-side with friends. Create
-              groups to see where your circle stands on each dimension.
+              groups to see where your circle stands on each axis.
             </p>
           </div>
           <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
@@ -54,7 +54,7 @@ export default function Home() {
               Living profile
             </h3>
             <p className="text-text-secondary text-sm leading-relaxed">
-              Add annotations explaining your reasoning on any dimension.
+              Add annotations explaining your reasoning on any axis.
               Revisit your results and share nuanced context with others.
             </p>
           </div>

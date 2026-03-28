@@ -42,6 +42,9 @@
 
   /* --- Focus --- */
   --focus-ring: var(--stone-600);
+
+  /* --- Contextual (light mode) --- */
+  --contour-opacity: 0.08;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +64,8 @@
     --warning-bg:     #451a03;
     --warning-text:   #fbbf24;
     --warning-border: #92400e;
+
+    --contour-opacity: 0.05;
   }
 }
 
@@ -88,9 +93,10 @@
   --color-border-secondary: var(--border-secondary);
   --color-border-tertiary:  var(--border-tertiary);
 
-  --color-warning:    var(--warning);
-  --color-warning-bg: var(--warning-bg);
-  --color-info:       var(--info);
+  --color-warning:      var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-warning-bg:   var(--warning-bg);
+  --color-info:         var(--info);
 
   --font-serif: Georgia, 'Times New Roman', 'Noto Serif', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -103,4 +109,19 @@ body {
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* Reduced motion: collapse all transitions and animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Loading animation (moved from inline <style> in QuizFlow) */
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
 }

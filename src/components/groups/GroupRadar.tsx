@@ -103,7 +103,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
               y1={y1}
               x2={x2}
               y2={y2}
-              style={{ stroke: 'var(--border-secondary)' }}
+              style={{ stroke: 'var(--border-tertiary)' }}
               strokeWidth={0.5}
               opacity={0.25}
             />

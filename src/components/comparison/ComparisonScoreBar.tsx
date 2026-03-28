@@ -75,8 +75,8 @@ export function ComparisonScoreBar({
         />
       </div>
       <div className="flex justify-between text-xs text-text-tertiary mt-1.5">
-        <span style={{ width: 82 }}>{poleALabel}</span>
-        <span className="text-right" style={{ width: 82 }}>{poleBLabel}</span>
+        <span className="truncate w-[56px] min-[560px]:w-[82px]" title={poleALabel}>{poleALabel}</span>
+        <span className="truncate text-right w-[56px] min-[560px]:w-[82px]" title={poleBLabel}>{poleBLabel}</span>
       </div>
     </div>
   );

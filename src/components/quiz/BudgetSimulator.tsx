@@ -73,20 +73,20 @@ export function BudgetSimulator({
                     {ministry.description}
                   </p>
                   {belowBaseline && (
-                    <p className="mt-1 text-xs font-medium" style={{ color: 'var(--warning)' }}>
+                    <p className="mt-1 text-xs font-medium" style={{ color: 'var(--warning-text)' }}>
                       ! {ministry.belowBaselineWarning}
                     </p>
                   )}
                 </div>
 
-                {/* Stepper */}
+                {/* Stepper — 44px touch targets on mobile, 32px on desktop */}
                 <div className="flex shrink-0 items-center gap-2">
                   <button
                     type="button"
                     aria-label={`Decrease ${ministry.name} allocation`}
                     onClick={() => handleDecrement(ministry.id)}
                     disabled={atMin}
-                    className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-120 hover:bg-surface-2 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-11 w-11 min-[560px]:h-8 min-[560px]:w-8 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span className="text-lg leading-none">&minus;</span>
                   </button>
@@ -100,7 +100,7 @@ export function BudgetSimulator({
                     aria-label={`Increase ${ministry.name} allocation`}
                     onClick={() => handleIncrement(ministry.id)}
                     disabled={atMax}
-                    className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-120 hover:bg-surface-2 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-11 w-11 min-[560px]:h-8 min-[560px]:w-8 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span className="text-lg leading-none">+</span>
                   </button>

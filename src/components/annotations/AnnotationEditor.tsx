@@ -28,18 +28,21 @@ export function AnnotationEditor({
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const textareaId = `annotation-${axisScoreId}`;
+
   return (
     <div className="mt-4">
-      <label className="block text-sm font-medium text-text-secondary mb-1">
+      <label htmlFor={textareaId} className="block text-sm font-medium text-text-secondary mb-1">
         Your notes
       </label>
       <textarea
+        id={textareaId}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Add your reasoning, caveats, or context for this position..."
         rows={4}
         maxLength={5000}
-        className="w-full rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600"
+        className="w-full rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
       />
       <div className="flex items-center gap-3 mt-2">
         <button
@@ -49,9 +52,9 @@ export function AnnotationEditor({
         >
           {saving ? "Saving..." : "Save"}
         </button>
-        {saved && (
-          <span className="text-sm text-stone-600">Saved</span>
-        )}
+        <span aria-live="polite" className="text-sm text-stone-600">
+          {saved ? "Saved" : ""}
+        </span>
       </div>
     </div>
   );

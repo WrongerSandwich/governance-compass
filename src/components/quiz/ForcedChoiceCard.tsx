@@ -60,7 +60,7 @@ export function ForcedChoiceCard({
           Which person&apos;s view is closer to your own?
         </p>
       )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
         <button
           type="button"
           aria-pressed={selectedPole === firstPole}

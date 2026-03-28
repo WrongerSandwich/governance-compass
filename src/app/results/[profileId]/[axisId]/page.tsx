@@ -80,7 +80,7 @@ export default async function AxisDetailPage({
         </Link>
 
         <div className="mb-1">
-          <span className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium">
+          <span className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium">
             {axis.domain}
           </span>
         </div>
@@ -130,7 +130,7 @@ export default async function AxisDetailPage({
         {/* Forced-choice responses */}
         {fcResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-3">
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-3">
               Forced-choice responses
             </h2>
             <div className="space-y-3">
@@ -139,7 +139,7 @@ export default async function AxisDetailPage({
                   key={r.id}
                   className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
                 >
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-3 text-sm">
                     <div
                       className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-stone-100 font-medium text-stone-800" : "text-text-tertiary"}`}
                     >
@@ -157,11 +157,11 @@ export default async function AxisDetailPage({
           </section>
         )}
 
-        {/* Scaled responses */}
+        {/* Calibrated scale responses */}
         {scResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-600 font-medium border-b border-border-secondary pb-1.5 mb-3">
-              Scaled responses
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-3">
+              Calibrated scale responses
             </h2>
             <div className="space-y-3">
               {scResponses.map((r) => (

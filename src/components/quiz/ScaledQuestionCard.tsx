@@ -13,7 +13,6 @@ interface ScaledQuestionCardProps {
 }
 
 export function ScaledQuestionCard({
-  itemId: _itemId,
   questionStem,
   option1Text,
   option2Text,
@@ -69,7 +68,7 @@ export function ScaledQuestionCard({
 
       {/* Desktop: horizontal segmented bar */}
       <div
-        className="mt-4 hidden sm:flex overflow-hidden rounded-[12px] border border-border-secondary divide-x divide-border-secondary"
+        className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-[12px] border border-border-secondary divide-x divide-border-secondary"
         role="group"
         aria-label="Response options"
       >
@@ -88,7 +87,7 @@ export function ScaledQuestionCard({
 
       {/* Mobile: vertical list */}
       <div
-        className="mt-4 flex sm:hidden flex-col gap-2"
+        className="mt-4 flex min-[560px]:hidden flex-col gap-2"
         role="group"
         aria-label="Response options"
       >

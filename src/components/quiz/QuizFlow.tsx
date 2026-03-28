@@ -258,7 +258,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -266,7 +266,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledFC.length - 1
               ? "Continue"
@@ -323,7 +323,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -331,7 +331,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledSC.length - 1
               ? "Continue"
@@ -375,8 +375,8 @@ export function QuizFlow({
   // Computing / submitting — thin animated Stone 600 line
   if (state.phase === "computing" || state.phase === "done") {
     return (
-      <div className="mx-auto max-w-lg py-24 text-center">
-        {/* Animated loading line */}
+      <div className="mx-auto max-w-lg py-24 text-center" aria-live="polite" aria-busy="true">
+        {/* Animated loading line (keyframe defined in globals.css) */}
         <div className="w-full h-[2px] bg-border-tertiary rounded-full overflow-hidden mb-8">
           <div
             className="h-full bg-stone-600 rounded-full"
@@ -386,12 +386,6 @@ export function QuizFlow({
             }}
           />
         </div>
-        <style>{`
-          @keyframes loading-slide {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(350%); }
-          }
-        `}</style>
         <h2 className="text-[18px] font-serif font-medium text-text-primary mb-2">
           Computing your results
         </h2>

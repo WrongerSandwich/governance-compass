@@ -42,9 +42,11 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
   const modW = INNER - modInset * 2;
   const modH = INNER - modInset * 2;
 
-  // Leader line: horizontal from outermost pulse ring to coordinate label
-  const leaderEndX = dotX + 28;
-  const labelX = leaderEndX + 4;
+  // Leader line: flip to left side when dot is in right half to prevent overflow
+  const flipLeader = dotX > CENTER_X;
+  const leaderEndX = flipLeader ? dotX - 28 : dotX + 28;
+  const labelX = flipLeader ? leaderEndX - 4 : leaderEndX + 4;
+  const labelAnchor = flipLeader ? "end" as const : "start" as const;
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -70,9 +72,8 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
             key={i}
             d={d}
             fill="none"
-            style={{ stroke: 'var(--stone-600)' }}
+            style={{ stroke: 'var(--stone-600)', opacity: 'var(--contour-opacity)' }}
             strokeWidth={0.5}
-            opacity={0.08}
           />
         ))}
 
@@ -228,7 +229,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
 
         {/* Leader line from dot to coordinate label */}
         <line
-          x1={dotX + 16}
+          x1={flipLeader ? dotX - 16 : dotX + 16}
           y1={dotY}
           x2={leaderEndX}
           y2={dotY}
@@ -241,6 +242,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
         <text
           x={labelX}
           y={dotY}
+          textAnchor={labelAnchor}
           fontSize={10}
           style={{ fill: 'var(--stone-600)', fontFamily: 'var(--font-mono)' }}
           dominantBaseline="middle"

@@ -30,30 +30,36 @@ export default function SignInPage() {
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">Sign in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">
+            <label htmlFor="signin-email" className="block text-sm font-medium text-text-secondary mb-1">
               Email
             </label>
             <input
+              id="signin-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600 focus:ring-offset-2"
+              aria-required="true"
+              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">
+            <label htmlFor="signin-password" className="block text-sm font-medium text-text-secondary mb-1">
               Password
             </label>
             <input
+              id="signin-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-stone-600 focus:ring-offset-2"
+              aria-required="true"
+              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div aria-live="polite" aria-atomic="true">
+            {error && <p className="text-sm text-red-600">{error}</p>}
+          </div>
           <button
             type="submit"
             className="w-full border border-stone-600 text-stone-600 py-2 rounded-[8px] font-medium hover:bg-stone-100 transition-colors duration-150"
