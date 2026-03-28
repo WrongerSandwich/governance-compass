@@ -1,4 +1,4 @@
-import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult, ArchetypeMatch } from "./scoring-types";
+import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult, ArchetypeMatch, AxisScoreResult, QuizResults } from "./scoring-types";
 import {
   BUDGET_BASELINE,
   BUDGET_SIGMOID_K,
@@ -10,6 +10,7 @@ import {
   SD_CULTURAL_WEIGHTS,
   MAX_ARCHETYPE_DISTANCE,
   BLENDED_THRESHOLD_PCT,
+  CONFIDENCE_THRESHOLDS,
 } from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
@@ -322,4 +323,66 @@ export function matchArchetype(axisScores: number[]): ArchetypeMatch {
     secondaryMatchPct: secondary.matchPct,
     isBlended,
   };
+}
+
+/**
+ * Top-level orchestrator — runs the full 6-stage scoring pipeline.
+ *
+ * Stage 1: computeAllPerModalityScores  → per-modality scores
+ * Stage 2: computeAllFinalScores        → fused scores with components
+ * Stage 3: detectContradiction          → tension info per axis
+ * Stage 4: confidence from modality spread
+ * Stage 5: computeSuperDimensions       → compass coordinates
+ * Stage 6: matchArchetype               → archetype match
+ *
+ * Returns the complete QuizResults object.
+ */
+export function computeFullResults(responses: QuizResponses): QuizResults {
+  // Stage 1 — per-modality scores
+  const perModalityScores = computeAllPerModalityScores(responses);
+
+  // Stage 2 — fused final scores
+  const finalScores = computeAllFinalScores(perModalityScores);
+
+  // Stages 3 & 4 — contradiction detection + confidence, assemble AxisScoreResult[]
+  const axisScoreResults: AxisScoreResult[] = finalScores.map(
+    ({ axisId, finalScore, fcScore, scScore, bgScore }) => {
+      // Stage 3 — tension info
+      const tension = detectContradiction(fcScore, scScore, bgScore, axisId);
+
+      // Stage 4 — confidence from modality spread
+      let spread: number;
+      if (bgScore !== null) {
+        spread = Math.max(fcScore, scScore, bgScore) - Math.min(fcScore, scScore, bgScore);
+      } else {
+        spread = Math.abs(fcScore - scScore);
+      }
+
+      let confidence: AxisScoreResult["confidence"];
+      if (spread <= CONFIDENCE_THRESHOLDS.high) {
+        confidence = "high";
+      } else if (spread <= CONFIDENCE_THRESHOLDS.moderate) {
+        confidence = "moderate";
+      } else if (spread <= CONFIDENCE_THRESHOLDS.low) {
+        confidence = "low";
+      } else {
+        confidence = "conflicted";
+      }
+
+      return { axisId, fcScore, scScore, bgScore, finalScore, confidence, tension };
+    }
+  );
+
+  // Stage 5 — super-dimensions (compass)
+  const axisScoresRecord: Record<number, number> = {};
+  for (const { axisId, finalScore } of axisScoreResults) {
+    axisScoresRecord[axisId] = finalScore;
+  }
+  const compass = computeSuperDimensions(axisScoresRecord);
+
+  // Stage 6 — archetype matching (needs 12-element array, index 0 = axis 1)
+  const axisScoresArray = Array.from({ length: 12 }, (_, i) => axisScoresRecord[i + 1] ?? 0);
+  const archetype = matchArchetype(axisScoresArray);
+
+  return { axisScores: axisScoreResults, compass, archetype };
 }
