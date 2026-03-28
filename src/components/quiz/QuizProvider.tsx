@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useReducer, type ReactNode } from "react";
 
 export interface QuizState {
   phase:
@@ -84,6 +84,8 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
 
 // Initialize budgetAllocations with all 10 ministries at the minimum floor (5 each).
 // 50 units are committed, leaving 50 discretionary units to distribute.
+const STORAGE_KEY = "governance-compass-quiz-state";
+
 function createInitialBudget(): Record<number, number> {
   const allocations: Record<number, number> = {};
   for (let i = 1; i <= 10; i++) {
@@ -93,6 +95,14 @@ function createInitialBudget(): Record<number, number> {
 }
 
 function createInitialState(): QuizState {
+  if (typeof window !== "undefined") {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Ignore parse errors or missing storage
+    }
+  }
   return {
     phase: "intro",
     forcedChoiceResponses: {},
@@ -118,6 +128,14 @@ export function useQuiz() {
 
 export function QuizProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(quizReducer, undefined, createInitialState);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Storage full or unavailable
+    }
+  }, [state]);
 
   return (
     <QuizContext.Provider value={{ state, dispatch }}>

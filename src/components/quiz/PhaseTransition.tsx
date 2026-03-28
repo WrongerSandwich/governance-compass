@@ -25,7 +25,7 @@ export function PhaseTransition({
           Phase {completedPhase} complete
         </p>
         <p className="text-text-tertiary text-sm mb-6">
-          You answered {completedCount} question{completedCount !== 1 ? "s" : ""}.
+          Your {completedCount} responses have been recorded.
         </p>
 
         {/* Divider */}

@@ -31,7 +31,7 @@ export function ProgressBar({
       </div>
 
       {/* 3-segment progress bar */}
-      <div className="flex gap-[2px]">
+      <div className="flex gap-1">
         {[1, 2, 3].map((phase) => {
           const isCompleted = phase < currentPhase;
           const isActive = phase === currentPhase;

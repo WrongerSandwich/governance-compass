@@ -61,11 +61,11 @@ export function ForcedChoiceCard({
 
   return (
     <div>
-      {questionType === "PT" && (
-        <p className="mb-4 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium">
-          Which person&apos;s view is closer to your own?
-        </p>
-      )}
+      <p className="mb-4 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium">
+        {questionType === "PT"
+          ? "Which person\u2019s view is closer to your own?"
+          : "Select the position closer to your own view"}
+      </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
         <button
           type="button"
@@ -76,7 +76,7 @@ export function ForcedChoiceCard({
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
             {firstHeadline}
           </p>
-          <p className="text-left text-[13px] text-text-tertiary leading-relaxed mt-1.5">
+          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
             {firstBody}
           </p>
         </button>
@@ -90,7 +90,7 @@ export function ForcedChoiceCard({
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
             {secondHeadline}
           </p>
-          <p className="text-left text-[13px] text-text-tertiary leading-relaxed mt-1.5">
+          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
             {secondBody}
           </p>
         </button>

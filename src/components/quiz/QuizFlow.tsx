@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuiz } from "./QuizProvider";
 import { ForcedChoiceCard } from "./ForcedChoiceCard";
@@ -75,7 +75,7 @@ export function QuizFlow({
 }: QuizFlowProps) {
   const { state, dispatch } = useQuiz();
   const router = useRouter();
-  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const shuffledFC = useMemo(
     () => seededShuffle(forcedChoiceItems, Math.floor(state.randomSeed * 2147483647)),
@@ -87,28 +87,13 @@ export function QuizFlow({
     [scaledItems, state.randomSeed]
   );
 
-  useEffect(() => {
-    return () => {
-      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-    };
-  }, []);
-
   // ---------- FC handlers ----------
 
   const handleFCSelect = useCallback(
     (itemId: string, pole: "A" | "B") => {
       dispatch({ type: "SET_FC_RESPONSE", itemId, selectedPole: pole });
-
-      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-      autoAdvanceTimer.current = setTimeout(() => {
-        if (state.currentQuestionIndex < shuffledFC.length - 1) {
-          dispatch({ type: "NEXT_QUESTION" });
-        } else {
-          dispatch({ type: "COMPLETE_PHASE1" });
-        }
-      }, 400);
     },
-    [dispatch, state.currentQuestionIndex, shuffledFC.length]
+    [dispatch]
   );
 
   // ---------- SC handlers ----------
@@ -116,17 +101,8 @@ export function QuizFlow({
   const handleSCSelect = useCallback(
     (itemId: string, value: 1 | 2 | 3 | 4 | 5) => {
       dispatch({ type: "SET_SC_RESPONSE", itemId, value });
-
-      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-      autoAdvanceTimer.current = setTimeout(() => {
-        if (state.currentQuestionIndex < shuffledSC.length - 1) {
-          dispatch({ type: "NEXT_QUESTION" });
-        } else {
-          dispatch({ type: "COMPLETE_PHASE2" });
-        }
-      }, 400);
     },
-    [dispatch, state.currentQuestionIndex, shuffledSC.length]
+    [dispatch]
   );
 
   // ---------- Budget handlers ----------
@@ -139,6 +115,7 @@ export function QuizFlow({
   );
 
   const handleBudgetFinalize = useCallback(async () => {
+    setSubmitError(null);
     dispatch({ type: "START_COMPUTING" });
 
     const forcedChoiceResponses = Object.entries(state.forcedChoiceResponses).map(
@@ -175,9 +152,11 @@ export function QuizFlow({
           router.push(`/results/${data.profileId}`);
         }, 1800);
       } else {
+        setSubmitError("We couldn\u2019t save your results. Your answers are preserved \u2014 please try again.");
         dispatch({ type: "START_PHASE3" });
       }
     } catch {
+      setSubmitError("We couldn\u2019t save your results. Your answers are preserved \u2014 please try again.");
       dispatch({ type: "START_PHASE3" });
     }
   }, [dispatch, state.forcedChoiceResponses, state.scaledResponses, state.budgetAllocations, router]);
@@ -186,7 +165,6 @@ export function QuizFlow({
 
   const handlePrev = useCallback(() => {
     if (state.currentQuestionIndex > 0) {
-      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       dispatch({ type: "PREV_QUESTION" });
     }
   }, [dispatch, state.currentQuestionIndex]);
@@ -221,8 +199,11 @@ export function QuizFlow({
           You will work through three phases: dilemma choices, calibrated scales,
           and a budget allocation exercise.
         </p>
-        <p className="text-xs font-serif italic text-text-tertiary mb-8">
+        <p className="text-xs font-serif italic text-text-tertiary mb-2">
           Estimated time: ~20 minutes
+        </p>
+        <p className="text-xs text-text-tertiary mb-8">
+          Your progress is saved automatically — you can leave and return at any time.
         </p>
         <button
           type="button"
@@ -249,6 +230,10 @@ export function QuizFlow({
           totalInPhase={shuffledFC.length}
         />
 
+        <div aria-live="polite" className="sr-only">
+          Question {state.currentQuestionIndex + 1} of {shuffledFC.length}
+        </div>
+
         <ForcedChoiceCard
           key={item.id}
           itemId={item.id}
@@ -267,7 +252,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[8px] border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -275,13 +260,24 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledFC.length - 1
               ? "Continue"
               : "Next"}
           </button>
         </div>
+        {!hasResponse && (
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={handleNext}
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+            >
+              Skip this question
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -314,6 +310,10 @@ export function QuizFlow({
           totalInPhase={shuffledSC.length}
         />
 
+        <div aria-live="polite" className="sr-only">
+          Question {state.currentQuestionIndex + 1} of {shuffledSC.length}
+        </div>
+
         <ScaledQuestionCard
           key={item.id}
           itemId={item.id}
@@ -337,7 +337,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[8px] border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -345,13 +345,24 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledSC.length - 1
               ? "Continue"
               : "Next"}
           </button>
         </div>
+        {!hasResponse && (
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={handleNext}
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+            >
+              Skip this question
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -375,6 +386,12 @@ export function QuizFlow({
     return (
       <div className="mx-auto max-w-2xl py-8">
         <ProgressBar currentPhase={3} currentIndex={0} totalInPhase={1} />
+
+        {submitError && (
+          <div className="mb-6 rounded-[8px] border border-warning bg-warning-bg p-4 text-sm text-warning-text" role="alert">
+            {submitError}
+          </div>
+        )}
 
         <BudgetSimulator
           ministries={ministries}
