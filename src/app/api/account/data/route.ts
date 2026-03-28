@@ -10,14 +10,14 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const profileP = db.userProfile.findFirst({
+  const profile = await db.userProfile.findFirst({
     where: { userId },
     orderBy: { updatedAt: "desc" },
     select: { id: true },
   });
-  const allAxesP = db.axis.findMany({ orderBy: { order: "asc" } });
-  const visibilitiesP = db.axisVisibility.findMany({ where: { userId } });
-  const groupsP = db.groupMember.findMany({
+  const allAxes = await db.axis.findMany({ orderBy: { order: "asc" } });
+  const visibilities = await db.axisVisibility.findMany({ where: { userId } });
+  const groups = await db.groupMember.findMany({
     where: { userId },
     include: {
       group: {
@@ -25,10 +25,6 @@ export async function GET() {
       },
     },
   });
-
-  const [profile, allAxes, visibilities, groups] = await Promise.all([
-    profileP, allAxesP, visibilitiesP, groupsP,
-  ]);
 
   const hiddenSet = new Set(visibilities.filter((v) => v.hidden).map((v) => v.axisId));
 
