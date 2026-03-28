@@ -1,4 +1,4 @@
-import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult } from "./scoring-types";
+import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult, ArchetypeMatch } from "./scoring-types";
 import {
   BUDGET_BASELINE,
   BUDGET_SIGMOID_K,
@@ -8,10 +8,13 @@ import {
   STATED_SC_WEIGHT,
   SD_ECONOMIC_WEIGHTS,
   SD_CULTURAL_WEIGHTS,
+  MAX_ARCHETYPE_DISTANCE,
+  BLENDED_THRESHOLD_PCT,
 } from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { ministryAxisMappings } from "@/data/ministries";
+import { archetypes } from "@/data/archetypes";
 
 /**
  * Stage 1 — Raw FC scoring for a single axis.
@@ -268,4 +271,55 @@ export function computeSuperDimensions(
   }
 
   return { economic, cultural };
+}
+
+/**
+ * Stage 6 — Match a respondent's axis scores to the nearest archetype
+ * prototype using weighted Euclidean distance (all weights = 1.0 for v1).
+ *
+ * axisScores is a 12-element array where index 0 = axis 1, index 11 = axis 12.
+ *
+ * Distance formula:
+ *   distance = sqrt(sum over 12 axes of: (respondent[i] - prototype[i])²)
+ *
+ * Match percentage:
+ *   match_pct = max(0, (1 - distance / MAX_ARCHETYPE_DISTANCE)) × 100
+ *   where MAX_ARCHETYPE_DISTANCE = sqrt(48) ≈ 6.928
+ *
+ * Blended detection:
+ *   If |primary_dist - secondary_dist| / primary_dist <= BLENDED_THRESHOLD_PCT / 100,
+ *   set isBlended = true. (When primary_dist = 0, isBlended = false.)
+ *
+ * Returns: { primaryId, primaryMatchPct, secondaryId, secondaryMatchPct, isBlended }
+ */
+export function matchArchetype(axisScores: number[]): ArchetypeMatch {
+  const ranked = archetypes.map((archetype) => {
+    const sumSq = axisScores.reduce(
+      (sum, score, i) => sum + (score - archetype.prototype[i]) ** 2,
+      0
+    );
+    const distance = Math.sqrt(sumSq);
+    const matchPct = Math.max(0, (1 - distance / MAX_ARCHETYPE_DISTANCE)) * 100;
+    return { id: archetype.id, distance, matchPct };
+  });
+
+  ranked.sort((a, b) => a.distance - b.distance);
+
+  const primary = ranked[0];
+  const secondary = ranked[1];
+
+  const blendedRatio =
+    primary.distance === 0
+      ? Infinity
+      : Math.abs(primary.distance - secondary.distance) / primary.distance;
+
+  const isBlended = blendedRatio <= BLENDED_THRESHOLD_PCT / 100;
+
+  return {
+    primaryId: primary.id,
+    primaryMatchPct: primary.matchPct,
+    secondaryId: secondary.id,
+    secondaryMatchPct: secondary.matchPct,
+    isBlended,
+  };
 }
