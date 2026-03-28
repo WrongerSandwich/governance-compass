@@ -19,28 +19,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { topicScoreId, text } = parsed.data;
+  const { axisScoreId, text } = parsed.data;
 
-  // Verify the topic score exists and belongs to the user's profile
-  const topicScore = await db.topicScore.findUnique({
-    where: { id: topicScoreId },
+  // Verify the axis score exists and belongs to the user's profile
+  const axisScore = await db.axisScore.findUnique({
+    where: { id: axisScoreId },
     include: { profile: true },
   });
 
-  if (!topicScore) {
+  if (!axisScore) {
     return NextResponse.json(
-      { error: "Topic score not found" },
+      { error: "Axis score not found" },
       { status: 404 }
     );
   }
 
-  if (topicScore.profile.userId !== session.user.id) {
+  if (axisScore.profile.userId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Upsert annotation (one per user per topic score)
+  // Upsert annotation (one per user per axis score)
   const existing = await db.annotation.findFirst({
-    where: { topicScoreId, userId: session.user.id },
+    where: { axisScoreId, userId: session.user.id },
   });
 
   const annotation = existing
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         data: { text },
       })
     : await db.annotation.create({
-        data: { topicScoreId, userId: session.user.id, text },
+        data: { axisScoreId, userId: session.user.id, text },
       });
 
   return NextResponse.json(annotation, { status: existing ? 200 : 201 });
