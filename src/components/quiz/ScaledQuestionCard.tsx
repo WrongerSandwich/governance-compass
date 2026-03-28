@@ -3,32 +3,44 @@
 interface ScaledQuestionCardProps {
   itemId: string;
   questionStem: string;
-  option1Text: string;
-  option2Text: string;
-  option3Text: string;
-  option4Text: string;
-  option5Text: string;
+  option1Label: string;
+  option1Detail: string;
+  option2Label: string;
+  option2Detail: string;
+  option3Label: string;
+  option3Detail: string;
+  option4Label: string;
+  option4Detail: string;
+  option5Label: string;
+  option5Detail: string;
   selectedValue: 1 | 2 | 3 | 4 | 5 | undefined;
   onSelect: (value: 1 | 2 | 3 | 4 | 5) => void;
 }
 
 export function ScaledQuestionCard({
   questionStem,
-  option1Text,
-  option2Text,
-  option3Text,
-  option4Text,
-  option5Text,
+  option1Label,
+  option1Detail,
+  option2Label,
+  option2Detail,
+  option3Label,
+  option3Detail,
+  option4Label,
+  option4Detail,
+  option5Label,
+  option5Detail,
   selectedValue,
   onSelect,
 }: ScaledQuestionCardProps) {
-  const options: { value: 1 | 2 | 3 | 4 | 5; label: string }[] = [
-    { value: 1, label: option1Text },
-    { value: 2, label: option2Text },
-    { value: 3, label: option3Text },
-    { value: 4, label: option4Text },
-    { value: 5, label: option5Text },
+  const options: { value: 1 | 2 | 3 | 4 | 5; label: string; detail: string }[] = [
+    { value: 1, label: option1Label, detail: option1Detail },
+    { value: 2, label: option2Label, detail: option2Detail },
+    { value: 3, label: option3Label, detail: option3Detail },
+    { value: 4, label: option4Label, detail: option4Detail },
+    { value: 5, label: option5Label, detail: option5Detail },
   ];
+
+  const selectedDetail = options.find((o) => o.value === selectedValue)?.detail;
 
   function buttonClasses(value: 1 | 2 | 3 | 4 | 5): string {
     const isSelected = selectedValue === value;
@@ -103,6 +115,15 @@ export function ScaledQuestionCard({
           </button>
         ))}
       </div>
+
+      {/* Detail text for selected option */}
+      {selectedDetail && (
+        <div className="mt-3 rounded-[8px] bg-surface-2 p-3 transition-all duration-200">
+          <p className="text-[13px] text-text-secondary leading-relaxed">
+            {selectedDetail}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

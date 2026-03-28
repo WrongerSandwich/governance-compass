@@ -17,8 +17,10 @@ interface ForcedChoiceItemData {
   itemNumber: number;
   questionType: string;
   abstractionLevel: string;
-  statementA: string;
-  statementB: string;
+  headlineA: string;
+  bodyA: string;
+  headlineB: string;
+  bodyB: string;
 }
 
 interface ScaledItemData {
@@ -26,11 +28,16 @@ interface ScaledItemData {
   axisId: number;
   itemNumber: number;
   questionStem: string;
-  option1Text: string;
-  option2Text: string;
-  option3Text: string;
-  option4Text: string;
-  option5Text: string;
+  option1Label: string;
+  option1Detail: string;
+  option2Label: string;
+  option2Detail: string;
+  option3Label: string;
+  option3Detail: string;
+  option4Label: string;
+  option4Detail: string;
+  option5Label: string;
+  option5Detail: string;
 }
 
 interface MinistryData {
@@ -245,8 +252,10 @@ export function QuizFlow({
         <ForcedChoiceCard
           key={item.id}
           itemId={item.id}
-          statementA={item.statementA}
-          statementB={item.statementB}
+          headlineA={item.headlineA}
+          bodyA={item.bodyA}
+          headlineB={item.headlineB}
+          bodyB={item.bodyB}
           questionType={item.questionType as "FC" | "PT"}
           selectedPole={state.forcedChoiceResponses[item.id]}
           onSelect={(pole) => handleFCSelect(item.id, pole)}
@@ -309,11 +318,16 @@ export function QuizFlow({
           key={item.id}
           itemId={item.id}
           questionStem={item.questionStem}
-          option1Text={item.option1Text}
-          option2Text={item.option2Text}
-          option3Text={item.option3Text}
-          option4Text={item.option4Text}
-          option5Text={item.option5Text}
+          option1Label={item.option1Label}
+          option1Detail={item.option1Detail}
+          option2Label={item.option2Label}
+          option2Detail={item.option2Detail}
+          option3Label={item.option3Label}
+          option3Detail={item.option3Detail}
+          option4Label={item.option4Label}
+          option4Detail={item.option4Detail}
+          option5Label={item.option5Label}
+          option5Detail={item.option5Detail}
           selectedValue={state.scaledResponses[item.id]}
           onSelect={(value) => handleSCSelect(item.id, value)}
         />

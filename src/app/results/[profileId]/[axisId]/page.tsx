@@ -5,24 +5,24 @@ import { auth } from "@/lib/auth";
 import { ScoreBar } from "@/components/results/ScoreBar";
 import { AnnotationEditor } from "@/components/annotations/AnnotationEditor";
 
-function getScaledOptionText(
+function getScaledOptionDisplay(
   item: {
-    option1Text: string;
-    option2Text: string;
-    option3Text: string;
-    option4Text: string;
-    option5Text: string;
+    option1Label: string; option1Detail: string;
+    option2Label: string; option2Detail: string;
+    option3Label: string; option3Detail: string;
+    option4Label: string; option4Detail: string;
+    option5Label: string; option5Detail: string;
   },
   value: number
-): string {
-  const map: Record<number, string> = {
-    1: item.option1Text,
-    2: item.option2Text,
-    3: item.option3Text,
-    4: item.option4Text,
-    5: item.option5Text,
+): { label: string; detail: string } {
+  const map: Record<number, { label: string; detail: string }> = {
+    1: { label: item.option1Label, detail: item.option1Detail },
+    2: { label: item.option2Label, detail: item.option2Detail },
+    3: { label: item.option3Label, detail: item.option3Detail },
+    4: { label: item.option4Label, detail: item.option4Detail },
+    5: { label: item.option5Label, detail: item.option5Detail },
   };
-  return map[value] ?? String(value);
+  return map[value] ?? { label: String(value), detail: "" };
 }
 
 export default async function AxisDetailPage({
@@ -141,14 +141,24 @@ export default async function AxisDetailPage({
                 >
                   <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-3 text-sm">
                     <div
-                      className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-stone-100 font-medium text-stone-800" : "text-text-tertiary"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"}`}
                     >
-                      {r.item.statementA}
+                      <p className={`text-[15px] leading-snug ${r.selectedPole === "A" ? "font-medium" : ""}`}>
+                        {r.item.headlineA}
+                      </p>
+                      <p className="text-[13px] text-text-tertiary leading-relaxed mt-1">
+                        {r.item.bodyA}
+                      </p>
                     </div>
                     <div
-                      className={`p-2 rounded-[6px] ${r.selectedPole === "B" ? "bg-stone-100 font-medium text-stone-800" : "text-text-tertiary"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "B" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"}`}
                     >
-                      {r.item.statementB}
+                      <p className={`text-[15px] leading-snug ${r.selectedPole === "B" ? "font-medium" : ""}`}>
+                        {r.item.headlineB}
+                      </p>
+                      <p className="text-[13px] text-text-tertiary leading-relaxed mt-1">
+                        {r.item.bodyB}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -164,19 +174,27 @@ export default async function AxisDetailPage({
               Calibrated scale responses
             </h2>
             <div className="space-y-3">
-              {scResponses.map((r) => (
-                <div
-                  key={r.id}
-                  className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
-                >
-                  <p className="text-text-primary text-sm mb-2">
-                    {r.item.questionStem}
-                  </p>
-                  <p className="text-sm font-medium text-stone-600">
-                    {getScaledOptionText(r.item, r.value)}
-                  </p>
-                </div>
-              ))}
+              {scResponses.map((r) => {
+                const { label, detail } = getScaledOptionDisplay(r.item, r.value);
+                return (
+                  <div
+                    key={r.id}
+                    className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
+                  >
+                    <p className="text-text-primary text-sm mb-2">
+                      {r.item.questionStem}
+                    </p>
+                    <p className="text-sm font-medium text-stone-600">
+                      {label}
+                    </p>
+                    {detail && (
+                      <p className="text-[13px] text-text-tertiary mt-1">
+                        {detail}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

@@ -99,23 +99,30 @@ model ForcedChoiceItem {
   itemNumber       Int                    // 1-3 within axis
   questionType     String                 // "FC" or "PT" (portrait method)
   abstractionLevel String                 // "P", "I", or "S"
-  statementA       String                 // Pole A statement
-  statementB       String                 // Pole B statement
+  headlineA        String                 // Pole A headline (6-12 words)
+  bodyA            String                 // Pole A body text
+  headlineB        String                 // Pole B headline (6-12 words)
+  bodyB            String                 // Pole B body text
   responses        ForcedChoiceResponse[]
 }
 
 model ScaledItem {
-  id           String           @id // e.g., "sc-1-1"
-  axisId       Int
-  axis         Axis             @relation(fields: [axisId], references: [id])
-  itemNumber   Int              // 1-3 within axis
-  questionStem String           // The question text
-  option1Text  String           // Strong Pole A (-2)
-  option2Text  String           // Moderate Pole A (-1)
-  option3Text  String           // Midpoint (0)
-  option4Text  String           // Moderate Pole B (+1)
-  option5Text  String           // Strong Pole B (+2)
-  responses    ScaledResponse[]
+  id            String           @id // e.g., "sc-1-1"
+  axisId        Int
+  axis          Axis             @relation(fields: [axisId], references: [id])
+  itemNumber    Int              // 1-3 within axis
+  questionStem  String           // The question text
+  option1Label  String           // Strong Pole A (-2) short label
+  option1Detail String           // Strong Pole A (-2) detail text
+  option2Label  String           // Moderate Pole A (-1) short label
+  option2Detail String           // Moderate Pole A (-1) detail text
+  option3Label  String           // Midpoint (0) short label
+  option3Detail String           // Midpoint (0) detail text
+  option4Label  String           // Moderate Pole B (+1) short label
+  option4Detail String           // Moderate Pole B (+1) detail text
+  option5Label  String           // Strong Pole B (+2) short label
+  option5Detail String           // Strong Pole B (+2) detail text
+  responses     ScaledResponse[]
 }
 
 model Ministry {

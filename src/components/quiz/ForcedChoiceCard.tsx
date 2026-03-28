@@ -4,8 +4,10 @@ import { useMemo } from "react";
 
 interface ForcedChoiceCardProps {
   itemId: string;
-  statementA: string;
-  statementB: string;
+  headlineA: string;
+  bodyA: string;
+  headlineB: string;
+  bodyB: string;
   questionType: "FC" | "PT";
   selectedPole: "A" | "B" | undefined;
   onSelect: (pole: "A" | "B") => void;
@@ -14,8 +16,10 @@ interface ForcedChoiceCardProps {
 
 export function ForcedChoiceCard({
   itemId,
-  statementA,
-  statementB,
+  headlineA,
+  bodyA,
+  headlineB,
+  bodyB,
   questionType,
   selectedPole,
   onSelect,
@@ -34,8 +38,10 @@ export function ForcedChoiceCard({
 
   const firstPole = swapped ? "B" : "A";
   const secondPole = swapped ? "A" : "B";
-  const firstStatement = swapped ? statementB : statementA;
-  const secondStatement = swapped ? statementA : statementB;
+  const firstHeadline = swapped ? headlineB : headlineA;
+  const firstBody = swapped ? bodyB : bodyA;
+  const secondHeadline = swapped ? headlineA : headlineB;
+  const secondBody = swapped ? bodyA : bodyB;
 
   function cardClasses(logicalPole: "A" | "B"): string {
     const isSelected = selectedPole === logicalPole;
@@ -67,8 +73,11 @@ export function ForcedChoiceCard({
           onClick={() => onSelect(firstPole)}
           className={cardClasses(firstPole)}
         >
-          <p className="text-left text-sm text-text-primary leading-relaxed">
-            {firstStatement}
+          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
+            {firstHeadline}
+          </p>
+          <p className="text-left text-[13px] text-text-tertiary leading-relaxed mt-1.5">
+            {firstBody}
           </p>
         </button>
 
@@ -78,8 +87,11 @@ export function ForcedChoiceCard({
           onClick={() => onSelect(secondPole)}
           className={cardClasses(secondPole)}
         >
-          <p className="text-left text-sm text-text-primary leading-relaxed">
-            {secondStatement}
+          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
+            {secondHeadline}
+          </p>
+          <p className="text-left text-[13px] text-text-tertiary leading-relaxed mt-1.5">
+            {secondBody}
           </p>
         </button>
       </div>
