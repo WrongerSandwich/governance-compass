@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { quizSubmitSchema } from "@/lib/validation";
-import { calculateAllScores } from "@/lib/scoring";
+import { computeFullResults } from "@/lib/scoring";
+import type { QuizResponses } from "@/lib/scoring-types";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -14,23 +15,52 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { answers, anonymousToken } = parsed.data;
+  const { forcedChoiceResponses, scaledResponses, budgetAllocations, anonymousToken } = parsed.data;
 
-  // Verify all questionIds exist
-  const questionIds = answers.map((a) => a.questionId);
-  const questions = await db.question.findMany({
-    where: { id: { in: questionIds } },
-    select: { id: true, topicId: true, polarity: true },
+  // Verify item IDs exist
+  const fcItemIds = forcedChoiceResponses.map(r => r.itemId);
+  const fcItems = await db.forcedChoiceItem.findMany({
+    where: { id: { in: fcItemIds } },
+    select: { id: true },
   });
-
-  if (questions.length !== questionIds.length) {
-    return NextResponse.json(
-      { error: "One or more question IDs are invalid" },
-      { status: 400 }
-    );
+  if (fcItems.length !== fcItemIds.length) {
+    return NextResponse.json({ error: "Invalid forced-choice item IDs" }, { status: 400 });
   }
 
-  // Create profile and answers in a transaction
+  const scItemIds = scaledResponses.map(r => r.itemId);
+  const scItems = await db.scaledItem.findMany({
+    where: { id: { in: scItemIds } },
+    select: { id: true },
+  });
+  if (scItems.length !== scItemIds.length) {
+    return NextResponse.json({ error: "Invalid scaled item IDs" }, { status: 400 });
+  }
+
+  const ministryIds = budgetAllocations.map(a => a.ministryId);
+  const ministries = await db.ministry.findMany({
+    where: { id: { in: ministryIds } },
+    select: { id: true },
+  });
+  if (ministries.length !== ministryIds.length) {
+    return NextResponse.json({ error: "Invalid ministry IDs" }, { status: 400 });
+  }
+
+  // Build QuizResponses for scoring
+  const quizResponses: QuizResponses = {
+    forcedChoice: Object.fromEntries(
+      forcedChoiceResponses.map(r => [r.itemId, r.selectedPole])
+    ),
+    scaled: Object.fromEntries(
+      scaledResponses.map(r => [r.itemId, r.value])
+    ),
+    budget: Object.fromEntries(
+      budgetAllocations.map(a => [a.ministryId, a.amount])
+    ),
+  };
+
+  const results = computeFullResults(quizResponses);
+
+  // Create everything in a transaction
   const profile = await db.$transaction(async (tx) => {
     const newProfile = await tx.userProfile.create({
       data: {
@@ -38,35 +68,64 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await tx.answer.createMany({
-      data: answers.map((a) => ({
+    // Create responses
+    await tx.forcedChoiceResponse.createMany({
+      data: forcedChoiceResponses.map(r => ({
         profileId: newProfile.id,
-        questionId: a.questionId,
-        value: a.value,
-        skipped: a.skipped,
+        itemId: r.itemId,
+        selectedPole: r.selectedPole,
       })),
     });
 
-    // Calculate and store topic scores
-    const topicIds = [...new Set(questions.map((q) => q.topicId))];
-    const scores = calculateAllScores(
-      answers,
-      questions.map((q) => ({
-        id: q.id,
-        topicId: q.topicId,
-        polarity: q.polarity,
-      })),
-      topicIds
-    );
-
-    await tx.topicScore.createMany({
-      data: scores.map((s) => ({
+    await tx.scaledResponse.createMany({
+      data: scaledResponses.map(r => ({
         profileId: newProfile.id,
-        topicId: s.topicId,
-        score: s.score,
-        answeredCount: s.answeredCount,
-        insufficientData: s.insufficientData,
+        itemId: r.itemId,
+        value: r.value,
       })),
+    });
+
+    await tx.budgetAllocation.createMany({
+      data: budgetAllocations.map(a => ({
+        profileId: newProfile.id,
+        ministryId: a.ministryId,
+        amount: a.amount,
+      })),
+    });
+
+    // Create computed scores
+    await tx.axisScore.createMany({
+      data: results.axisScores.map(s => ({
+        profileId: newProfile.id,
+        axisId: s.axisId,
+        fcScore: s.fcScore,
+        scScore: s.scScore,
+        bgScore: s.bgScore,
+        finalScore: s.finalScore,
+        confidence: s.confidence,
+        tensionLevel: s.tension.level,
+        tensionDirection: s.tension.direction,
+        tensionNarrative: null,
+      })),
+    });
+
+    await tx.compassScore.create({
+      data: {
+        profileId: newProfile.id,
+        economic: results.compass.economic,
+        cultural: results.compass.cultural,
+      },
+    });
+
+    await tx.archetypeResult.create({
+      data: {
+        profileId: newProfile.id,
+        primaryArchetypeId: results.archetype.primaryId,
+        primaryMatchPct: results.archetype.primaryMatchPct,
+        secondaryArchetypeId: results.archetype.secondaryId,
+        secondaryMatchPct: results.archetype.secondaryMatchPct,
+        isBlended: results.archetype.isBlended,
+      },
     });
 
     return newProfile;
