@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuiz } from "./QuizProvider";
 import { ForcedChoiceCard } from "./ForcedChoiceCard";
@@ -8,6 +8,8 @@ import { ScaledQuestionCard } from "./ScaledQuestionCard";
 import { BudgetSimulator } from "./BudgetSimulator";
 import { PhaseTransition } from "./PhaseTransition";
 import { ProgressBar } from "./ProgressBar";
+import { encodeResponses } from "@/lib/response-codec";
+import type { QuizResponses } from "@/lib/scoring-types";
 
 // ---------- data types coming from the server component ----------
 
@@ -75,7 +77,6 @@ export function QuizFlow({
 }: QuizFlowProps) {
   const { state, dispatch } = useQuiz();
   const router = useRouter();
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const shuffledFC = useMemo(
     () => seededShuffle(forcedChoiceItems, Math.floor(state.randomSeed * 2147483647)),
@@ -114,51 +115,26 @@ export function QuizFlow({
     [dispatch]
   );
 
-  const handleBudgetFinalize = useCallback(async () => {
-    setSubmitError(null);
+  const handleBudgetFinalize = useCallback(() => {
     dispatch({ type: "START_COMPUTING" });
 
-    const forcedChoiceResponses = Object.entries(state.forcedChoiceResponses).map(
-      ([itemId, selectedPole]) => ({ itemId, selectedPole })
-    );
-    const scaledResponses = Object.entries(state.scaledResponses).map(
-      ([itemId, value]) => ({ itemId, value })
-    );
-    const budgetAllocations = Object.entries(state.budgetAllocations).map(
-      ([ministryId, amount]) => ({ ministryId: Number(ministryId), amount })
-    );
+    const responses: QuizResponses = {
+      forcedChoice: state.forcedChoiceResponses,
+      scaled: state.scaledResponses,
+      budget: state.budgetAllocations,
+    };
 
-    const token = localStorage.getItem("anonymousToken") || undefined;
+    const encoded = encodeResponses(responses);
+    localStorage.setItem("lastResults", encoded);
 
-    try {
-      const res = await fetch("/api/quiz/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          forcedChoiceResponses,
-          scaledResponses,
-          budgetAllocations,
-          anonymousToken: token,
-        }),
-      });
+    // Clear quiz state from sessionStorage
+    sessionStorage.removeItem("governance-compass-quiz-state");
 
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem("anonymousToken", data.anonymousToken);
-        localStorage.setItem("profileId", data.profileId);
-        dispatch({ type: "COMPLETE" });
-        // Artificial delay per spec (1.5-2s) before redirect
-        setTimeout(() => {
-          router.push(`/results/${data.profileId}`);
-        }, 1800);
-      } else {
-        setSubmitError("We couldn\u2019t save your results. Your answers are preserved \u2014 please try again.");
-        dispatch({ type: "START_PHASE3" });
-      }
-    } catch {
-      setSubmitError("We couldn\u2019t save your results. Your answers are preserved \u2014 please try again.");
-      dispatch({ type: "START_PHASE3" });
-    }
+    dispatch({ type: "COMPLETE" });
+    // Artificial delay per spec (1.5-2s) before redirect
+    setTimeout(() => {
+      router.push(`/results?r=${encoded}`);
+    }, 1800);
   }, [dispatch, state.forcedChoiceResponses, state.scaledResponses, state.budgetAllocations, router]);
 
   // ---------- navigation ----------
@@ -385,12 +361,6 @@ export function QuizFlow({
     return (
       <div className="mx-auto max-w-2xl py-8">
         <ProgressBar currentPhase={3} currentIndex={0} totalInPhase={1} />
-
-        {submitError && (
-          <div className="mb-6 rounded-[8px] border border-warning bg-warning-bg p-4 text-sm text-warning-text" role="alert">
-            {submitError}
-          </div>
-        )}
 
         <BudgetSimulator
           ministries={ministries}
