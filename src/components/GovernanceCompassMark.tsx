@@ -41,12 +41,18 @@ const TIPS = { north: 27, east: 22, south: 17, west: 25 };
 const WAIST = 6;
 const INNER = 9;
 
+// Gap between adjacent petals prevents anti-aliased semi-transparent
+// edges from overlapping at shared vertices
+const GAP = 0.4;
+
 function getPetalPoints(hw: number) {
+  const w = WAIST - GAP;
+  const h = hw - GAP;
   return {
-    north: `0,-${TIPS.north} ${hw},-${WAIST} 0,-${INNER} -${hw},-${WAIST}`,
-    east:  `${TIPS.east},0 ${WAIST},${hw} ${INNER},0 ${WAIST},-${hw}`,
-    south: `0,${TIPS.south} -${hw},${WAIST} 0,${INNER} ${hw},${WAIST}`,
-    west:  `-${TIPS.west},0 -${WAIST},-${hw} -${INNER},0 -${WAIST},${hw}`,
+    north: `0,-${TIPS.north} ${h},-${w} 0,-${INNER} -${h},-${w}`,
+    east:  `${TIPS.east},0 ${w},${h} ${INNER},0 ${w},-${h}`,
+    south: `0,${TIPS.south} -${h},${w} 0,${INNER} ${h},${w}`,
+    west:  `-${TIPS.west},0 -${w},-${h} -${INNER},0 -${w},${h}`,
   };
 }
 
