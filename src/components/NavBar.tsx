@@ -66,6 +66,20 @@ export function NavBar() {
               Results
             </Link>
           )}
+          <Link
+            href="/methodology"
+            className={linkClasses("/methodology")}
+            aria-current={pathname === "/methodology" ? "page" : undefined}
+          >
+            Methodology
+          </Link>
+          <Link
+            href="/axes"
+            className={linkClasses("/axes")}
+            aria-current={pathname === "/axes" ? "page" : undefined}
+          >
+            Axes
+          </Link>
           {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>
       </div>

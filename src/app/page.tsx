@@ -92,7 +92,11 @@ export default function Home() {
         {/* Footer */}
         <div className="border-t border-border-secondary mt-12 pt-6 text-center">
           <p className="text-xs text-text-tertiary">
-            Research-backed methodology &middot; Privacy-first &middot; No data sold
+            <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">Research-backed methodology</Link>
+            {" "}&middot;{" "}
+            <Link href="/axes" className="hover:text-text-secondary transition-colors duration-150">12 axes explained</Link>
+            {" "}&middot;{" "}
+            Privacy-first &middot; No data sold
           </p>
         </div>
       </div>
