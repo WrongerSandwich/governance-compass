@@ -133,6 +133,9 @@ export default function MethodologyPage() {
               <p>
                 The roadmap toward greater rigor is concrete: internal consistency testing, exploratory factor analysis, test-retest reliability assessment, and ultimately multi-group measurement invariance testing with respondents from diverse cultural contexts.
               </p>
+	      <p>
+		A note on how this was built: the research synthesis, question drafting, scoring design, and methodology content on this site were developed collaboratively with AI tools, with human editorial direction and review throughout. The empirical claims and citations in this document have been editorially reviewed but have not been independently verified by a credentialed psychometrician. This transparency is consistent with the project's broader commitment to showing its work.
+	      </p>
             </div>
           </section>
         </div>
