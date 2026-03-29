@@ -44,8 +44,9 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 
 - Scoring is a 6-stage pipeline: (1) raw scoring per modality — FC maps A/B→±1.0, SC maps Likert 1-5→[-2,+2] then /2, budget uses tanh normalization; (2) per-axis modality computation; (3) weighted fusion (FC 40%, SC 35%, Budget 25%, adjusted for coverage); (4) tension/contradiction detection between stated and revealed preferences; (5) compass super-dimension reduction (economic + cultural-authority); (6) archetype matching via weighted Euclidean distance against 12 prototype vectors.
 - Quiz state persists to sessionStorage — users can refresh or leave and resume where they left off. Phase 1 and 2 support skipping questions; the scoring engine treats unanswered items as neutral (0).
-- The nav bar is auth-aware: shows "Sign in" for anonymous users, the user's name + "Sign out" for authenticated users. A conditional "Results" link appears when a profileId exists in localStorage.
-- Anonymous users get a UUID token in localStorage. Creating an account lets them "claim" the profile via `/api/auth/claim`.
+- Quiz completion encodes all 82 responses into a ~44-char base64url string and navigates to `/results?r=<encoded>`. Results are computed client-side — no database write for anonymous users. The codec is in `src/lib/response-codec.ts`.
+- Database profiles are created on demand via `POST /api/profile/materialize` when users save to account, join a group, or create an annotation. All materialized profiles are linked to authenticated users.
+- The nav bar is auth-aware: shows "Sign in" for anonymous users, the user's name + "Sign out" for authenticated users. A conditional "Results" link appears when localStorage has results (encoded or materialized).
 - Groups resolve membership by invite code only (no group ID needed to join).
 
 ## Design Context
