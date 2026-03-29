@@ -42,7 +42,6 @@ const ARCHETYPE_POSITIONS = archetypes.map((a) => {
   for (const [axisId, weight] of Object.entries(SD_CULTURAL_WEIGHTS)) {
     cultural += weight * (a.prototype[Number(axisId) - 1] ?? 0);
   }
-  // Short label: take the last word of the name (e.g., "The Social Democrat" → "Democrat")
   const words = a.name.replace(/^The\s+/, "").split(/\s+/);
   const shortLabel = words[words.length - 1];
   return { id: a.id, name: a.name, shortLabel, economic, cultural };
@@ -55,14 +54,12 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
   const economicLabel = economic >= 0 ? `+${economic.toFixed(2)}` : economic.toFixed(2);
   const culturalLabel = cultural >= 0 ? `+${cultural.toFixed(2)}` : cultural.toFixed(2);
 
-  // Moderate zone rect at 43% inset from edges
   const modInset = INNER * 0.43;
   const modX = PADDING + modInset;
   const modY = PADDING + modInset;
   const modW = INNER - modInset * 2;
   const modH = INNER - modInset * 2;
 
-  // Leader line: flip to left side when dot is in right half to prevent overflow
   const flipLeader = dotX > CENTER_X;
   const leaderEndX = flipLeader ? dotX - 28 : dotX + 28;
   const labelX = flipLeader ? leaderEndX - 4 : leaderEndX + 4;
@@ -76,7 +73,7 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
         aria-label={`Political compass plot. Economic: ${economicLabel}, Cultural: ${culturalLabel}`}
         role="img"
       >
-        {/* White inner rect with 6px radius */}
+        {/* Plot background */}
         <rect
           x={PADDING}
           y={PADDING}
@@ -86,88 +83,84 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
           style={{ fill: 'var(--surface-1)' }}
         />
 
-        {/* Quadrant domain tints at 4% opacity — subliminal visual rhyme */}
-        <rect x={PADDING} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#6b7d8a" opacity={0.04} />
-        <rect x={CENTER_X} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#85735e" opacity={0.04} />
-        <rect x={PADDING} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#7a8b6e" opacity={0.04} />
-        <rect x={CENTER_X} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#96716b" opacity={0.04} />
+        {/* Quadrant domain tints */}
+        <rect x={PADDING} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#6b7d8a" opacity={0.06} />
+        <rect x={CENTER_X} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#85735e" opacity={0.06} />
+        <rect x={PADDING} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#7a8b6e" opacity={0.06} />
+        <rect x={CENTER_X} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#96716b" opacity={0.06} />
 
-        {/* Topographic contour lines — decorative signature */}
+        {/* Contour lines */}
         {CONTOUR_PATHS.map((d, i) => (
           <path
             key={i}
             d={d}
             fill="none"
-            style={{ stroke: 'var(--stone-600)', opacity: 'var(--contour-opacity)' }}
-            strokeWidth={0.5}
+            style={{ stroke: 'var(--stone-500)' }}
+            strokeWidth={0.6}
+            opacity={0.15}
           />
         ))}
 
-        {/* Moderate zone dashed rect */}
+        {/* Moderate zone */}
         <rect
-          x={modX}
-          y={modY}
-          width={modW}
-          height={modH}
+          x={modX} y={modY} width={modW} height={modH}
           fill="none"
-          style={{ stroke: 'var(--border-tertiary)' }}
+          style={{ stroke: 'var(--border-secondary)' }}
           strokeWidth={0.5}
           strokeDasharray="3 3"
-          opacity={0.3}
+          opacity={0.5}
         />
 
-        {/* Primary crosshairs */}
+        {/* Crosshairs */}
         <line
           x1={CENTER_X} y1={PADDING} x2={CENTER_X} y2={SIZE - PADDING}
-          style={{ stroke: 'var(--border-tertiary)' }}
+          style={{ stroke: 'var(--border-secondary)' }}
           strokeWidth={0.5}
         />
         <line
           x1={PADDING} y1={CENTER_Y} x2={SIZE - PADDING} y2={CENTER_Y}
-          style={{ stroke: 'var(--border-tertiary)' }}
+          style={{ stroke: 'var(--border-secondary)' }}
           strokeWidth={0.5}
         />
 
-        {/* Quadrant whisper labels — very low opacity */}
-        <text x={PADDING + 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.2}>
+        {/* Quadrant whisper labels */}
+        <text x={PADDING + 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.4}>
           Communitarian
         </text>
-        <text x={SIZE - PADDING - 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.2}>
+        <text x={SIZE - PADDING - 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.4}>
           Conservative
         </text>
-        <text x={PADDING + 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.2}>
+        <text x={PADDING + 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.4}>
           Libertarian left
         </text>
-        <text x={SIZE - PADDING - 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.2}>
+        <text x={SIZE - PADDING - 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.4}>
           Classical liberal
         </text>
 
-        {/* Cardinal axis labels — 10px uppercase */}
-        <text x={PADDING - 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" dominantBaseline="middle" letterSpacing="0.08em">
+        {/* Cardinal axis labels */}
+        <text x={PADDING - 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="end" dominantBaseline="middle" letterSpacing="0.08em">
           COLLECTIVE
         </text>
-        <text x={SIZE - PADDING + 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" dominantBaseline="middle" letterSpacing="0.08em">
+        <text x={SIZE - PADDING + 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" dominantBaseline="middle" letterSpacing="0.08em">
           MARKET
         </text>
-        <text x={CENTER_X} y={PADDING - 10} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
+        <text x={CENTER_X} y={PADDING - 10} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
           TRADITIONAL
         </text>
-        <text x={CENTER_X} y={SIZE - PADDING + 18} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
+        <text x={CENTER_X} y={SIZE - PADDING + 18} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
           PROGRESSIVE
         </text>
 
         {/* Archetype reference markers — with collision suppression */}
         {(() => {
-          // Sort so primary archetype is placed first (gets label priority)
           const sorted = [...ARCHETYPE_POSITIONS].sort((a, b) => {
             if (a.id === primaryArchetypeId) return -1;
             if (b.id === primaryArchetypeId) return 1;
             return 0;
           });
 
-          // Track placed label positions to detect overlap
           const placed: { x: number; y: number }[] = [];
-          const MIN_DIST = 18; // minimum pixel distance between label centers
+          const MIN_DIST = 18;
 
           return sorted.map((a) => {
             const ax = toX(a.economic);
@@ -175,7 +168,6 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
             const isPrimary = a.id === primaryArchetypeId;
             const labelY = ay - (isPrimary ? 6 : 5);
 
-            // Check if this label would overlap a previously placed one
             const tooClose = placed.some(
               (p) => Math.hypot(ax - p.x, labelY - p.y) < MIN_DIST
             );
@@ -183,12 +175,12 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
             if (showLabel) placed.push({ x: ax, y: labelY });
 
             return (
-              <g key={a.id} opacity={isPrimary ? 0.6 : 0.25}>
+              <g key={a.id} opacity={isPrimary ? 0.75 : 0.4}>
                 <circle
                   cx={ax}
                   cy={ay}
                   r={isPrimary ? 3 : 2}
-                  style={{ fill: 'var(--text-tertiary)' }}
+                  style={{ fill: 'var(--text-secondary)' }}
                 />
                 {showLabel && (
                   <text
@@ -197,7 +189,7 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
                     textAnchor="middle"
                     fontSize={isPrimary ? 7.5 : 6.5}
                     fontFamily="inherit"
-                    style={{ fill: 'var(--text-tertiary)' }}
+                    style={{ fill: 'var(--text-secondary)' }}
                   >
                     {a.shortLabel}
                   </text>
@@ -207,22 +199,22 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
           });
         })()}
 
-        {/* Concentric pulse rings */}
-        <circle cx={dotX} cy={dotY} r={16} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.5} opacity={0.2} />
-        <circle cx={dotX} cy={dotY} r={10} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.5} opacity={0.45} />
+        {/* Pulse rings */}
+        <circle cx={dotX} cy={dotY} r={16} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.6} opacity={0.3} />
+        <circle cx={dotX} cy={dotY} r={10} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.6} opacity={0.5} />
 
         {/* Respondent dot */}
         <circle cx={dotX} cy={dotY} r={5} style={{ fill: 'var(--stone-600)' }} />
 
-        {/* Leader line from dot to coordinate label */}
+        {/* Leader line */}
         <line
           x1={flipLeader ? dotX - 16 : dotX + 16}
           y1={dotY}
           x2={leaderEndX}
           y2={dotY}
           style={{ stroke: 'var(--stone-600)' }}
-          strokeWidth={0.5}
-          opacity={0.35}
+          strokeWidth={0.6}
+          opacity={0.45}
         />
 
         {/* Coordinate label */}
