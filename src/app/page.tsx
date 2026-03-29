@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { GovernanceCompassMark } from "@/components/GovernanceCompassMark";
+import { CountUp } from "@/components/CountUp";
+import { StaggeredList } from "@/components/StaggeredList";
 
 export default function Home() {
   return (
     <main className="min-h-screen px-4">
       {/* Hero */}
       <div className="max-w-xl mx-auto pt-16 pb-12 text-center">
-        <GovernanceCompassMark size={72} className="mx-auto mb-5" />
+        <GovernanceCompassMark size={72} className="mx-auto mb-5" animate />
         <h1 className="text-[32px] font-serif font-medium text-text-primary mb-5 leading-tight">
           The governance compass
         </h1>
@@ -41,9 +43,11 @@ export default function Home() {
 
         {/* 12 axes — typographic breakout */}
         <div className="text-center mb-8">
-          <span className="text-[56px] font-serif font-medium text-text-primary leading-none">
-            12
-          </span>
+          <CountUp
+            target={12}
+            duration={600}
+            className="text-[56px] font-serif font-medium text-text-primary leading-none"
+          />
           <p className="text-[17px] font-serif font-medium text-text-primary mt-1">
             governance axes
           </p>
@@ -54,7 +58,10 @@ export default function Home() {
         </div>
 
         {/* Axis poles preview — cartographic reference grid */}
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-6 gap-y-1.5 max-w-lg mx-auto mb-14">
+        <StaggeredList
+          staggerMs={40}
+          className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-6 gap-y-1.5 max-w-lg mx-auto mb-14"
+        >
           {[
             ["Collective", "Market"],
             ["Ecological", "Growth"],
@@ -78,7 +85,7 @@ export default function Home() {
               <span className="text-left flex-1">{b}</span>
             </div>
           ))}
-        </div>
+        </StaggeredList>
 
         {/* Other features */}
         <div className="border-t border-border-secondary pt-8 max-w-xl mx-auto">
