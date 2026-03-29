@@ -61,15 +61,16 @@ export default function Home() {
         {/* Axis poles preview — cartographic reference grid */}
         <StaggeredList
           staggerMs={40}
-          className="grid gap-y-3 max-w-md mx-auto mb-14"
-          style={{ gridTemplateColumns: "1fr auto 1fr" }}
+          className="flex flex-col gap-3 max-w-sm mx-auto mb-14"
         >
           {axes.map((axis) => (
-            <div key={axis.id} className="col-span-3 grid" style={{ gridTemplateColumns: "subgrid" }}>
-              <span className="text-right text-xs font-mono text-text-tertiary">{axis.poleALabel.split(" ")[0]}</span>
-              <span className="text-center text-xs font-mono text-text-tertiary opacity-40 px-2">&larr;&rarr;</span>
-              <span className="text-left text-xs font-mono text-text-tertiary">{axis.poleBLabel.split(" ")[0]}</span>
-              <p className="col-span-3 text-center text-[11px] text-text-tertiary opacity-70 -mt-1">
+            <div key={axis.id} className="text-center">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-mono text-text-tertiary">
+                <span className="text-right flex-1">{axis.poleALabel.split(" ")[0]}</span>
+                <span className="opacity-40 shrink-0">&larr;&rarr;</span>
+                <span className="text-left flex-1">{axis.poleBLabel.split(" ")[0]}</span>
+              </div>
+              <p className="text-[11px] text-text-tertiary opacity-70 mt-0.5">
                 {axis.tagline}
               </p>
             </div>
