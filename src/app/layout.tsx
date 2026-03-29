@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { NavBar } from "@/components/NavBar";
 import { DevRandomResults } from "@/components/DevRandomResults";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -32,6 +33,7 @@ export default function RootLayout({
           {children}
           <DevRandomResults />
           <Analytics />
+          <SpeedInsights />
         </SessionProvider>
       </body>
     </html>
