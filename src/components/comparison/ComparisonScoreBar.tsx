@@ -75,7 +75,7 @@ export function ComparisonScoreBar({
       {/* Track — using SVG so dots render cleanly without overflow issues */}
       <svg viewBox="0 0 200 20" className="w-full" style={{ height: 20 }} aria-hidden="true">
         {/* Track background */}
-        <rect x="0" y="7" width="200" height="6" rx="3" style={{ fill: 'var(--border-tertiary)' }} />
+        <rect x="0" y="7" width="200" height="6" rx="3" style={{ fill: 'var(--border-secondary)' }} />
 
         {/* Center marker */}
         <line x1="100" y1="4" x2="100" y2="16" style={{ stroke: 'var(--border-secondary)' }} strokeWidth="0.5" />

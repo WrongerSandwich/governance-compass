@@ -51,7 +51,7 @@ export function ScoreBar({
         className="relative w-full rounded-[3px] overflow-visible"
         style={{
           height,
-          backgroundColor: 'var(--border-tertiary)',
+          backgroundColor: 'var(--border-secondary)',
         }}
       >
         {/* Fill from center toward score */}
