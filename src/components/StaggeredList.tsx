@@ -6,9 +6,10 @@ interface StaggeredListProps {
   children: ReactNode[];
   staggerMs?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function StaggeredList({ children, staggerMs = 40, className }: StaggeredListProps) {
+export function StaggeredList({ children, staggerMs = 40, className, style }: StaggeredListProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -31,7 +32,7 @@ export function StaggeredList({ children, staggerMs = 40, className }: Staggered
   }, []);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={style}>
       {children.map((child, i) => (
         <div
           key={i}
