@@ -17,7 +17,7 @@ interface RadarChartProps {
 }
 
 const TOTAL_AXES = 12;
-const SIZE = 540;
+const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
 const MAX_RADIUS = 170;
@@ -192,7 +192,19 @@ export function RadarChart({
           else anchor = "end";
 
           const label = axis.poleBLabel || axis.name;
-          const parts = label.split(/[/]/).map((p) => p.trim());
+          // Split long labels into two lines at a space near the middle
+          let parts: string[];
+          if (label.includes("/")) {
+            parts = label.split(/[/]/).map((p) => p.trim());
+          } else if (label.length > 14) {
+            const mid = Math.ceil(label.length / 2);
+            const spaceAfter = label.indexOf(" ", mid);
+            const spaceBefore = label.lastIndexOf(" ", mid);
+            const splitAt = spaceAfter !== -1 && (spaceAfter - mid) < (mid - spaceBefore) ? spaceAfter : spaceBefore;
+            parts = splitAt > 0 ? [label.slice(0, splitAt), label.slice(splitAt + 1)] : [label];
+          } else {
+            parts = [label];
+          }
 
           return (
             <text
