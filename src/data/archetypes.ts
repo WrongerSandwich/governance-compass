@@ -150,7 +150,19 @@ export const archetypes: ArchetypeData[] = [
       "Sits near the midpoint on most or all axes. This may reflect genuine moderation — a considered view that most governance questions require balance and context rather than strong ideological commitments. It may also reflect low engagement or indecision. The archetype description should acknowledge both possibilities.",
     characteristicTension:
       "Pragmatic balance can be mistaken for — or can actually be — an absence of strong convictions. This archetype is defined by what it doesn't strongly favor, which can make it feel less like a worldview and more like a default.",
-    prototype: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    // Prototype has small non-zero values reflecting characteristic centrist
+    // positions (slight market lean, institutional trust, incrementalism) rather
+    // than all-zeros. An all-zero prototype has a structural distance advantage
+    // over every other archetype, causing "opinionated but mixed" users to match
+    // centrist even when they have clear positions that cancel in Euclidean space.
+    //
+    // If centrist over-matching persists with real users, consider:
+    //   (a) Adding a spread/variance penalty to the distance calc for this
+    //       archetype — high-variance profiles are opinionated, not centrist.
+    //   (b) Using the low-match threshold (55%) more aggressively: if centrist
+    //       wins but the user's axis scores have high standard deviation, surface
+    //       a "mixed profile" result instead of forcing the centrist label.
+    prototype: [0.1, 0.1, 0.1, 0.15, 0.05, -0.1, 0.1, 0.1, 0.05, -0.1, -0.1, 0.1],
     displayOrder: 12,
   },
 ];

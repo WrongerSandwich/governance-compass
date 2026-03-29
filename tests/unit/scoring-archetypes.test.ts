@@ -59,33 +59,35 @@ describe("matchArchetype — return shape", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Pragmatic Centrist (all-zeros) — perfect centrist respondent
+// Pragmatic Centrist — respondent at exact prototype
 // ---------------------------------------------------------------------------
 
-describe("matchArchetype — Pragmatic Centrist (all zeros)", () => {
+const CENTRIST_PROTOTYPE = [0.1, 0.1, 0.1, 0.15, 0.05, -0.1, 0.1, 0.1, 0.05, -0.1, -0.1, 0.1];
+
+describe("matchArchetype — Pragmatic Centrist (exact prototype)", () => {
   it("identifies pragmatic-centrist as primary with 100% match", () => {
-    const result = matchArchetype(new Array(12).fill(0));
+    const result = matchArchetype(CENTRIST_PROTOTYPE);
     expect(result.primaryId).toBe("pragmatic-centrist");
-    expect(result.primaryMatchPct).toBeCloseTo(100, 5);
+    expect(result.primaryMatchPct).toBe(100);
   });
 
   it("primaryMatchPct is 100 (distance = 0)", () => {
-    const result = matchArchetype(new Array(12).fill(0));
-    expect(result.primaryMatchPct).toBeCloseTo(100, 5);
+    const result = matchArchetype(CENTRIST_PROTOTYPE);
+    expect(result.primaryMatchPct).toBe(100);
   });
 
   it("is NOT blended (clear winner at distance 0)", () => {
-    const result = matchArchetype(new Array(12).fill(0));
+    const result = matchArchetype(CENTRIST_PROTOTYPE);
     expect(result.isBlended).toBe(false);
   });
 
   it("secondary is civic-institutionalist (closest neighbour to centrist)", () => {
-    const result = matchArchetype(new Array(12).fill(0));
+    const result = matchArchetype(CENTRIST_PROTOTYPE);
     expect(result.secondaryId).toBe("civic-institutionalist");
   });
 
   it("secondary match is < 100%", () => {
-    const result = matchArchetype(new Array(12).fill(0));
+    const result = matchArchetype(CENTRIST_PROTOTYPE);
     expect(result.secondaryMatchPct).toBeLessThan(100);
     expect(result.secondaryMatchPct).toBeGreaterThan(0);
   });
@@ -267,14 +269,13 @@ describe("matchArchetype — low match threshold (unusual profile)", () => {
 
 describe("matchArchetype — distance calculation", () => {
   it("uses equal (1.0) weight for all 12 axes", () => {
-    // Verify by testing with a single-axis deviation
-    // Respondent: centrist except axis 6 = 1.0 → distance from centrist = 1.0
-    const respondent = new Array(12).fill(0);
-    respondent[5] = 1.0; // axis 6 (index 5)
+    // Respondent at centrist prototype except axis 6 shifted by +1.0
+    // Distance from centrist = 1.0 (single-axis deviation)
+    const respondent = [...CENTRIST_PROTOTYPE];
+    respondent[5] = CENTRIST_PROTOTYPE[5] + 1.0; // shift axis 6 by 1.0
     const expectedDist = 1.0;
     const expectedPct = Math.round((1 - expectedDist / MAX_ARCHETYPE_DISTANCE) * 100);
     const result = matchArchetype(respondent);
-    // Centrist should still be primary (distance 1.0 is small)
     expect(result.primaryId).toBe("pragmatic-centrist");
     expect(result.primaryMatchPct).toBe(expectedPct);
   });
