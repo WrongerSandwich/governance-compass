@@ -139,82 +139,84 @@ function CompareResults() {
           </div>
         </FadeInSection>
 
-        <FadeInSection delay={200}>
-          <div className="space-y-5 mb-8">
-            {DOMAIN_KEYS.map((domainKey) => {
-              const domain = DOMAIN_COLORS[domainKey];
-              const domainDeltas = comparison.perAxisDeltas
-                .filter((d) => domain.axes.includes(d.axisId))
-                .sort((a, b) => {
-                  const axisA = axisMap.get(a.axisId);
-                  const axisB = axisMap.get(b.axisId);
-                  return (axisA?.order ?? 0) - (axisB?.order ?? 0);
-                });
-              if (domainDeltas.length === 0) return null;
-              return (
-                <div key={domainKey} className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
-                  <h2
-                    className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-4"
-                    style={{ color: domain[600] }}
-                  >
-                    {domain.name}
-                  </h2>
-                  {domainDeltas.map((d) => {
-                    const axis = axisMap.get(d.axisId)!;
-                    return (
-                      <ComparisonScoreBar
-                        key={d.axisId}
-                        axisId={d.axisId}
-                        axisName={axis.name}
-                        tagline={axis.tagline}
-                        scoreA={d.scoreA}
-                        scoreB={d.scoreB}
-                        poleALabel={axis.poleALabel}
-                        poleBLabel={axis.poleBLabel}
-                        delta={d.delta}
-                        labelA="You"
-                        labelB="Them"
-                      />
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        </FadeInSection>
-
+        {/* Aligned / Divergent summary — inline, not cards */}
         {comparison.closestAxes.length > 0 && (
-          <FadeInSection>
-            <div className="grid min-[560px]:grid-cols-2 gap-4 mb-8">
-              <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
-                <h3 className="font-medium text-text-primary mb-3 text-sm">
-                  Most aligned
-                </h3>
+          <FadeInSection delay={150}>
+            <div className="grid min-[560px]:grid-cols-2 gap-6 mb-8">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">Most aligned</p>
                 {comparison.closestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="font-mono text-xs text-text-tertiary">
-                      {d.delta.toFixed(2)} apart
-                    </span>
+                    <span className="font-mono text-xs text-text-tertiary">{d.delta.toFixed(2)} apart</span>
                   </div>
                 ))}
               </div>
-              <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
-                <h3 className="font-medium text-text-primary mb-3 text-sm">
-                  Most divergent
-                </h3>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">Most divergent</p>
                 {comparison.furthestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="font-mono text-xs text-text-tertiary">
-                      {d.delta.toFixed(2)} apart
-                    </span>
+                    <span className="font-mono text-xs text-text-tertiary">{d.delta.toFixed(2)} apart</span>
                   </div>
                 ))}
               </div>
             </div>
           </FadeInSection>
         )}
+
+        {/* Axis breakdown by domain — flat, matching results page pattern */}
+        <FadeInSection delay={200}>
+          <section>
+            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+              Axis breakdown
+            </h2>
+            <p className="text-xs font-serif italic text-text-tertiary mb-6">
+              Each bar shows both profiles. Ring marker is you, filled dot is them.
+            </p>
+
+            <div className="space-y-5">
+              {DOMAIN_KEYS.map((domainKey) => {
+                const domain = DOMAIN_COLORS[domainKey];
+                const domainDeltas = comparison.perAxisDeltas
+                  .filter((d) => domain.axes.includes(d.axisId))
+                  .sort((a, b) => (axisMap.get(a.axisId)?.order ?? 0) - (axisMap.get(b.axisId)?.order ?? 0));
+                if (domainDeltas.length === 0) return null;
+                return (
+                  <div key={domainKey}>
+                    <div
+                      className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0"
+                      style={{ color: domain[600] }}
+                    >
+                      {domain.name}
+                    </div>
+                    <div className="space-y-0">
+                      {domainDeltas.map((d, i) => {
+                        const axis = axisMap.get(d.axisId)!;
+                        return (
+                          <ComparisonScoreBar
+                            key={d.axisId}
+                            axisId={d.axisId}
+                            axisName={axis.name}
+                            tagline={axis.tagline}
+                            scoreA={d.scoreA}
+                            scoreB={d.scoreB}
+                            poleALabel={axis.poleALabel}
+                            poleBLabel={axis.poleBLabel}
+                            delta={d.delta}
+                            labelA="You"
+                            labelB="Them"
+                            alternateRow={i % 2 === 1}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </FadeInSection>
       </div>
     </main>
   );
