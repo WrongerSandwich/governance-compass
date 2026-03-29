@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 import { NavBar } from "@/components/NavBar";
 import { DevRandomResults } from "@/components/DevRandomResults";
+import { Analytics } from "@vercel/analytics/next";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
           <NavBar />
           {children}
           <DevRandomResults />
+          <Analytics />
         </SessionProvider>
       </body>
     </html>
