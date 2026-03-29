@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import React, { Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { decodeResponses } from "@/lib/response-codec";
 import { computeFullResults } from "@/lib/scoring";
@@ -10,6 +10,38 @@ import { ComparisonRadar } from "@/components/comparison/ComparisonRadar";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { AlignmentScore } from "@/components/comparison/AlignmentScore";
 import { FadeInSection } from "@/components/FadeInSection";
+import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import Link from "next/link";
+
+function CopyLinkButton() {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const input = document.createElement("input");
+      input.value = window.location.href;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
+    >
+      {copied ? "Copied!" : "Copy comparison link"}
+    </button>
+  );
+}
+
+const DOMAIN_KEYS: DomainKey[] = ["economic", "power", "society", "world"];
 
 function CompareResults() {
   const searchParams = useSearchParams();
@@ -77,6 +109,12 @@ function CompareResults() {
       <div className="max-w-3xl mx-auto">
         <FadeInSection>
           <div className="mb-6">
+            <Link
+              href={`/results?r=${encodedA}`}
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150 mb-2 inline-block"
+            >
+              &larr; Back to your results
+            </Link>
             <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
               Comparison
             </p>
@@ -95,38 +133,53 @@ function CompareResults() {
               labelA="You"
               labelB="Them"
             />
+            <div className="flex justify-center mt-4">
+              <CopyLinkButton />
+            </div>
           </div>
         </FadeInSection>
 
         <FadeInSection delay={200}>
-          <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
-            <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium border-b border-border-secondary pb-1.5 mb-4">
-              By axis
-            </h2>
-            {comparison.perAxisDeltas
-              .sort((a, b) => {
-                const axisA = axisMap.get(a.axisId);
-                const axisB = axisMap.get(b.axisId);
-                return (axisA?.order ?? 0) - (axisB?.order ?? 0);
-              })
-              .map((d) => {
-                const axis = axisMap.get(d.axisId)!;
-                return (
-                  <ComparisonScoreBar
-                    key={d.axisId}
-                    axisId={d.axisId}
-                    axisName={axis.name}
-                    tagline={axis.tagline}
-                    scoreA={d.scoreA}
-                    scoreB={d.scoreB}
-                    poleALabel={axis.poleALabel}
-                    poleBLabel={axis.poleBLabel}
-                    delta={d.delta}
-                    labelA="You"
-                    labelB="Them"
-                  />
-                );
-              })}
+          <div className="space-y-5 mb-8">
+            {DOMAIN_KEYS.map((domainKey) => {
+              const domain = DOMAIN_COLORS[domainKey];
+              const domainDeltas = comparison.perAxisDeltas
+                .filter((d) => domain.axes.includes(d.axisId))
+                .sort((a, b) => {
+                  const axisA = axisMap.get(a.axisId);
+                  const axisB = axisMap.get(b.axisId);
+                  return (axisA?.order ?? 0) - (axisB?.order ?? 0);
+                });
+              if (domainDeltas.length === 0) return null;
+              return (
+                <div key={domainKey} className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+                  <h2
+                    className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-4"
+                    style={{ color: domain[600] }}
+                  >
+                    {domain.name}
+                  </h2>
+                  {domainDeltas.map((d) => {
+                    const axis = axisMap.get(d.axisId)!;
+                    return (
+                      <ComparisonScoreBar
+                        key={d.axisId}
+                        axisId={d.axisId}
+                        axisName={axis.name}
+                        tagline={axis.tagline}
+                        scoreA={d.scoreA}
+                        scoreB={d.scoreB}
+                        poleALabel={axis.poleALabel}
+                        poleBLabel={axis.poleBLabel}
+                        delta={d.delta}
+                        labelA="You"
+                        labelB="Them"
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </FadeInSection>
 
