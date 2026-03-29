@@ -8,11 +8,18 @@ import Link from "next/link";
 export function NavBar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [resultsHref, setResultsHref] = useState<string | null>(null);
 
   // Re-check localStorage on every navigation (covers post-quiz redirect)
   useEffect(() => {
-    setProfileId(localStorage.getItem("profileId"));
+    const stored = localStorage.getItem("lastResults");
+    if (!stored) {
+      setResultsHref(null);
+    } else if (stored.startsWith("id:")) {
+      setResultsHref(`/results/${stored.slice(3)}`);
+    } else {
+      setResultsHref(`/results?r=${stored}`);
+    }
   }, [pathname]);
 
   function linkClasses(href: string): string {
@@ -46,9 +53,9 @@ export function NavBar() {
           >
             Quiz
           </Link>
-          {profileId && (
+          {resultsHref && (
             <Link
-              href={`/results/${profileId}`}
+              href={resultsHref}
               className={linkClasses("/results")}
               aria-current={pathname.startsWith("/results") ? "page" : undefined}
             >

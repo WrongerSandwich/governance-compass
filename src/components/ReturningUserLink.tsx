@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export function ReturningUserLink() {
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [resultsHref, setResultsHref] = useState<string | null>(null);
 
   useEffect(() => {
-    setProfileId(localStorage.getItem("profileId"));
+    const stored = localStorage.getItem("lastResults");
+    if (!stored) return;
+    if (stored.startsWith("id:")) {
+      setResultsHref(`/results/${stored.slice(3)}`);
+    } else {
+      setResultsHref(`/results?r=${stored}`);
+    }
   }, []);
 
-  if (!profileId) return null;
+  if (!resultsHref) return null;
 
   return (
     <p className="mt-2">
       <Link
-        href={`/results/${profileId}`}
+        href={resultsHref}
         className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
       >
         or view your existing results
