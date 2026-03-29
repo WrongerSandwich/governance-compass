@@ -173,8 +173,8 @@ export function QuizFlow({
         </h1>
         <p className="text-sm text-text-secondary mb-2 leading-relaxed">
           A multi-dimensional assessment of your political priorities and values.
-          You will work through three phases: dilemma choices, calibrated scales,
-          and a budget allocation exercise.
+          You will work through three phases: forced-choice dilemmas, nuanced
+          scales, and a budget allocation exercise.
         </p>
         <p className="text-xs font-serif italic text-text-tertiary mb-2">
           Estimated time: ~20 minutes
@@ -265,7 +265,7 @@ export function QuizFlow({
       <PhaseTransition
         completedPhase={1}
         completedCount={Object.keys(state.forcedChoiceResponses).length}
-        nextPhaseTitle="Calibrated scales"
+        nextPhaseTitle="Nuanced scales"
         nextPhaseDescription="Now you will place yourself on a series of nuanced scales — from one governance philosophy to its counterpart — giving us a finer-grained picture of your views."
         estimatedTime="~8 minutes"
         onContinue={() => dispatch({ type: "START_PHASE2" })}
@@ -392,7 +392,7 @@ export function QuizFlow({
           Computing your results
         </h2>
         <p className="text-sm text-text-tertiary">
-          Analyzing your responses across all three modalities...
+          Analyzing your responses across all three question formats...
         </p>
       </div>
     );

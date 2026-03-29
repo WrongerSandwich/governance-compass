@@ -81,7 +81,7 @@ export function BudgetSimulator({
     <div className="flex flex-col gap-6">
       {/* Instruction text */}
       <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center">
-        Distribute {DISCRETIONARY} discretionary units across {ministries.length} ministries — each starts at the minimum of {MIN_ALLOCATION}, baseline is {BASELINE}
+        You have {DISCRETIONARY} points to distribute across {ministries.length} ministries — reducing any ministry below {BASELINE} has consequences
       </p>
 
       {/* Sticky treasury counter */}

@@ -6,7 +6,7 @@ interface ProgressBarProps {
   totalInPhase: number;
 }
 
-const PHASE_LABELS = ["Dilemmas", "Calibration", "Budget"];
+const PHASE_LABELS = ["Dilemmas", "Scales", "Budget"];
 
 export function ProgressBar({
   currentPhase,

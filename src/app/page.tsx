@@ -28,7 +28,7 @@ export default function Home() {
           Begin assessment
         </Link>
         <p className="mt-3 text-xs font-serif italic text-text-tertiary">
-          ~20 minutes &middot; 3 question modalities &middot; No account required
+          ~20 minutes &middot; 3 question formats &middot; No account required
         </p>
         <ReturningUserLink />
       </div>
@@ -83,7 +83,7 @@ export default function Home() {
         {/* Other features */}
         <div className="border-t border-border-secondary pt-8 max-w-xl mx-auto">
           <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-6">
-            Also included
+            Beyond the assessment
           </p>
           <div className="grid min-[560px]:grid-cols-2 gap-8">
             <div className="text-center min-[560px]:text-left">

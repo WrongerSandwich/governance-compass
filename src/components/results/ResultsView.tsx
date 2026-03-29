@@ -313,7 +313,7 @@ export function ResultsView({
             </button>
           </div>
           <p className="text-xs font-serif italic text-text-tertiary mb-6">
-            Each axis scored from -1.0 (Pole A) to +1.0 (Pole B), weighted across three modalities.
+            Each axis scored from -1.0 to +1.0 between its two endpoints, weighted across your dilemma choices, scale responses, and budget allocation.
           </p>
 
           <div className="space-y-5">
