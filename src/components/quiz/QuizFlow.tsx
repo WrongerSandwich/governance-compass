@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuiz } from "./QuizProvider";
 import { ForcedChoiceCard } from "./ForcedChoiceCard";
@@ -162,6 +162,47 @@ export function QuizFlow({
       }
     }
   }, [dispatch, state.phase, state.currentQuestionIndex, shuffledFC.length, shuffledSC.length]);
+
+  // ---------- resume detection ----------
+
+  const hasProgress = state.phase !== "intro" && state.phase !== "computing" && state.phase !== "done";
+  const answeredCount = Object.keys(state.forcedChoiceResponses).length + Object.keys(state.scaledResponses).length;
+  const [resumeAcknowledged, setResumeAcknowledged] = useState(false);
+
+  // Show resume screen if we loaded into a mid-quiz state
+  if (hasProgress && answeredCount > 0 && !resumeAcknowledged) {
+    const phaseLabel =
+      state.phase === "phase1" || state.phase === "transition1" ? "dilemmas" :
+      state.phase === "phase2" || state.phase === "transition2" ? "scales" : "budget";
+
+    return (
+      <div className="mx-auto max-w-[640px] py-12 text-center">
+        <GovernanceCompassMark size={36} className="mx-auto mb-4" />
+        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-2">
+          Welcome back
+        </h1>
+        <p className="text-sm text-text-secondary mb-8 leading-relaxed">
+          You have an assessment in progress — {answeredCount} responses recorded, currently in the {phaseLabel} phase.
+        </p>
+        <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <button
+            type="button"
+            onClick={() => setResumeAcknowledged(true)}
+            className="rounded-[12px] bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+          >
+            Continue where I left off
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "RESET" })}
+            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+          >
+            Start over
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ---------- renders ----------
 

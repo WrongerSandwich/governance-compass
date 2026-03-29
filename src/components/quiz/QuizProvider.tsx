@@ -31,7 +31,8 @@ export type QuizAction =
   | { type: "START_PHASE2" }
   | { type: "START_PHASE3" }
   | { type: "START_COMPUTING" }
-  | { type: "COMPLETE" };
+  | { type: "COMPLETE" }
+  | { type: "RESET" };
 
 function quizReducer(state: QuizState, action: QuizAction): QuizState {
   switch (action.type) {
@@ -77,6 +78,16 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
       return { ...state, phase: "computing" };
     case "COMPLETE":
       return { ...state, phase: "done" };
+    case "RESET":
+      sessionStorage.removeItem(STORAGE_KEY);
+      return {
+        phase: "intro",
+        forcedChoiceResponses: {},
+        scaledResponses: {},
+        budgetAllocations: createInitialBudget(),
+        currentQuestionIndex: 0,
+        randomSeed: Math.random(),
+      };
     default:
       return state;
   }
