@@ -38,7 +38,7 @@ export default function Home() {
 
       {/* Features */}
       <div className="max-w-3xl mx-auto pb-20">
-        <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-10">
+        <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-5">
           What you&apos;ll discover
         </h2>
 
