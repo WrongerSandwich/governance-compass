@@ -7,6 +7,7 @@ import { ArchetypeCard } from "./ArchetypeCard";
 import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { CompareButton } from "./CompareButton";
+import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -146,12 +147,13 @@ export function ResultsView({
   profileId,
   encoded,
 }: ResultsViewProps) {
-  const domains = [
-    { name: "Economic Organization", axes: axisData.filter((a) => a.domain === "Economic Organization") },
-    { name: "Power and Authority", axes: axisData.filter((a) => a.domain === "Power and Authority") },
-    { name: "Society and Identity", axes: axisData.filter((a) => a.domain === "Society and Identity") },
-    { name: "The State in the World", axes: axisData.filter((a) => a.domain === "The State in the World") },
-  ];
+  const domainKeys: DomainKey[] = ["economic", "power", "society", "world"];
+  const domains = domainKeys.map((key) => ({
+    key,
+    name: DOMAIN_COLORS[key].name,
+    color600: DOMAIN_COLORS[key][600],
+    axes: axisData.filter((a) => a.domain === DOMAIN_COLORS[key].name),
+  }));
 
   const tensionAxes = axisData.filter((a) => a.tension.detected);
 
@@ -294,8 +296,11 @@ export function ResultsView({
 
           <div className="space-y-5">
             {domains.map((domain) => (
-              <div key={domain.name}>
-                <div className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0">
+              <div key={domain.key}>
+                <div
+                  className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0"
+                  style={{ color: domain.color600 }}
+                >
                   {domain.name}
                 </div>
                 <div className="space-y-0">

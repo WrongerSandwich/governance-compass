@@ -5,6 +5,7 @@ export interface ScoreBarProps {
   poleALabel: string;
   poleBLabel: string;
   height?: number; // default 6
+  accentColor?: string; // hex color for fill and dot border
 }
 
 export function ScoreBar({
@@ -12,7 +13,10 @@ export function ScoreBar({
   poleALabel,
   poleBLabel,
   height = 6,
+  accentColor,
 }: ScoreBarProps) {
+  const fillColor = accentColor ?? 'var(--stone-600)';
+  const dotBorder = accentColor ? `2px solid ${accentColor}` : '2px solid var(--stone-600)';
   const clamped = Math.max(-1, Math.min(1, score));
 
   // Marker position: 0% = -1.0, 50% = 0.0, 100% = +1.0
@@ -56,7 +60,7 @@ export function ScoreBar({
           style={{
             left: `${fillLeft}%`,
             width: `${fillWidth}%`,
-            backgroundColor: 'var(--stone-600)',
+            backgroundColor: fillColor,
             opacity: 0.6,
           }}
         />
@@ -80,7 +84,7 @@ export function ScoreBar({
             left: `${markerLeft}%`,
             width: 12,
             height: 12,
-            border: '2px solid var(--stone-600)',
+            border: dotBorder,
             backgroundColor: 'var(--surface-1)',
           }}
           aria-hidden="true"

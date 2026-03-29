@@ -19,3 +19,52 @@ export const tokens = {
   info: '#2563eb',
   warning: '#d97706',
 } as const;
+
+/**
+ * Domain color mapping — four muted tones for the four governance domains.
+ * Used exclusively on the results page (radar chart, axis breakdown, score bars).
+ * See docs/system_proposal/governance_compass_domain_colors.md
+ */
+export const DOMAIN_COLORS = {
+  economic: {
+    name: 'Economic Organization',
+    axes: [1, 2] as number[],
+    600: '#85735e', // Stone
+    400: '#b5a594',
+  },
+  power: {
+    name: 'Power and Authority',
+    axes: [3, 4, 5, 6] as number[],
+    600: '#6b7d8a', // Slate
+    400: '#9daebb',
+  },
+  society: {
+    name: 'Society and Identity',
+    axes: [7, 8, 9] as number[],
+    600: '#7a8b6e', // Sage
+    400: '#94a488',
+  },
+  world: {
+    name: 'The State in the World',
+    axes: [10, 11, 12] as number[],
+    600: '#96716b', // Clay
+    400: '#c1a7a1',
+  },
+} as const;
+
+export type DomainKey = keyof typeof DOMAIN_COLORS;
+
+const AXIS_TO_DOMAIN: Record<number, DomainKey> = {};
+for (const [key, config] of Object.entries(DOMAIN_COLORS)) {
+  for (const axisId of config.axes) {
+    AXIS_TO_DOMAIN[axisId] = key as DomainKey;
+  }
+}
+
+export function getDomainForAxis(axisId: number): DomainKey {
+  return AXIS_TO_DOMAIN[axisId] ?? 'economic';
+}
+
+export function getDomainColor600(axisId: number): string {
+  return DOMAIN_COLORS[getDomainForAxis(axisId)][600];
+}

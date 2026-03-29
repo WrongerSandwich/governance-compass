@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ScoreBar } from "./ScoreBar";
 import { AXIS_WEIGHT_PROFILES } from "@/lib/scoring-types";
+import { getDomainColor600 } from "@/lib/design-tokens";
 
 export interface AxisBreakdownCardProps {
   axisId: number;
@@ -77,6 +78,7 @@ export function AxisBreakdownCard({
         score={finalScore}
         poleALabel={poleALabel}
         poleBLabel={poleBLabel}
+        accentColor={getDomainColor600(axisId)}
       />
 
       {/* Expandable scoring breakdown */}

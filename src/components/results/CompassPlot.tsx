@@ -66,6 +66,12 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
           style={{ fill: 'var(--surface-1)' }}
         />
 
+        {/* Quadrant domain tints at 4% opacity — subliminal visual rhyme */}
+        <rect x={PADDING} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#6b7d8a" opacity={0.04} />
+        <rect x={CENTER_X} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#85735e" opacity={0.04} />
+        <rect x={PADDING} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#7a8b6e" opacity={0.04} />
+        <rect x={CENTER_X} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#96716b" opacity={0.04} />
+
         {/* Topographic contour lines — decorative signature */}
         {CONTOUR_PATHS.map((d, i) => (
           <path

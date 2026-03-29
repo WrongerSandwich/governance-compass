@@ -40,6 +40,14 @@
   --info:           #2563eb;
   --info-light:     #dbeafe;
 
+  /* --- Domain colors --- */
+  --slate-600: #6b7d8a;
+  --slate-400: #9daebb;
+  --sage-600:  #7a8b6e;
+  --sage-400:  #94a488;
+  --clay-600:  #96716b;
+  --clay-400:  #c1a7a1;
+
   /* --- Focus --- */
   --focus-ring: var(--stone-600);
 
