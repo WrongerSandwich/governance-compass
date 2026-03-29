@@ -87,12 +87,12 @@ export function ScoreBar({
         />
       </div>
 
-      {/* Pole labels — 82px on desktop, shrink on mobile */}
+      {/* Pole labels */}
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-xs text-text-tertiary truncate w-[56px] min-[560px]:w-[82px]" title={poleALabel}>
+        <span className="text-xs text-text-tertiary">
           {poleALabel}
         </span>
-        <span className="text-xs text-text-tertiary truncate text-right w-[56px] min-[560px]:w-[82px]" title={poleBLabel}>
+        <span className="text-xs text-text-tertiary text-right">
           {poleBLabel}
         </span>
       </div>
