@@ -180,7 +180,8 @@ export function ComparisonRadar({
           const sA = scoresA[i];
           const sB = scoresB[i];
           const name = paddedNames[i];
-          const label = `${labelA}: ${Math.abs(sA).toFixed(2)}  |  ${labelB}: ${Math.abs(sB).toFixed(2)}`;
+          const fmtScore = (s: number) => (s >= 0 ? "+" : "") + s.toFixed(2);
+          const label = `${labelA}: ${fmtScore(sA)}  |  ${labelB}: ${fmtScore(sB)}`;
           const charWidth = 5;
           const textWidth = label.length * charWidth;
           const padH = 8;
