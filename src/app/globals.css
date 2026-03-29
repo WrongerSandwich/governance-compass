@@ -134,17 +134,6 @@ body {
   100% { transform: translateX(350%); }
 }
 
-/* Contour mark draw-on animation */
-@keyframes contour-draw {
-  from { stroke-dashoffset: 200; opacity: 0; }
-  to { stroke-dashoffset: 0; opacity: var(--contour-target-opacity); }
-}
-
-@keyframes dot-appear {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
 /* Staggered reveal for results page sections */
 @keyframes fade-in-up {
   from {

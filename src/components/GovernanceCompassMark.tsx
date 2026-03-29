@@ -1,24 +1,68 @@
 /**
- * The Governance Compass contour mark — four concentric irregular curves
- * with an off-center summit dot. Evokes a terrain map / fingerprint.
+ * The Governance Compass radar rose mark — four directional petals with
+ * different lengths, representing a measured governance profile. Each petal
+ * corresponds to a domain: Stone/Economic (N), Slate/Power (E), Sage/Society (S),
+ * Clay/World (W).
  *
- * See docs/system_proposal/governance_compass_logo_usage.md for full guidelines.
+ * See docs/system_proposal/governance_compass_logo_implementation.md
  */
 
-interface LogoMarkProps {
+interface RadarRoseProps {
   size?: number;
+  variant?: "domain" | "mono";
   className?: string;
-  animate?: boolean;
 }
 
-export function GovernanceCompassMark({ size = 32, className, animate = false }: LogoMarkProps) {
-  // Contour ring data: path, stroke width, target opacity, animation delay
-  const rings = [
-    { d: "M18,10 C30,7 44,12 48,22 C52,32 46,44 34,47 C22,50 10,42 8,30 C6,20 10,12 18,10", sw: 0.8, op: 0.2, delay: 0 },
-    { d: "M20,16 C30,13 40,17 43,24 C46,31 42,40 33,42 C24,44 15,38 13,29 C11,22 14,17 20,16", sw: 0.9, op: 0.35, delay: 0.12 },
-    { d: "M22,22 C29,19 37,22 39,27 C41,32 37,37 31,38 C25,39 19,35 18,29 C17,25 19,23 22,22", sw: 1.0, op: 0.5, delay: 0.24 },
-    { d: "M24,26 C28,24 33,26 34,29 C35,32 32,35 28,35 C25,35 22,33 22,30 C22,27 23,26 24,26", sw: 1.0, op: 0.65, delay: 0.36 },
-  ];
+const TIERS = {
+  full:    { halfWidth: 6,   dotR: 3,   minSize: 56 },
+  nav:     { halfWidth: 7,   dotR: 3.5, minSize: 28 },
+  favicon: { halfWidth: 8.5, dotR: 5,   minSize: 0  },
+} as const;
+
+const DOMAIN_COLORS_LIGHT = {
+  north: { color: "#85735e", opacity: 0.70 },
+  east:  { color: "#6b7d8a", opacity: 0.50 },
+  south: { color: "#7a8b6e", opacity: 0.45 },
+  west:  { color: "#96716b", opacity: 0.55 },
+  dot:   "#85735e",
+} as const;
+
+const MONO_COLORS_LIGHT = {
+  north: { color: "#85735e", opacity: 0.70 },
+  east:  { color: "#85735e", opacity: 0.50 },
+  south: { color: "#85735e", opacity: 0.35 },
+  west:  { color: "#85735e", opacity: 0.55 },
+  dot:   "#85735e",
+} as const;
+
+// Petal tip distances (fixed across all tiers)
+const TIPS = { north: 27, east: 22, south: 17, west: 25 };
+const WAIST = 6;
+const INNER = 9;
+
+function getPetalPoints(hw: number) {
+  return {
+    north: `0,-${TIPS.north} ${hw},-${WAIST} 0,-${INNER} -${hw},-${WAIST}`,
+    east:  `${TIPS.east},0 ${WAIST},${hw} ${INNER},0 ${WAIST},-${hw}`,
+    south: `0,${TIPS.south} -${hw},${WAIST} 0,${INNER} ${hw},${WAIST}`,
+    west:  `-${TIPS.west},0 -${WAIST},-${hw} -${INNER},0 -${WAIST},${hw}`,
+  };
+}
+
+function getTier(size: number) {
+  if (size >= TIERS.full.minSize) return TIERS.full;
+  if (size >= TIERS.nav.minSize) return TIERS.nav;
+  return TIERS.favicon;
+}
+
+export function GovernanceCompassMark({
+  size = 32,
+  variant = "domain",
+  className,
+}: RadarRoseProps) {
+  const tier = getTier(size);
+  const points = getPetalPoints(tier.halfWidth);
+  const colors = variant === "mono" ? MONO_COLORS_LIGHT : DOMAIN_COLORS_LIGHT;
 
   return (
     <svg
@@ -29,46 +73,13 @@ export function GovernanceCompassMark({ size = 32, className, animate = false }:
       className={className}
       aria-hidden="true"
     >
-      {rings.map((ring, i) => (
-        <path
-          key={i}
-          d={ring.d}
-          className="stroke-stone-600"
-          strokeWidth={ring.sw}
-          opacity={animate ? undefined : ring.op}
-          strokeDasharray={animate ? 200 : undefined}
-          strokeDashoffset={animate ? 0 : undefined}
-          style={animate ? {
-            ['--contour-target-opacity' as string]: ring.op,
-            animation: `contour-draw 0.6s ease-out ${ring.delay}s both`,
-          } : undefined}
-        />
-      ))}
-      <circle
-        cx="26" cy="30" r="2" className="fill-stone-600"
-        style={animate ? {
-          transformOrigin: '26px 30px',
-          animation: `dot-appear 0.3s ease-out 0.5s both`,
-        } : undefined}
-      />
-    </svg>
-  );
-}
-
-export function GovernanceCompassFavicon({ size = 16 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 56 56"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M22,22 C29,19 37,22 39,27 C41,32 37,37 31,38 C25,39 19,35 18,29 C17,25 19,23 22,22"
-        stroke="#85735e" strokeWidth="2.5" opacity="0.4"
-      />
-      <circle cx="26" cy="30" r="5" fill="#85735e" />
+      <g transform="translate(28,28)">
+        <polygon points={points.north} fill={colors.north.color} opacity={colors.north.opacity} />
+        <polygon points={points.east}  fill={colors.east.color}  opacity={colors.east.opacity} />
+        <polygon points={points.south} fill={colors.south.color} opacity={colors.south.opacity} />
+        <polygon points={points.west}  fill={colors.west.color}  opacity={colors.west.opacity} />
+        <circle cx={0} cy={0} r={tier.dotR} fill={colors.dot} />
+      </g>
     </svg>
   );
 }

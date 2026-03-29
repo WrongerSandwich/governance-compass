@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 56 56" fill="none">
-  <path d="M22,22 C29,19 37,22 39,27 C41,32 37,37 31,38 C25,39 19,35 18,29 C17,25 19,23 22,22"
-        stroke="#85735e" stroke-width="2.5" opacity="0.4"/>
-  <circle cx="26" cy="30" r="5" fill="#85735e"/>
+  <g transform="translate(28,28)">
+    <polygon points="0,-27 8.5,-6 0,-9 -8.5,-6" fill="#85735e" opacity="0.70"/>
+    <polygon points="22,0 6,8.5 9,0 6,-8.5" fill="#85735e" opacity="0.50"/>
+    <polygon points="0,17 -8.5,6 0,9 8.5,6" fill="#85735e" opacity="0.35"/>
+    <polygon points="-25,0 -6,-8.5 -9,0 -6,8.5" fill="#85735e" opacity="0.55"/>
+    <circle cx="0" cy="0" r="5" fill="#85735e"/>
+  </g>
 </svg>
