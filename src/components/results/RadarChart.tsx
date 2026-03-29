@@ -102,10 +102,26 @@ export function RadarChart({
 
   return (
     <div className="w-full flex flex-col items-center">
+      {/* Visually hidden table for screen readers */}
+      <table className="sr-only" aria-label="12-axis governance profile scores">
+        <thead>
+          <tr><th>Axis</th><th>Score</th><th>Confidence</th></tr>
+        </thead>
+        <tbody>
+          {paddedScores.map((axis) => (
+            <tr key={axis.axisId}>
+              <td>{axis.name}: {axis.poleALabel} to {axis.poleBLabel}</td>
+              <td>{axis.finalScore >= 0 ? "+" : ""}{axis.finalScore.toFixed(2)}</td>
+              <td>{axis.confidence}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="w-full max-w-xl"
-        aria-label="Political profile radar chart"
+        aria-hidden="true"
       >
         {/* Concentric 12-sided polygon rings */}
         {RING_FRACTIONS.map((frac) => (

@@ -156,32 +156,56 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
           PROGRESSIVE
         </text>
 
-        {/* Archetype reference markers */}
-        {ARCHETYPE_POSITIONS.map((a) => {
-          const ax = toX(a.economic);
-          const ay = toY(a.cultural);
-          const isPrimary = a.id === primaryArchetypeId;
-          return (
-            <g key={a.id} opacity={isPrimary ? 0.6 : 0.25}>
-              <circle
-                cx={ax}
-                cy={ay}
-                r={isPrimary ? 3 : 2}
-                style={{ fill: 'var(--text-tertiary)' }}
-              />
-              <text
-                x={ax}
-                y={ay - (isPrimary ? 6 : 5)}
-                textAnchor="middle"
-                fontSize={isPrimary ? 7.5 : 6.5}
-                fontFamily="inherit"
-                style={{ fill: 'var(--text-tertiary)' }}
-              >
-                {a.shortLabel}
-              </text>
-            </g>
-          );
-        })}
+        {/* Archetype reference markers — with collision suppression */}
+        {(() => {
+          // Sort so primary archetype is placed first (gets label priority)
+          const sorted = [...ARCHETYPE_POSITIONS].sort((a, b) => {
+            if (a.id === primaryArchetypeId) return -1;
+            if (b.id === primaryArchetypeId) return 1;
+            return 0;
+          });
+
+          // Track placed label positions to detect overlap
+          const placed: { x: number; y: number }[] = [];
+          const MIN_DIST = 18; // minimum pixel distance between label centers
+
+          return sorted.map((a) => {
+            const ax = toX(a.economic);
+            const ay = toY(a.cultural);
+            const isPrimary = a.id === primaryArchetypeId;
+            const labelY = ay - (isPrimary ? 6 : 5);
+
+            // Check if this label would overlap a previously placed one
+            const tooClose = placed.some(
+              (p) => Math.hypot(ax - p.x, labelY - p.y) < MIN_DIST
+            );
+            const showLabel = isPrimary || !tooClose;
+            if (showLabel) placed.push({ x: ax, y: labelY });
+
+            return (
+              <g key={a.id} opacity={isPrimary ? 0.6 : 0.25}>
+                <circle
+                  cx={ax}
+                  cy={ay}
+                  r={isPrimary ? 3 : 2}
+                  style={{ fill: 'var(--text-tertiary)' }}
+                />
+                {showLabel && (
+                  <text
+                    x={ax}
+                    y={labelY}
+                    textAnchor="middle"
+                    fontSize={isPrimary ? 7.5 : 6.5}
+                    fontFamily="inherit"
+                    style={{ fill: 'var(--text-tertiary)' }}
+                  >
+                    {a.shortLabel}
+                  </text>
+                )}
+              </g>
+            );
+          });
+        })()}
 
         {/* Concentric pulse rings */}
         <circle cx={dotX} cy={dotY} r={16} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.5} opacity={0.2} />
