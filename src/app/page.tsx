@@ -54,7 +54,7 @@ export default function Home() {
         </div>
 
         {/* Axis poles preview — cartographic reference grid */}
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-8 gap-y-1.5 max-w-lg mx-auto mb-14">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-6 gap-y-1.5 max-w-lg mx-auto mb-14">
           {[
             ["Collective", "Market"],
             ["Ecological", "Growth"],
@@ -69,14 +69,14 @@ export default function Home() {
             ["Non-Intervention", "Intervention"],
             ["Precautionary", "Innovation"],
           ].map(([a, b]) => (
-            <p
+            <div
               key={a}
-              className="text-xs font-mono text-text-tertiary text-center"
+              className="flex items-center justify-center gap-1.5 text-xs font-mono text-text-tertiary"
             >
-              {a}{" "}
-              <span className="opacity-40">&larr;&rarr;</span>{" "}
-              {b}
-            </p>
+              <span className="text-right flex-1">{a}</span>
+              <span className="opacity-40 shrink-0">&larr;&rarr;</span>
+              <span className="text-left flex-1">{b}</span>
+            </div>
           ))}
         </div>
 
