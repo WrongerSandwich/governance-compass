@@ -133,6 +133,18 @@ describe("response-codec", () => {
   // Error cases
   // -------------------------------------------------------------------------
 
+  it("rejects out-of-range budget values", () => {
+    const responses = buildCompleteResponses();
+    responses.budget[1] = 3; // below minimum
+    expect(() => encodeResponses(responses)).toThrow(/out of encodable range/);
+  });
+
+  it("rejects out-of-range budget values (above maximum)", () => {
+    const responses = buildCompleteResponses();
+    responses.budget[1] = 133; // above maximum
+    expect(() => encodeResponses(responses)).toThrow(/out of encodable range/);
+  });
+
   it("rejects empty strings", () => {
     expect(() => decodeResponses("")).toThrow();
   });

@@ -149,6 +149,9 @@ export function encodeResponses(responses: QuizResponses): string {
   // 10 budget allocations (7 bits each)
   for (let m = 1; m <= MINISTRY_COUNT; m++) {
     const val = responses.budget[m] ?? 10; // default to baseline if missing
+    if (val < 5 || val > 132) {
+      throw new Error(`Budget value ${val} for ministry ${m} is out of encodable range [5, 132]`);
+    }
     const encoded = val - BUDGET_OFFSET; // offset so 5→0, 95→90
     writer.writeBits(encoded & 0x7f, 7);
   }
