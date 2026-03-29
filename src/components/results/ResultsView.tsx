@@ -9,6 +9,7 @@ import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { CompareButton } from "./CompareButton";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import { STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
+import { FadeInSection } from "@/components/FadeInSection";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -162,32 +163,35 @@ export function ResultsView({
     <main className="min-h-screen px-4 py-8">
       <div className="mx-auto max-w-3xl space-y-8">
         {/* Page header with archetype identity */}
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-            Assessment results
-          </p>
-          {archetype.isDistinctive ? (
-            <>
-              <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
-                A distinctive profile
-              </h1>
-              <p className="text-sm text-text-secondary mt-1">
-                Your positions don&apos;t map to a single governance philosophy — nearest match is {archetype.primary.name} at {archetype.primary.matchPercentage}%
-              </p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
-                {archetype.primary.name}
-              </h1>
-              <p className="text-sm text-text-secondary mt-1">
-                {archetype.primary.matchPercentage}% match — your governance compass across 12 axes
-              </p>
-            </>
-          )}
-        </div>
+        <FadeInSection>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
+              Assessment results
+            </p>
+            {archetype.isDistinctive ? (
+              <>
+                <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
+                  A distinctive profile
+                </h1>
+                <p className="text-sm text-text-secondary mt-1">
+                  Your positions don&apos;t map to a single governance philosophy — nearest match is {archetype.primary.name} at {archetype.primary.matchPercentage}%
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
+                  {archetype.primary.name}
+                </h1>
+                <p className="text-sm text-text-secondary mt-1">
+                  {archetype.primary.matchPercentage}% match — your governance compass across 12 axes
+                </p>
+              </>
+            )}
+          </div>
+        </FadeInSection>
 
         {/* Section jump links */}
+        <FadeInSection delay={100}>
         <nav className="flex gap-4 text-xs text-text-tertiary" aria-label="Page sections">
           <a href={`#${SECTION_IDS.compass}`} className="hover:text-text-secondary transition-colors duration-150">Compass</a>
           {tensionAxes.length > 0 && (
@@ -196,8 +200,10 @@ export function ResultsView({
           <a href={`#${SECTION_IDS.radar}`} className="hover:text-text-secondary transition-colors duration-150">Radar</a>
           <a href={`#${SECTION_IDS.breakdown}`} className="hover:text-text-secondary transition-colors duration-150">Breakdown</a>
         </nav>
+        </FadeInSection>
 
         {/* Hero region: Compass + Archetype side by side */}
+        <FadeInSection delay={200}>
         <section id={SECTION_IDS.compass} className="bg-surface-2 rounded-[12px] p-6">
           <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-5">
             <CompassPlot
@@ -229,9 +235,11 @@ export function ResultsView({
             {profileId && <CompareButton profileId={profileId} />}
           </div>
         </section>
+        </FadeInSection>
 
         {/* Tension cards (between hero and radar) */}
         {tensionAxes.length > 0 && (
+          <FadeInSection>
           <section id={SECTION_IDS.tensions} className="space-y-3">
             {tensionAxes.map((axis) => (
               <div
@@ -267,9 +275,11 @@ export function ResultsView({
               </div>
             ))}
           </section>
+          </FadeInSection>
         )}
 
         {/* Radar section */}
+        <FadeInSection>
         <section id={SECTION_IDS.radar}>
           <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
             Full profile
@@ -288,8 +298,10 @@ export function ResultsView({
             />
           </div>
         </section>
+        </FadeInSection>
 
         {/* Axis breakdown by domain */}
+        <FadeInSection>
         <section id={SECTION_IDS.breakdown}>
           <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
             Axis breakdown
@@ -320,6 +332,7 @@ export function ResultsView({
             ))}
           </div>
         </section>
+        </FadeInSection>
       </div>
     </main>
   );
