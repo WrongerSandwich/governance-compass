@@ -67,6 +67,7 @@ function SaveToAccountButton({ encoded }: { encoded: string }) {
       const data = await res.json();
       localStorage.setItem("lastResults", `id:${data.profileId}`);
       setStatus("saved");
+      // Full reload so the server page fetches the materialized profile
       window.location.href = `/results/${data.profileId}`;
     } else {
       setStatus("error");
