@@ -8,6 +8,7 @@ import { ScaledQuestionCard } from "./ScaledQuestionCard";
 import { BudgetSimulator } from "./BudgetSimulator";
 import { PhaseTransition } from "./PhaseTransition";
 import { ProgressBar } from "./ProgressBar";
+import { GovernanceCompassMark } from "../GovernanceCompassMark";
 import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
 
@@ -376,6 +377,7 @@ export function QuizFlow({
   if (state.phase === "computing" || state.phase === "done") {
     return (
       <div className="mx-auto max-w-lg py-24 text-center" aria-live="polite" aria-busy="true">
+        <GovernanceCompassMark size={36} className="mx-auto mb-6" />
         {/* Animated loading line (keyframe defined in globals.css) */}
         <div className="w-full h-[2px] bg-border-tertiary rounded-full overflow-hidden mb-8">
           <div

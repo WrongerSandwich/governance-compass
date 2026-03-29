@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
+import { GovernanceCompassMark } from "@/components/GovernanceCompassMark";
 
 export default function Home() {
   return (
     <main className="min-h-screen px-4">
       {/* Hero */}
       <div className="max-w-xl mx-auto pt-16 pb-12 text-center">
+        <GovernanceCompassMark size={72} className="mx-auto mb-5" />
         <h1 className="text-[32px] font-serif font-medium text-text-primary mb-5 leading-tight">
           The governance compass
         </h1>
