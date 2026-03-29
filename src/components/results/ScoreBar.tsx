@@ -32,7 +32,7 @@ export function ScoreBar({
       : (clamped > 0 ? "+" : "") + clamped.toFixed(2);
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-clip">
       {/* Score value above the bar, positioned at marker */}
       <div className="relative mb-1" style={{ height: 14 }}>
         <span
