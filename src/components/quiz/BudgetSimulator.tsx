@@ -90,7 +90,10 @@ export function BudgetSimulator({
         <span className="text-[16px] font-mono font-medium text-text-primary tabular-nums">
           {discretionaryRemaining}
           {canFinalize && (
-            <span className="ml-2 text-xs font-sans font-medium text-stone-600">
+            <span
+              className="ml-2 text-xs font-sans font-medium text-stone-600"
+              style={{ animation: "fade-in-up 200ms ease-out both" }}
+            >
               Balanced
             </span>
           )}

@@ -51,7 +51,7 @@ export function ForcedChoiceCard({
       "rounded-[12px] p-6 cursor-pointer transition-all duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
 
     if (isSelected) {
-      return `${base} border-2 border-stone-600 bg-surface-1`;
+      return `${base} border-2 border-stone-600 bg-surface-1 scale-[1.01]`;
     }
     if (hasSelection) {
       return `${base} border border-border-secondary bg-surface-1 opacity-60`;

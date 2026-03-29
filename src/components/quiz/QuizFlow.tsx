@@ -9,6 +9,7 @@ import { BudgetSimulator } from "./BudgetSimulator";
 import { PhaseTransition } from "./PhaseTransition";
 import { ProgressBar } from "./ProgressBar";
 import { GovernanceCompassMark } from "../GovernanceCompassMark";
+import { ComputingMessages } from "./ComputingMessages";
 import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
 
@@ -391,9 +392,7 @@ export function QuizFlow({
         <h2 className="text-[18px] font-serif font-medium text-text-primary mb-2">
           Computing your results
         </h2>
-        <p className="text-sm text-text-tertiary">
-          Analyzing your responses across all three question formats...
-        </p>
+        <ComputingMessages />
       </div>
     );
   }

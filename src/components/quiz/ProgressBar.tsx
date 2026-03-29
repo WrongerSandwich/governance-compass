@@ -43,7 +43,7 @@ export function ProgressBar({
             >
               <div
                 className={`h-full transition-all duration-300 ${
-                  isCompleted || isActive ? "bg-stone-600" : "bg-transparent"
+                  isCompleted ? "bg-stone-600 brightness-125" : isActive ? "bg-stone-600" : "bg-transparent"
                 }`}
                 style={{
                   width: isCompleted
