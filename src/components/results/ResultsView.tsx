@@ -8,6 +8,7 @@ import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { CompareButton } from "./CompareButton";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import { STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -254,7 +255,7 @@ export function ResultsView({
                   <span>
                     Stated:{" "}
                     {axis.components.fc >= 0 ? "+" : ""}
-                    {(axis.components.fc * 0.55 + axis.components.sc * 0.45).toFixed(2)}
+                    {(axis.components.fc * STATED_FC_WEIGHT + axis.components.sc * STATED_SC_WEIGHT).toFixed(2)}
                   </span>
                   <span>
                     Budget:{" "}
@@ -273,9 +274,12 @@ export function ResultsView({
           <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
             Full profile
           </p>
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-4">
-            Radar
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+            12-axis radar
           </h2>
+          <p className="text-xs font-serif italic text-text-tertiary mb-4">
+            Center is neutral. Perimeter is the strongest position. Colors group axes by domain.
+          </p>
           <div className="bg-surface-2 rounded-[12px] p-6">
             <RadarChart
               axisScores={axisData}

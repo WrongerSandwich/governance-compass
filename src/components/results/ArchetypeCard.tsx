@@ -107,7 +107,7 @@ export function ArchetypeCard({
             {primary.description}
           </p>
           {primary.tension && (
-            <div className="bg-surface-2 rounded-[8px] p-3">
+            <div className="border border-border-secondary rounded-[8px] p-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
                 Characteristic tension
               </p>
