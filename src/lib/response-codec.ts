@@ -9,6 +9,15 @@
  *
  * Items are encoded in axis order (axis 1–12, items 1–3 per axis).
  * Budget allocations are encoded in ministry ID order (1–10).
+ *
+ * Design notes:
+ * - Budget 7-bit range supports values 5–132. The UI constrains to 5–55
+ *   (100 total, 10 ministries, 5 minimum). The extra headroom is harmless —
+ *   the scoring engine processes whatever values it receives.
+ * - FC bit pattern 0b11 and SC bit patterns 6–7 are unused by the encoder.
+ *   On decode they are treated as skips. This is intentional — these patterns
+ *   can only appear in hand-crafted or corrupted URLs, and treating them as
+ *   skips is the safest graceful degradation.
  */
 
 import type { QuizResponses } from "./scoring-types";
