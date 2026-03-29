@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 import { NavBar } from "@/components/NavBar";
+import { DevRandomResults } from "@/components/DevRandomResults";
 
 export const metadata: Metadata = {
   title: "The Governance Compass",
@@ -22,6 +23,7 @@ export default function RootLayout({
         <SessionProvider>
           <NavBar />
           {children}
+          <DevRandomResults />
         </SessionProvider>
       </body>
     </html>
