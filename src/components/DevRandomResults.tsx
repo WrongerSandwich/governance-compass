@@ -5,26 +5,43 @@ import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
 
 function generateRandomResponses(): QuizResponses {
+  // Give each axis a random lean (-1 to +1) so answers cluster
+  // like a real user rather than averaging to zero
+  const axisLean: number[] = [];
+  for (let axis = 0; axis < 12; axis++) {
+    axisLean.push(Math.random() * 2 - 1); // uniform [-1, +1]
+  }
+
   const forcedChoice: Record<string, "A" | "B"> = {};
   for (let axis = 1; axis <= 12; axis++) {
+    const pA = (1 - axisLean[axis - 1]) / 2; // lean toward A when negative
     for (let item = 1; item <= 3; item++) {
-      forcedChoice[`fc-${axis}-${item}`] = Math.random() < 0.5 ? "A" : "B";
+      forcedChoice[`fc-${axis}-${item}`] = Math.random() < pA ? "A" : "B";
     }
   }
 
   const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {};
   for (let axis = 1; axis <= 12; axis++) {
+    // Map lean to a center value on 1-5 scale, then jitter slightly
+    const center = 3 + axisLean[axis - 1] * 2; // range ~1 to ~5
     for (let item = 1; item <= 3; item++) {
-      scaled[`sc-${axis}-${item}`] = (Math.floor(Math.random() * 5) + 1) as 1 | 2 | 3 | 4 | 5;
+      const jittered = center + (Math.random() - 0.5);
+      scaled[`sc-${axis}-${item}`] = Math.max(1, Math.min(5, Math.round(jittered))) as 1 | 2 | 3 | 4 | 5;
     }
   }
 
-  // Budget: start at min (5 each = 50), distribute 50 remaining randomly
+  // Budget: pick 3-4 ministries to favor, give them more
   const budget: Record<number, number> = {};
   for (let m = 1; m <= 10; m++) budget[m] = 5;
+  const favorites = new Set<number>();
+  while (favorites.size < 3) favorites.add(Math.floor(Math.random() * 10) + 1);
   let remaining = 50;
   while (remaining > 0) {
-    const m = Math.floor(Math.random() * 10) + 1;
+    // 70% chance of adding to a favorite ministry
+    const pool = Math.random() < 0.7
+      ? [...favorites]
+      : Array.from({ length: 10 }, (_, i) => i + 1);
+    const m = pool[Math.floor(Math.random() * pool.length)];
     budget[m]++;
     remaining--;
   }
