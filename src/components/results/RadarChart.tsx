@@ -36,7 +36,8 @@ const DOMAIN_SEGMENTS: { key: DomainKey; startIdx: number; endIdx: number }[] = 
 ];
 
 function scoreToRadius(score: number): number {
-  return ((score + 1) / 2) * MAX_RADIUS;
+  // Intensity-based: center = neutral (0), perimeter = strongest position (±1)
+  return Math.abs(score) * MAX_RADIUS;
 }
 
 function spokeAngle(index: number): number {

@@ -278,7 +278,7 @@ export function ResultsView({
             12-axis radar
           </h2>
           <p className="text-xs font-serif italic text-text-tertiary mb-4">
-            Midpoint is neutral. Center is strongest Pole A, perimeter is strongest Pole B. Colors group axes by domain.
+            Center is neutral. Perimeter is the strongest position in either direction. Colors group axes by domain.
           </p>
           <div className="bg-surface-2 rounded-[12px] p-6">
             <RadarChart
