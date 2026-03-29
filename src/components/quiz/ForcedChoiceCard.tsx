@@ -48,15 +48,15 @@ export function ForcedChoiceCard({
     const hasSelection = selectedPole !== undefined;
 
     const base =
-      "rounded-[12px] p-6 cursor-pointer transition-all duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+      "rounded-[12px] p-6 border-2 cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
 
     if (isSelected) {
-      return `${base} border-2 border-stone-600 bg-surface-1 scale-[1.01]`;
+      return `${base} border-stone-600 bg-surface-1`;
     }
     if (hasSelection) {
-      return `${base} border border-border-secondary bg-surface-1 opacity-60`;
+      return `${base} border-transparent bg-surface-1 opacity-60`;
     }
-    return `${base} border border-border-secondary bg-surface-1 hover:border-border-primary`;
+    return `${base} border-transparent bg-surface-1 hover:border-border-primary`;
   }
 
   return (
