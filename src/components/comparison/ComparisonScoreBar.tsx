@@ -72,8 +72,8 @@ export function ComparisonScoreBar({
         )}
       </div>
 
-      {/* Track */}
-      <div className="overflow-hidden">
+      {/* Track — py-2 gives vertical room for dots, overflow-hidden clips horizontal only */}
+      <div className="overflow-hidden py-2">
         <div
           className="relative w-full rounded-[3px] overflow-visible"
           style={{ height: 6, backgroundColor: 'var(--border-secondary)' }}
