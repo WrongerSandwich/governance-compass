@@ -208,31 +208,37 @@ export function QuizFlow({
 
   // ---------- renders ----------
 
-  // Intro screen
+  // Phase 1 interstitial (intro)
   if (state.phase === "intro") {
     return (
-      <div className="mx-auto max-w-[640px] py-12 text-center">
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-4">
-          The Governance Compass
-        </h1>
-        <p className="text-sm text-text-secondary mb-2 leading-relaxed">
-          A multi-dimensional assessment of your political priorities and values.
-          You will work through three phases: forced-choice dilemmas, nuanced
-          scales, and a budget allocation exercise.
-        </p>
-        <p className="text-xs font-serif italic text-text-tertiary mb-2">
-          Estimated time: ~20 minutes
-        </p>
-        <p className="text-xs text-text-tertiary mb-8">
-          Your progress is saved automatically — you can leave and return at any time.
-        </p>
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "START_QUIZ" })}
-          className="rounded-[12px] bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
-        >
-          Begin assessment
-        </button>
+      <div className="mx-auto max-w-lg py-12">
+        <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
+          <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
+
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
+            Phase 1 of 3
+          </p>
+          <h1 className="text-[18px] font-serif font-medium text-text-primary mb-2">
+            Governance dilemmas
+          </h1>
+          <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
+            This first section presents pairs of statements about how a society
+            should be governed. For each pair, choose the statement that comes
+            closer to your view — even if neither is a perfect match. There are
+            no right answers, and you can&apos;t choose both.
+          </p>
+          <p className="text-xs font-serif italic text-text-tertiary mb-8">
+            36 questions &middot; ~10 minutes &middot; Your progress is saved automatically
+          </p>
+
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "START_QUIZ" })}
+            className="w-full rounded-[12px] bg-stone-600 py-3 px-6 text-sm font-medium text-white hover:bg-stone-700 transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+          >
+            Begin
+          </button>
+        </div>
       </div>
     );
   }
