@@ -300,7 +300,7 @@ export function matchArchetype(axisScores: number[]): ArchetypeMatch {
       0
     );
     const distance = Math.sqrt(sumSq);
-    const matchPct = Math.max(0, (1 - distance / MAX_ARCHETYPE_DISTANCE)) * 100;
+    const matchPct = Math.round(Math.max(0, (1 - distance / MAX_ARCHETYPE_DISTANCE)) * 100);
     return { id: archetype.id, distance, matchPct };
   });
 

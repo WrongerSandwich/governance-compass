@@ -130,10 +130,10 @@ describe("matchArchetype — match percentage formula", () => {
     const respondent = new Array(12).fill(0);
     respondent[0] = 0.5;
     const dist = 0.5; // sqrt(0.5^2)
-    const expectedPct = (1 - dist / MAX_ARCHETYPE_DISTANCE) * 100;
+    const expectedPct = Math.round((1 - dist / MAX_ARCHETYPE_DISTANCE) * 100);
     const result = matchArchetype(respondent);
     expect(result.primaryId).toBe("pragmatic-centrist");
-    expect(result.primaryMatchPct).toBeCloseTo(expectedPct, 3);
+    expect(result.primaryMatchPct).toBe(expectedPct);
   });
 
   it("match_pct is always >= 0 (floor at zero)", () => {
@@ -175,14 +175,14 @@ describe("matchArchetype — primary and secondary identification", () => {
     // All +1.0 → developmental-modernizer is closest (dist ≈ 2.152, pct ≈ 68.94%)
     const result = matchArchetype(new Array(12).fill(1.0));
     expect(result.primaryId).toBe("developmental-modernizer");
-    expect(result.primaryMatchPct).toBeCloseTo(68.94, 1);
+    expect(result.primaryMatchPct).toBe(69);
   });
 
   it("identifies authoritarian-traditionalist as secondary for all-positive respondent", () => {
     // All +1.0 → second closest is authoritarian-traditionalist (dist ≈ 2.324, pct ≈ 66.46%)
     const result = matchArchetype(new Array(12).fill(1.0));
     expect(result.secondaryId).toBe("authoritarian-traditionalist");
-    expect(result.secondaryMatchPct).toBeCloseTo(66.46, 1);
+    expect(result.secondaryMatchPct).toBe(66);
   });
 });
 
@@ -227,9 +227,9 @@ describe("matchArchetype — blended type detection", () => {
     const midpoint = [-0.5, -0.25, -0.15, 0.25, -0.35, -0.6, -0.35, -0.15, -0.2, -0.35, -0.1, 0.0];
     const result = matchArchetype(midpoint);
     const { primaryMatchPct, secondaryMatchPct } = result;
-    // Both should be ~93.59%
-    expect(primaryMatchPct).toBeCloseTo(93.59, 1);
-    expect(secondaryMatchPct).toBeCloseTo(93.59, 1);
+    // Both should round to 94%
+    expect(primaryMatchPct).toBe(94);
+    expect(secondaryMatchPct).toBe(94);
     expect(result.isBlended).toBe(true);
   });
 });
@@ -250,7 +250,7 @@ describe("matchArchetype — low match threshold (unusual profile)", () => {
     const alternating = Array.from({ length: 12 }, (_, i) => (i % 2 === 0 ? 1.0 : -1.0));
     const result = matchArchetype(alternating);
     expect(result.primaryId).toBe("pragmatic-centrist");
-    expect(result.primaryMatchPct).toBeCloseTo(50.0, 1);
+    expect(result.primaryMatchPct).toBe(50);
   });
 
   it("a strongly aligned respondent is above the low match threshold", () => {
@@ -272,11 +272,11 @@ describe("matchArchetype — distance calculation", () => {
     const respondent = new Array(12).fill(0);
     respondent[5] = 1.0; // axis 6 (index 5)
     const expectedDist = 1.0;
-    const expectedPct = (1 - expectedDist / MAX_ARCHETYPE_DISTANCE) * 100;
+    const expectedPct = Math.round((1 - expectedDist / MAX_ARCHETYPE_DISTANCE) * 100);
     const result = matchArchetype(respondent);
     // Centrist should still be primary (distance 1.0 is small)
     expect(result.primaryId).toBe("pragmatic-centrist");
-    expect(result.primaryMatchPct).toBeCloseTo(expectedPct, 3);
+    expect(result.primaryMatchPct).toBe(expectedPct);
   });
 
   it("two equal deviations on different axes produce the same distance", () => {
