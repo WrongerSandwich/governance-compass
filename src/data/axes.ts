@@ -3,6 +3,7 @@ export interface AxisData {
   name: string;
   poleALabel: string;
   poleBLabel: string;
+  tagline: string;
   domain: string;
   domainOrder: number;
   order: number;
@@ -15,6 +16,7 @@ export const axes: AxisData[] = [
     name: "Economic Model",
     poleALabel: "Collective Provision",
     poleBLabel: "Market Allocation",
+    tagline: "How much should the state shape economic outcomes?",
     domain: "Economic Organization",
     domainOrder: 1,
     order: 1,
@@ -24,6 +26,7 @@ export const axes: AxisData[] = [
     name: "Environmental Policy",
     poleALabel: "Ecological Limits",
     poleBLabel: "Growth Imperative",
+    tagline: "Can prosperity and planetary limits coexist?",
     domain: "Economic Organization",
     domainOrder: 2,
     order: 2,
@@ -34,6 +37,7 @@ export const axes: AxisData[] = [
     name: "Governance Structure",
     poleALabel: "Distributed Governance",
     poleBLabel: "Centralized Governance",
+    tagline: "Should power sit locally or nationally?",
     domain: "Power and Authority",
     domainOrder: 1,
     order: 3,
@@ -43,6 +47,7 @@ export const axes: AxisData[] = [
     name: "Decision Authority",
     poleALabel: "Popular Sovereignty",
     poleBLabel: "Institutional Authority",
+    tagline: "Whose judgment should guide policy \u2014 the public\u2019s or the experts\u2019?",
     domain: "Power and Authority",
     domainOrder: 2,
     order: 4,
@@ -52,6 +57,7 @@ export const axes: AxisData[] = [
     name: "Rights Balance",
     poleALabel: "Liberty",
     poleBLabel: "Security",
+    tagline: "When freedom and safety conflict, which wins?",
     domain: "Power and Authority",
     domainOrder: 3,
     order: 5,
@@ -61,6 +67,7 @@ export const axes: AxisData[] = [
     name: "Legitimacy Basis",
     poleALabel: "Electoral Process",
     poleBLabel: "Performance Outcomes",
+    tagline: "Does legitimacy come from elections or from results?",
     domain: "Power and Authority",
     domainOrder: 4,
     order: 6,
@@ -71,6 +78,7 @@ export const axes: AxisData[] = [
     name: "Social Change",
     poleALabel: "Progressive Change",
     poleBLabel: "Continuity and Tradition",
+    tagline: "Should inherited institutions be reformed or preserved?",
     domain: "Society and Identity",
     domainOrder: 1,
     order: 7,
@@ -80,6 +88,7 @@ export const axes: AxisData[] = [
     name: "Cultural Diversity",
     poleALabel: "Pluralism",
     poleBLabel: "Cohesion",
+    tagline: "Is diversity or shared identity more essential?",
     domain: "Society and Identity",
     domainOrder: 2,
     order: 8,
@@ -89,6 +98,7 @@ export const axes: AxisData[] = [
     name: "Human Nature",
     poleALabel: "Constructivism",
     poleBLabel: "Essentialism",
+    tagline: "Is human nature mostly shaped by culture, or mostly fixed?",
     domain: "Society and Identity",
     domainOrder: 3,
     order: 9,
@@ -99,6 +109,7 @@ export const axes: AxisData[] = [
     name: "International Engagement",
     poleALabel: "Internationalism",
     poleBLabel: "Sovereignty",
+    tagline: "Should nations pool sovereignty or protect independence?",
     domain: "The State in the World",
     domainOrder: 1,
     order: 10,
@@ -108,6 +119,7 @@ export const axes: AxisData[] = [
     name: "Military Policy",
     poleALabel: "Non-Interventionism",
     poleBLabel: "Interventionism",
+    tagline: "Should military force be projected abroad?",
     domain: "The State in the World",
     domainOrder: 2,
     order: 11,
@@ -117,6 +129,7 @@ export const axes: AxisData[] = [
     name: "Technology Governance",
     poleALabel: "Precautionary",
     poleBLabel: "Innovation-First",
+    tagline: "Restrict new technology until safe, or build and correct?",
     domain: "The State in the World",
     domainOrder: 3,
     order: 12,

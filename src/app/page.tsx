@@ -3,6 +3,7 @@ import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { GovernanceCompassMark } from "@/components/GovernanceCompassMark";
 import { CountUp } from "@/components/CountUp";
 import { StaggeredList } from "@/components/StaggeredList";
+import { axes } from "@/data/axes";
 
 export default function Home() {
   return (
@@ -60,27 +61,17 @@ export default function Home() {
         {/* Axis poles preview — cartographic reference grid */}
         <StaggeredList
           staggerMs={40}
-          className="grid gap-y-1.5 max-w-md mx-auto mb-14 text-xs font-mono text-text-tertiary"
+          className="grid gap-y-3 max-w-md mx-auto mb-14"
           style={{ gridTemplateColumns: "1fr auto 1fr" }}
         >
-          {[
-            ["Collective", "Market"],
-            ["Ecological", "Growth"],
-            ["Distributed", "Centralized"],
-            ["Popular", "Institutional"],
-            ["Liberty", "Security"],
-            ["Electoral", "Performance"],
-            ["Progressive", "Traditional"],
-            ["Pluralism", "Cohesion"],
-            ["Constructivism", "Essentialism"],
-            ["Internationalism", "Sovereignty"],
-            ["Non-Intervention", "Intervention"],
-            ["Precautionary", "Innovation"],
-          ].map(([a, b]) => (
-            <div key={a} className="col-span-3 grid" style={{ gridTemplateColumns: "subgrid" }}>
-              <span className="text-right">{a}</span>
-              <span className="opacity-40 text-center px-2">&larr;&rarr;</span>
-              <span className="text-left">{b}</span>
+          {axes.map((axis) => (
+            <div key={axis.id} className="col-span-3 grid" style={{ gridTemplateColumns: "subgrid" }}>
+              <span className="text-right text-xs font-mono text-text-tertiary">{axis.poleALabel.split(" ")[0]}</span>
+              <span className="text-center text-xs font-mono text-text-tertiary opacity-40 px-2">&larr;&rarr;</span>
+              <span className="text-left text-xs font-mono text-text-tertiary">{axis.poleBLabel.split(" ")[0]}</span>
+              <p className="col-span-3 text-center text-[11px] text-text-tertiary opacity-70 -mt-1">
+                {axis.tagline}
+              </p>
             </div>
           ))}
         </StaggeredList>

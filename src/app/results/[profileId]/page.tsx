@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { archetypes } from "@/data/archetypes";
+import { axes as axesDef } from "@/data/axes";
 import { DISTINCTIVE_MATCH_CEILING, DISTINCTIVE_STDDEV_FLOOR } from "@/lib/scoring-types";
 import { ResultsView } from "@/components/results/ResultsView";
 
@@ -41,6 +42,7 @@ export default async function ResultsPage({
     name: s.axis.name,
     poleALabel: s.axis.poleALabel,
     poleBLabel: s.axis.poleBLabel,
+    tagline: axesDef.find((a) => a.id === s.axisId)?.tagline ?? "",
     domain: s.axis.domain,
     finalScore: s.finalScore,
     confidence: s.confidence,

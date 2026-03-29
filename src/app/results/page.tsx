@@ -82,6 +82,7 @@ function EncodedResults() {
       name: axis?.name ?? `Axis ${score.axisId}`,
       poleALabel: axis?.poleALabel ?? "Pole A",
       poleBLabel: axis?.poleBLabel ?? "Pole B",
+      tagline: axis?.tagline ?? "",
       domain: axis?.domain ?? "Unknown",
       finalScore: score.finalScore,
       confidence: score.confidence,

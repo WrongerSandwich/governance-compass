@@ -10,6 +10,7 @@ export interface AxisBreakdownCardProps {
   name: string;
   poleALabel: string;
   poleBLabel: string;
+  tagline: string;
   domain: string;
   finalScore: number;
   confidence: string;
@@ -39,6 +40,7 @@ export function AxisBreakdownCard({
   name,
   poleALabel,
   poleBLabel,
+  tagline,
   finalScore,
   confidence,
   tension,
@@ -63,7 +65,7 @@ export function AxisBreakdownCard({
       className={`rounded-[8px] px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}
     >
       {/* Axis name row */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-0.5">
         <span className="text-sm font-medium text-text-primary">{name}</span>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-text-tertiary">{confidenceText}</span>
@@ -74,6 +76,7 @@ export function AxisBreakdownCard({
           )}
         </div>
       </div>
+      <p className="text-[11px] text-text-tertiary mb-2">{tagline}</p>
 
       {/* Score bar with 3-column layout */}
       <ScoreBar

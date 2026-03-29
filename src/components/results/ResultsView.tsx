@@ -16,6 +16,7 @@ export interface AxisDisplayData {
   name: string;
   poleALabel: string;
   poleBLabel: string;
+  tagline: string;
   domain: string;
   finalScore: number;
   confidence: string;
