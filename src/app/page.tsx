@@ -87,32 +87,7 @@ export default function Home() {
           ))}
         </StaggeredList>
 
-        {/* Other features */}
-        <div className="border-t border-border-secondary pt-8 max-w-xl mx-auto">
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-6">
-            Beyond the assessment
-          </p>
-          <div className="grid min-[560px]:grid-cols-2 gap-8">
-            <div className="text-center min-[560px]:text-left">
-              <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-                Compare and discuss
-              </h3>
-              <p className="text-text-secondary text-sm leading-relaxed">
-                Share your results and compare side-by-side with friends. Create
-                groups to see where your circle stands on each axis.
-              </p>
-            </div>
-            <div className="text-center min-[560px]:text-left">
-              <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-                Living profile
-              </h3>
-              <p className="text-text-secondary text-sm leading-relaxed">
-                Add annotations explaining your reasoning on any axis.
-                Revisit your results and share nuanced context with others.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* "Beyond the assessment" section hidden for v1 */}
 
         {/* Footer */}
         <div className="border-t border-border-secondary mt-12 pt-6 text-center">

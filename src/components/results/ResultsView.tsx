@@ -234,7 +234,7 @@ export function ResultsView({
           {/* Action bar */}
           <div className="flex flex-wrap items-center gap-2 mt-5">
             <CopyLinkButton />
-            {encoded && !profileId && <SaveToAccountButton encoded={encoded} />}
+            {/* Save to account hidden for v1 */}
             {profileId && <CompareButton profileId={profileId} />}
           </div>
         </section>

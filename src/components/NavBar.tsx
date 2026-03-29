@@ -66,34 +66,7 @@ export function NavBar() {
               Results
             </Link>
           )}
-          {status === "authenticated" && session?.user ? (
-            <>
-              <Link
-                href="/account"
-                className={linkClasses("/account")}
-                aria-current={pathname === "/account" ? "page" : undefined}
-              >
-                <span className="max-w-[160px] truncate inline-block align-bottom">
-                  {session.user.name || session.user.email || "Account"}
-                </span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="py-2 text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-              >
-                Sign out
-              </button>
-            </>
-          ) : status === "unauthenticated" ? (
-            <Link
-              href="/auth/signin"
-              className={linkClasses("/auth/signin")}
-              aria-current={pathname.startsWith("/auth") ? "page" : undefined}
-            >
-              Sign in
-            </Link>
-          ) : null}
+          {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>
       </div>
     </nav>
