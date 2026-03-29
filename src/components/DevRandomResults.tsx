@@ -35,7 +35,8 @@ function generateRandomResponses(): QuizResponses {
 export function DevRandomResults() {
   const router = useRouter();
 
-  if (process.env.NODE_ENV === "production") return null;
+  // TODO: re-enable this guard before launch
+  // if (process.env.NODE_ENV === "production") return null;
 
   return (
     <button
