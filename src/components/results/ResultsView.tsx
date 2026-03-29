@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { CompassPlot } from "./CompassPlot";
 import { ArchetypeCard } from "./ArchetypeCard";
 import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
-import { CompareButton } from "./CompareButton";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import { STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
 import { FadeInSection } from "@/components/FadeInSection";
@@ -137,6 +137,58 @@ function SaveToAccountButton({ encoded }: { encoded: string }) {
   );
 }
 
+function CompareInput({ myEncoded }: { myEncoded: string }) {
+  const [open, setOpen] = useState(false);
+  const [link, setLink] = useState("");
+  const router = useRouter();
+
+  const handleCompare = () => {
+    // Extract the ?r= param from a pasted URL, or use the raw value
+    const match = link.match(/[?&]r=([A-Za-z0-9_-]+)/);
+    const theirEncoded = match ? match[1] : link.trim();
+    if (!theirEncoded) return;
+    router.push(`/compare?a=${myEncoded}&b=${theirEncoded}`);
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
+      >
+        Compare with someone
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleCompare()}
+        placeholder="Paste their results link"
+        autoFocus
+        className="flex-1 min-w-0 rounded-[8px] border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+      />
+      <button
+        onClick={handleCompare}
+        disabled={!link.trim()}
+        className="text-xs border border-stone-600 text-stone-600 rounded-[8px] px-3.5 py-1.5 hover:bg-stone-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Compare
+      </button>
+      <button
+        onClick={() => { setOpen(false); setLink(""); }}
+        className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
 const SECTION_IDS = {
   compass: "compass",
   tensions: "tensions",
@@ -236,7 +288,7 @@ export function ResultsView({
           <div className="flex flex-wrap items-center gap-2 mt-5">
             <CopyLinkButton />
             {/* Save to account hidden for v1 */}
-            {profileId && <CompareButton profileId={profileId} />}
+            {encoded && <CompareInput myEncoded={encoded} />}
           </div>
         </section>
         </FadeInSection>
