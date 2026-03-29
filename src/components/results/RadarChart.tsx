@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DOMAIN_COLORS, getDomainColor600, type DomainKey } from "@/lib/design-tokens";
 
 interface AxisScore {
@@ -97,8 +98,7 @@ export function RadarChart({
   });
 
   const userScoreValues = paddedScores.map((s) => s.finalScore);
-
-
+  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -181,19 +181,85 @@ export function RadarChart({
           />
         ))}
 
-        {/* Domain-colored vertex dots */}
+        {/* Domain-colored vertex dots — interactive */}
         {paddedScores.map((axis, i) => {
           const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const isHovered = hoveredAxis === axis.axisId;
           return (
-            <circle
-              key={axis.axisId}
-              cx={x}
-              cy={y}
-              r={3.5}
-              fill={getDomainColor600(axis.axisId)}
-            />
+            <g key={axis.axisId}>
+              {/* Visible dot */}
+              <circle
+                cx={x}
+                cy={y}
+                r={isHovered ? 5 : 3.5}
+                fill={getDomainColor600(axis.axisId)}
+                style={{ transition: "r 150ms ease-out" }}
+              />
+              {/* Larger invisible hit target */}
+              <circle
+                cx={x}
+                cy={y}
+                r={14}
+                fill="transparent"
+                style={{ cursor: "default" }}
+                onMouseEnter={() => setHoveredAxis(axis.axisId)}
+                onMouseLeave={() => setHoveredAxis(null)}
+              />
+            </g>
           );
         })}
+
+        {/* Tooltip for hovered vertex */}
+        {hoveredAxis != null && (() => {
+          const axis = paddedScores[hoveredAxis - 1];
+          const i = hoveredAxis - 1;
+          const [vx, vy] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const score = axis.finalScore;
+          const scoreStr = (score >= 0 ? "+" : "") + score.toFixed(2);
+          // Show the pole the score leans toward
+          const poleName = score >= 0 ? axis.poleBLabel : axis.poleALabel;
+          const label = `${scoreStr}  ${poleName}`;
+          const charWidth = 5.5;
+          const textWidth = label.length * charWidth;
+          const padH = 8;
+          const padV = 5;
+          const boxW = textWidth + padH * 2;
+          const boxH = 18 + padV * 2;
+
+          // Position tooltip to avoid overlapping the center
+          const angle = spokeAngle(i);
+          const offsetDist = 20;
+          let tx = vx + Math.cos(angle) * offsetDist;
+          let ty = vy + Math.sin(angle) * offsetDist;
+
+          // Clamp within viewBox
+          tx = Math.max(padH + 2, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
+          ty = Math.max(padV + 2, Math.min(SIZE - boxH - 2, ty - boxH / 2)) + boxH / 2;
+
+          return (
+            <g style={{ pointerEvents: "none" }}>
+              <rect
+                x={tx - boxW / 2}
+                y={ty - boxH / 2}
+                width={boxW}
+                height={boxH}
+                rx={4}
+                style={{ fill: "var(--surface-1)", stroke: "var(--border-secondary)" }}
+                strokeWidth={0.5}
+              />
+              <text
+                x={tx}
+                y={ty}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={10}
+                style={{ fill: "var(--text-primary)", fontFamily: "var(--font-mono)" }}
+              >
+                {label}
+              </text>
+            </g>
+          );
+        })()}
 
         {/* Domain-colored perimeter labels */}
         {paddedScores.map((axis, i) => {
