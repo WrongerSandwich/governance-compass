@@ -167,7 +167,9 @@ export function QuizFlow({
 
   const hasProgress = state.phase !== "intro" && state.phase !== "computing" && state.phase !== "done";
   const answeredCount = Object.keys(state.forcedChoiceResponses).length + Object.keys(state.scaledResponses).length;
-  const [resumeAcknowledged, setResumeAcknowledged] = useState(false);
+  // Only show resume screen if we mounted with saved progress (not intro).
+  // Fresh starts begin at "intro" so this initializes to true, skipping resume.
+  const [resumeAcknowledged, setResumeAcknowledged] = useState(() => state.phase === "intro");
 
   // Show resume screen if we loaded into a mid-quiz state
   if (hasProgress && answeredCount > 0 && !resumeAcknowledged) {
