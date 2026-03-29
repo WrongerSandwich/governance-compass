@@ -27,7 +27,7 @@ export function ArchetypeCard({
   const lowMatch = primary.matchPercentage < 55;
 
   return (
-    <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-5">
+    <div>
       {/* Section label */}
       <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
         Primary archetype
@@ -94,7 +94,6 @@ export function ArchetypeCard({
       <p className="text-xs text-text-tertiary">
         <span className="font-medium text-text-secondary">Adjacent:</span>{" "}
         {secondary.name} — {secondary.matchPercentage}% match
-        {secondary.summary ? `... ${secondary.summary}` : ""}
       </p>
     </div>
   );

@@ -115,7 +115,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
           fontSize={9}
           style={{ fill: 'var(--text-tertiary)' }}
           fontFamily="inherit"
-          opacity={0.12}
+          opacity={0.2}
         >
           Communitarian
         </text>
@@ -126,7 +126,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
           style={{ fill: 'var(--text-tertiary)' }}
           fontFamily="inherit"
           textAnchor="end"
-          opacity={0.12}
+          opacity={0.2}
         >
           Conservative
         </text>
@@ -136,7 +136,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
           fontSize={9}
           style={{ fill: 'var(--text-tertiary)' }}
           fontFamily="inherit"
-          opacity={0.12}
+          opacity={0.2}
         >
           Libertarian left
         </text>
@@ -147,7 +147,7 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
           style={{ fill: 'var(--text-tertiary)' }}
           fontFamily="inherit"
           textAnchor="end"
-          opacity={0.12}
+          opacity={0.2}
         >
           Classical liberal
         </text>

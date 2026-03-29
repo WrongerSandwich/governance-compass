@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ScoreBar } from "./ScoreBar";
+import { AXIS_WEIGHT_PROFILES } from "@/lib/scoring-types";
 
 export interface AxisBreakdownCardProps {
   axisId: number;
@@ -32,6 +33,7 @@ function formatScore(val: number | null): string {
 }
 
 export function AxisBreakdownCard({
+  axisId,
   name,
   poleALabel,
   poleBLabel,
@@ -41,6 +43,7 @@ export function AxisBreakdownCard({
   components,
   alternateRow = false,
 }: AxisBreakdownCardProps) {
+  const weights = AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 };
   const [expanded, setExpanded] = useState(false);
 
   const confidenceText =
@@ -62,14 +65,8 @@ export function AxisBreakdownCard({
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-text-tertiary">{confidenceText}</span>
           {tension.detected && (
-            <span
-              className="text-[10px] px-1.5 py-0.5 rounded-[8px]"
-              style={{
-                backgroundColor: 'var(--warning-bg)',
-                color: 'var(--warning-text)',
-              }}
-            >
-              ! tension
+            <span className="text-[10px] px-1.5 py-0.5 rounded-[8px] bg-warning-bg text-warning-text">
+              tension
             </span>
           )}
         </div>
@@ -116,7 +113,7 @@ export function AxisBreakdownCard({
             </div>
           </div>
           <p className="text-[11px] font-mono text-text-tertiary text-center border-t border-border-secondary pt-2">
-            (0.40 &times; {formatScore(components.fc)}) + (0.35 &times; {formatScore(components.sc)}) + (0.25 &times; {formatScore(components.bg)}) = {formatScore(finalScore)}
+            ({weights.fc.toFixed(2)} &times; {formatScore(components.fc)}) + ({weights.sc.toFixed(2)} &times; {formatScore(components.sc)}){weights.bg > 0 ? ` + (${weights.bg.toFixed(2)} \u00d7 ${formatScore(components.bg)})` : ""} = {formatScore(finalScore)}
           </p>
         </div>
       )}

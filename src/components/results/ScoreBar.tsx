@@ -57,7 +57,7 @@ export function ScoreBar({
             left: `${fillLeft}%`,
             width: `${fillWidth}%`,
             backgroundColor: 'var(--stone-600)',
-            opacity: 0.45,
+            opacity: 0.6,
           }}
         />
 
