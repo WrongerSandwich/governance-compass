@@ -21,6 +21,6 @@ Short taglines for each axis, designed to work as subtitle text in the homepage 
 | 7 | Change Orientation | Progressive | Traditional | Should inherited institutions be reformed or preserved? |
 | 8 | Diversity Orientation | Pluralism | Cohesion | Is diversity or shared identity more essential? |
 | 9 | Human Nature View | Constructivism | Essentialism | Is human nature mostly shaped by culture, or mostly fixed? |
-| 10 | Global Orientation | Internationalism | Sovereignty | Should nations pool sovereignty or protect independence? |
-| 11 | Force Posture | Non-Intervention | Intervention | Should military force be projected abroad? |
+| 10 | Global Orientation | Internationalism | Sovereignty | Should nations cooperate deeply or govern independently? |
+| 11 | Force Posture | Non-Intervention | Intervention | Should a nation's military role extend beyond its own borders? |
 | 12 | Technology Governance | Precautionary | Innovation | Restrict new technology until safe, or build and correct? |
