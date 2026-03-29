@@ -6,6 +6,9 @@ import { NavBar } from "@/components/NavBar";
 export const metadata: Metadata = {
   title: "The Governance Compass",
   description: "Discover the nuances of your political views",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

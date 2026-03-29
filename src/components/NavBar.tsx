@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { GovernanceCompassMark } from "./GovernanceCompassMark";
 
 export function NavBar() {
   const { data: session, status } = useSession();
@@ -40,10 +41,13 @@ export function NavBar() {
       <div className="max-w-4xl mx-auto flex items-center justify-between h-11">
         <Link
           href="/"
-          className="text-[17px] font-serif font-medium text-text-primary hover:text-stone-600 transition-colors duration-150"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity duration-150"
           aria-current={pathname === "/" ? "page" : undefined}
         >
-          Governance Compass
+          <GovernanceCompassMark size={24} />
+          <span className="text-[17px] font-serif font-medium text-text-primary">
+            Governance Compass
+          </span>
         </Link>
         <div className="flex items-center gap-5">
           <Link
