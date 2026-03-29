@@ -289,7 +289,7 @@ export function ResultsView({
             12-axis radar
           </h2>
           <p className="text-xs font-serif italic text-text-tertiary mb-4">
-            Center is neutral. Perimeter is the strongest position in either direction. Colors group axes by domain.
+            Each spoke runs from one governance pole (center) to its counterpart (perimeter). The midpoint ring is neutral. Colors group axes by domain.
           </p>
           <div className="bg-surface-2 rounded-[12px] p-6">
             <RadarChart axisScores={axisData} />
