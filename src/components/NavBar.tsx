@@ -45,11 +45,11 @@ export function NavBar() {
           aria-current={pathname === "/" ? "page" : undefined}
         >
           <GovernanceCompassMark size={24} />
-          <span className="text-[17px] font-serif font-medium text-text-primary">
+          <span className="hidden min-[480px]:inline text-[17px] font-serif font-medium text-text-primary">
             Governance Compass
           </span>
         </Link>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <Link
             href="/quiz"
             className={linkClasses("/quiz")}
@@ -73,7 +73,9 @@ export function NavBar() {
                 className={linkClasses("/account")}
                 aria-current={pathname === "/account" ? "page" : undefined}
               >
-                {session.user.name || session.user.email || "Account"}
+                <span className="max-w-[160px] truncate inline-block align-bottom">
+                  {session.user.name || session.user.email || "Account"}
+                </span>
               </Link>
               <button
                 type="button"
