@@ -213,7 +213,7 @@ export function QuizFlow({
     return (
       <div className="mx-auto max-w-[640px] py-12 text-center">
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-4">
-          The governance compass
+          The Governance Compass
         </h1>
         <p className="text-sm text-text-secondary mb-2 leading-relaxed">
           A multi-dimensional assessment of your political priorities and values.

@@ -185,7 +185,7 @@ export function ResultsView({
                   {archetype.primary.name}
                 </h1>
                 <p className="text-sm text-text-secondary mt-1">
-                  {archetype.primary.matchPercentage}% match — your governance compass across 12 axes
+                  {archetype.primary.matchPercentage}% match — your Governance Compass across 12 axes
                 </p>
               </>
             )}

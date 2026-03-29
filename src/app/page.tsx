@@ -11,7 +11,7 @@ export default function Home() {
       <div className="max-w-xl mx-auto pt-16 pb-12 text-center">
         <GovernanceCompassMark size={72} className="mx-auto mb-5" animate />
         <h1 className="text-[32px] font-serif font-medium text-text-primary mb-5 leading-tight">
-          The governance compass
+          The Governance Compass
         </h1>
         <p className="text-[15px] text-text-secondary mb-3 leading-relaxed max-w-md mx-auto">
           A research-backed assessment across 12 governance axes — from
