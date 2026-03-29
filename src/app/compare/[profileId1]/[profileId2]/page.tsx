@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { axes as axesDef } from "@/data/axes";
 import { compareProfiles } from "@/lib/comparison";
 import { ComparisonRadar } from "@/components/comparison/ComparisonRadar";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
@@ -116,7 +117,9 @@ export default async function ComparePage({
               return (
                 <ComparisonScoreBar
                   key={d.axisId}
+                  axisId={d.axisId}
                   axisName={axis.name}
+                  tagline={axesDef.find((a) => a.id === d.axisId)?.tagline ?? ""}
                   scoreA={d.scoreA}
                   scoreB={d.scoreB}
                   poleALabel={axis.poleALabel}

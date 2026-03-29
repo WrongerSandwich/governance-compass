@@ -114,7 +114,9 @@ function CompareResults() {
                 return (
                   <ComparisonScoreBar
                     key={d.axisId}
+                    axisId={d.axisId}
                     axisName={axis.name}
+                    tagline={axis.tagline}
                     scoreA={d.scoreA}
                     scoreB={d.scoreB}
                     poleALabel={axis.poleALabel}

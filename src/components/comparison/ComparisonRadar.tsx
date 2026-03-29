@@ -1,5 +1,7 @@
 "use client";
 
+import { getDomainColor600 } from "@/lib/design-tokens";
+
 interface AxisScoreEntry {
   axisId: number;
   name: string;
@@ -14,11 +16,12 @@ interface ComparisonRadarProps {
 }
 
 const TOTAL_AXES = 12;
-const SIZE = 500;
+const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
 const MAX_RADIUS = 170;
-const RING_FRACTIONS = [0.33, 0.67, 1.0];
+const LABEL_PADDING = 38;
+const RING_FRACTIONS = [0.33, 0.5, 0.67, 1.0];
 
 function scoreToRadius(score: number): number {
   return ((score + 1) / 2) * MAX_RADIUS;
@@ -28,20 +31,14 @@ function spokeAngle(index: number): number {
   return (index / TOTAL_AXES) * 2 * Math.PI - Math.PI / 2;
 }
 
-function polarToCart(
-  angle: number,
-  radius: number,
-  cx = CX,
-  cy = CY
-): [number, number] {
-  return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+function polarToCart(angle: number, radius: number): [number, number] {
+  return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
 }
 
 function ringPolygonPoints(radiusFraction: number): string {
   const r = MAX_RADIUS * radiusFraction;
   return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const angle = spokeAngle(i);
-    const [x, y] = polarToCart(angle, r);
+    const [x, y] = polarToCart(spokeAngle(i), r);
     return `${x},${y}`;
   }).join(" ");
 }
@@ -49,9 +46,7 @@ function ringPolygonPoints(radiusFraction: number): string {
 function scorePolygonPoints(scores: number[]): string {
   return scores
     .map((score, i) => {
-      const angle = spokeAngle(i);
-      const r = scoreToRadius(score);
-      const [x, y] = polarToCart(angle, r);
+      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
       return `${x},${y}`;
     })
     .join(" ");
@@ -83,36 +78,49 @@ export function ComparisonRadar({
 
   return (
     <div className="w-full flex flex-col items-center">
+      {/* Visually hidden table for screen readers */}
+      <table className="sr-only" aria-label="Comparison of two governance profiles">
+        <thead>
+          <tr><th>Axis</th><th>{labelA}</th><th>{labelB}</th><th>Difference</th></tr>
+        </thead>
+        <tbody>
+          {paddedNames.map((name, i) => (
+            <tr key={i}>
+              <td>{name}</td>
+              <td>{scoresA[i] >= 0 ? "+" : ""}{scoresA[i].toFixed(2)}</td>
+              <td>{scoresB[i] >= 0 ? "+" : ""}{scoresB[i].toFixed(2)}</td>
+              <td>{Math.abs(scoresA[i] - scoresB[i]).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="w-full max-w-xl"
-        aria-label="Political profile comparison radar chart"
+        aria-hidden="true"
       >
-        {/* Concentric 12-sided polygon rings */}
+        {/* Concentric rings with midpoint */}
         {RING_FRACTIONS.map((frac) => (
           <polygon
             key={frac}
             points={ringPolygonPoints(frac)}
             fill="none"
-            style={{ stroke: 'var(--border-tertiary)' }}
-            strokeWidth={frac === 0.67 ? 0.6 : 0.5}
-            opacity={frac === 0.67 ? 0.5 : 0.4}
+            style={{ stroke: frac === 0.5 ? 'var(--stone-600)' : 'var(--border-tertiary)' }}
+            strokeWidth={frac === 0.5 ? 0.7 : 0.5}
+            strokeDasharray={frac === 0.5 ? "3 3" : undefined}
+            opacity={frac === 0.5 ? 0.35 : 0.4}
           />
         ))}
 
         {/* 6 spoke lines */}
         {[0, 1, 2, 3, 4, 5].map((i) => {
-          const angle1 = spokeAngle(i);
-          const angle2 = spokeAngle(i + 6);
-          const [x1, y1] = polarToCart(angle1, MAX_RADIUS);
-          const [x2, y2] = polarToCart(angle2, MAX_RADIUS);
+          const [x1, y1] = polarToCart(spokeAngle(i), MAX_RADIUS);
+          const [x2, y2] = polarToCart(spokeAngle(i + 6), MAX_RADIUS);
           return (
             <line
               key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
+              x1={x1} y1={y1} x2={x2} y2={y2}
               style={{ stroke: 'var(--border-tertiary)' }}
               strokeWidth={0.5}
               opacity={0.25}
@@ -141,20 +149,47 @@ export function ComparisonRadar({
           strokeLinejoin="round"
         />
 
-        {/* Axis labels */}
+        {/* Domain-colored vertex dots — Profile A (solid) */}
+        {scoresA.map((score, i) => {
+          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
+          return (
+            <circle key={`a-${i}`} cx={x} cy={y} r={3.5} fill={getDomainColor600(i + 1)} />
+          );
+        })}
+
+        {/* Domain-colored vertex dots — Profile B (ring) */}
+        {scoresB.map((score, i) => {
+          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
+          return (
+            <circle
+              key={`b-${i}`} cx={x} cy={y} r={3}
+              fill="none" stroke={getDomainColor600(i + 1)} strokeWidth={1.5} opacity={0.6}
+            />
+          );
+        })}
+
+        {/* Axis labels with long-label wrapping */}
         {paddedNames.map((name, i) => {
           const angle = spokeAngle(i);
-          const labelR = MAX_RADIUS + 28;
-          const [x, y] = polarToCart(angle, labelR);
+          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING);
 
           let anchor: "start" | "middle" | "end" = "middle";
-          const normAngle =
-            ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
-          if (normAngle < Math.PI * 0.1 || normAngle > Math.PI * 1.9)
-            anchor = "middle";
+          const normAngle = ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
+          if (normAngle < Math.PI * 0.1 || normAngle > Math.PI * 1.9) anchor = "middle";
           else if (normAngle < Math.PI * 0.9) anchor = "start";
           else if (normAngle < Math.PI * 1.1) anchor = "middle";
           else anchor = "end";
+
+          let parts: string[];
+          if (name.length > 14) {
+            const mid = Math.ceil(name.length / 2);
+            const spaceAfter = name.indexOf(" ", mid);
+            const spaceBefore = name.lastIndexOf(" ", mid);
+            const splitAt = spaceAfter !== -1 && (spaceAfter - mid) < (mid - spaceBefore) ? spaceAfter : spaceBefore;
+            parts = splitAt > 0 ? [name.slice(0, splitAt), name.slice(splitAt + 1)] : [name];
+          } else {
+            parts = [name];
+          }
 
           return (
             <text
@@ -164,9 +199,14 @@ export function ComparisonRadar({
               textAnchor={anchor}
               dominantBaseline="central"
               fontSize={10}
-              style={{ fill: 'var(--text-tertiary)' }}
+              fill={getDomainColor600(i + 1)}
+              opacity={0.8}
             >
-              {name}
+              {parts.map((part, pi) => (
+                <tspan key={pi} x={x} dy={pi === 0 ? (parts.length > 1 ? "-0.5em" : "0") : "1.1em"}>
+                  {part}
+                </tspan>
+              ))}
             </text>
           );
         })}
@@ -175,14 +215,18 @@ export function ComparisonRadar({
         <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
       </svg>
 
-      {/* Legend — differentiated by stroke style, not color */}
+      {/* Legend */}
       <div className="flex gap-6 mt-3">
         <div className="flex items-center gap-2 text-xs text-text-secondary">
-          <span className="inline-block w-4 h-[1.5px] rounded-full bg-stone-600" />
+          <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
+            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--stone-600)" strokeWidth="1.5" />
+          </svg>
           {labelA}
         </div>
         <div className="flex items-center gap-2 text-xs text-text-secondary">
-          <span className="inline-block w-4 h-[1.5px] rounded-full bg-stone-600 opacity-55" style={{ borderTop: '1.5px dashed var(--stone-600)' }} />
+          <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
+            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--stone-600)" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.55" />
+          </svg>
           {labelB}
         </div>
       </div>
