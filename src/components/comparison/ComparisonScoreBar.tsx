@@ -56,7 +56,7 @@ export function ComparisonScoreBar({
       <div className="relative mb-1" style={{ height: 16 }}>
         {hovered === "A" && (
           <span
-            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap"
+            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap z-20"
             style={{ left: `${leftA}%` }}
           >
             {labelA}: {formatScore(scoreA)} {poleName(scoreA)}
@@ -64,7 +64,7 @@ export function ComparisonScoreBar({
         )}
         {hovered === "B" && (
           <span
-            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap"
+            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap z-20"
             style={{ left: `${leftB}%` }}
           >
             {labelB}: {formatScore(scoreB)} {poleName(scoreB)}
@@ -72,54 +72,41 @@ export function ComparisonScoreBar({
         )}
       </div>
 
-      {/* Track with overflow wrapper */}
-      <div className="relative w-full overflow-x-clip">
-        <div
-          className="relative h-[6px] w-full rounded-[3px] overflow-visible"
-          style={{ backgroundColor: 'var(--border-tertiary)' }}
-        >
-          {/* Center marker */}
-          <div
-            className="absolute left-1/2 -translate-x-px"
-            style={{
-              top: -3,
-              width: 0.5,
-              height: 12,
-              backgroundColor: 'var(--border-secondary)',
-            }}
-          />
-          {/* Profile A marker (ring) */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-default"
-            style={{
-              left: `${leftA}%`,
-              width: hovered === "A" ? 14 : 12,
-              height: hovered === "A" ? 14 : 12,
-              border: `2px solid ${domainColor}`,
-              backgroundColor: 'var(--surface-1)',
-              transition: 'width 150ms, height 150ms',
-            }}
-            onMouseEnter={() => setHovered("A")}
-            onMouseLeave={() => setHovered(null)}
-          />
-          {/* Profile B marker (filled dot) */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-default"
-            style={{
-              left: `${leftB}%`,
-              width: hovered === "B" ? 12 : 10,
-              height: hovered === "B" ? 12 : 10,
-              backgroundColor: domainColor,
-              opacity: 0.55,
-              transition: 'width 150ms, height 150ms',
-            }}
-            onMouseEnter={() => setHovered("B")}
-            onMouseLeave={() => setHovered(null)}
-          />
-        </div>
-      </div>
+      {/* Track — using SVG so dots render cleanly without overflow issues */}
+      <svg viewBox="0 0 200 20" className="w-full" style={{ height: 20 }} aria-hidden="true">
+        {/* Track background */}
+        <rect x="0" y="7" width="200" height="6" rx="3" style={{ fill: 'var(--border-tertiary)' }} />
 
-      <div className="flex justify-between text-xs text-text-tertiary mt-1.5">
+        {/* Center marker */}
+        <line x1="100" y1="4" x2="100" y2="16" style={{ stroke: 'var(--border-secondary)' }} strokeWidth="0.5" />
+
+        {/* Profile A marker (ring) */}
+        <circle
+          cx={leftA * 2}
+          cy="10"
+          r={hovered === "A" ? 7 : 6}
+          fill="var(--surface-1)"
+          stroke={domainColor}
+          strokeWidth="2"
+          style={{ cursor: "default", transition: "r 150ms" }}
+          onMouseEnter={() => setHovered("A")}
+          onMouseLeave={() => setHovered(null)}
+        />
+
+        {/* Profile B marker (filled dot) */}
+        <circle
+          cx={leftB * 2}
+          cy="10"
+          r={hovered === "B" ? 6 : 5}
+          fill={domainColor}
+          opacity={0.55}
+          style={{ cursor: "default", transition: "r 150ms" }}
+          onMouseEnter={() => setHovered("B")}
+          onMouseLeave={() => setHovered(null)}
+        />
+      </svg>
+
+      <div className="flex justify-between text-xs text-text-tertiary mt-1">
         <span>{poleALabel}</span>
         <span className="text-right">{poleBLabel}</span>
       </div>

@@ -159,22 +159,17 @@ export function ComparisonRadar({
           const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(score));
           const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoresB[i]));
           const isHovered = hoveredAxis === i;
+          const onEnter = () => setHoveredAxis(i);
+          const onLeave = () => setHoveredAxis(null);
           return (
             <g key={i}>
               {/* Profile A dot */}
               <circle cx={xa} cy={ya} r={isHovered ? 5 : 3.5} fill={getDomainColor600(i + 1)} style={{ transition: "r 150ms" }} />
               {/* Profile B ring */}
               <circle cx={xb} cy={yb} r={isHovered ? 4 : 3} fill="none" stroke={getDomainColor600(i + 1)} strokeWidth={1.5} opacity={0.6} style={{ transition: "r 150ms" }} />
-              {/* Hit target — centered between A and B */}
-              <circle
-                cx={(xa + xb) / 2}
-                cy={(ya + yb) / 2}
-                r={16}
-                fill="transparent"
-                style={{ cursor: "default" }}
-                onMouseEnter={() => setHoveredAxis(i)}
-                onMouseLeave={() => setHoveredAxis(null)}
-              />
+              {/* Hit targets on each dot */}
+              <circle cx={xa} cy={ya} r={14} fill="transparent" style={{ cursor: "default" }} onMouseEnter={onEnter} onMouseLeave={onLeave} />
+              <circle cx={xb} cy={yb} r={14} fill="transparent" style={{ cursor: "default" }} onMouseEnter={onEnter} onMouseLeave={onLeave} />
             </g>
           );
         })}
@@ -193,11 +188,11 @@ export function ComparisonRadar({
           const boxW = textWidth + padH * 2;
           const boxH = 28 + padV * 2;
 
-          const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(sA));
-          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(sB));
           const angle = spokeAngle(i);
-          let tx = (xa + xb) / 2 + Math.cos(angle) * 24;
-          let ty = (ya + yb) / 2 + Math.sin(angle) * 24;
+          // Position tooltip outward along the spoke, just inside the labels
+          const [spokeX, spokeY] = polarToCart(angle, MAX_RADIUS * 0.55);
+          let tx = spokeX;
+          let ty = spokeY;
 
           tx = Math.max(padH + 2, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
           ty = Math.max(padV + 2, Math.min(SIZE - boxH - 2, ty - boxH / 2)) + boxH / 2;
