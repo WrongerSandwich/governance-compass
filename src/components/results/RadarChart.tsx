@@ -17,13 +17,13 @@ interface RadarChartProps {
 }
 
 const TOTAL_AXES = 12;
-const SIZE = 500;
+const SIZE = 540;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
 const MAX_RADIUS = 170;
-const LABEL_PADDING = 28;
+const LABEL_PADDING = 38;
 
-const RING_FRACTIONS = [0.33, 0.67, 1.0];
+const RING_FRACTIONS = [0.33, 0.5, 0.67, 1.0];
 
 // Domain segments in clockwise order, with start/end axis indices (0-based)
 const DOMAIN_SEGMENTS: { key: DomainKey; startIdx: number; endIdx: number }[] = [
@@ -113,9 +113,10 @@ export function RadarChart({
             key={frac}
             points={ringPolygonPoints(frac)}
             fill="none"
-            style={{ stroke: 'var(--border-tertiary)' }}
-            strokeWidth={frac === 0.67 ? 0.6 : 0.5}
-            opacity={frac === 0.67 ? 0.5 : 0.4}
+            style={{ stroke: frac === 0.5 ? 'var(--stone-600)' : 'var(--border-tertiary)' }}
+            strokeWidth={frac === 0.5 ? 0.7 : 0.5}
+            strokeDasharray={frac === 0.5 ? "3 3" : undefined}
+            opacity={frac === 0.5 ? 0.35 : 0.4}
           />
         ))}
 

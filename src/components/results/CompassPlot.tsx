@@ -10,7 +10,7 @@ interface CompassPlotProps {
 }
 
 const SIZE = 400;
-const PADDING = 60;
+const PADDING = 76;
 const INNER = SIZE - PADDING * 2;
 
 function toX(v: number): number {
