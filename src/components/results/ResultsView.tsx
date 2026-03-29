@@ -33,6 +33,7 @@ export interface ResultsViewProps {
   compass: { economic: number; cultural: number };
   archetype: {
     primary: {
+      id: string;
       name: string;
       matchPercentage: number;
       summary: string;
@@ -210,6 +211,7 @@ export function ResultsView({
             <CompassPlot
               economic={compass.economic}
               cultural={compass.cultural}
+              primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}
             />
             <ArchetypeCard
               primary={{

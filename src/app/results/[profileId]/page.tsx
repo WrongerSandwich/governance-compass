@@ -66,6 +66,7 @@ export default async function ResultsPage({
       }}
       archetype={{
         primary: {
+          id: profile.archetypeResult.primaryArchetypeId,
           name: primaryArchetype?.name ?? "Unknown",
           matchPercentage: profile.archetypeResult.primaryMatchPct,
           summary: primaryArchetype?.summary ?? "",

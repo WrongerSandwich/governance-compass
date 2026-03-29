@@ -1,8 +1,12 @@
 "use client";
 
+import { archetypes } from "@/data/archetypes";
+import { SD_ECONOMIC_WEIGHTS, SD_CULTURAL_WEIGHTS } from "@/lib/scoring-types";
+
 interface CompassPlotProps {
   economic: number; // -1.0 to +1.0
   cultural: number; // -1.0 to +1.0
+  primaryArchetypeId?: string;
 }
 
 const SIZE = 400;
@@ -28,7 +32,23 @@ const CONTOUR_PATHS = [
   `M ${PADDING + 10} ${PADDING + INNER * 0.80} Q ${CENTER_X + 15} ${PADDING + INNER * 0.78}, ${SIZE - PADDING - 10} ${PADDING + INNER * 0.82}`,
 ];
 
-export function CompassPlot({ economic, cultural }: CompassPlotProps) {
+// Precompute archetype compass positions from their 12-axis prototypes
+const ARCHETYPE_POSITIONS = archetypes.map((a) => {
+  let economic = 0;
+  for (const [axisId, weight] of Object.entries(SD_ECONOMIC_WEIGHTS)) {
+    economic += weight * (a.prototype[Number(axisId) - 1] ?? 0);
+  }
+  let cultural = 0;
+  for (const [axisId, weight] of Object.entries(SD_CULTURAL_WEIGHTS)) {
+    cultural += weight * (a.prototype[Number(axisId) - 1] ?? 0);
+  }
+  // Short label: take the last word of the name (e.g., "The Social Democrat" → "Democrat")
+  const words = a.name.replace(/^The\s+/, "").split(/\s+/);
+  const shortLabel = words[words.length - 1];
+  return { id: a.id, name: a.name, shortLabel, economic, cultural };
+});
+
+export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassPlotProps) {
   const dotX = toX(economic);
   const dotY = toY(cultural);
 
@@ -98,140 +118,77 @@ export function CompassPlot({ economic, cultural }: CompassPlotProps) {
 
         {/* Primary crosshairs */}
         <line
-          x1={CENTER_X}
-          y1={PADDING}
-          x2={CENTER_X}
-          y2={SIZE - PADDING}
+          x1={CENTER_X} y1={PADDING} x2={CENTER_X} y2={SIZE - PADDING}
           style={{ stroke: 'var(--border-tertiary)' }}
           strokeWidth={0.5}
         />
         <line
-          x1={PADDING}
-          y1={CENTER_Y}
-          x2={SIZE - PADDING}
-          y2={CENTER_Y}
+          x1={PADDING} y1={CENTER_Y} x2={SIZE - PADDING} y2={CENTER_Y}
           style={{ stroke: 'var(--border-tertiary)' }}
           strokeWidth={0.5}
         />
 
         {/* Quadrant whisper labels — very low opacity */}
-        <text
-          x={PADDING + 8}
-          y={PADDING + 16}
-          fontSize={9}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          opacity={0.2}
-        >
+        <text x={PADDING + 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.2}>
           Communitarian
         </text>
-        <text
-          x={SIZE - PADDING - 8}
-          y={PADDING + 16}
-          fontSize={9}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          textAnchor="end"
-          opacity={0.2}
-        >
+        <text x={SIZE - PADDING - 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.2}>
           Conservative
         </text>
-        <text
-          x={PADDING + 8}
-          y={SIZE - PADDING - 8}
-          fontSize={9}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          opacity={0.2}
-        >
+        <text x={PADDING + 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.2}>
           Libertarian left
         </text>
-        <text
-          x={SIZE - PADDING - 8}
-          y={SIZE - PADDING - 8}
-          fontSize={9}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          textAnchor="end"
-          opacity={0.2}
-        >
+        <text x={SIZE - PADDING - 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.2}>
           Classical liberal
         </text>
 
         {/* Cardinal axis labels — 10px uppercase */}
-        <text
-          x={PADDING - 6}
-          y={CENTER_Y}
-          fontSize={10}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          textAnchor="end"
-          dominantBaseline="middle"
-          letterSpacing="0.08em"
-        >
+        <text x={PADDING - 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" dominantBaseline="middle" letterSpacing="0.08em">
           COLLECTIVE
         </text>
-        <text
-          x={SIZE - PADDING + 6}
-          y={CENTER_Y}
-          fontSize={10}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          dominantBaseline="middle"
-          letterSpacing="0.08em"
-        >
+        <text x={SIZE - PADDING + 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" dominantBaseline="middle" letterSpacing="0.08em">
           MARKET
         </text>
-        <text
-          x={CENTER_X}
-          y={PADDING - 10}
-          fontSize={10}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          textAnchor="middle"
-          letterSpacing="0.08em"
-        >
+        <text x={CENTER_X} y={PADDING - 10} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
           TRADITIONAL
         </text>
-        <text
-          x={CENTER_X}
-          y={SIZE - PADDING + 18}
-          fontSize={10}
-          style={{ fill: 'var(--text-tertiary)' }}
-          fontFamily="inherit"
-          textAnchor="middle"
-          letterSpacing="0.08em"
-        >
+        <text x={CENTER_X} y={SIZE - PADDING + 18} fontSize={10} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
           PROGRESSIVE
         </text>
 
+        {/* Archetype reference markers */}
+        {ARCHETYPE_POSITIONS.map((a) => {
+          const ax = toX(a.economic);
+          const ay = toY(a.cultural);
+          const isPrimary = a.id === primaryArchetypeId;
+          return (
+            <g key={a.id} opacity={isPrimary ? 0.6 : 0.25}>
+              <circle
+                cx={ax}
+                cy={ay}
+                r={isPrimary ? 3 : 2}
+                style={{ fill: 'var(--text-tertiary)' }}
+              />
+              <text
+                x={ax}
+                y={ay - (isPrimary ? 6 : 5)}
+                textAnchor="middle"
+                fontSize={isPrimary ? 7.5 : 6.5}
+                fontFamily="inherit"
+                style={{ fill: 'var(--text-tertiary)' }}
+              >
+                {a.shortLabel}
+              </text>
+            </g>
+          );
+        })}
+
         {/* Concentric pulse rings */}
-        <circle
-          cx={dotX}
-          cy={dotY}
-          r={16}
-          fill="none"
-          style={{ stroke: 'var(--stone-600)' }}
-          strokeWidth={0.5}
-          opacity={0.2}
-        />
-        <circle
-          cx={dotX}
-          cy={dotY}
-          r={10}
-          fill="none"
-          style={{ stroke: 'var(--stone-600)' }}
-          strokeWidth={0.5}
-          opacity={0.45}
-        />
+        <circle cx={dotX} cy={dotY} r={16} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.5} opacity={0.2} />
+        <circle cx={dotX} cy={dotY} r={10} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.5} opacity={0.45} />
 
         {/* Respondent dot */}
-        <circle
-          cx={dotX}
-          cy={dotY}
-          r={5}
-          style={{ fill: 'var(--stone-600)' }}
-        />
+        <circle cx={dotX} cy={dotY} r={5} style={{ fill: 'var(--stone-600)' }} />
 
         {/* Leader line from dot to coordinate label */}
         <line

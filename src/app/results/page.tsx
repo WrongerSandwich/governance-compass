@@ -108,6 +108,7 @@ function EncodedResults() {
       }}
       archetype={{
         primary: {
+          id: quizResults.archetype.primaryId,
           name: primaryArchetype?.name ?? "Unknown",
           matchPercentage: quizResults.archetype.primaryMatchPct,
           summary: primaryArchetype?.summary ?? "",
