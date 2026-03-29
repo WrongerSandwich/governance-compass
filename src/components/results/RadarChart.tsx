@@ -181,6 +181,9 @@ export function RadarChart({
           />
         ))}
 
+        {/* Center dot — rendered before vertex dots so it's underneath */}
+        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
+
         {/* Domain-colored vertex dots — interactive */}
         {paddedScores.map((axis, i) => {
           const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
@@ -215,7 +218,7 @@ export function RadarChart({
           const i = hoveredAxis - 1;
           const [vx, vy] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
           const score = axis.finalScore;
-          const scoreStr = (score >= 0 ? "+" : "") + score.toFixed(2);
+          const scoreStr = Math.abs(score).toFixed(2);
           // Show the pole the score leans toward
           const poleName = score >= 0 ? axis.poleBLabel : axis.poleALabel;
           const label = `${scoreStr}  ${poleName}`;
@@ -312,8 +315,6 @@ export function RadarChart({
           );
         })}
 
-        {/* Center dot */}
-        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
       </svg>
 
       {/* Legend */}
