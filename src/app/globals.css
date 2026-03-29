@@ -134,6 +134,12 @@ body {
   100% { transform: translateX(350%); }
 }
 
+/* Radar rose petal reveal */
+@keyframes petal-reveal {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: var(--petal-opacity); transform: scale(1); }
+}
+
 /* Staggered reveal for results page sections */
 @keyframes fade-in-up {
   from {

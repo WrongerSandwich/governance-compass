@@ -10,6 +10,7 @@
 interface RadarRoseProps {
   size?: number;
   variant?: "domain" | "mono";
+  animate?: boolean;
   className?: string;
 }
 
@@ -55,9 +56,13 @@ function getTier(size: number) {
   return TIERS.favicon;
 }
 
+const PETALS = ["north", "east", "south", "west"] as const;
+const PETAL_DELAYS = [0, 0.1, 0.2, 0.3]; // stagger in seconds
+
 export function GovernanceCompassMark({
   size = 32,
   variant = "domain",
+  animate = false,
   className,
 }: RadarRoseProps) {
   const tier = getTier(size);
@@ -74,11 +79,26 @@ export function GovernanceCompassMark({
       aria-hidden="true"
     >
       <g transform="translate(28,28)">
-        <polygon points={points.north} fill={colors.north.color} opacity={colors.north.opacity} />
-        <polygon points={points.east}  fill={colors.east.color}  opacity={colors.east.opacity} />
-        <polygon points={points.south} fill={colors.south.color} opacity={colors.south.opacity} />
-        <polygon points={points.west}  fill={colors.west.color}  opacity={colors.west.opacity} />
-        <circle cx={0} cy={0} r={tier.dotR} fill={colors.dot} />
+        {PETALS.map((dir, i) => (
+          <polygon
+            key={dir}
+            points={points[dir]}
+            fill={colors[dir].color}
+            opacity={animate ? undefined : colors[dir].opacity}
+            style={animate ? {
+              transformOrigin: "0 0",
+              ["--petal-opacity" as string]: colors[dir].opacity,
+              animation: `petal-reveal 0.4s ease-out ${PETAL_DELAYS[i]}s both`,
+            } : undefined}
+          />
+        ))}
+        <circle
+          cx={0} cy={0} r={tier.dotR} fill={colors.dot}
+          style={animate ? {
+            opacity: 0,
+            animation: "fade-in-up 0.3s ease-out 0.45s both",
+          } : undefined}
+        />
       </g>
     </svg>
   );

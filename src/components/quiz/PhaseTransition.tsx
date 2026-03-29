@@ -23,7 +23,7 @@ export function PhaseTransition({
     <div className="mx-auto max-w-lg py-12">
       <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
         {/* Contour mark as chapter break */}
-        <GovernanceCompassMark size={32} className="mx-auto mb-4" />
+        <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
 
         {/* Completion message */}
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
