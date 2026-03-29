@@ -9,7 +9,8 @@ interface CountUpProps {
 }
 
 export function CountUp({ target, duration = 600, className }: CountUpProps) {
-  const [value, setValue] = useState(0);
+  // Start at target so SSR/slow JS shows the correct number
+  const [value, setValue] = useState(target);
   const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
 
@@ -23,15 +24,18 @@ export function CountUp({ target, duration = 600, className }: CountUpProps) {
           hasAnimated.current = true;
           observer.disconnect();
 
-          const start = performance.now();
-          function tick(now: number) {
-            const progress = Math.min((now - start) / duration, 1);
-            // Ease-out quad
-            const eased = 1 - (1 - progress) * (1 - progress);
-            setValue(Math.round(eased * target));
-            if (progress < 1) requestAnimationFrame(tick);
-          }
-          requestAnimationFrame(tick);
+          // Reset to 0 then animate up
+          setValue(0);
+          requestAnimationFrame(() => {
+            const start = performance.now();
+            function tick(now: number) {
+              const progress = Math.min((now - start) / duration, 1);
+              const eased = 1 - (1 - progress) * (1 - progress);
+              setValue(Math.round(eased * target));
+              if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+          });
         }
       },
       { threshold: 0.5 }
