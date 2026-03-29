@@ -158,6 +158,7 @@ export function ResultsView({
   }));
 
   const tensionAxes = axisData.filter((a) => a.tension.detected);
+  const [showScoring, setShowScoring] = useState(false);
 
   return (
     <main className="min-h-screen px-4 py-8">
@@ -291,11 +292,7 @@ export function ResultsView({
             Center is neutral. Perimeter is the strongest position in either direction. Colors group axes by domain.
           </p>
           <div className="bg-surface-2 rounded-[12px] p-6">
-            <RadarChart
-              axisScores={axisData}
-              archetypePrototype={archetype.primary.prototype}
-              showArchetypeOverlay={archetype.primary.prototype.length > 0}
-            />
+            <RadarChart axisScores={axisData} />
           </div>
         </section>
         </FadeInSection>
@@ -303,9 +300,18 @@ export function ResultsView({
         {/* Axis breakdown by domain */}
         <FadeInSection>
         <section id={SECTION_IDS.breakdown}>
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
-            Axis breakdown
-          </h2>
+          <div className="flex items-baseline justify-between mb-1">
+            <h2 className="text-[18px] font-serif font-medium text-text-primary">
+              Axis breakdown
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowScoring((prev) => !prev)}
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+            >
+              {showScoring ? "Hide scoring details" : "Show scoring details"}
+            </button>
+          </div>
           <p className="text-xs font-serif italic text-text-tertiary mb-6">
             Each axis scored from -1.0 (Pole A) to +1.0 (Pole B), weighted across three modalities.
           </p>
@@ -325,6 +331,7 @@ export function ResultsView({
                       key={axis.axisId}
                       {...axis}
                       alternateRow={i % 2 === 1}
+                      showScoring={showScoring}
                     />
                   ))}
                 </div>

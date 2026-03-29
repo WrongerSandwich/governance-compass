@@ -14,8 +14,6 @@ interface AxisScore {
 
 interface RadarChartProps {
   axisScores: AxisScore[];
-  archetypePrototype?: number[];
-  showArchetypeOverlay?: boolean;
 }
 
 const TOTAL_AXES = 12;
@@ -56,15 +54,6 @@ function ringPolygonPoints(radiusFraction: number): string {
   }).join(" ");
 }
 
-function scorePolygonPoints(scores: number[]): string {
-  return scores
-    .map((score, i) => {
-      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
-      return `${x},${y}`;
-    })
-    .join(" ");
-}
-
 /** Build an SVG path segment from one vertex to the next for a domain stroke */
 function buildDomainPath(scores: number[], startIdx: number, endIdx: number): string {
   // Include one vertex before and after for continuous coverage at boundaries
@@ -89,8 +78,6 @@ function buildDomainPath(scores: number[], startIdx: number, endIdx: number): st
 
 export function RadarChart({
   axisScores,
-  archetypePrototype,
-  showArchetypeOverlay = false,
 }: RadarChartProps) {
   const sorted = [...axisScores].sort((a, b) => a.axisId - b.axisId);
 
@@ -111,10 +98,7 @@ export function RadarChart({
 
   const userScoreValues = paddedScores.map((s) => s.finalScore);
 
-  const archetypePoints =
-    showArchetypeOverlay && archetypePrototype && archetypePrototype.length === TOTAL_AXES
-      ? scorePolygonPoints(archetypePrototype)
-      : null;
+
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -149,18 +133,6 @@ export function RadarChart({
             />
           );
         })}
-
-        {/* Archetype overlay polygon */}
-        {archetypePoints && (
-          <polygon
-            points={archetypePoints}
-            fill="none"
-            style={{ stroke: 'var(--info)' }}
-            strokeWidth={1}
-            strokeDasharray="4 3"
-            opacity={0.45}
-          />
-        )}
 
         {/* Domain-colored triangle fills (center → vertex[n] → vertex[n+1]) */}
         {userScoreValues.map((_, i) => {
@@ -260,15 +232,6 @@ export function RadarChart({
             {DOMAIN_COLORS[key].name}
           </div>
         ))}
-        {showArchetypeOverlay && archetypePrototype && (
-          <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-            <span
-              className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: 'var(--info)' }}
-            />
-            Archetype prototype
-          </div>
-        )}
       </div>
     </div>
   );
