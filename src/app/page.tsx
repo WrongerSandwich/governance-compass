@@ -60,7 +60,8 @@ export default function Home() {
         {/* Axis poles preview — cartographic reference grid */}
         <StaggeredList
           staggerMs={40}
-          className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-x-6 gap-y-1.5 max-w-lg mx-auto mb-14"
+          className="grid gap-y-1.5 max-w-md mx-auto mb-14 text-xs font-mono text-text-tertiary"
+          style={{ gridTemplateColumns: "1fr auto 1fr" }}
         >
           {[
             ["Collective", "Market"],
@@ -76,13 +77,10 @@ export default function Home() {
             ["Non-Intervention", "Intervention"],
             ["Precautionary", "Innovation"],
           ].map(([a, b]) => (
-            <div
-              key={a}
-              className="flex items-center justify-center gap-1.5 text-xs font-mono text-text-tertiary"
-            >
-              <span className="text-right flex-1">{a}</span>
-              <span className="opacity-40 shrink-0">&larr;&rarr;</span>
-              <span className="text-left flex-1">{b}</span>
+            <div key={a} className="col-span-3 grid" style={{ gridTemplateColumns: "subgrid" }}>
+              <span className="text-right">{a}</span>
+              <span className="opacity-40 text-center px-2">&larr;&rarr;</span>
+              <span className="text-left">{b}</span>
             </div>
           ))}
         </StaggeredList>
