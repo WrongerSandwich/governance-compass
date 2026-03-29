@@ -27,7 +27,8 @@ export default function AccountPage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState("");
   const [joinCode, setJoinCode] = useState("");
-  const [claimStatus, setClaimStatus] = useState<string>("");
+  const [hasUnsavedResults, setHasUnsavedResults] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -38,8 +39,10 @@ export default function AccountPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const stored = localStorage.getItem("profileId");
-    setProfileId(stored);
+    const stored = localStorage.getItem("lastResults");
+    if (stored?.startsWith("id:")) {
+      setProfileId(stored.slice(3));
+    }
 
     fetch("/api/account/data")
       .then((r) => r.json())
@@ -51,24 +54,28 @@ export default function AccountPage() {
       .catch(() => {});
   }, [session]);
 
-  const handleClaim = async () => {
-    const token = localStorage.getItem("anonymousToken");
-    if (!token) {
-      setClaimStatus("No anonymous profile found to claim.");
-      return;
-    }
-    const res = await fetch("/api/auth/claim", {
+  useEffect(() => {
+    const stored = localStorage.getItem("lastResults");
+    setHasUnsavedResults(!!stored && !stored.startsWith("id:"));
+  }, []);
+
+  const handleSaveResults = async () => {
+    const stored = localStorage.getItem("lastResults");
+    if (!stored || stored.startsWith("id:")) return;
+
+    const res = await fetch("/api/profile/materialize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ anonymousToken: token }),
+      body: JSON.stringify({ encoded: stored }),
     });
     if (res.ok) {
       const data = await res.json();
       setProfileId(data.profileId);
-      setClaimStatus("Profile claimed successfully!");
+      localStorage.setItem("lastResults", `id:${data.profileId}`);
+      setSaveStatus("Results saved to your account.");
+      setHasUnsavedResults(false);
     } else {
-      const data = await res.json();
-      setClaimStatus(data.error || "Failed to claim profile.");
+      setSaveStatus("Failed to save results. Please try again.");
     }
   };
 
@@ -148,17 +155,19 @@ export default function AccountPage() {
           ) : (
             <div>
               <p className="text-text-secondary text-sm mb-3">
-                If you took the assessment before creating an account, you can
-                link those results to your account.
+                You haven&apos;t saved any results to your account yet. Complete the
+                assessment and save your results to access them here.
               </p>
-              <button
-                onClick={handleClaim}
-                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
-              >
-                Claim anonymous profile
-              </button>
-              {claimStatus && (
-                <p className="text-sm mt-2 text-text-secondary">{claimStatus}</p>
+              {hasUnsavedResults && (
+                <button
+                  onClick={handleSaveResults}
+                  className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
+                >
+                  Save current results to account
+                </button>
+              )}
+              {saveStatus && (
+                <p className="text-sm mt-2 text-text-secondary">{saveStatus}</p>
               )}
             </div>
           )}
