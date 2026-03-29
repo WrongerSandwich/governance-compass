@@ -215,7 +215,7 @@ export function ResultsView({
   const [showScoring, setShowScoring] = useState(false);
 
   return (
-    <main className="min-h-screen px-4 py-8">
+    <main className="min-h-screen px-4 py-8 overflow-x-hidden">
       <div className="mx-auto max-w-3xl space-y-8">
         {/* Page header with archetype identity */}
         <FadeInSection>
