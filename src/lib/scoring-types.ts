@@ -46,6 +46,7 @@ export interface ArchetypeMatch {
   secondaryId: string;
   secondaryMatchPct: number;
   isBlended: boolean;
+  isDistinctive: boolean; // true when profile doesn't map to any single archetype
 }
 
 // Full results package
@@ -112,6 +113,8 @@ export const SD_CULTURAL_WEIGHTS: Record<number, number> = {
 export const MAX_ARCHETYPE_DISTANCE = Math.sqrt(48); // sqrt(12 * 2^2)
 export const BLENDED_THRESHOLD_PCT = 10; // top 2 within 10% distance
 export const LOW_MATCH_THRESHOLD_PCT = 55; // below this = unusual profile
+export const DISTINCTIVE_MATCH_CEILING = 72; // below this match % AND...
+export const DISTINCTIVE_STDDEV_FLOOR = 0.4; // ...above this std dev = distinctive profile
 
 // Confidence thresholds
 export const CONFIDENCE_THRESHOLDS = {

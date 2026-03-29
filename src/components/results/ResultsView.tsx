@@ -43,6 +43,7 @@ export interface ResultsViewProps {
       summary: string;
     };
     isBlended: boolean;
+    isDistinctive: boolean;
   };
   profileId?: string;
   encoded?: string;
@@ -162,12 +163,25 @@ export function ResultsView({
           <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
             Assessment results
           </p>
-          <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
-            {archetype.primary.name}
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            {archetype.primary.matchPercentage}% match — your governance compass across 12 axes
-          </p>
+          {archetype.isDistinctive ? (
+            <>
+              <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
+                A distinctive profile
+              </h1>
+              <p className="text-sm text-text-secondary mt-1">
+                Your positions don&apos;t map to a single governance philosophy — nearest match is {archetype.primary.name} at {archetype.primary.matchPercentage}%
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
+                {archetype.primary.name}
+              </h1>
+              <p className="text-sm text-text-secondary mt-1">
+                {archetype.primary.matchPercentage}% match — your governance compass across 12 axes
+              </p>
+            </>
+          )}
         </div>
 
         {/* Section jump links */}
@@ -201,6 +215,7 @@ export function ResultsView({
                 summary: archetype.secondary.summary,
               }}
               isBlended={archetype.isBlended}
+              isDistinctive={archetype.isDistinctive}
             />
           </div>
 

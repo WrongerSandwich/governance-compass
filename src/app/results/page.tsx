@@ -121,6 +121,7 @@ function EncodedResults() {
           summary: secondaryArchetype?.summary ?? "",
         },
         isBlended: quizResults.archetype.isBlended,
+        isDistinctive: quizResults.archetype.isDistinctive,
       }}
       encoded={encoded}
     />

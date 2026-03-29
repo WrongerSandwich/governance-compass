@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { archetypes } from "@/data/archetypes";
+import { DISTINCTIVE_MATCH_CEILING, DISTINCTIVE_STDDEV_FLOOR } from "@/lib/scoring-types";
 import { ResultsView } from "@/components/results/ResultsView";
 
 export default async function ResultsPage({
@@ -78,6 +79,12 @@ export default async function ResultsPage({
           summary: secondaryArchetype?.summary ?? "",
         },
         isBlended: profile.archetypeResult.isBlended,
+        isDistinctive: (() => {
+          const scores = axisData.map(a => a.finalScore);
+          const mean = scores.reduce((s, v) => s + v, 0) / scores.length;
+          const stddev = Math.sqrt(scores.reduce((s, v) => s + (v - mean) ** 2, 0) / scores.length);
+          return profile.archetypeResult.primaryMatchPct < DISTINCTIVE_MATCH_CEILING && stddev > DISTINCTIVE_STDDEV_FLOOR;
+        })(),
       }}
       profileId={profileId}
     />

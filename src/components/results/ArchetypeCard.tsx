@@ -16,20 +16,50 @@ interface ArchetypeCardProps {
     summary: string;
   };
   isBlended: boolean;
+  isDistinctive: boolean;
 }
 
 export function ArchetypeCard({
   primary,
   secondary,
   isBlended,
+  isDistinctive,
 }: ArchetypeCardProps) {
   const [expanded, setExpanded] = useState(false);
   const lowMatch = primary.matchPercentage < 55;
 
+  if (isDistinctive) {
+    return (
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
+          Distinctive profile
+        </p>
+
+        <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+          Your governance positions form a combination that doesn&apos;t map
+          cleanly to any single archetype. This often reflects considered
+          positions that cross traditional ideological lines.
+        </p>
+
+        <div className="border-t border-border-secondary my-4" style={{ borderWidth: '0.5px' }} />
+
+        <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">
+          Nearest archetypes
+        </p>
+        <p className="text-xs text-text-secondary mb-1">
+          {primary.name} — {primary.matchPercentage}% match
+        </p>
+        <p className="text-xs text-text-tertiary">
+          {secondary.name} — {secondary.matchPercentage}% match
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Section label */}
-      <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
         Primary archetype
       </p>
 
@@ -45,12 +75,12 @@ export function ArchetypeCard({
 
       {isBlended && (
         <p className="text-xs text-text-tertiary mb-2">
-          Blended type — your profile draws nearly equally from both types
+          Blended type — your profile draws nearly equally from both archetypes
         </p>
       )}
 
       {lowMatch && (
-        <p className="text-xs mb-2" style={{ color: 'var(--warning-text)' }}>
+        <p className="text-xs mb-2 text-warning-text">
           Your profile is unusually distributed and doesn&apos;t map cleanly to
           any single governance philosophy.
         </p>

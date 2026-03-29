@@ -10,6 +10,8 @@ import {
   SD_CULTURAL_WEIGHTS,
   MAX_ARCHETYPE_DISTANCE,
   BLENDED_THRESHOLD_PCT,
+  DISTINCTIVE_MATCH_CEILING,
+  DISTINCTIVE_STDDEV_FLOOR,
   CONFIDENCE_THRESHOLDS,
 } from "./scoring-types";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
@@ -316,12 +318,22 @@ export function matchArchetype(axisScores: number[]): ArchetypeMatch {
 
   const isBlended = blendedRatio <= BLENDED_THRESHOLD_PCT / 100;
 
+  // Distinctive profile detection: low match + high variance means the user
+  // has strong positions that don't map to any single archetype
+  const mean = axisScores.reduce((s, v) => s + v, 0) / axisScores.length;
+  const stddev = Math.sqrt(
+    axisScores.reduce((s, v) => s + (v - mean) ** 2, 0) / axisScores.length
+  );
+  const isDistinctive =
+    primary.matchPct < DISTINCTIVE_MATCH_CEILING && stddev > DISTINCTIVE_STDDEV_FLOOR;
+
   return {
     primaryId: primary.id,
     primaryMatchPct: primary.matchPct,
     secondaryId: secondary.id,
     secondaryMatchPct: secondary.matchPct,
     isBlended,
+    isDistinctive,
   };
 }
 
