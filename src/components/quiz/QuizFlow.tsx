@@ -196,7 +196,7 @@ export function QuizFlow({
           </button>
           <button
             type="button"
-            onClick={() => dispatch({ type: "RESET" })}
+            onClick={() => { dispatch({ type: "RESET" }); setResumeAcknowledged(true); }}
             className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
           >
             Start over
