@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getDomainColor600 } from "@/lib/design-tokens";
 
 interface AxisScoreEntry {
@@ -75,6 +76,7 @@ export function ComparisonRadar({
   const scoresB = buildPaddedScores(axisScoresB);
   const pointsA = scorePolygonPoints(scoresA);
   const pointsB = scorePolygonPoints(scoresB);
+  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -149,24 +151,82 @@ export function ComparisonRadar({
           strokeLinejoin="round"
         />
 
-        {/* Domain-colored vertex dots — Profile A (solid) */}
+        {/* Center dot — render before interactive dots */}
+        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
+
+        {/* Domain-colored vertex dots — Profile A (solid) + Profile B (ring) + hit targets */}
         {scoresA.map((score, i) => {
-          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
+          const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(score));
+          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoresB[i]));
+          const isHovered = hoveredAxis === i;
           return (
-            <circle key={`a-${i}`} cx={x} cy={y} r={3.5} fill={getDomainColor600(i + 1)} />
+            <g key={i}>
+              {/* Profile A dot */}
+              <circle cx={xa} cy={ya} r={isHovered ? 5 : 3.5} fill={getDomainColor600(i + 1)} style={{ transition: "r 150ms" }} />
+              {/* Profile B ring */}
+              <circle cx={xb} cy={yb} r={isHovered ? 4 : 3} fill="none" stroke={getDomainColor600(i + 1)} strokeWidth={1.5} opacity={0.6} style={{ transition: "r 150ms" }} />
+              {/* Hit target — centered between A and B */}
+              <circle
+                cx={(xa + xb) / 2}
+                cy={(ya + yb) / 2}
+                r={16}
+                fill="transparent"
+                style={{ cursor: "default" }}
+                onMouseEnter={() => setHoveredAxis(i)}
+                onMouseLeave={() => setHoveredAxis(null)}
+              />
+            </g>
           );
         })}
 
-        {/* Domain-colored vertex dots — Profile B (ring) */}
-        {scoresB.map((score, i) => {
-          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
+        {/* Tooltip for hovered axis */}
+        {hoveredAxis != null && (() => {
+          const i = hoveredAxis;
+          const sA = scoresA[i];
+          const sB = scoresB[i];
+          const name = paddedNames[i];
+          const label = `${labelA}: ${Math.abs(sA).toFixed(2)}  |  ${labelB}: ${Math.abs(sB).toFixed(2)}`;
+          const charWidth = 5;
+          const textWidth = label.length * charWidth;
+          const padH = 8;
+          const padV = 5;
+          const boxW = textWidth + padH * 2;
+          const boxH = 28 + padV * 2;
+
+          const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(sA));
+          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(sB));
+          const angle = spokeAngle(i);
+          let tx = (xa + xb) / 2 + Math.cos(angle) * 24;
+          let ty = (ya + yb) / 2 + Math.sin(angle) * 24;
+
+          tx = Math.max(padH + 2, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
+          ty = Math.max(padV + 2, Math.min(SIZE - boxH - 2, ty - boxH / 2)) + boxH / 2;
+
           return (
-            <circle
-              key={`b-${i}`} cx={x} cy={y} r={3}
-              fill="none" stroke={getDomainColor600(i + 1)} strokeWidth={1.5} opacity={0.6}
-            />
+            <g style={{ pointerEvents: "none" }}>
+              <rect
+                x={tx - boxW / 2} y={ty - boxH / 2}
+                width={boxW} height={boxH} rx={4}
+                style={{ fill: "var(--surface-1)", stroke: "var(--border-secondary)" }}
+                strokeWidth={0.5}
+              />
+              <text
+                x={tx} y={ty - 5}
+                textAnchor="middle" dominantBaseline="central"
+                fontSize={9} style={{ fill: "var(--text-tertiary)" }}
+              >
+                {name}
+              </text>
+              <text
+                x={tx} y={ty + 7}
+                textAnchor="middle" dominantBaseline="central"
+                fontSize={9} style={{ fill: "var(--text-primary)", fontFamily: "var(--font-mono)" }}
+              >
+                {label}
+              </text>
+            </g>
           );
-        })}
+        })()}
 
         {/* Axis labels with long-label wrapping */}
         {paddedNames.map((name, i) => {
@@ -211,8 +271,6 @@ export function ComparisonRadar({
           );
         })}
 
-        {/* Center dot */}
-        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
       </svg>
 
       {/* Legend */}
