@@ -71,35 +71,47 @@ export default function Home() {
           ].map(([a, b]) => (
             <p
               key={a}
-              className="text-xs font-mono text-text-tertiary text-center min-[480px]:text-left"
+              className="text-xs font-mono text-text-tertiary text-center"
             >
               {a}{" "}
-              <span className="text-border-primary">&larr;&rarr;</span>{" "}
+              <span className="opacity-40">&larr;&rarr;</span>{" "}
               {b}
             </p>
           ))}
         </div>
 
-        {/* Other features — editorial text blocks, not cards */}
-        <div className="grid min-[560px]:grid-cols-2 gap-8 max-w-xl mx-auto">
-          <div>
-            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-              Compare and discuss
-            </h3>
-            <p className="text-text-secondary text-sm leading-relaxed">
-              Share your results and compare side-by-side with friends. Create
-              groups to see where your circle stands on each axis.
-            </p>
+        {/* Other features */}
+        <div className="border-t border-border-secondary pt-8 max-w-xl mx-auto">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center mb-6">
+            Also included
+          </p>
+          <div className="grid min-[560px]:grid-cols-2 gap-8">
+            <div className="text-center min-[560px]:text-left">
+              <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+                Compare and discuss
+              </h3>
+              <p className="text-text-secondary text-sm leading-relaxed">
+                Share your results and compare side-by-side with friends. Create
+                groups to see where your circle stands on each axis.
+              </p>
+            </div>
+            <div className="text-center min-[560px]:text-left">
+              <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+                Living profile
+              </h3>
+              <p className="text-text-secondary text-sm leading-relaxed">
+                Add annotations explaining your reasoning on any axis.
+                Revisit your results and share nuanced context with others.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-              Living profile
-            </h3>
-            <p className="text-text-secondary text-sm leading-relaxed">
-              Add annotations explaining your reasoning on any axis.
-              Revisit your results and share nuanced context with others.
-            </p>
-          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-border-secondary mt-12 pt-6 text-center">
+          <p className="text-xs text-text-tertiary">
+            Research-backed methodology &middot; Privacy-first &middot; No data sold
+          </p>
         </div>
       </div>
     </main>
