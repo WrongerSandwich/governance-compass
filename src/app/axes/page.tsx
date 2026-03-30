@@ -1,4 +1,5 @@
-import { DOMAIN_COLORS } from "@/lib/design-tokens";
+import Link from "next/link";
+import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 
 const DOMAINS = [
   {
@@ -117,13 +118,28 @@ export default function AxesPage() {
         <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
           The twelve axes
         </h1>
-        <p className="text-sm text-text-secondary leading-relaxed mb-10">
+        <p className="text-sm text-text-secondary leading-relaxed mb-4">
           The Governance Compass measures your political philosophy across twelve independent dimensions, organized into four domains. Each axis represents a genuine tension in how human societies can be organized &mdash; not a right answer and a wrong answer, but two defensible priorities that pull in different directions.
         </p>
 
+        <nav className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-tertiary mb-10" aria-label="Domain sections">
+          {(["economic", "power", "society", "world"] as DomainKey[]).map((key, i) => (
+            <span key={key}>
+              <a
+                href={`#${key}`}
+                className="hover:text-text-secondary transition-colors duration-150"
+                style={{ color: DOMAIN_COLORS[key][600] }}
+              >
+                {DOMAIN_COLORS[key].name}
+              </a>
+              {i < 3 && <span className="ml-3 opacity-30">&middot;</span>}
+            </span>
+          ))}
+        </nav>
+
         <div className="space-y-12">
           {DOMAINS.map((domain) => (
-            <section key={domain.key}>
+            <section key={domain.key} id={domain.key}>
               <h2
                 className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-6"
                 style={{ color: DOMAIN_COLORS[domain.key][600] }}
@@ -157,9 +173,23 @@ export default function AxesPage() {
         </div>
 
         <div className="border-t border-border-secondary mt-12 pt-6">
-          <p className="text-xs text-text-tertiary leading-relaxed">
+          <p className="text-xs text-text-tertiary leading-relaxed mb-8">
             No axis has a correct answer. The value of The Governance Compass is not in telling you which pole is right &mdash; it&apos;s in showing you where you stand across all twelve, where your commitments are strong, where you&apos;re genuinely ambivalent, and where your positions connect to each other in ways you might not have expected.
           </p>
+          <div className="text-center">
+            <Link
+              href="/quiz"
+              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+            >
+              Take the assessment
+            </Link>
+            <p className="mt-3 text-xs text-text-tertiary">
+              or{" "}
+              <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">
+                read the methodology
+              </Link>
+            </p>
+          </div>
         </div>
       </article>
     </main>
