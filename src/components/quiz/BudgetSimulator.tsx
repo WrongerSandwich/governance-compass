@@ -133,7 +133,6 @@ function MinistrySlider({
   hasInteracted,
   onAllocate,
 }: MinistrySliderProps) {
-  const [showDescription, setShowDescription] = useState(true);
   const consequenceText = getConsequenceText(ministry, value);
 
   const atMin = value <= MIN_ALLOCATION;
@@ -152,27 +151,13 @@ function MinistrySlider({
 
   return (
     <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-4">
-      <div className="flex items-start justify-between mb-1">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
-            {ministry.name}
-          </p>
-          {showDescription && (
-            <p className="text-xs text-text-tertiary mt-0.5">
-              {ministry.description}
-            </p>
-          )}
-        </div>
-        {showDescription && (
-          <button
-            type="button"
-            onClick={() => setShowDescription(false)}
-            className="text-xs text-text-tertiary hover:text-text-secondary ml-2 shrink-0"
-            aria-label="Hide description"
-          >
-            &times;
-          </button>
-        )}
+      <div className="mb-1">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
+          {ministry.name}
+        </p>
+        <p className="text-xs text-text-tertiary mt-0.5">
+          {ministry.description}
+        </p>
       </div>
 
       {/* Stepper + value */}
@@ -198,7 +183,7 @@ function MinistrySlider({
             <div
               className="h-full rounded-[3px] transition-all duration-100"
               style={{
-                width: `${((value - MIN_ALLOCATION) / (MAX_ALLOCATION - MIN_ALLOCATION)) * 100}%`,
+                width: `${Math.min(100, ((value - MIN_ALLOCATION) / (15 - MIN_ALLOCATION)) * 100)}%`,
                 backgroundColor: 'var(--stone-600)',
                 opacity: 0.5,
               }}

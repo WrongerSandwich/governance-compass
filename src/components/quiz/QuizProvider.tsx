@@ -109,7 +109,16 @@ function createInitialState(): QuizState {
   if (typeof window !== "undefined") {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Invalidate stale budget state from old quiz versions
+        const budgetKeys = Object.keys(parsed.budgetAllocations || {});
+        if (budgetKeys.length !== 7 || budgetKeys.some((k) => Number(k) > 7)) {
+          sessionStorage.removeItem(STORAGE_KEY);
+        } else {
+          return parsed;
+        }
+      }
     } catch {
       // Ignore parse errors or missing storage
     }
