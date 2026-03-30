@@ -90,7 +90,7 @@ export default function MethodologyPage() {
               </p>
               <p>
                 <span className="font-medium text-text-primary">Nuanced scales</span>{" "}
-                complement the forced-choice items by capturing intensity. The 36 scaled items each pose a question with five response options specific to that question &mdash; not generic &ldquo;agree/disagree&rdquo; anchors. The response options themselves communicate the spectrum, making the gradient visible at a glance.
+                complement the forced-choice items by capturing intensity. The 24 scaled items each pose a question with five response options specific to that question &mdash; not generic &ldquo;agree/disagree&rdquo; anchors. The response options themselves communicate the spectrum, making the gradient visible at a glance.
               </p>
               <p>
                 <span className="font-medium text-text-primary">The Chancellor&apos;s Budget</span>{" "}

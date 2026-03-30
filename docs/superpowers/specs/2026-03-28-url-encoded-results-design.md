@@ -4,23 +4,23 @@ Replace the current "always write to database" quiz submission flow with URL-enc
 
 ## Encoding Format
 
-82 response values packed into a compact, URL-safe string using bitpacking + base64url.
+70 response values packed into a compact, URL-safe string using bitpacking + base64url.
 
 | Field | Values | Bits per item | Total bits |
 |-------|--------|--------------|------------|
-| Version | 1 byte prefix (currently `0x01`) | 8 | 8 |
+| Version | 1 byte prefix (currently `0x02`) | 8 | 8 |
 | 36 FC responses | A/B/skip (3 states) | 2 | 72 |
-| 36 SC responses | 1-5/skip (6 states) | 3 | 108 |
+| 24 SC responses | 1-5/skip (6 states) | 3 | 72 |
 | 10 budget allocations | 5-95 range (91 values) | 7 | 70 |
 
-**Total: 258 bits = 33 bytes = ~44 chars base64url.**
+**Total: 222 bits = 28 bytes = ~38 chars base64url.**
 
 - FC encoding: `00` = skip, `01` = A, `10` = B
 - SC encoding: `000` = skip, `001`-`101` = values 1-5
 - Budget encoding: 7-bit unsigned integer, offset by -5 (so 5 encodes as 0, 95 as 90)
 - Version byte enables future scoring algorithm changes — old URLs can be decoded and re-scored or flagged
 
-URL format: `/results?r=AaF3x9Mk2pLs8nQ...` (~50 chars total with prefix).
+URL format: `/results?r=AaF3x9Mk2pLs8nQ...` (~45 chars total with prefix).
 
 **New module: `src/lib/response-codec.ts`** — pure functions:
 - `encodeResponses(responses: QuizResponses): string`
