@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { AnnotatedText } from "@/components/AnnotatedText";
 
 interface ForcedChoiceCardProps {
   itemId: string;
@@ -74,10 +75,10 @@ export function ForcedChoiceCard({
           className={cardClasses(firstPole)}
         >
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            {firstHeadline}
+            <AnnotatedText text={firstHeadline} />
           </p>
           <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            {firstBody}
+            <AnnotatedText text={firstBody} />
           </p>
         </button>
 
@@ -88,10 +89,10 @@ export function ForcedChoiceCard({
           className={cardClasses(secondPole)}
         >
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            {secondHeadline}
+            <AnnotatedText text={secondHeadline} />
           </p>
           <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            {secondBody}
+            <AnnotatedText text={secondBody} />
           </p>
         </button>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { AnnotatedText } from "@/components/AnnotatedText";
 
 interface ScaledQuestionCardProps {
   questionStem: string;
@@ -90,7 +91,7 @@ export function ScaledQuestionCard({
 
   return (
     <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-6">
-      <p className="text-[16px] font-medium text-text-primary">{questionStem}</p>
+      <p className="text-[16px] font-medium text-text-primary"><AnnotatedText text={questionStem} /></p>
 
       {/* Desktop: horizontal segmented bar */}
       <div

@@ -261,6 +261,16 @@ export function QuizFlow({
           Question {state.currentQuestionIndex + 1} of {shuffledFC.length}
         </div>
 
+        {isFirst && !sessionStorage.getItem("glossary-hint-seen") && (
+          <p className="text-xs text-text-tertiary text-center mb-4 px-4">
+            See a{" "}
+            <span style={{ textDecoration: "underline", textDecorationStyle: "dotted", textDecorationColor: "#C4A84A" }}>
+              highlighted term
+            </span>
+            ? Tap it for a plain-language definition.
+          </p>
+        )}
+
         <ForcedChoiceCard
           key={item.id}
           itemId={item.id}

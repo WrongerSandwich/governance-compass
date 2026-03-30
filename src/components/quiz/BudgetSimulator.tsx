@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnnotatedText } from "@/components/AnnotatedText";
 
 const TOTAL_UNITS = 100;
 const MIN_ALLOCATION = 5;
@@ -175,7 +176,7 @@ function MinistryCard({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-text-primary">{ministry.name}</p>
           <p className="mt-0.5 text-xs text-text-secondary leading-relaxed">
-            {ministry.description}
+            <AnnotatedText text={ministry.description} />
           </p>
           {showWarning && (
             <p className="mt-1.5 text-xs font-medium text-warning-text">
