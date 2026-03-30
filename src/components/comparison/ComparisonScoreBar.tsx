@@ -41,13 +41,14 @@ export function ComparisonScoreBar({
 
   const formatScore = (score: number) => Math.abs(score).toFixed(2);
   const poleName = (score: number) => (score >= 0 ? poleBLabel : poleALabel);
+  const deltaLabel = delta <= 0.3 ? "very close" : delta <= 0.7 ? "some distance" : delta <= 1.2 ? "significant gap" : "far apart";
 
   return (
     <div className={`rounded-[8px] px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}>
       <div className="flex justify-between items-center mb-0.5">
         <span className="text-sm font-medium text-text-primary">{axisName}</span>
-        <span className="text-[10px] font-mono text-text-tertiary">
-          {delta.toFixed(2)} apart
+        <span className="text-[10px] text-text-tertiary">
+          {deltaLabel}
         </span>
       </div>
       <p className="text-[11px] text-text-tertiary mb-2">{tagline}</p>

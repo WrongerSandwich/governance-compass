@@ -43,6 +43,13 @@ function CopyLinkButton() {
 
 const DOMAIN_KEYS: DomainKey[] = ["economic", "power", "society", "world"];
 
+function deltaLabel(delta: number): string {
+  if (delta <= 0.3) return "very close";
+  if (delta <= 0.7) return "some distance";
+  if (delta <= 1.2) return "significant gap";
+  return "far apart";
+}
+
 function CompareResults() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -105,7 +112,7 @@ function CompareResults() {
   const { comparison, axisScoresA, axisScoresB, axisMap } = data;
 
   return (
-    <main className="min-h-screen px-4 py-8">
+    <main className="min-h-screen px-4 py-8 overflow-x-hidden">
       <div className="max-w-3xl mx-auto">
         <FadeInSection>
           <div className="mb-6">
@@ -148,7 +155,7 @@ function CompareResults() {
                 {comparison.closestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="font-mono text-xs text-text-tertiary">{d.delta.toFixed(2)} apart</span>
+                    <span className="text-xs text-text-tertiary">{deltaLabel(d.delta)}</span>
                   </div>
                 ))}
               </div>
@@ -157,7 +164,7 @@ function CompareResults() {
                 {comparison.furthestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="font-mono text-xs text-text-tertiary">{d.delta.toFixed(2)} apart</span>
+                    <span className="text-xs text-text-tertiary">{deltaLabel(d.delta)}</span>
                   </div>
                 ))}
               </div>
