@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnnotatedText } from "@/components/AnnotatedText";
 import { getConsequenceText } from "@/data/ministries";
+import { Shield, Heart, TrendingUp, GraduationCap, Leaf, Scale, Globe } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const MINISTRY_ICONS: Record<number, LucideIcon> = {
+  1: Shield,
+  2: Heart,
+  3: TrendingUp,
+  4: GraduationCap,
+  5: Leaf,
+  6: Scale,
+  7: Globe,
+};
 import type { MinistryData } from "@/data/ministries";
 
 const TOTAL_BUDGET = 50;
@@ -152,7 +164,8 @@ function MinistrySlider({
   return (
     <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-4">
       <div className="mb-1">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
+          {(() => { const Icon = MINISTRY_ICONS[ministry.id]; return Icon ? <Icon size={13} strokeWidth={1.5} className="shrink-0" /> : null; })()}
           {ministry.name}
         </p>
         <p className="text-xs text-text-tertiary mt-0.5">
