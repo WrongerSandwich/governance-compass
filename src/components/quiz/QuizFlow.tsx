@@ -330,7 +330,7 @@ export function QuizFlow({
         completedPhase={1}
         completedCount={Object.keys(state.forcedChoiceResponses).length}
         nextPhaseTitle="Nuanced scales"
-        nextPhaseDescription="Now you will place yourself on a series of nuanced scales — from one governance philosophy to its counterpart — giving us a finer-grained picture of your views."
+        nextPhaseDescription="You're more than halfway done. This section is faster — most people spend about half as long per question. You'll place yourself on a series of nuanced scales, from one governance philosophy to its counterpart."
         estimatedTime="~5 minutes"
         onContinue={() => dispatch({ type: "START_PHASE2" })}
       />
