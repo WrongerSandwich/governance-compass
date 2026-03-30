@@ -38,12 +38,18 @@ async function main() {
   }
   console.log(`Seeded ${scaledItems.length} scaled items.`);
 
-  // Upsert ministries
+  // Upsert ministries — map to Prisma schema shape
   for (const ministry of ministries) {
+    const data = {
+      id: ministry.id,
+      name: ministry.name,
+      description: ministry.description,
+      belowBaselineWarning: ministry.consequences[0].text, // crisis tier as warning
+    };
     await prisma.ministry.upsert({
       where: { id: ministry.id },
-      update: ministry,
-      create: ministry,
+      update: data,
+      create: data,
     });
   }
   console.log(`Seeded ${ministries.length} ministries.`);
