@@ -1,3 +1,14 @@
+import Link from "next/link";
+
+const SECTIONS = [
+  { id: "why", label: "Why quizzes fall short" },
+  { id: "dimensions", label: "Twelve dimensions" },
+  { id: "formats", label: "Three ways of asking" },
+  { id: "scoring", label: "Scoring" },
+  { id: "crosscultural", label: "Cross-cultural validity" },
+  { id: "limitations", label: "Limitations" },
+];
+
 export default function MethodologyPage() {
   return (
     <main className="min-h-screen px-4 py-12">
@@ -5,13 +16,22 @@ export default function MethodologyPage() {
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Methodology
         </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-8">
+        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-4">
           How The Governance Compass works
         </h1>
 
+        <nav className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-tertiary mb-8" aria-label="Page sections">
+          {SECTIONS.map((s, i) => (
+            <span key={s.id}>
+              <a href={`#${s.id}`} className="hover:text-text-secondary transition-colors duration-150">{s.label}</a>
+              {i < SECTIONS.length - 1 && <span className="ml-3 opacity-30">&middot;</span>}
+            </span>
+          ))}
+        </nav>
+
         <div className="space-y-10 text-sm text-text-secondary leading-relaxed">
           {/* Section 1 */}
-          <section>
+          <section id="why">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Why existing political quizzes fall short
             </h2>
@@ -35,7 +55,7 @@ export default function MethodologyPage() {
           </section>
 
           {/* Section 2 */}
-          <section>
+          <section id="dimensions">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Twelve dimensions, not two
             </h2>
@@ -56,7 +76,7 @@ export default function MethodologyPage() {
           </section>
 
           {/* Section 3 */}
-          <section>
+          <section id="formats">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Three ways of asking
             </h2>
@@ -80,7 +100,7 @@ export default function MethodologyPage() {
           </section>
 
           {/* Section 4 */}
-          <section>
+          <section id="scoring">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               How scoring works
             </h2>
@@ -104,7 +124,7 @@ export default function MethodologyPage() {
           </section>
 
           {/* Section 5 */}
-          <section>
+          <section id="crosscultural">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Designing for cross-cultural validity
             </h2>
@@ -122,7 +142,7 @@ export default function MethodologyPage() {
           </section>
 
           {/* Section 6 */}
-          <section>
+          <section id="limitations">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Limitations and what comes next
             </h2>
@@ -141,6 +161,18 @@ export default function MethodologyPage() {
               </p>
             </div>
           </section>
+        </div>
+
+        <div className="border-t border-border-secondary mt-12 pt-8 text-center">
+          <p className="text-sm text-text-secondary mb-4">
+            Ready to see where you stand?
+          </p>
+          <Link
+            href="/quiz"
+            className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+          >
+            Begin the assessment
+          </Link>
         </div>
       </article>
     </main>
