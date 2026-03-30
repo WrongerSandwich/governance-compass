@@ -21,10 +21,10 @@ interface ArchetypeCardProps {
   userScores?: number[]; // 12 axis finalScores for mini radar
 }
 
-const MINI_SIZE = 140;
+const MINI_SIZE = 200;
 const MINI_CX = MINI_SIZE / 2;
 const MINI_CY = MINI_SIZE / 2;
-const MINI_R = 55;
+const MINI_R = 80;
 const MINI_AXES = 12;
 
 function miniRadarPoints(scores: number[]): string {
@@ -37,7 +37,7 @@ function miniRadarPoints(scores: number[]): string {
 
 function MiniRadar({ userScores, prototypeScores }: { userScores: number[]; prototypeScores: number[] }) {
   return (
-    <svg viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`} className="w-full max-w-[140px] mx-auto" aria-hidden="true">
+    <svg viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`} className="w-full max-w-[200px] mx-auto" aria-hidden="true">
       {/* Background ring */}
       <polygon
         points={Array.from({ length: MINI_AXES }, (_, i) => {
@@ -110,57 +110,64 @@ export function ArchetypeCard({
     );
   }
 
+  const showMiniRadar = userScores && primary.prototype.length === 12;
+
   return (
     <div>
-      {/* Section label */}
-      <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
-        Primary archetype
-      </p>
+      {/* Side-by-side: text left, mini radar right */}
+      <div className={`grid gap-5 ${showMiniRadar ? "grid-cols-1 min-[560px]:grid-cols-[1fr_auto]" : ""}`}>
+        <div>
+          {/* Section label */}
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
+            Primary archetype
+          </p>
 
-      {/* Match percentage — visual anchor */}
-      <p className="text-[36px] font-serif font-medium text-text-primary leading-none mb-1">
-        {primary.matchPercentage}%
-      </p>
+          {/* Match percentage — visual anchor */}
+          <p className="text-[36px] font-serif font-medium text-text-primary leading-none mb-1">
+            {primary.matchPercentage}%
+          </p>
 
-      {/* Archetype name */}
-      <h2 className="text-[17px] font-serif font-medium text-text-primary mb-2">
-        {primary.name}
-      </h2>
+          {/* Archetype name */}
+          <h2 className="text-[17px] font-serif font-medium text-text-primary mb-2">
+            {primary.name}
+          </h2>
 
-      {isBlended && (
-        <p className="text-xs text-text-tertiary mb-2">
-          Blended type — your profile draws nearly equally from both archetypes
-        </p>
-      )}
+          {isBlended && (
+            <p className="text-xs text-text-tertiary mb-2">
+              Blended type — your profile draws nearly equally from both archetypes
+            </p>
+          )}
 
-      {lowMatch && (
-        <p className="text-xs mb-2 text-warning-text">
-          Your profile is unusually distributed and doesn&apos;t map cleanly to
-          any single governance philosophy.
-        </p>
-      )}
+          {lowMatch && (
+            <p className="text-xs mb-2 text-warning-text">
+              Your profile is unusually distributed and doesn&apos;t map cleanly to
+              any single governance philosophy.
+            </p>
+          )}
 
-      {/* Mini radar — user vs archetype */}
-      {userScores && primary.prototype.length === 12 && (
-        <div className="my-3">
-          <MiniRadar userScores={userScores} prototypeScores={primary.prototype} />
-          <div className="flex justify-center gap-4 mt-1.5">
-            <div className="flex items-center gap-1.5 text-[10px] text-text-tertiary">
-              <span className="inline-block w-3 h-[1.5px] rounded-full bg-stone-600" />
-              You
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-text-tertiary">
-              <span className="inline-block w-3 h-[1.5px] rounded-full bg-stone-500 opacity-40" style={{ borderTop: "1px dashed var(--stone-500)" }} />
-              {primary.name.replace(/^The\s+/, "")}
+          {/* Description */}
+          <p className="text-[13px] text-text-secondary leading-relaxed">
+            {primary.summary}
+          </p>
+        </div>
+
+        {/* Mini radar — right column */}
+        {showMiniRadar && (
+          <div className="flex flex-col items-center justify-center">
+            <MiniRadar userScores={userScores!} prototypeScores={primary.prototype} />
+            <div className="flex justify-center gap-3 mt-1.5">
+              <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
+                <span className="inline-block w-3 h-[1.5px] rounded-full bg-stone-600" />
+                You
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
+                <svg width="12" height="4" aria-hidden="true"><line x1="0" y1="2" x2="12" y2="2" stroke="var(--stone-500)" strokeWidth="1" strokeDasharray="2 1.5" opacity="0.5" /></svg>
+                {primary.name.replace(/^The\s+/, "")}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Description */}
-      <p className="text-[13px] text-text-secondary leading-relaxed">
-        {primary.summary}
-      </p>
+        )}
+      </div>
 
       {/* Expand toggle — text-only with triangle */}
       <button

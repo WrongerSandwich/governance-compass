@@ -289,7 +289,25 @@ export function ResultsView({
         </section>
         </FadeInSection>
 
-        {/* Tension section */}
+        {/* 2. Radar section */}
+        <FadeInSection>
+        <section id={SECTION_IDS.radar}>
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
+            Full profile
+          </p>
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+            12-axis radar
+          </h2>
+          <p className="text-xs font-serif italic text-text-tertiary mb-4">
+            Each spoke runs from one governance pole (center) to its counterpart (perimeter). The midpoint ring is neutral. Colors group axes by domain.
+          </p>
+          <div className="bg-surface-2 rounded-[12px] p-6">
+            <RadarChart axisScores={axisData} />
+          </div>
+        </section>
+        </FadeInSection>
+
+        {/* 3. Tension section */}
         {tensionAxes.length > 0 && (
           <FadeInSection>
           <section id={SECTION_IDS.tensions}>
@@ -305,7 +323,6 @@ export function ResultsView({
 
             <div className="space-y-3">
               {tensionAxes.map((axis) => {
-                // Build a narrative sentence from the direction field
                 let narrative = "";
                 if (axis.tension.direction === "principles_B_but_budget_A") {
                   narrative = `Your questionnaire responses lean toward ${axis.poleBLabel}, but your budget priorities suggest ${axis.poleALabel}.`;
@@ -339,25 +356,7 @@ export function ResultsView({
           </FadeInSection>
         )}
 
-        {/* Radar section */}
-        <FadeInSection>
-        <section id={SECTION_IDS.radar}>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-            Full profile
-          </p>
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
-            12-axis radar
-          </h2>
-          <p className="text-xs font-serif italic text-text-tertiary mb-4">
-            Each spoke runs from one governance pole (center) to its counterpart (perimeter). The midpoint ring is neutral. Colors group axes by domain.
-          </p>
-          <div className="bg-surface-2 rounded-[12px] p-6">
-            <RadarChart axisScores={axisData} />
-          </div>
-        </section>
-        </FadeInSection>
-
-        {/* Axis breakdown by domain */}
+        {/* 4. Axis breakdown by domain */}
         <FadeInSection>
         <section id={SECTION_IDS.breakdown}>
           <div className="flex items-baseline justify-between mb-1">
