@@ -1,3 +1,5 @@
+> **PARTIALLY OUTDATED:** This spec describes the UI structure, which remains largely correct. However: Phase 2 now has 24 scaled items (was 36), the budget exercise uses 7 ministries with 50 points (was 10 ministries with 100), the results page order is now Archetype → Radar → Tensions → Breakdown → Compass (compass moved to bottom), and results are URL-encoded client-side (no server submission). See `completed/scaled_item_reduction_spec.md` and `completed/chancellors_budget_revamp_spec.md` for specific changes.
+
 # The Governance Compass — Results & UI Specification
 
 ## Overview

@@ -1,3 +1,5 @@
+> **NOTE:** This is the foundational design proposal. The conceptual framework (12 axes, 4 domains, 3 modalities, cross-cultural design) remains accurate. Specific numbers have evolved: 60 questions (was 72), 7 ministries (was 10), 50 budget points (was 100). See `completed/` for the specific change specs.
+
 # The Governance Compass
 
 ## A Comprehensive, Country-Agnostic Political Belief System Assessment

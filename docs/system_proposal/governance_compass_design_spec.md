@@ -1,3 +1,5 @@
+> **PARTIALLY OUTDATED:** The design philosophy, color system, and typography principles remain current. Specific changes: the logo is now a radar rose (was contour mark), the serif font is Source Serif 4 (was system Georgia), the budget exercise uses 7 ministries (was 10), and the results page leads with the archetype card (compass moved to bottom). Domain colors (Stone, Slate, Sage, Clay) have been added per `completed/governance_compass_domain_colors.md`.
+
 # The Governance Compass — Design System & Theming Specification
 
 ## Design Philosophy

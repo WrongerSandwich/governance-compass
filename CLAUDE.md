@@ -42,11 +42,11 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 
 ## Architecture Notes
 
-- Scoring is a 6-stage pipeline: (1) raw scoring per modality — FC maps A/B→±1.0, SC maps Likert 1-5→[-2,+2] then /2, budget uses tanh normalization; (2) per-axis modality computation; (3) weighted fusion (FC 40%, SC 35%, Budget 25%, adjusted for coverage); (4) tension/contradiction detection between stated and revealed preferences; (5) compass super-dimension reduction (economic + cultural-authority); (6) archetype matching via weighted Euclidean distance against 12 prototype vectors.
+- Scoring is a 6-stage pipeline: (1) raw scoring per modality — FC maps A/B→±1.0, SC maps Likert 1-5→[-2,+2] then /2, budget uses tanh normalization with k=6; (2) per-axis modality computation; (3) weighted fusion with axis-dependent profiles (bidirectional budget axes: FC 45%, SC 30%, BG 25%; unidirectional: FC 50%, SC 35%, BG 15%; no-budget axes: FC 60%, SC 40%); (4) tension/contradiction detection between stated and revealed preferences; (5) compass super-dimension reduction (economic + cultural-authority); (6) archetype matching via weighted Euclidean distance against 12 prototype vectors.
 - Quiz state persists to sessionStorage — users can refresh or leave and resume where they left off. Phase 1 and 2 support skipping questions; the scoring engine treats unanswered items as neutral (0).
-- Quiz completion encodes all 82 responses into a ~44-char base64url string and navigates to `/results?r=<encoded>`. Results are computed client-side — no database write for anonymous users. The codec is in `src/lib/response-codec.ts`.
+- Quiz completion encodes all 67 responses (36 FC + 24 SC + 7 budget) into a ~32-char base64url string and navigates to `/results?r=<encoded>`. Results are computed client-side — no database write for anonymous users. The codec (v3) is in `src/lib/response-codec.ts`.
 - Database profiles are created on demand via `POST /api/profile/materialize` when users save to account, join a group, or create an annotation. All materialized profiles are linked to authenticated users.
-- The nav bar is auth-aware: shows "Sign in" for anonymous users, the user's name + "Sign out" for authenticated users. A conditional "Results" link appears when localStorage has results (encoded or materialized).
+- The nav bar shows Quiz, Results (conditional on localStorage), Methodology, and Axes links. Account/auth UI is hidden for v1 but the infrastructure exists (sign in/out, save to account via materialize endpoint).
 - Groups resolve membership by invite code only (no group ID needed to join).
 
 ## Design Context

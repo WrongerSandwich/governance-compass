@@ -1,3 +1,5 @@
+> **PARTIALLY OUTDATED:** This spec describes the original scoring pipeline architecture, which remains correct in structure. However, specific constants have changed: the budget exercise now uses 7 ministries (was 10), 50 total points (was 100), k=6 (was 10), and axis weight profiles have been adjusted for 2 SC items per axis (was 3). Axes 7 and 8 no longer have budget signal. See `src/lib/scoring-types.ts` for current constants, `completed/scaled_item_reduction_spec.md` for the SC reduction, and `completed/chancellors_budget_revamp_spec.md` for the budget changes.
+
 # The Governance Compass — Scoring Engine Specification
 
 ## Overview
