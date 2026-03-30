@@ -65,13 +65,16 @@ export default function MethodologyPage() {
                 The Governance Compass doesn&apos;t just ask more questions than a typical political quiz &mdash; it asks them differently. Three distinct question formats are used, each designed to capture something the others can&apos;t.
               </p>
               <p>
-                <span className="font-medium text-text-primary">Forced-choice tradeoffs</span> form the backbone of the assessment. Each of the 36 forced-choice items presents two statements representing opposite poles of a single axis. The respondent must choose which statement comes closer to their view. There is no neutral option, no &ldquo;both,&rdquo; and no scale. This format eliminates acquiescence bias and mirrors how governance actually works: political decisions are almost never about whether something is good or bad in a vacuum. They&apos;re about which competing good to prioritize when you can&apos;t have both.
+                <span className="font-medium text-text-primary">Forced-choice tradeoffs</span>{" "}
+                form the backbone of the assessment. Each of the 36 forced-choice items presents two statements representing opposite poles of a single axis. The respondent must choose which statement comes closer to their view. There is no neutral option, no &ldquo;both,&rdquo; and no scale. This format eliminates acquiescence bias and mirrors how governance actually works: political decisions are almost never about whether something is good or bad in a vacuum. They&apos;re about which competing good to prioritize when you can&apos;t have both.
               </p>
               <p>
-                <span className="font-medium text-text-primary">Calibrated scales</span> complement the forced-choice items by capturing intensity. The 36 scaled items each pose a question with five response options specific to each question &mdash; not generic &ldquo;agree/disagree&rdquo; anchors. The response options themselves communicate the spectrum, making the gradient visible at a glance.
+                <span className="font-medium text-text-primary">Nuanced scales</span>{" "}
+                complement the forced-choice items by capturing intensity. The 36 scaled items each pose a question with five response options specific to that question &mdash; not generic &ldquo;agree/disagree&rdquo; anchors. The response options themselves communicate the spectrum, making the gradient visible at a glance.
               </p>
               <p>
-                <span className="font-medium text-text-primary">The Chancellor&apos;s Budget</span> is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates 100 units of national budget across 10 government ministries. There isn&apos;t enough to fully fund everything &mdash; that&apos;s the point. A person who claims to prioritize environmental protection but consistently funds economic growth over ecological transition has revealed something their questionnaire answers obscured.
+                <span className="font-medium text-text-primary">The Chancellor&apos;s Budget</span>{" "}
+                is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates a fixed national budget across 10 government ministries. There isn&apos;t enough to fully fund everything &mdash; that&apos;s the point. A person who claims to prioritize environmental protection but consistently funds economic growth over ecological transition has revealed something their questionnaire answers obscured.
               </p>
             </div>
           </section>
@@ -133,9 +136,9 @@ export default function MethodologyPage() {
               <p>
                 The roadmap toward greater rigor is concrete: internal consistency testing, exploratory factor analysis, test-retest reliability assessment, and ultimately multi-group measurement invariance testing with respondents from diverse cultural contexts.
               </p>
-	      <p>
-		A note on how this was built: the research synthesis, question drafting, scoring design, and methodology content on this site were developed collaboratively with AI tools, with human editorial direction and review throughout. The empirical claims and citations in this document have been editorially reviewed but have not been independently verified by a credentialed psychometrician. This transparency is consistent with the project's broader commitment to showing its work.
-	      </p>
+              <p>
+                A note on how this was built: the research synthesis, question drafting, scoring design, and methodology content on this site were developed collaboratively with AI tools, with human editorial direction and review throughout. The empirical claims and citations in this document have been editorially reviewed but have not been independently verified by a credentialed psychometrician. This transparency is consistent with the project&apos;s broader commitment to showing its work.
+              </p>
             </div>
           </section>
         </div>
