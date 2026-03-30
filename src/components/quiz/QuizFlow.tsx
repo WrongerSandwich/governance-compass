@@ -170,6 +170,10 @@ export function QuizFlow({
   // Only show resume screen if we mounted with saved progress (not intro).
   // Fresh starts begin at "intro" so this initializes to true, skipping resume.
   const [resumeAcknowledged, setResumeAcknowledged] = useState(() => state.phase === "intro");
+  const [glossaryHintSeen, setGlossaryHintSeen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !!sessionStorage.getItem("glossary-hint-seen");
+  });
 
   // Show resume screen if we loaded into a mid-quiz state
   if (hasProgress && answeredCount > 0 && !resumeAcknowledged) {
@@ -261,7 +265,7 @@ export function QuizFlow({
           Question {state.currentQuestionIndex + 1} of {shuffledFC.length}
         </div>
 
-        {isFirst && !sessionStorage.getItem("glossary-hint-seen") && (
+        {isFirst && !glossaryHintSeen && (
           <p className="text-xs text-text-tertiary text-center mb-4 px-4">
             See a{" "}
             <span style={{ textDecoration: "underline", textDecorationStyle: "dotted", textDecorationColor: "#C4A84A" }}>

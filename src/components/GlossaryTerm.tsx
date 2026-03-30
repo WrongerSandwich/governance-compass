@@ -26,11 +26,23 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
 
   return (
     <span ref={ref} className="relative inline">
-      <button
-        type="button"
-        onClick={() => {
+      {/* Use span with role="button" instead of <button> to avoid
+          nesting inside FC card buttons (invalid HTML + event bubbling) */}
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={(e) => {
+          e.stopPropagation();
           setOpen((prev) => !prev);
           sessionStorage.setItem("glossary-hint-seen", "1");
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpen((prev) => !prev);
+            sessionStorage.setItem("glossary-hint-seen", "1");
+          }
         }}
         className="font-medium cursor-help"
         style={{
@@ -44,11 +56,11 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
         aria-label={`Definition of ${entry.term}`}
       >
         {children}
-      </button>
+      </span>
       {open && (
         <span
-          className="absolute z-50 left-1/2 -translate-x-1/2 mt-1 w-[280px] rounded-[8px] border border-border-secondary p-3 shadow-sm text-left"
-          style={{ backgroundColor: "#FFFEF8", top: "100%" }}
+          className="absolute z-50 left-1/2 -translate-x-1/2 mt-1 max-w-[calc(100vw-2rem)] w-[280px] rounded-[8px] border border-border-secondary p-3 shadow-sm text-left bg-surface-1"
+          style={{ top: "100%" }}
           role="tooltip"
         >
           <span className="block text-xs font-medium text-text-primary mb-1">
@@ -62,6 +74,7 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] text-stone-600 hover:text-stone-800 transition-colors duration-150"
+            onClick={(e) => e.stopPropagation()}
           >
             Learn more on Wikipedia &rarr;
           </a>
