@@ -8,7 +8,6 @@ import { ArchetypeCard } from "./ArchetypeCard";
 import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
-import { STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
 import { FadeInSection } from "@/components/FadeInSection";
 
 export interface AxisDisplayData {
@@ -293,43 +292,52 @@ export function ResultsView({
         </section>
         </FadeInSection>
 
-        {/* Tension cards (between hero and radar) */}
+        {/* Tension section */}
         {tensionAxes.length > 0 && (
           <FadeInSection>
-          <section id={SECTION_IDS.tensions} className="space-y-3">
-            {tensionAxes.map((axis) => (
-              <div
-                key={axis.axisId}
-                className="bg-surface-1 rounded-[12px] border border-border-secondary p-5"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-warning-bg text-warning-text">
-                    !
-                  </span>
-                  <span className="text-xs font-medium capitalize text-warning-text">
-                    {axis.tension.level} tension — {axis.name}
-                  </span>
-                </div>
-                {axis.tension.narrative && (
-                  <p className="text-[13px] text-text-secondary leading-relaxed mb-2">
-                    {axis.tension.narrative}
-                  </p>
-                )}
-                <div className="flex gap-6 text-xs font-mono text-text-tertiary">
-                  <span>
-                    Stated:{" "}
-                    {axis.components.fc >= 0 ? "+" : ""}
-                    {(axis.components.fc * STATED_FC_WEIGHT + axis.components.sc * STATED_SC_WEIGHT).toFixed(2)}
-                  </span>
-                  <span>
-                    Budget:{" "}
-                    {axis.components.bg != null
-                      ? (axis.components.bg >= 0 ? "+" : "") + axis.components.bg.toFixed(2)
-                      : "N/A"}
-                  </span>
-                </div>
-              </div>
-            ))}
+          <section id={SECTION_IDS.tensions}>
+            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
+              Detected tensions
+            </p>
+            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+              Principles vs. priorities
+            </h2>
+            <p className="text-xs font-serif italic text-text-tertiary mb-4">
+              Tensions occur when your stated views and your budget choices pull in different directions. This is normal — and often where the most interesting self-knowledge lives.
+            </p>
+
+            <div className="space-y-3">
+              {tensionAxes.map((axis) => {
+                // Build a narrative sentence from the direction field
+                let narrative = "";
+                if (axis.tension.direction === "principles_B_but_budget_A") {
+                  narrative = `Your questionnaire responses lean toward ${axis.poleBLabel}, but your budget priorities suggest ${axis.poleALabel}.`;
+                } else if (axis.tension.direction === "principles_A_but_budget_B") {
+                  narrative = `Your questionnaire responses lean toward ${axis.poleALabel}, but your budget priorities suggest ${axis.poleBLabel}.`;
+                }
+
+                return (
+                  <div
+                    key={axis.axisId}
+                    className="bg-surface-1 rounded-[12px] border border-border-secondary p-5"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-warning-bg text-warning-text">
+                        !
+                      </span>
+                      <span className="text-xs font-medium capitalize text-warning-text">
+                        {axis.tension.level} tension — {axis.name}
+                      </span>
+                    </div>
+                    {narrative && (
+                      <p className="text-[13px] text-text-secondary leading-relaxed">
+                        {narrative}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
           </FadeInSection>
         )}
