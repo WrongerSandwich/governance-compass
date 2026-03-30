@@ -9,6 +9,7 @@ interface ArchetypeCardProps {
     summary: string;
     description: string;
     tension: string;
+    prototype: number[];
   };
   secondary: {
     name: string;
@@ -17,6 +18,58 @@ interface ArchetypeCardProps {
   };
   isBlended: boolean;
   isDistinctive: boolean;
+  userScores?: number[]; // 12 axis finalScores for mini radar
+}
+
+const MINI_SIZE = 140;
+const MINI_CX = MINI_SIZE / 2;
+const MINI_CY = MINI_SIZE / 2;
+const MINI_R = 55;
+const MINI_AXES = 12;
+
+function miniRadarPoints(scores: number[]): string {
+  return scores.map((score, i) => {
+    const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
+    const r = ((score + 1) / 2) * MINI_R;
+    return `${MINI_CX + r * Math.cos(angle)},${MINI_CY + r * Math.sin(angle)}`;
+  }).join(" ");
+}
+
+function MiniRadar({ userScores, prototypeScores }: { userScores: number[]; prototypeScores: number[] }) {
+  return (
+    <svg viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`} className="w-full max-w-[140px] mx-auto" aria-hidden="true">
+      {/* Background ring */}
+      <polygon
+        points={Array.from({ length: MINI_AXES }, (_, i) => {
+          const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
+          return `${MINI_CX + MINI_R * Math.cos(angle)},${MINI_CY + MINI_R * Math.sin(angle)}`;
+        }).join(" ")}
+        fill="none" style={{ stroke: 'var(--border-secondary)' }} strokeWidth={0.5} opacity={0.5}
+      />
+      {/* Midpoint ring */}
+      <polygon
+        points={Array.from({ length: MINI_AXES }, (_, i) => {
+          const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
+          const r = MINI_R * 0.5;
+          return `${MINI_CX + r * Math.cos(angle)},${MINI_CY + r * Math.sin(angle)}`;
+        }).join(" ")}
+        fill="none" style={{ stroke: 'var(--border-secondary)' }} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.3}
+      />
+      {/* Archetype prototype (dashed) */}
+      <polygon
+        points={miniRadarPoints(prototypeScores)}
+        fill="none" style={{ stroke: 'var(--stone-500)' }}
+        strokeWidth={1} strokeDasharray="3 2" opacity={0.4}
+      />
+      {/* User profile (solid) */}
+      <polygon
+        points={miniRadarPoints(userScores)}
+        style={{ fill: 'var(--stone-600)', stroke: 'var(--stone-600)' }}
+        fillOpacity={0.1} strokeOpacity={0.6} strokeWidth={1.2}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function ArchetypeCard({
@@ -24,6 +77,7 @@ export function ArchetypeCard({
   secondary,
   isBlended,
   isDistinctive,
+  userScores,
 }: ArchetypeCardProps) {
   const [expanded, setExpanded] = useState(false);
   const lowMatch = primary.matchPercentage < 55;
@@ -84,6 +138,23 @@ export function ArchetypeCard({
           Your profile is unusually distributed and doesn&apos;t map cleanly to
           any single governance philosophy.
         </p>
+      )}
+
+      {/* Mini radar — user vs archetype */}
+      {userScores && primary.prototype.length === 12 && (
+        <div className="my-3">
+          <MiniRadar userScores={userScores} prototypeScores={primary.prototype} />
+          <div className="flex justify-center gap-4 mt-1.5">
+            <div className="flex items-center gap-1.5 text-[10px] text-text-tertiary">
+              <span className="inline-block w-3 h-[1.5px] rounded-full bg-stone-600" />
+              You
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-text-tertiary">
+              <span className="inline-block w-3 h-[1.5px] rounded-full bg-stone-500 opacity-40" style={{ borderTop: "1px dashed var(--stone-500)" }} />
+              {primary.name.replace(/^The\s+/, "")}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Description */}

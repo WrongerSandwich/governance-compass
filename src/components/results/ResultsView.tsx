@@ -189,10 +189,11 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
 }
 
 const SECTION_IDS = {
-  compass: "compass",
-  tensions: "tensions",
+  archetype: "archetype",
   radar: "radar",
+  tensions: "tensions",
   breakdown: "breakdown",
+  compass: "compass",
 };
 
 export function ResultsView({
@@ -246,42 +247,38 @@ export function ResultsView({
 
         {/* Section jump links */}
         <FadeInSection delay={100}>
-        <nav className="flex gap-4 text-xs text-text-tertiary" aria-label="Page sections">
-          <a href={`#${SECTION_IDS.compass}`} className="hover:text-text-secondary transition-colors duration-150">Compass</a>
+        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary" aria-label="Page sections">
+          <a href={`#${SECTION_IDS.archetype}`} className="hover:text-text-secondary transition-colors duration-150">Archetype</a>
+          <a href={`#${SECTION_IDS.radar}`} className="hover:text-text-secondary transition-colors duration-150">Radar</a>
           {tensionAxes.length > 0 && (
             <a href={`#${SECTION_IDS.tensions}`} className="hover:text-text-secondary transition-colors duration-150">Tensions</a>
           )}
-          <a href={`#${SECTION_IDS.radar}`} className="hover:text-text-secondary transition-colors duration-150">Radar</a>
           <a href={`#${SECTION_IDS.breakdown}`} className="hover:text-text-secondary transition-colors duration-150">Breakdown</a>
+          <a href={`#${SECTION_IDS.compass}`} className="hover:text-text-secondary transition-colors duration-150">Compass</a>
         </nav>
         </FadeInSection>
 
-        {/* Hero region: Compass + Archetype side by side */}
+        {/* 1. Archetype hero — with mini radar, no compass */}
         <FadeInSection delay={200}>
-        <section id={SECTION_IDS.compass} className="bg-surface-2 rounded-[12px] p-6">
-          <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-5">
-            <CompassPlot
-              economic={compass.economic}
-              cultural={compass.cultural}
-              primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}
-            />
-            <ArchetypeCard
-              primary={{
-                name: archetype.primary.name,
-                matchPercentage: archetype.primary.matchPercentage,
-                summary: archetype.primary.summary,
-                description: archetype.primary.description,
-                tension: archetype.primary.tension,
-              }}
-              secondary={{
-                name: archetype.secondary.name,
-                matchPercentage: archetype.secondary.matchPercentage,
-                summary: archetype.secondary.summary,
-              }}
-              isBlended={archetype.isBlended}
-              isDistinctive={archetype.isDistinctive}
-            />
-          </div>
+        <section id={SECTION_IDS.archetype} className="bg-surface-2 rounded-[12px] p-6">
+          <ArchetypeCard
+            primary={{
+              name: archetype.primary.name,
+              matchPercentage: archetype.primary.matchPercentage,
+              summary: archetype.primary.summary,
+              description: archetype.primary.description,
+              tension: archetype.primary.tension,
+              prototype: archetype.primary.prototype,
+            }}
+            secondary={{
+              name: archetype.secondary.name,
+              matchPercentage: archetype.secondary.matchPercentage,
+              summary: archetype.secondary.summary,
+            }}
+            isBlended={archetype.isBlended}
+            isDistinctive={archetype.isDistinctive}
+            userScores={axisData.map((a) => a.finalScore)}
+          />
 
           {/* Action bar */}
           <div className="flex flex-wrap items-center gap-2 mt-5">
@@ -400,6 +397,28 @@ export function ResultsView({
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+        </FadeInSection>
+
+        {/* 3. Compass plot — de-emphasized, at the bottom */}
+        <FadeInSection>
+        <section id={SECTION_IDS.compass}>
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
+            Two-dimensional summary
+          </p>
+          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+            Compass plot
+          </h2>
+          <p className="text-xs font-serif italic text-text-tertiary mb-4">
+            A simplified projection onto two super-dimensions. The full 12-axis radar above is the primary output.
+          </p>
+          <div className="bg-surface-2 rounded-[12px] p-6">
+            <CompassPlot
+              economic={compass.economic}
+              cultural={compass.cultural}
+              primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}
+            />
           </div>
         </section>
         </FadeInSection>
