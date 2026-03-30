@@ -22,11 +22,11 @@ describe("data integrity", () => {
     }
   });
 
-  it("has exactly 36 scaled items (3 per axis)", () => {
-    expect(scaledItems).toHaveLength(36);
+  it("has exactly 24 scaled items (2 per axis)", () => {
+    expect(scaledItems).toHaveLength(24);
     for (let axisId = 1; axisId <= 12; axisId++) {
       const items = scaledItems.filter((i) => i.axisId === axisId);
-      expect(items).toHaveLength(3);
+      expect(items).toHaveLength(2);
     }
   });
 

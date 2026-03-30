@@ -15,12 +15,12 @@ describe("fuseModalityScores", () => {
   describe("full budget axis (axis 1)", () => {
     it("computes 0.40*fc + 0.35*sc + 0.25*bg when all inputs are 1.0", () => {
       const result = fuseModalityScores(1.0, 1.0, 1.0, 1);
-      expect(result).toBeCloseTo(0.40 + 0.35 + 0.25);
+      expect(result).toBeCloseTo(0.45 + 0.30 + 0.25);
     });
 
-    it("computes 0.40*fc + 0.35*sc + 0.25*bg with distinct values", () => {
+    it("computes 0.45*fc + 0.30*sc + 0.25*bg with distinct values", () => {
       const fc = 0.8, sc = 0.6, bg = 0.4;
-      const expected = 0.40 * fc + 0.35 * sc + 0.25 * bg;
+      const expected = 0.45 * fc + 0.30 * sc + 0.25 * bg;
       expect(fuseModalityScores(fc, sc, bg, 1)).toBeCloseTo(expected);
     });
 
@@ -37,11 +37,11 @@ describe("fuseModalityScores", () => {
     });
   });
 
-  // Axis 3: no budget — fc=0.55, sc=0.45, bg=0.00
+  // Axis 3: no budget — fc=0.60, sc=0.40, bg=0.00
   describe("no budget axis (axis 3)", () => {
-    it("computes 0.55*fc + 0.45*sc when bg is null", () => {
+    it("computes 0.60*fc + 0.40*sc when bg is null", () => {
       const fc = 0.6, sc = -0.4;
-      const expected = 0.55 * fc + 0.45 * sc;
+      const expected = 0.60 * fc + 0.40 * sc;
       expect(fuseModalityScores(fc, sc, null, 3)).toBeCloseTo(expected);
     });
 
@@ -57,26 +57,26 @@ describe("fuseModalityScores", () => {
       expect(fuseModalityScores(-1.0, -1.0, null, 3)).toBeCloseTo(-1.0);
     });
 
-    it("uses 0.55 weight for fc and 0.45 for sc (axis 9 same profile)", () => {
+    it("uses 0.60 weight for fc and 0.40 for sc (axis 9 same profile)", () => {
       const fc = 1.0, sc = 0.0;
-      expect(fuseModalityScores(fc, sc, null, 9)).toBeCloseTo(0.55);
+      expect(fuseModalityScores(fc, sc, null, 9)).toBeCloseTo(0.60);
     });
   });
 
-  // Axis 4: partial budget — fc=0.45, sc=0.40, bg=0.15
+  // Axis 4: partial budget — fc=0.50, sc=0.35, bg=0.15
   describe("partial budget axis (axis 4)", () => {
-    it("computes 0.45*fc + 0.40*sc + 0.15*bg when bg is present", () => {
+    it("computes 0.50*fc + 0.35*sc + 0.15*bg when bg is present", () => {
       const fc = 0.5, sc = 0.3, bg = 0.7;
-      const expected = 0.45 * fc + 0.40 * sc + 0.15 * bg;
+      const expected = 0.50 * fc + 0.35 * sc + 0.15 * bg;
       expect(fuseModalityScores(fc, sc, bg, 4)).toBeCloseTo(expected);
     });
 
     it("normalises fc and sc when bg is null but profile has bg > 0", () => {
-      // Profile bg=0.15, so fc+sc weights in profile = 0.45+0.40 = 0.85
-      // Normalized: fc = 0.45/0.85, sc = 0.40/0.85
+      // Profile bg=0.15, so fc+sc weights in profile = 0.50+0.35 = 0.85
+      // Normalized: fc = 0.50/0.85, sc = 0.35/0.85
       const fc = 0.8, sc = -0.2;
-      const normFcW = 0.45 / (0.45 + 0.40);
-      const normScW = 0.40 / (0.45 + 0.40);
+      const normFcW = 0.50 / (0.50 + 0.35);
+      const normScW = 0.35 / (0.50 + 0.35);
       const expected = normFcW * fc + normScW * sc;
       expect(fuseModalityScores(fc, sc, null, 4)).toBeCloseTo(expected);
     });
@@ -89,10 +89,10 @@ describe("fuseModalityScores", () => {
   // Axis 2: full budget — same profile as axis 1
   describe("full budget axis (axis 2) — bg null triggers normalization", () => {
     it("normalises fc and sc when bg is null (profile bg=0.25 > 0)", () => {
-      // Profile: fc=0.40, sc=0.35, bg=0.25; fc+sc = 0.75
-      // Normalized: fc = 0.40/0.75, sc = 0.35/0.75
+      // Profile: fc=0.45, sc=0.30, bg=0.25; fc+sc = 0.75
+      // Normalized: fc = 0.45/0.75, sc = 0.30/0.75
       const fc = 1.0, sc = 0.0;
-      const normFcW = 0.40 / (0.40 + 0.35);
+      const normFcW = 0.45 / (0.45 + 0.30);
       const expected = normFcW * fc;
       expect(fuseModalityScores(fc, sc, null, 2)).toBeCloseTo(expected);
     });
@@ -236,10 +236,10 @@ describe("computeAllFinalScores", () => {
     expect(axis3.bgScore).toBeNull();
     expect(axis9.bgScore).toBeNull();
 
-    // Profile for axis 3: fc=0.55, sc=0.45, bg=0.00 → bg=0 so fc+sc already sum to 1
-    // finalScore = 0.55 * 1.0 + 0.45 * 0.0 = 0.55
-    expect(axis3.finalScore).toBeCloseTo(0.55);
-    expect(axis9.finalScore).toBeCloseTo(0.55);
+    // Profile for axis 3: fc=0.60, sc=0.40, bg=0.00 → bg=0 so fc+sc already sum to 1
+    // finalScore = 0.60 * 1.0 + 0.40 * 0.0 = 0.60
+    expect(axis3.finalScore).toBeCloseTo(0.60);
+    expect(axis9.finalScore).toBeCloseTo(0.60);
   });
 
   it("passes through fc, sc, bg scores in the result objects", () => {
@@ -266,9 +266,9 @@ describe("computeAllFinalScores", () => {
   });
 
   it("axis 1 (full budget) computes correct finalScore with known values", () => {
-    // axis 1 profile: fc=0.40, sc=0.35, bg=0.25
+    // axis 1 profile: fc=0.45, sc=0.30, bg=0.25
     const fc = 0.8, sc = -0.4, bg = 0.6;
-    const expected = 0.40 * fc + 0.35 * sc + 0.25 * bg;
+    const expected = 0.45 * fc + 0.30 * sc + 0.25 * bg;
     const perModality: PerModalityScores = {
       ...buildPerModalityScores(0, 0, 0),
       1: { fc, sc, bg },
@@ -280,10 +280,10 @@ describe("computeAllFinalScores", () => {
 
   it("axis 4 (partial budget, bg null) normalises fc+sc weights", () => {
     // Profile bg=0.15 > 0, but bg is null → normalize
-    // normFcW = 0.45/(0.45+0.40), normScW = 0.40/(0.45+0.40)
+    // normFcW = 0.50/(0.50+0.35), normScW = 0.35/(0.50+0.35)
     const fc = 0.6, sc = 0.4;
-    const normFcW = 0.45 / (0.45 + 0.40);
-    const normScW = 0.40 / (0.45 + 0.40);
+    const normFcW = 0.50 / (0.50 + 0.35);
+    const normScW = 0.35 / (0.50 + 0.35);
     const expected = normFcW * fc + normScW * sc;
     const perModality: PerModalityScores = {
       ...buildPerModalityScores(0, 0, 0),

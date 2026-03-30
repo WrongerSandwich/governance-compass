@@ -21,7 +21,7 @@ npm run dev
 - **Database:** PostgreSQL in Docker container `political-platform-db` on port 5433
   - User: `ppuser`, Password: `ppdevpass`, DB: `political_platform`
   - If the container doesn't exist: `docker run -d --name political-platform-db -e POSTGRES_USER=ppuser -e POSTGRES_PASSWORD=ppdevpass -e POSTGRES_DB=political_platform -p 5433:5432 postgres:16-alpine`
-- **Seed data:** `npx prisma db seed` (12 axes, 72 questions — 36 forced-choice + 36 scaled — plus 10 ministries and 12 archetypes)
+- **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 10 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
 
 ## Testing

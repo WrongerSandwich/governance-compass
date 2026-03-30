@@ -6,7 +6,15 @@ import type { QuizResponses } from "@/lib/scoring-types";
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Build a complete response set with all 36 FC, 36 SC, and 10 budget items. */
+// The 24 SC item IDs that exist after the reduction (2 per axis)
+const SC_ITEM_IDS = [
+  "sc-1-1", "sc-1-3", "sc-2-1", "sc-2-2", "sc-3-1", "sc-3-3",
+  "sc-4-1", "sc-4-2", "sc-5-1", "sc-5-2", "sc-6-1", "sc-6-3",
+  "sc-7-1", "sc-7-2", "sc-8-1", "sc-8-2", "sc-9-1", "sc-9-2",
+  "sc-10-1", "sc-10-2", "sc-11-2", "sc-11-3", "sc-12-1", "sc-12-3",
+];
+
+/** Build a complete response set with all 36 FC, 24 SC, and 10 budget items. */
 function buildCompleteResponses(): QuizResponses {
   const forcedChoice: Record<string, "A" | "B"> = {};
   const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {};
@@ -15,12 +23,16 @@ function buildCompleteResponses(): QuizResponses {
   for (let axis = 1; axis <= 12; axis++) {
     for (let item = 1; item <= 3; item++) {
       forcedChoice[`fc-${axis}-${item}`] = item % 2 === 0 ? "A" : "B";
-      scaled[`sc-${axis}-${item}`] = ((item % 5) + 1) as 1 | 2 | 3 | 4 | 5;
     }
   }
 
+  for (const id of SC_ITEM_IDS) {
+    const itemNum = parseInt(id.split("-")[2]);
+    scaled[id] = ((itemNum % 5) + 1) as 1 | 2 | 3 | 4 | 5;
+  }
+
   for (let m = 1; m <= 10; m++) {
-    budget[m] = 10; // baseline
+    budget[m] = 10;
   }
 
   return { forcedChoice, scaled, budget };
@@ -45,13 +57,13 @@ describe("response-codec", () => {
   // URL-safety and compactness
   // -------------------------------------------------------------------------
 
-  it("produces a URL-safe string under 50 characters", () => {
+  it("produces a URL-safe string under 45 characters", () => {
     const original = buildCompleteResponses();
     const encoded = encodeResponses(original);
 
     // base64url charset: A-Za-z0-9_-
     expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
-    expect(encoded.length).toBeLessThanOrEqual(50);
+    expect(encoded.length).toBeLessThanOrEqual(45);
   });
 
   // -------------------------------------------------------------------------
@@ -81,13 +93,13 @@ describe("response-codec", () => {
     const responses = buildCompleteResponses();
     // Remove some SC items
     delete responses.scaled["sc-2-1"];
-    delete responses.scaled["sc-9-3"];
+    delete responses.scaled["sc-9-2"];
 
     const encoded = encodeResponses(responses);
     const decoded = decodeResponses(encoded);
 
     expect(decoded.scaled).not.toHaveProperty("sc-2-1");
-    expect(decoded.scaled).not.toHaveProperty("sc-9-3");
+    expect(decoded.scaled).not.toHaveProperty("sc-9-2");
 
     // Non-skipped items should still be present
     expect(decoded.scaled["sc-1-1"]).toBe(responses.scaled["sc-1-1"]);

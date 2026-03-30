@@ -69,19 +69,20 @@ export const BUDGET_MINIMUM = 5;
 export const BUDGET_SIGMOID_K = 10;
 
 // Axis weight profiles for modality fusion (Stage 3)
+// Updated for 2 SC items per axis (was 3): SC -0.05, FC +0.05
 export const AXIS_WEIGHT_PROFILES: Record<number, AxisWeightProfile> = {
-  1:  { fc: 0.40, sc: 0.35, bg: 0.25 }, // Full budget (2 ministries, both directions)
-  2:  { fc: 0.40, sc: 0.35, bg: 0.25 }, // Full budget (3 ministries)
-  3:  { fc: 0.55, sc: 0.45, bg: 0.00 }, // No budget mapping
-  4:  { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Education, one direction)
-  5:  { fc: 0.40, sc: 0.35, bg: 0.25 }, // Full budget (2 ministries, both directions)
-  6:  { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Civil Liberties, one direction)
-  7:  { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Cultural Heritage, one direction)
-  8:  { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Cultural Heritage, one direction)
-  9:  { fc: 0.55, sc: 0.45, bg: 0.00 }, // No budget mapping
-  10: { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Foreign Affairs, one direction)
-  11: { fc: 0.45, sc: 0.40, bg: 0.15 }, // Partial (Defense, one direction)
-  12: { fc: 0.40, sc: 0.35, bg: 0.25 }, // Full budget (2 ministries + Education partial)
+  1:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
+  2:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
+  3:  { fc: 0.60, sc: 0.40, bg: 0.00 }, // No budget mapping
+  4:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  5:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
+  6:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  7:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  8:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  9:  { fc: 0.60, sc: 0.40, bg: 0.00 }, // No budget mapping
+  10: { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  11: { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
+  12: { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
 };
 
 // Tension thresholds (Stage 4)
@@ -92,8 +93,8 @@ export const TENSION_THRESHOLDS = {
 } as const;
 
 // Stated preference weights (FC and SC renormalized without budget)
-export const STATED_FC_WEIGHT = 0.53; // 0.40/0.75
-export const STATED_SC_WEIGHT = 0.47; // 0.35/0.75
+export const STATED_FC_WEIGHT = 0.60; // Updated for 2 SC items per axis
+export const STATED_SC_WEIGHT = 0.40; // Updated for 2 SC items per axis
 
 // Super-dimension weights (Stage 5)
 export const SD_ECONOMIC_WEIGHTS: Record<number, number> = {

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { encodeResponses } from "@/lib/response-codec";
+import { scaledItems } from "@/data/scaled-items";
 import type { QuizResponses } from "@/lib/scoring-types";
 
 function generateRandomResponses(): QuizResponses {
@@ -21,13 +22,10 @@ function generateRandomResponses(): QuizResponses {
   }
 
   const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {};
-  for (let axis = 1; axis <= 12; axis++) {
-    // Map lean to a center value on 1-5 scale, then jitter slightly
-    const center = 3 + axisLean[axis - 1] * 2; // range ~1 to ~5
-    for (let item = 1; item <= 3; item++) {
-      const jittered = center + (Math.random() - 0.5);
-      scaled[`sc-${axis}-${item}`] = Math.max(1, Math.min(5, Math.round(jittered))) as 1 | 2 | 3 | 4 | 5;
-    }
+  for (const item of scaledItems) {
+    const center = 3 + axisLean[item.axisId - 1] * 2;
+    const jittered = center + (Math.random() - 0.5);
+    scaled[item.id] = Math.max(1, Math.min(5, Math.round(jittered))) as 1 | 2 | 3 | 4 | 5;
   }
 
   // Budget: pick 3-4 ministries to favor, give them more

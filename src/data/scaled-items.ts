@@ -40,28 +40,6 @@ export const scaledItems: ScaledItemData[] = [
       "The state should have almost no role in economic distribution.",
   },
   {
-    id: "sc-1-2",
-    axisId: 1,
-    itemNumber: 2,
-    questionStem:
-      "When private companies become so large they dominate an entire sector, how should the state respond?",
-    option1Label: "Public ownership",
-    option1Detail:
-      "Break them up and transfer key functions to public ownership.",
-    option2Label: "Break up and regulate",
-    option2Detail:
-      "Break them up and heavily regulate the successor companies.",
-    option3Label: "Regulate firmly",
-    option3Detail:
-      "Allow them to continue operating under firm regulatory oversight.",
-    option4Label: "Monitor only",
-    option4Detail:
-      "Intervene only if consumers are clearly being harmed.",
-    option5Label: "Leave them alone",
-    option5Detail:
-      "Market dominance earned through competition is legitimate.",
-  },
-  {
     id: "sc-1-3",
     axisId: 1,
     itemNumber: 3,
@@ -129,28 +107,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "Environmental issues are best addressed through innovation and market demand, not regulation.",
   },
-  {
-    id: "sc-2-3",
-    axisId: 2,
-    itemNumber: 3,
-    questionStem:
-      "Should a nation's measure of success include ecological health alongside economic output?",
-    option1Label: "Replace GDP",
-    option1Detail:
-      "Ecological health should replace economic output as the primary measure of national success.",
-    option2Label: "Equal weight",
-    option2Detail:
-      "Ecological measures should be weighted equally with economic ones.",
-    option3Label: "Useful supplement",
-    option3Detail:
-      "Both matter, but economic output remains the more practical day-to-day benchmark.",
-    option4Label: "Secondary metric",
-    option4Detail:
-      "Ecological metrics are useful supplements but shouldn't drive policy decisions.",
-    option5Label: "Separate concern",
-    option5Detail:
-      "National success is best measured by economic output — ecology is a separate matter.",
-  },
 
   // --- AXIS 3: Governance Structure ---
   {
@@ -174,28 +130,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Label: "Almost none",
     option5Detail:
       "National standards should be uniform everywhere for fairness and cohesion.",
-  },
-  {
-    id: "sc-3-2",
-    axisId: 3,
-    itemNumber: 2,
-    questionStem:
-      "When a policy problem spans multiple regions, who should have primary authority to address it?",
-    option1Label: "Local negotiation",
-    option1Detail:
-      "Local communities should negotiate solutions among themselves.",
-    option2Label: "Regional coordination",
-    option2Detail:
-      "Regional bodies should coordinate, with local input prioritized.",
-    option3Label: "Shared authority",
-    option3Detail:
-      "A mix of national direction and regional implementation.",
-    option4Label: "National lead",
-    option4Detail:
-      "The national government should lead, consulting regions as needed.",
-    option5Label: "National control",
-    option5Detail:
-      "The national government should decide and implement directly.",
   },
   {
     id: "sc-3-3",
@@ -265,28 +199,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "Governance is best handled by qualified professionals with broad authority to act.",
   },
-  {
-    id: "sc-4-3",
-    axisId: 4,
-    itemNumber: 3,
-    questionStem:
-      "When a specialist government agency makes a decision that most citizens oppose, what should happen?",
-    option1Label: "Reverse immediately",
-    option1Detail:
-      "Public opposition invalidates any expert decision — period.",
-    option2Label: "Suspend and vote",
-    option2Detail:
-      "The decision should be suspended and put to a public vote.",
-    option3Label: "Review seriously",
-    option3Detail:
-      "The decision should be reviewed, with public concerns given serious weight.",
-    option4Label: "Let it stand, usually",
-    option4Detail:
-      "It should stand unless there are clear errors — expertise should be trusted.",
-    option5Label: "Insulate fully",
-    option5Detail:
-      "Technical governance should be insulated from popular pressure for better outcomes.",
-  },
 
   // --- AXIS 5: Rights Balance ---
   {
@@ -333,28 +245,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "The state has a duty to prevent speech that threatens social cohesion.",
   },
-  {
-    id: "sc-5-3",
-    axisId: 5,
-    itemNumber: 3,
-    questionStem:
-      "Which poses a greater long-term threat to a good society?",
-    option1Label: "Too much state power, always",
-    option1Detail:
-      "An overpowered state is always the greater danger to human flourishing.",
-    option2Label: "Too much state power, usually",
-    option2Detail:
-      "In most circumstances, state overreach is the more serious threat.",
-    option3Label: "Both equally",
-    option3Detail:
-      "Both excessive state power and unchecked disorder are roughly equal threats.",
-    option4Label: "Too much disorder, usually",
-    option4Detail:
-      "In most circumstances, crime and instability are the more serious threat.",
-    option5Label: "Too much disorder, always",
-    option5Detail:
-      "Unchecked disorder is always the greater danger to human flourishing.",
-  },
 
   // --- AXIS 6: Legitimacy Basis ---
   {
@@ -378,28 +268,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Label: "Fully legitimate",
     option5Detail:
       "What a government delivers matters more than how it came to power.",
-  },
-  {
-    id: "sc-6-2",
-    axisId: 6,
-    itemNumber: 2,
-    questionStem:
-      "How important is it that citizens can remove their leaders through elections?",
-    option1Label: "Absolutely essential",
-    option1Detail:
-      "This is the foundation of legitimate governance — nothing substitutes for it.",
-    option2Label: "Very important",
-    option2Detail:
-      "The primary accountability mechanism, though not the only one.",
-    option3Label: "Important",
-    option3Detail:
-      "One of several factors that make governance legitimate.",
-    option4Label: "Somewhat important",
-    option4Detail:
-      "Competent governance matters more, but elections are a useful check.",
-    option5Label: "Not essential",
-    option5Detail:
-      "There are other valid ways to ensure accountability besides elections.",
   },
   {
     id: "sc-6-3",
@@ -469,28 +337,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "Support and preserve traditional institutions as vital sources of social cohesion and meaning.",
   },
-  {
-    id: "sc-7-3",
-    axisId: 7,
-    itemNumber: 3,
-    questionStem:
-      "How would you characterize the general trajectory of social change over the past century?",
-    option1Label: "Overwhelmingly positive",
-    option1Detail:
-      "A story of expanding freedom, inclusion, and moral understanding.",
-    option2Label: "Mostly positive",
-    option2Detail:
-      "Meaningful gains on balance, though not every change has been beneficial.",
-    option3Label: "Mixed",
-    option3Detail:
-      "Some changes have been clearly good, others clearly harmful.",
-    option4Label: "Mostly concerning",
-    option4Detail:
-      "Important things have been lost in the pursuit of novelty and disruption.",
-    option5Label: "Deeply troubling",
-    option5Detail:
-      "Foundational values and institutions have been eroded in damaging ways.",
-  },
 
   // --- AXIS 8: Cultural Diversity ---
   {
@@ -536,28 +382,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Label: "Primarily national culture",
     option5Detail:
       "Schools are where a common identity is formed — that is their primary purpose.",
-  },
-  {
-    id: "sc-8-3",
-    axisId: 8,
-    itemNumber: 3,
-    questionStem:
-      "In a society with multiple ethnic or cultural groups, what level of distinctiveness is healthiest long-term?",
-    option1Label: "Strong distinct identities",
-    option1Detail:
-      "Permanent cultural distinctiveness is a source of strength and should be maintained.",
-    option2Label: "Preserve with bridges",
-    option2Detail:
-      "Distinct identities should be preserved but with strong connections between groups.",
-    option3Label: "Natural blending",
-    option3Detail:
-      "Some blending is natural and healthy, though distinct identities will and should persist.",
-    option4Label: "Gradual unification",
-    option4Detail:
-      "A gradual blending into a shared culture, while respecting heritage, produces the most stable society.",
-    option5Label: "Unified common identity",
-    option5Detail:
-      "Strong group distinctions inevitably breed conflict — shared identity is essential.",
   },
 
   // --- AXIS 9: Human Nature ---
@@ -605,28 +429,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "Different outcomes are a natural feature of diverse societies — forced equalization creates new problems.",
   },
-  {
-    id: "sc-9-3",
-    axisId: 9,
-    itemNumber: 3,
-    questionStem:
-      "To what extent are social hierarchies an inevitable feature of human societies?",
-    option1Label: "Not at all",
-    option1Detail:
-      "Hierarchies are entirely constructed and can be entirely eliminated through better design.",
-    option2Label: "Mostly not",
-    option2Detail:
-      "Most current hierarchies are unjust and can be dismantled, though some coordination structures are needed.",
-    option3Label: "Partially",
-    option3Detail:
-      "Some hierarchy may be natural, but much of it is socially constructed and changeable.",
-    option4Label: "Mostly inevitable",
-    option4Detail:
-      "Hierarchies emerge naturally in all human groups, though their specific form can be made more humane.",
-    option5Label: "Entirely inevitable",
-    option5Detail:
-      "Social hierarchy is a fundamental feature of human nature that governance must accommodate.",
-  },
 
   // --- AXIS 10: International Engagement ---
   {
@@ -673,52 +475,8 @@ export const scaledItems: ScaledItemData[] = [
     option5Detail:
       "Borders define a nation's identity and should be firmly controlled.",
   },
-  {
-    id: "sc-10-3",
-    axisId: 10,
-    itemNumber: 3,
-    questionStem:
-      "When a wealthier and a poorer nation negotiate a trade agreement, what principle should guide the terms?",
-    option1Label: "Favor the poorer nation",
-    option1Detail:
-      "The wealthier nation should make deliberate concessions to reduce global inequality.",
-    option2Label: "Moderately favor poorer",
-    option2Detail:
-      "Terms should somewhat favor the poorer nation to promote development.",
-    option3Label: "Mutually beneficial",
-    option3Detail:
-      "Terms should be equally beneficial and binding for both sides.",
-    option4Label: "Each pursues best deal",
-    option4Detail:
-      "Negotiations are inherently competitive — each side should seek its own advantage.",
-    option5Label: "Use leverage",
-    option5Detail:
-      "The wealthier nation should use its leverage to secure the best terms for its own citizens.",
-  },
 
   // --- AXIS 11: Military Policy ---
-  {
-    id: "sc-11-1",
-    axisId: 11,
-    itemNumber: 1,
-    questionStem:
-      "How much should a nation spend on its military relative to other priorities?",
-    option1Label: "As little as possible",
-    option1Detail:
-      "Only enough for minimal border defense — nothing more.",
-    option2Label: "Modestly",
-    option2Detail:
-      "Enough for credible self-defense but no power projection beyond borders.",
-    option3Label: "Moderately",
-    option3Detail:
-      "Sufficient for self-defense and limited alliance commitments.",
-    option4Label: "Substantially",
-    option4Detail:
-      "Enough to project force regionally and actively support allies.",
-    option5Label: "As much as needed",
-    option5Detail:
-      "Military superiority is essential to national security and global stability.",
-  },
   {
     id: "sc-11-2",
     axisId: 11,
@@ -786,28 +544,6 @@ export const scaledItems: ScaledItemData[] = [
     option5Label: "Entirely on restrictors",
     option5Detail:
       "Innovation should be the default — restriction requires strong justification.",
-  },
-  {
-    id: "sc-12-2",
-    axisId: 12,
-    itemNumber: 2,
-    questionStem:
-      "How should the state relate to technologies that could dramatically change human life?",
-    option1Label: "Strictly control",
-    option1Detail:
-      "Restrict development and deployment until long-term effects are well understood.",
-    option2Label: "Regulate proactively",
-    option2Detail:
-      "Establish safety frameworks before technologies mature and deploy widely.",
-    option3Label: "Regulate reactively",
-    option3Detail:
-      "Allow development and intervene when specific harms emerge in practice.",
-    option4Label: "Encourage with light touch",
-    option4Detail:
-      "Minimal regulation — innovation is how societies solve their hardest problems.",
-    option5Label: "Actively accelerate",
-    option5Detail:
-      "Fund and accelerate development — the faster these technologies mature, the better for everyone.",
   },
   {
     id: "sc-12-3",

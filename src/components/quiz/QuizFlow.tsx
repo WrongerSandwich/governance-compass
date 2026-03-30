@@ -232,7 +232,7 @@ export function QuizFlow({
             no right answers, and you can&apos;t choose both.
           </p>
           <p className="text-xs font-serif italic text-text-tertiary mb-8">
-            36 questions &middot; ~10 minutes &middot; Your progress is saved automatically
+            36 questions &middot; ~8 minutes &middot; Your progress is saved automatically
           </p>
 
           <button
@@ -331,7 +331,7 @@ export function QuizFlow({
         completedCount={Object.keys(state.forcedChoiceResponses).length}
         nextPhaseTitle="Nuanced scales"
         nextPhaseDescription="Now you will place yourself on a series of nuanced scales — from one governance philosophy to its counterpart — giving us a finer-grained picture of your views."
-        estimatedTime="~8 minutes"
+        estimatedTime="~5 minutes"
         onContinue={() => dispatch({ type: "START_PHASE2" })}
       />
     );

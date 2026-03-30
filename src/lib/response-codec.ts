@@ -1,10 +1,10 @@
 /**
  * Response Codec — packs 82 quiz response values into a compact, URL-safe string.
  *
- * Layout (258 bits = 33 bytes → ~44 chars base64url):
- *   - 1 byte version prefix (0x01)
+ * Layout v2 (222 bits = 28 bytes → ~38 chars base64url):
+ *   - 1 byte version prefix (0x02)
  *   - 36 FC responses: 2 bits each (00=skip, 01=A, 10=B)
- *   - 36 SC responses: 3 bits each (000=skip, 001–101 = values 1–5)
+ *   - 24 SC responses: 3 bits each (000=skip, 001–101 = values 1–5)
  *   - 10 budget allocations: 7 bits each (unsigned, offset -5, so 5→0, 95→90)
  *
  * Items are encoded in axis order (axis 1–12, items 1–3 per axis).
@@ -26,11 +26,28 @@ import type { QuizResponses } from "./scoring-types";
 // Constants
 // ---------------------------------------------------------------------------
 
-const VERSION = 0x01;
+const VERSION = 0x02;
 const AXIS_COUNT = 12;
-const ITEMS_PER_AXIS = 3;
+const FC_ITEMS_PER_AXIS = 3;
 const MINISTRY_COUNT = 10;
 const BUDGET_OFFSET = 5;
+
+// SC item IDs in canonical encoding order (2 per axis after reduction)
+const SC_ITEM_IDS = [
+  "sc-1-1", "sc-1-3",
+  "sc-2-1", "sc-2-2",
+  "sc-3-1", "sc-3-3",
+  "sc-4-1", "sc-4-2",
+  "sc-5-1", "sc-5-2",
+  "sc-6-1", "sc-6-3",
+  "sc-7-1", "sc-7-2",
+  "sc-8-1", "sc-8-2",
+  "sc-9-1", "sc-9-2",
+  "sc-10-1", "sc-10-2",
+  "sc-11-2", "sc-11-3",
+  "sc-12-1", "sc-12-3",
+];
+const SC_ITEM_COUNT = SC_ITEM_IDS.length; // 24
 
 // ---------------------------------------------------------------------------
 // BitWriter / BitReader
@@ -127,9 +144,9 @@ export function encodeResponses(responses: QuizResponses): string {
   // Version byte (8 bits)
   writer.writeBits(VERSION, 8);
 
-  // 36 FC responses (2 bits each)
+  // 36 FC responses (2 bits each) — 3 per axis, items 1-3
   for (let axis = 1; axis <= AXIS_COUNT; axis++) {
-    for (let item = 1; item <= ITEMS_PER_AXIS; item++) {
+    for (let item = 1; item <= FC_ITEMS_PER_AXIS; item++) {
       const key = `fc-${axis}-${item}`;
       const val = responses.forcedChoice[key];
       if (val === "A") {
@@ -142,16 +159,13 @@ export function encodeResponses(responses: QuizResponses): string {
     }
   }
 
-  // 36 SC responses (3 bits each)
-  for (let axis = 1; axis <= AXIS_COUNT; axis++) {
-    for (let item = 1; item <= ITEMS_PER_AXIS; item++) {
-      const key = `sc-${axis}-${item}`;
-      const val = responses.scaled[key];
-      if (val != null && val >= 1 && val <= 5) {
-        writer.writeBits(val, 3); // 001–101
-      } else {
-        writer.writeBits(0b000, 3); // skip
-      }
+  // 24 SC responses (3 bits each) — specific items per SC_ITEM_IDS
+  for (const key of SC_ITEM_IDS) {
+    const val = responses.scaled[key];
+    if (val != null && val >= 1 && val <= 5) {
+      writer.writeBits(val, 3);
+    } else {
+      writer.writeBits(0b000, 3); // skip
     }
   }
 
@@ -193,7 +207,7 @@ export function decodeResponses(encoded: string): QuizResponses {
   // 36 FC responses
   const forcedChoice: Record<string, "A" | "B"> = {};
   for (let axis = 1; axis <= AXIS_COUNT; axis++) {
-    for (let item = 1; item <= ITEMS_PER_AXIS; item++) {
+    for (let item = 1; item <= FC_ITEMS_PER_AXIS; item++) {
       const bits = reader.readBits(2);
       const key = `fc-${axis}-${item}`;
       if (bits === 0b01) {
@@ -201,20 +215,15 @@ export function decodeResponses(encoded: string): QuizResponses {
       } else if (bits === 0b10) {
         forcedChoice[key] = "B";
       }
-      // 00 = skip — omit from record
     }
   }
 
-  // 36 SC responses
+  // 24 SC responses
   const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {};
-  for (let axis = 1; axis <= AXIS_COUNT; axis++) {
-    for (let item = 1; item <= ITEMS_PER_AXIS; item++) {
-      const bits = reader.readBits(3);
-      const key = `sc-${axis}-${item}`;
-      if (bits >= 1 && bits <= 5) {
-        scaled[key] = bits as 1 | 2 | 3 | 4 | 5;
-      }
-      // 000 = skip — omit from record
+  for (const key of SC_ITEM_IDS) {
+    const bits = reader.readBits(3);
+    if (bits >= 1 && bits <= 5) {
+      scaled[key] = bits as 1 | 2 | 3 | 4 | 5;
     }
   }
 

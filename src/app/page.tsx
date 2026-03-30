@@ -31,7 +31,7 @@ export default function Home() {
           Begin assessment
         </Link>
         <p className="mt-3 text-xs font-serif italic text-text-tertiary">
-          ~20 minutes &middot; 3 question formats &middot; No account required
+          ~15 minutes &middot; 3 question formats &middot; No account required
         </p>
         <ReturningUserLink />
       </div>
