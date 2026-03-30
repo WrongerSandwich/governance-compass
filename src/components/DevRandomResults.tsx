@@ -6,16 +6,14 @@ import { scaledItems } from "@/data/scaled-items";
 import type { QuizResponses } from "@/lib/scoring-types";
 
 function generateRandomResponses(): QuizResponses {
-  // Give each axis a random lean (-1 to +1) so answers cluster
-  // like a real user rather than averaging to zero
   const axisLean: number[] = [];
   for (let axis = 0; axis < 12; axis++) {
-    axisLean.push(Math.random() * 2 - 1); // uniform [-1, +1]
+    axisLean.push(Math.random() * 2 - 1);
   }
 
   const forcedChoice: Record<string, "A" | "B"> = {};
   for (let axis = 1; axis <= 12; axis++) {
-    const pA = (1 - axisLean[axis - 1]) / 2; // lean toward A when negative
+    const pA = (1 - axisLean[axis - 1]) / 2;
     for (let item = 1; item <= 3; item++) {
       forcedChoice[`fc-${axis}-${item}`] = Math.random() < pA ? "A" : "B";
     }
@@ -28,12 +26,11 @@ function generateRandomResponses(): QuizResponses {
     scaled[item.id] = Math.max(1, Math.min(5, Math.round(jittered))) as 1 | 2 | 3 | 4 | 5;
   }
 
-  // Budget: 7 ministries, 50 total, min 1, pick 2-3 favorites
   const budget: Record<number, number> = {};
   for (let m = 1; m <= 7; m++) budget[m] = 1;
   const favorites = new Set<number>();
   while (favorites.size < 2) favorites.add(Math.floor(Math.random() * 7) + 1);
-  let remaining = 43; // 50 - 7*1
+  let remaining = 43;
   while (remaining > 0) {
     const pool = Math.random() < 0.7
       ? [...favorites]
@@ -45,6 +42,8 @@ function generateRandomResponses(): QuizResponses {
   return { forcedChoice, scaled, budget };
 }
 
+const btnClass = "rounded-[6px] border border-border-primary bg-surface-1 px-2.5 py-1 text-[10px] text-text-tertiary hover:text-text-secondary transition-colors duration-150";
+
 export function DevRandomResults() {
   const router = useRouter();
 
@@ -52,15 +51,33 @@ export function DevRandomResults() {
   // if (process.env.NODE_ENV === "production") return null;
 
   return (
-    <button
-      type="button"
-      onClick={() => {
-        const encoded = encodeResponses(generateRandomResponses());
-        router.push(`/results?r=${encoded}`);
-      }}
-      className="fixed bottom-4 right-4 z-50 rounded-[8px] border border-border-primary bg-surface-1 px-3 py-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-    >
-      Random results
-    </button>
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-1.5">
+      <span className="text-[9px] uppercase tracking-[0.1em] text-text-tertiary opacity-50 font-medium">
+        Testing
+      </span>
+      <div className="flex gap-1.5">
+        <button
+          type="button"
+          onClick={() => {
+            const encoded = encodeResponses(generateRandomResponses());
+            router.push(`/results?r=${encoded}`);
+          }}
+          className={btnClass}
+        >
+          Random results
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const a = encodeResponses(generateRandomResponses());
+            const b = encodeResponses(generateRandomResponses());
+            router.push(`/compare?a=${a}&b=${b}`);
+          }}
+          className={btnClass}
+        >
+          Random compare
+        </button>
+      </div>
+    </div>
   );
 }
