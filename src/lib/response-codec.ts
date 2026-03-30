@@ -1,19 +1,18 @@
 /**
  * Response Codec — packs 82 quiz response values into a compact, URL-safe string.
  *
- * Layout v2 (222 bits = 28 bytes → ~38 chars base64url):
- *   - 1 byte version prefix (0x02)
+ * Layout v3 (187 bits = 24 bytes → ~32 chars base64url):
+ *   - 1 byte version prefix (0x03)
  *   - 36 FC responses: 2 bits each (00=skip, 01=A, 10=B)
  *   - 24 SC responses: 3 bits each (000=skip, 001–101 = values 1–5)
- *   - 10 budget allocations: 7 bits each (unsigned, offset -5, so 5→0, 95→90)
+ *   - 7 budget allocations: 5 bits each (unsigned, offset -1, so 1→0, 25→24)
  *
  * Items are encoded in axis order (axis 1–12, items 1–3 per axis).
- * Budget allocations are encoded in ministry ID order (1–10).
+ * Budget allocations are encoded in ministry ID order (1–7).
  *
  * Design notes:
- * - Budget 7-bit range supports values 5–132. The UI constrains to 5–55
- *   (100 total, 10 ministries, 5 minimum). The extra headroom is harmless —
- *   the scoring engine processes whatever values it receives.
+ * - Budget 5-bit range supports values 1–32. The UI constrains to 1–25
+ *   (50 total, 7 ministries, 1 minimum).
  * - FC bit pattern 0b11 and SC bit patterns 6–7 are unused by the encoder.
  *   On decode they are treated as skips. This is intentional — these patterns
  *   can only appear in hand-crafted or corrupted URLs, and treating them as
@@ -26,11 +25,12 @@ import type { QuizResponses } from "./scoring-types";
 // Constants
 // ---------------------------------------------------------------------------
 
-const VERSION = 0x02;
+const VERSION = 0x03;
 const AXIS_COUNT = 12;
 const FC_ITEMS_PER_AXIS = 3;
-const MINISTRY_COUNT = 10;
-const BUDGET_OFFSET = 5;
+const MINISTRY_COUNT = 7;
+const BUDGET_OFFSET = 1; // min allocation is 1, so offset by -1
+const BUDGET_BITS = 5; // 5 bits = 0-31, range 1-25 maps to 0-24
 
 // SC item IDs in canonical encoding order (2 per axis after reduction)
 const SC_ITEM_IDS = [
@@ -169,14 +169,13 @@ export function encodeResponses(responses: QuizResponses): string {
     }
   }
 
-  // 10 budget allocations (7 bits each)
+  // 7 budget allocations (5 bits each)
   for (let m = 1; m <= MINISTRY_COUNT; m++) {
-    const val = responses.budget[m] ?? 10; // default to baseline if missing
-    if (val < 5 || val > 132) {
-      throw new Error(`Budget value ${val} for ministry ${m} is out of encodable range [5, 132]`);
+    const val = responses.budget[m] ?? 1;
+    if (val < 1 || val > 25) {
+      throw new Error(`Budget value ${val} for ministry ${m} is out of encodable range [1, 25]`);
     }
-    const encoded = val - BUDGET_OFFSET; // offset so 5→0, 95→90
-    writer.writeBits(encoded & 0x7f, 7);
+    writer.writeBits(val - BUDGET_OFFSET, BUDGET_BITS);
   }
 
   return bytesToBase64url(writer.toBytes());
@@ -227,10 +226,10 @@ export function decodeResponses(encoded: string): QuizResponses {
     }
   }
 
-  // 10 budget allocations
+  // 7 budget allocations
   const budget: Record<number, number> = {};
   for (let m = 1; m <= MINISTRY_COUNT; m++) {
-    const bits = reader.readBits(7);
+    const bits = reader.readBits(BUDGET_BITS);
     budget[m] = bits + BUDGET_OFFSET;
   }
 

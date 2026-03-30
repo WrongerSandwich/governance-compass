@@ -2,11 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   scoreForcedChoiceAxis,
   scoreScaledAxis,
-  computeBudgetDeviations,
   scoreBudgetAxis,
   computeAllPerModalityScores,
 } from "@/lib/scoring";
-import { BUDGET_BASELINE, BUDGET_SIGMOID_K } from "@/lib/scoring-types";
+import { BUDGET_MEAN, BUDGET_SIGMOID_K } from "@/lib/scoring-types";
 
 // ---------------------------------------------------------------------------
 // FC scoring
@@ -104,119 +103,90 @@ describe("scoreScaledAxis", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Budget deviations
-// ---------------------------------------------------------------------------
-
-describe("computeBudgetDeviations", () => {
-  it("computes deviation as allocation minus baseline (10)", () => {
-    const allocations = { 1: 15, 2: 10, 3: 5 };
-    const deviations = computeBudgetDeviations(allocations);
-    expect(deviations.get(1)).toBe(5);   // 15 - 10
-    expect(deviations.get(2)).toBe(0);   // 10 - 10
-    expect(deviations.get(3)).toBe(-5);  // 5 - 10
-  });
-
-  it("returns a Map with all ministry keys present in the input", () => {
-    const allocations = { 4: 20, 9: 8 };
-    const deviations = computeBudgetDeviations(allocations);
-    expect(deviations.has(4)).toBe(true);
-    expect(deviations.has(9)).toBe(true);
-    expect(deviations.get(4)).toBe(10);  // 20 - 10
-    expect(deviations.get(9)).toBe(-2); // 8 - 10
-  });
-
-  it("returns an empty Map when allocations is empty", () => {
-    const deviations = computeBudgetDeviations({});
-    expect(deviations.size).toBe(0);
-  });
-
-  it("uses BUDGET_BASELINE = 10", () => {
-    expect(BUDGET_BASELINE).toBe(10);
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Budget axis scoring
 // ---------------------------------------------------------------------------
 
 describe("scoreBudgetAxis", () => {
   it("returns null for axis 3 (no ministry mappings)", () => {
-    const deviations = new Map<number, number>([[1, 5], [2, 3]]);
-    expect(scoreBudgetAxis(deviations, 3)).toBeNull();
+    const allocations = { 1: 7, 2: 7 };
+    expect(scoreBudgetAxis(allocations, 3)).toBeNull();
   });
 
   it("returns null for axis 9 (no ministry mappings)", () => {
-    const deviations = new Map<number, number>();
-    expect(scoreBudgetAxis(deviations, 9)).toBeNull();
+    const allocations = {};
+    expect(scoreBudgetAxis(allocations, 9)).toBeNull();
   });
 
   it("returns null for axis 99 (no ministry mappings)", () => {
-    const deviations = new Map<number, number>();
-    expect(scoreBudgetAxis(deviations, 99)).toBeNull();
+    const allocations = {};
+    expect(scoreBudgetAxis(allocations, 99)).toBeNull();
   });
 
-  it("scores axis 1 correctly with single positive deviation in direction 1 (ministry 2)", () => {
-    // Axis 1 mappings: ministry 1 direction -1, ministry 2 direction +1
-    // ministry 2 has deviation +10 → signed = +10 * 1 = +10
-    // ministry 1 has deviation 0 → signed = 0 * -1 = 0
-    // mean of [0, 10] = 5
-    // tanh(5 / 10) = tanh(0.5) ≈ 0.4621
-    const deviations = new Map<number, number>([[1, 0], [2, 10]]);
-    const result = scoreBudgetAxis(deviations, 1);
+  it("scores axis 1 (bidirectional) — high Economy & Growth, low Public Welfare", () => {
+    // Axis 1 mappings: ministry 2 (Public Welfare) dir -1, ministry 3 (Economy & Growth) dir +1
+    // Bidirectional: diff = poleBValue - poleAValue = Economy - PublicWelfare = 15 - 3 = 12
+    // tanh(12 / 6) = tanh(2.0)
+    const allocations = { 2: 3, 3: 15 };
+    const result = scoreBudgetAxis(allocations, 1);
     expect(result).not.toBeNull();
-    expect(result!).toBeCloseTo(Math.tanh(5 / BUDGET_SIGMOID_K), 5);
+    expect(result!).toBeCloseTo(Math.tanh(12 / BUDGET_SIGMOID_K), 5);
   });
 
-  it("scores axis 1 with negative deviation in direction -1 (ministry 1, collectivism)", () => {
-    // ministry 1 direction -1: deviation +10 → signed = +10 * -1 = -10
-    // ministry 2 direction +1: deviation 0 → signed = 0
-    // mean = -5 → tanh(-5/10) = tanh(-0.5) ≈ -0.4621
-    const deviations = new Map<number, number>([[1, 10], [2, 0]]);
-    const result = scoreBudgetAxis(deviations, 1);
+  it("scores axis 1 (bidirectional) — high Public Welfare, low Economy & Growth → negative", () => {
+    // diff = Economy - PublicWelfare = 3 - 15 = -12
+    // tanh(-12/6) = tanh(-2.0)
+    const allocations = { 2: 15, 3: 3 };
+    const result = scoreBudgetAxis(allocations, 1);
     expect(result).not.toBeNull();
-    expect(result!).toBeCloseTo(Math.tanh(-5 / BUDGET_SIGMOID_K), 5);
+    expect(result!).toBeCloseTo(Math.tanh(-12 / BUDGET_SIGMOID_K), 5);
   });
 
-  it("returns 0 when deviations are all zero", () => {
-    // tanh(0) = 0
-    const deviations = new Map<number, number>([[1, 0], [2, 0], [3, 0]]);
-    const result = scoreBudgetAxis(deviations, 1);
+  it("returns 0 when bidirectional ministries have equal allocations", () => {
+    // Axis 1: Economy = PublicWelfare → diff = 0 → tanh(0) = 0
+    const allocations = { 2: 10, 3: 10 };
+    const result = scoreBudgetAxis(allocations, 1);
     expect(result).not.toBeNull();
     expect(result!).toBeCloseTo(0.0);
   });
 
   it("output is bounded in [-1.0, +1.0]", () => {
-    // Extreme deviation
-    const deviations = new Map<number, number>([[1, 0], [2, 1000]]);
-    const result = scoreBudgetAxis(deviations, 1);
+    // Extreme allocations
+    const allocations = { 2: 1, 3: 25 };
+    const result = scoreBudgetAxis(allocations, 1);
     expect(result).not.toBeNull();
     expect(result!).toBeGreaterThanOrEqual(-1.0);
     expect(result!).toBeLessThanOrEqual(1.0);
   });
 
-  it("scores axis 2 with ecological ministry opposing growth ministry", () => {
-    // Axis 2 mappings:
-    //   ministry 2 (Econ Dev) direction +1
-    //   ministry 3 (Ecology) direction -1
-    //   ministry 8 (Infra) direction +1
-    // Suppose: ministry 2=+5, ministry 3=+5, ministry 8=0
-    // Signed: ministry2=5*1=+5, ministry3=5*-1=-5, ministry8=0*1=0
-    // mean = 0 → tanh(0) = 0
-    const deviations = new Map<number, number>([[2, 5], [3, 5], [8, 0]]);
-    const result = scoreBudgetAxis(deviations, 2);
+  it("scores axis 2 (bidirectional) — equal opposing ministries → 0", () => {
+    // Axis 2 mappings: ministry 3 (Economy & Growth) dir +1, ministry 5 (Environment) dir -1
+    // diff = Economy - Environment = 10 - 10 = 0 → tanh(0) = 0
+    const allocations = { 3: 10, 5: 10 };
+    const result = scoreBudgetAxis(allocations, 2);
     expect(result).not.toBeNull();
     expect(result!).toBeCloseTo(0.0);
   });
 
-  it("handles missing ministry entries by treating deviation as 0", () => {
-    // Axis 1: ministry 1 (dir -1) and ministry 2 (dir +1)
-    // Only ministry 2 is in deviations map — ministry 1 missing → treated as deviation 0
-    // Signed: ministry1 = 0*-1 = 0, ministry2 = 10*1 = 10
-    // mean = 5 → tanh(5/10)
-    const deviations = new Map<number, number>([[2, 10]]);
-    const result = scoreBudgetAxis(deviations, 1);
+  it("scores unidirectional axis (axis 4) using deviation from mean", () => {
+    // Axis 4: ministry 4 (Education & Research) dir +1
+    // Unidirectional: deviation = (value - mean) * direction = (12 - 50/7) * 1
+    // ≈ (12 - 7.1429) * 1 = 4.857
+    // tanh(4.857 / 6)
+    const allocations = { 4: 12 };
+    const result = scoreBudgetAxis(allocations, 4);
     expect(result).not.toBeNull();
-    expect(result!).toBeCloseTo(Math.tanh(5 / BUDGET_SIGMOID_K), 5);
+    expect(result!).toBeCloseTo(Math.tanh((12 - BUDGET_MEAN) / BUDGET_SIGMOID_K), 5);
+  });
+
+  it("handles missing ministry entries by treating allocation as mean", () => {
+    // Axis 1 (bidirectional): ministry 2 (dir -1) and ministry 3 (dir +1)
+    // Only ministry 3 present → ministry 2 defaults to BUDGET_MEAN
+    // diff = 15 - BUDGET_MEAN ≈ 15 - 7.1429 = 7.857
+    // tanh(7.857 / 6)
+    const allocations = { 3: 15 };
+    const result = scoreBudgetAxis(allocations, 1);
+    expect(result).not.toBeNull();
+    expect(result!).toBeCloseTo(Math.tanh((15 - BUDGET_MEAN) / BUDGET_SIGMOID_K), 5);
   });
 });
 
@@ -286,14 +256,16 @@ describe("computeAllPerModalityScores", () => {
     }
   });
 
-  it("axes 3 and 9 have null bg scores (no ministry mappings)", () => {
+  it("axes 3, 7, 8, 9 have null bg scores (no ministry mappings)", () => {
     const responses = {
       forcedChoice: allA_fc,
       scaled: allOne_sc,
-      budget: { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 10, 9: 10, 10: 10 },
+      budget: { 1: 7, 2: 7, 3: 7, 4: 7, 5: 7, 6: 7, 7: 7 },
     };
     const scores = computeAllPerModalityScores(responses);
     expect(scores[3].bg).toBeNull();
+    expect(scores[7].bg).toBeNull();
+    expect(scores[8].bg).toBeNull();
     expect(scores[9].bg).toBeNull();
   });
 
@@ -301,19 +273,21 @@ describe("computeAllPerModalityScores", () => {
     const responses = {
       forcedChoice: allA_fc,
       scaled: allOne_sc,
-      budget: { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 10, 8: 10, 9: 10, 10: 10 },
+      budget: { 1: 7, 2: 7, 3: 7, 4: 7, 5: 7, 6: 7, 7: 7 },
     };
     const scores = computeAllPerModalityScores(responses);
-    // Axes with mappings: 1, 2, 4, 5, 6, 7, 8, 10, 11, 12
-    for (const axisId of [1, 2, 4, 5, 6, 7, 8, 10, 11, 12]) {
+    // Axes with mappings: 1, 2, 4, 5, 6, 10, 11, 12
+    for (const axisId of [1, 2, 4, 5, 6, 10, 11, 12]) {
       expect(scores[axisId].bg).not.toBeNull();
     }
   });
 
-  it("all bg scores are 0 when all allocations equal baseline", () => {
-    // All ministries at baseline → deviation = 0 → tanh(0) = 0
+  it("all bg scores are ≈0 when all allocations equal mean (50/7)", () => {
+    // All ministries at equal allocation → bidirectional diff = 0,
+    // unidirectional deviation = 0 → tanh(0) = 0
+    const mean = 50 / 7;
     const baseline: Record<number, number> = {};
-    for (let m = 1; m <= 10; m++) baseline[m] = BUDGET_BASELINE;
+    for (let m = 1; m <= 7; m++) baseline[m] = mean;
     const responses = {
       forcedChoice: allA_fc,
       scaled: allOne_sc,
@@ -329,7 +303,7 @@ describe("computeAllPerModalityScores", () => {
 
   it("all scores are in [-1.0, +1.0]", () => {
     const budget: Record<number, number> = {};
-    for (let m = 1; m <= 10; m++) budget[m] = 20; // extreme allocations
+    for (let m = 1; m <= 7; m++) budget[m] = 20; // extreme allocations
     const responses = {
       forcedChoice: allA_fc,
       scaled: allOne_sc,

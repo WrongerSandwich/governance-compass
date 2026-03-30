@@ -93,14 +93,14 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
   }
 }
 
-// Initialize budgetAllocations with all 10 ministries at the minimum floor (5 each).
-// 50 units are committed, leaving 50 discretionary units to distribute.
+// Initialize budgetAllocations with all 7 ministries at minimum (1 each).
+// 7 points committed, 43 to distribute. Total: 50.
 const STORAGE_KEY = "governance-compass-quiz-state";
 
 function createInitialBudget(): Record<number, number> {
   const allocations: Record<number, number> = {};
-  for (let i = 1; i <= 10; i++) {
-    allocations[i] = 5;
+  for (let i = 1; i <= 7; i++) {
+    allocations[i] = 1;
   }
   return allocations;
 }

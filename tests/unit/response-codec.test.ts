@@ -31,9 +31,10 @@ function buildCompleteResponses(): QuizResponses {
     scaled[id] = ((itemNum % 5) + 1) as 1 | 2 | 3 | 4 | 5;
   }
 
-  for (let m = 1; m <= 10; m++) {
-    budget[m] = 10;
+  for (let m = 1; m <= 7; m++) {
+    budget[m] = 7; // roughly equal allocation
   }
+  budget[1] = 8; // adjust one to reach total of 50
 
   return { forcedChoice, scaled, budget };
 }
@@ -109,22 +110,24 @@ describe("response-codec", () => {
   // Budget boundary values
   // -------------------------------------------------------------------------
 
-  it("preserves budget values at boundaries (5 min, up to 50+)", () => {
+  it("preserves budget values at boundaries (1 min, 25 max)", () => {
     const responses = buildCompleteResponses();
-    responses.budget[1] = 5;   // minimum
-    responses.budget[2] = 95;  // maximum
-    responses.budget[3] = 50;  // mid-range
-    responses.budget[4] = 6;   // near minimum
-    responses.budget[5] = 94;  // near maximum
+    responses.budget[1] = 1;   // minimum
+    responses.budget[2] = 25;  // maximum
+    responses.budget[3] = 12;  // mid-range
+    responses.budget[4] = 2;   // near minimum
+    responses.budget[5] = 1;   // minimum
+    responses.budget[6] = 1;   // minimum
+    responses.budget[7] = 8;   // moderate
+    // total = 50
 
     const encoded = encodeResponses(responses);
     const decoded = decodeResponses(encoded);
 
-    expect(decoded.budget[1]).toBe(5);
-    expect(decoded.budget[2]).toBe(95);
-    expect(decoded.budget[3]).toBe(50);
-    expect(decoded.budget[4]).toBe(6);
-    expect(decoded.budget[5]).toBe(94);
+    expect(decoded.budget[1]).toBe(1);
+    expect(decoded.budget[2]).toBe(25);
+    expect(decoded.budget[3]).toBe(12);
+    expect(decoded.budget[4]).toBe(2);
   });
 
   // -------------------------------------------------------------------------
@@ -145,15 +148,15 @@ describe("response-codec", () => {
   // Error cases
   // -------------------------------------------------------------------------
 
-  it("rejects out-of-range budget values", () => {
+  it("rejects out-of-range budget values (below minimum)", () => {
     const responses = buildCompleteResponses();
-    responses.budget[1] = 3; // below minimum
+    responses.budget[1] = 0; // below minimum of 1
     expect(() => encodeResponses(responses)).toThrow(/out of encodable range/);
   });
 
   it("rejects out-of-range budget values (above maximum)", () => {
     const responses = buildCompleteResponses();
-    responses.budget[1] = 133; // above maximum
+    responses.budget[1] = 26; // above maximum of 25
     expect(() => encodeResponses(responses)).toThrow(/out of encodable range/);
   });
 

@@ -41,19 +41,16 @@ const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {
   "sc-12-1": 2, "sc-12-2": 3, "sc-12-3": 2,
 };
 
-// 10 budget allocations (ministry IDs 1–10, each ≥ BUDGET_MINIMUM=5, total = 100).
-// Using deviations from the 10-unit baseline to produce non-zero bg scores.
+// 7 budget allocations (ministry IDs 1–7, each ≥ BUDGET_MINIMUM=1, total = 50).
+// Using varied allocations around the 50/7 ≈ 7.14 mean to produce non-zero bg scores.
 const budget: Record<number, number> = {
-  1: 15, // +5 above baseline  (ministry 1 → axis 1, direction -1)
-  2: 5,  // -5 below baseline  (ministry 2 → axes 1,2 direction +1)
-  3: 12, // +2                 (ministry 3 → axis 2, direction -1)
-  4: 8,  // -2                 (ministry 4 → axis 11, direction +1)
-  5: 13, // +3                 (ministry 5 → axes 5, direction +1; 10 direction -1)
-  6: 7,  // -3                 (ministry 6 → axes 4,12, direction +1)
-  7: 10, // 0                  (ministry 7 → axes 7,8, direction +1)
-  8: 12, // +2                 (ministry 8 → axes 2,12, direction +1)
-  9: 8,  // -2                 (ministry 9 → axis 10, direction -1)
-  10: 10, // 0                 (ministry 10 → axes 5,6, direction -1)
+  1: 12, // Defense → axes 5 (+1), 11 (+1)
+  2: 3,  // Public Welfare → axis 1 (-1)
+  3: 10, // Economy & Growth → axes 1 (+1), 2 (+1)
+  4: 5,  // Education & Research → axes 4 (+1), 12 (+1)
+  5: 8,  // Environment → axis 2 (-1)
+  6: 4,  // Justice & Civil Liberties → axes 5 (-1), 6 (-1)
+  7: 8,  // Foreign Affairs → axis 10 (-1)
 };
 
 const responses: QuizResponses = { forcedChoice, scaled, budget };
@@ -151,15 +148,15 @@ describe("computeFullResults — integration", () => {
 
   // --- Axes with no budget mapping have bgScore = null ---
 
-  it("axes 3 and 9 have bgScore = null (no budget mapping)", () => {
-    const axis3 = result.axisScores.find((as) => as.axisId === 3);
-    const axis9 = result.axisScores.find((as) => as.axisId === 9);
-    expect(axis3?.bgScore).toBeNull();
-    expect(axis9?.bgScore).toBeNull();
+  it("axes 3, 7, 8, 9 have bgScore = null (no budget mapping)", () => {
+    for (const axisId of [3, 7, 8, 9]) {
+      const as = result.axisScores.find((a) => a.axisId === axisId);
+      expect(as?.bgScore).toBeNull();
+    }
   });
 
   it("axes with budget mappings have non-null bgScore", () => {
-    const axesWithBudget = [1, 2, 4, 5, 6, 7, 8, 10, 11, 12];
+    const axesWithBudget = [1, 2, 4, 5, 6, 10, 11, 12];
     for (const axisId of axesWithBudget) {
       const as = result.axisScores.find((a) => a.axisId === axisId);
       expect(as?.bgScore).not.toBeNull();
@@ -235,10 +232,11 @@ describe("computeFullResults — integration", () => {
       }
     }
 
-    // Exact baseline budget → all deviations = 0 → bg = tanh(0) = 0
+    // Equal allocation budget → all deviations = 0 → bg = tanh(0) ≈ 0
+    // 50/7 ≈ 7.14 per ministry; use exact equal split
     const baselineBudget: Record<number, number> = {};
-    for (let i = 1; i <= 10; i++) {
-      baselineBudget[i] = 10;
+    for (let i = 1; i <= 7; i++) {
+      baselineBudget[i] = 50 / 7;
     }
 
     const neutralResult = computeFullResults({

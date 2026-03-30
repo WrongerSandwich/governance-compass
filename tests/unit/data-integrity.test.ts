@@ -37,8 +37,8 @@ describe("data integrity", () => {
     }
   });
 
-  it("has exactly 10 ministries", () => {
-    expect(ministries).toHaveLength(10);
+  it("has exactly 7 ministries", () => {
+    expect(ministries).toHaveLength(7);
   });
 
   it("ministry-axis mappings reference valid axes and ministries", () => {

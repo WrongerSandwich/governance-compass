@@ -1,8 +1,13 @@
+export interface ConsequenceTier {
+  range: [number, number]; // [min, max] inclusive
+  text: string;
+}
+
 export interface MinistryData {
   id: number;
   name: string;
   description: string;
-  belowBaselineWarning: string;
+  consequences: ConsequenceTier[];
 }
 
 export interface MinistryAxisMappingData {
@@ -11,118 +16,123 @@ export interface MinistryAxisMappingData {
   direction: -1 | 1;
 }
 
+function tier(min: number, max: number, text: string): ConsequenceTier {
+  return { range: [min, max], text };
+}
+
 export const ministries: MinistryData[] = [
   {
     id: 1,
-    name: "Social Welfare & Public Health",
-    description:
-      "Provides cash transfers to those in poverty, pensions for the elderly, disability support, public hospitals and clinics, epidemic preparedness, and maternal/child health programs.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise poverty relief, disability support, and public health capacity.",
+    name: "Defense",
+    description: "Military capability, border security, and national defense",
+    consequences: [
+      tier(1, 2, "Your nation cannot defend its borders without relying entirely on allied support."),
+      tier(3, 5, "A small defensive force exists, but has no capacity to respond to serious threats."),
+      tier(6, 8, "A credible military that can defend borders and honor basic alliance commitments."),
+      tier(9, 12, "A capable force that can project power regionally and lead coalition operations."),
+      tier(13, 25, "A global military presence with decisive superiority in your region."),
+    ],
   },
   {
     id: 2,
-    name: "Economic Development & Trade",
-    description:
-      "Funds business incentives, trade agreement negotiation, workforce retraining, industrial policy, small business support, and management of trade relationships with other nations.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise trade competitiveness, workforce retraining, and industrial development.",
+    name: "Public Welfare",
+    description: "Healthcare, housing, unemployment support, disability, pensions, and social safety net",
+    consequences: [
+      tier(1, 2, "No universal healthcare. Poverty rates soar. The elderly and disabled are unprotected."),
+      tier(3, 5, "Basic emergency healthcare only. Long wait times. A thin safety net with major gaps."),
+      tier(6, 8, "Functional public healthcare and a reliable safety net for those in need."),
+      tier(9, 12, "Comprehensive healthcare with short wait times. Robust support for vulnerable populations."),
+      tier(13, 25, "World-class universal healthcare. Generous pensions, housing support, and family services."),
+    ],
   },
   {
     id: 3,
-    name: "Ecological Transition & Conservation",
-    description:
-      "Funds emissions reduction programs, habitat and biodiversity protection, renewable energy development, pollution monitoring and enforcement, and climate adaptation infrastructure.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise emissions targets, habitat protection, and climate adaptation capacity.",
+    name: "Economy & Growth",
+    description: "Business development, trade, infrastructure, transportation, and job creation",
+    consequences: [
+      tier(1, 2, "Crumbling roads and bridges. Businesses leave. Unemployment rises steadily."),
+      tier(3, 5, "Aging infrastructure. Slow economic growth. Limited support for new industries."),
+      tier(6, 8, "Maintained infrastructure and steady economic development. Competitive but not leading."),
+      tier(9, 12, "Modern infrastructure. Strong business climate. Active investment in emerging industries."),
+      tier(13, 25, "Cutting-edge infrastructure. A global hub for commerce, innovation, and trade."),
+    ],
   },
   {
     id: 4,
-    name: "Defense & Military",
-    description:
-      "Maintains armed forces, weapons systems, military research and development, veterans' support, and border defense infrastructure.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise national defense readiness, veterans' support, and border security.",
+    name: "Education & Research",
+    description: "Schools, universities, vocational training, and scientific research",
+    consequences: [
+      tier(1, 2, "Overcrowded classrooms. Teacher shortages. Scientific research effectively halted."),
+      tier(3, 5, "Underfunded schools. Limited university access. Research funding restricted to essentials."),
+      tier(6, 8, "Functional public education system. Competitive universities. Steady research output."),
+      tier(9, 12, "Well-resourced schools. Accessible higher education. Your nation attracts global researchers."),
+      tier(13, 25, "World-leading education at every level. A global center for scientific discovery."),
+    ],
   },
   {
     id: 5,
-    name: "Domestic Security & Law Enforcement",
-    description:
-      "Funds police forces, criminal courts, prison systems, border immigration control, counter-terrorism, and public surveillance systems.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise law enforcement capacity, criminal court operations, and counter-terrorism.",
+    name: "Environment",
+    description: "Conservation, pollution control, climate policy, and natural resource management",
+    consequences: [
+      tier(1, 2, "No enforcement of environmental standards. Pollution goes unchecked. Ecosystems degrade."),
+      tier(3, 5, "Basic pollution controls only. Conservation is underfunded. Climate commitments are unmet."),
+      tier(6, 8, "Environmental standards are maintained and enforced. Steady progress on climate goals."),
+      tier(9, 12, "Strong conservation programs. Ambitious climate policy. Clean energy investment accelerates."),
+      tier(13, 25, "Global leader in environmental protection. A model for sustainable development."),
+    ],
   },
   {
     id: 6,
-    name: "Education & Research",
-    description:
-      "Funds public schools, universities, vocational training, basic scientific research, public media and libraries, and adult education programs.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise school quality, university access, and scientific research capacity.",
+    name: "Justice & Civil Liberties",
+    description: "Courts, legal aid, policing, constitutional rights protection, and civil liberties oversight",
+    consequences: [
+      tier(1, 2, "Courts are backlogged for years. Legal aid is nonexistent. Civil liberties oversight collapses."),
+      tier(3, 5, "Slow justice system. Limited public defense. Rights protections are inconsistently enforced."),
+      tier(6, 8, "Courts function reasonably. Citizens have access to legal aid. Rights are protected in practice."),
+      tier(9, 12, "Efficient courts. Strong public defense. Active civil liberties monitoring and enforcement."),
+      tier(13, 25, "A gold-standard justice system. Rigorous rights protections. A model for rule of law globally."),
+    ],
   },
   {
     id: 7,
-    name: "Cultural Heritage & National Identity",
-    description:
-      "Supports historic site preservation, language and cultural programs, religious institution partnerships, national arts funding, public monuments, and civic ceremonies.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise cultural preservation, heritage sites, and national civic programs.",
-  },
-  {
-    id: 8,
-    name: "Infrastructure & Technology",
-    description:
-      "Builds and maintains roads, rail, power grids, water systems, broadband networks, digital government platforms, and civilian technology research.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise infrastructure maintenance, digital services, and technology development.",
-  },
-  {
-    id: 9,
-    name: "Foreign Affairs & International Cooperation",
-    description:
-      "Funds embassies and diplomatic staff, foreign development aid, contributions to international organizations, treaty negotiations, and humanitarian assistance abroad.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise diplomatic capacity, international commitments, and humanitarian programs.",
-  },
-  {
-    id: 10,
-    name: "Civil Liberties & Judicial Independence",
-    description:
-      "Funds constitutional courts, independent judicial oversight, civil rights enforcement, privacy protection agencies, legal aid for citizens, election administration, and government transparency offices.",
-    belowBaselineWarning:
-      "Funding below baseline may compromise judicial independence, civil rights enforcement, and election administration.",
+    name: "Foreign Affairs",
+    description: "Diplomacy, international organizations, foreign aid, and treaty obligations",
+    consequences: [
+      tier(1, 2, "Embassies close. Treaty obligations go unmet. Your nation is absent from international forums."),
+      tier(3, 5, "Minimal diplomatic presence. Limited ability to negotiate or influence international policy."),
+      tier(6, 8, "A functional diplomatic corps. Your nation participates in major international institutions."),
+      tier(9, 12, "Active diplomacy. Meaningful influence in international negotiations. Robust foreign aid program."),
+      tier(13, 25, "A dominant diplomatic force. Your nation shapes global policy and leads international coalitions."),
+    ],
   },
 ];
 
+export function getConsequenceText(ministry: MinistryData, value: number): string {
+  for (const tier of ministry.consequences) {
+    if (value >= tier.range[0] && value <= tier.range[1]) {
+      return tier.text;
+    }
+  }
+  return ministry.consequences[ministry.consequences.length - 1].text;
+}
+
 export const ministryAxisMappings: MinistryAxisMappingData[] = [
-  // Social Welfare & Public Health → Axis 1 (Collective Provision, A)
-  { ministryId: 1, axisId: 1, direction: -1 },
-  // Economic Development & Trade → Axis 1 (Market Allocation, B)
-  { ministryId: 2, axisId: 1, direction: 1 },
-  // Economic Development & Trade → Axis 2 (Growth Imperative, B)
-  { ministryId: 2, axisId: 2, direction: 1 },
-  // Ecological Transition & Conservation → Axis 2 (Ecological Limits, A)
-  { ministryId: 3, axisId: 2, direction: -1 },
-  // Defense & Military → Axis 11 (Interventionism, B)
-  { ministryId: 4, axisId: 11, direction: 1 },
-  // Domestic Security & Law Enforcement → Axis 5 (Security, B)
-  { ministryId: 5, axisId: 5, direction: 1 },
-  // Education & Research → Axis 4 (Institutional Authority, B)
-  { ministryId: 6, axisId: 4, direction: 1 },
-  // Education & Research → Axis 12 (Innovation-First, B)
-  { ministryId: 6, axisId: 12, direction: 1 },
-  // Cultural Heritage & National Identity → Axis 7 (Continuity and Tradition, B)
-  { ministryId: 7, axisId: 7, direction: 1 },
-  // Cultural Heritage & National Identity → Axis 8 (Cohesion, B)
-  { ministryId: 7, axisId: 8, direction: 1 },
-  // Infrastructure & Technology → Axis 2 (Growth Imperative, B)
-  { ministryId: 8, axisId: 2, direction: 1 },
-  // Infrastructure & Technology → Axis 12 (Innovation-First, B)
-  { ministryId: 8, axisId: 12, direction: 1 },
-  // Foreign Affairs & International Cooperation → Axis 10 (Internationalism, A)
-  { ministryId: 9, axisId: 10, direction: -1 },
-  // Civil Liberties & Judicial Independence → Axis 5 (Liberty, A)
-  { ministryId: 10, axisId: 5, direction: -1 },
-  // Civil Liberties & Judicial Independence → Axis 6 (Electoral Process, A)
-  { ministryId: 10, axisId: 6, direction: -1 },
+  // Defense → Axis 5 (Security, B) and Axis 11 (Interventionism, B)
+  { ministryId: 1, axisId: 5, direction: 1 },
+  { ministryId: 1, axisId: 11, direction: 1 },
+  // Public Welfare → Axis 1 (Collective Provision, A)
+  { ministryId: 2, axisId: 1, direction: -1 },
+  // Economy & Growth → Axis 1 (Market Allocation, B) and Axis 2 (Growth Imperative, B)
+  { ministryId: 3, axisId: 1, direction: 1 },
+  { ministryId: 3, axisId: 2, direction: 1 },
+  // Education & Research → Axis 4 (Institutional Authority, B) and Axis 12 (Innovation, B)
+  { ministryId: 4, axisId: 4, direction: 1 },
+  { ministryId: 4, axisId: 12, direction: 1 },
+  // Environment → Axis 2 (Ecological Limits, A)
+  { ministryId: 5, axisId: 2, direction: -1 },
+  // Justice & Civil Liberties → Axis 5 (Liberty, A) and Axis 6 (Electoral Process, A)
+  { ministryId: 6, axisId: 5, direction: -1 },
+  { ministryId: 6, axisId: 6, direction: -1 },
+  // Foreign Affairs → Axis 10 (Internationalism, A)
+  { ministryId: 7, axisId: 10, direction: -1 },
 ];

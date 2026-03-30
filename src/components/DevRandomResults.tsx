@@ -28,20 +28,18 @@ function generateRandomResponses(): QuizResponses {
     scaled[item.id] = Math.max(1, Math.min(5, Math.round(jittered))) as 1 | 2 | 3 | 4 | 5;
   }
 
-  // Budget: pick 3-4 ministries to favor, give them more
+  // Budget: 7 ministries, 50 total, min 1, pick 2-3 favorites
   const budget: Record<number, number> = {};
-  for (let m = 1; m <= 10; m++) budget[m] = 5;
+  for (let m = 1; m <= 7; m++) budget[m] = 1;
   const favorites = new Set<number>();
-  while (favorites.size < 3) favorites.add(Math.floor(Math.random() * 10) + 1);
-  let remaining = 50;
+  while (favorites.size < 2) favorites.add(Math.floor(Math.random() * 7) + 1);
+  let remaining = 43; // 50 - 7*1
   while (remaining > 0) {
-    // 70% chance of adding to a favorite ministry
     const pool = Math.random() < 0.7
       ? [...favorites]
-      : Array.from({ length: 10 }, (_, i) => i + 1);
+      : Array.from({ length: 7 }, (_, i) => i + 1);
     const m = pool[Math.floor(Math.random() * pool.length)];
-    budget[m]++;
-    remaining--;
+    if (budget[m] < 25) { budget[m]++; remaining--; }
   }
 
   return { forcedChoice, scaled, budget };

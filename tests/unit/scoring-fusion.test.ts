@@ -127,20 +127,20 @@ describe("fuseModalityScores", () => {
 
   // Weight profile constants sanity checks
   describe("AXIS_WEIGHT_PROFILES constants", () => {
-    it("full budget axes 1, 2, 5, 12 have bg=0.25", () => {
-      for (const axisId of [1, 2, 5, 12]) {
+    it("full budget axes 1, 2, 5 have bg=0.25", () => {
+      for (const axisId of [1, 2, 5]) {
         expect(AXIS_WEIGHT_PROFILES[axisId].bg).toBeCloseTo(0.25);
       }
     });
 
-    it("no budget axes 3, 9 have bg=0.00", () => {
-      for (const axisId of [3, 9]) {
+    it("no budget axes 3, 7, 8, 9 have bg=0.00", () => {
+      for (const axisId of [3, 7, 8, 9]) {
         expect(AXIS_WEIGHT_PROFILES[axisId].bg).toBeCloseTo(0.00);
       }
     });
 
-    it("partial budget axes 4, 6, 7, 8, 10, 11 have bg=0.15", () => {
-      for (const axisId of [4, 6, 7, 8, 10, 11]) {
+    it("partial budget axes 4, 6, 10, 11, 12 have bg=0.15", () => {
+      for (const axisId of [4, 6, 10, 11, 12]) {
         expect(AXIS_WEIGHT_PROFILES[axisId].bg).toBeCloseTo(0.15);
       }
     });
@@ -160,6 +160,9 @@ describe("fuseModalityScores", () => {
 
 describe("computeAllFinalScores", () => {
   // Build a PerModalityScores with all zeros (bg=null for axes 3 and 9)
+  // Axes with no budget mapping: 3, 7, 8, 9
+  const noBudgetAxes = new Set([3, 7, 8, 9]);
+
   function buildPerModalityScores(
     fcVal: number,
     scVal: number,
@@ -167,7 +170,7 @@ describe("computeAllFinalScores", () => {
   ): PerModalityScores {
     const scores: PerModalityScores = {};
     for (let axisId = 1; axisId <= 12; axisId++) {
-      const hasBudget = axisId !== 3 && axisId !== 9;
+      const hasBudget = !noBudgetAxes.has(axisId);
       scores[axisId] = {
         fc: fcVal,
         sc: scVal,
@@ -226,20 +229,17 @@ describe("computeAllFinalScores", () => {
     }
   });
 
-  it("axes 3 and 9 have null bgScore and use fc+sc-only weights", () => {
+  it("axes 3, 7, 8, 9 have null bgScore and use fc+sc-only weights", () => {
     const scores = buildPerModalityScores(1.0, 0.0, null);
     const result = computeAllFinalScores(scores);
 
-    const axis3 = result.find((r) => r.axisId === 3)!;
-    const axis9 = result.find((r) => r.axisId === 9)!;
-
-    expect(axis3.bgScore).toBeNull();
-    expect(axis9.bgScore).toBeNull();
-
-    // Profile for axis 3: fc=0.60, sc=0.40, bg=0.00 → bg=0 so fc+sc already sum to 1
-    // finalScore = 0.60 * 1.0 + 0.40 * 0.0 = 0.60
-    expect(axis3.finalScore).toBeCloseTo(0.60);
-    expect(axis9.finalScore).toBeCloseTo(0.60);
+    for (const axisId of [3, 7, 8, 9]) {
+      const axis = result.find((r) => r.axisId === axisId)!;
+      expect(axis.bgScore).toBeNull();
+      // Profile for no-budget axes: fc=0.60, sc=0.40, bg=0.00
+      // finalScore = 0.60 * 1.0 + 0.40 * 0.0 = 0.60
+      expect(axis.finalScore).toBeCloseTo(0.60);
+    }
   });
 
   it("passes through fc, sc, bg scores in the result objects", () => {
@@ -248,7 +248,7 @@ describe("computeAllFinalScores", () => {
     for (const entry of result) {
       expect(entry.fcScore).toBeCloseTo(0.7);
       expect(entry.scScore).toBeCloseTo(-0.3);
-      if (entry.axisId !== 3 && entry.axisId !== 9) {
+      if (!noBudgetAxes.has(entry.axisId)) {
         expect(entry.bgScore).toBeCloseTo(0.5);
       } else {
         expect(entry.bgScore).toBeNull();

@@ -11,8 +11,8 @@ export const scaledResponseSchema = z.object({
 });
 
 export const budgetAllocationSchema = z.object({
-  ministryId: z.number().int().min(1).max(10),
-  amount: z.number().int().min(5),
+  ministryId: z.number().int().min(1).max(7),
+  amount: z.number().int().min(1).max(25),
 });
 
 export const annotationSchema = z.object({

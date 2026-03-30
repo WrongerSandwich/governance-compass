@@ -1,6 +1,6 @@
 import type { QuizResponses, PerModalityScores, TensionInfo, CompassResult, ArchetypeMatch, AxisScoreResult, QuizResults } from "./scoring-types";
 import {
-  BUDGET_BASELINE,
+  BUDGET_MEAN,
   BUDGET_SIGMOID_K,
   AXIS_WEIGHT_PROFILES,
   TENSION_THRESHOLDS,
@@ -71,45 +71,41 @@ export function scoreScaledAxis(
 }
 
 /**
- * Stage 1 — Compute per-ministry budget deviations from the baseline.
- *
- * Returns Map<ministryId, deviation> where deviation = allocation - BUDGET_BASELINE.
- */
-export function computeBudgetDeviations(
-  allocations: Record<number, number>
-): Map<number, number> {
-  const deviations = new Map<number, number>();
-  for (const [ministryIdStr, allocation] of Object.entries(allocations)) {
-    const ministryId = Number(ministryIdStr);
-    deviations.set(ministryId, allocation - BUDGET_BASELINE);
-  }
-  return deviations;
-}
-
-/**
  * Stage 1 — Raw budget scoring for a single axis.
  *
- * For each ministry-axis mapping:
- *   signedDeviation = deviation * direction
- * Returns tanh(mean(signedDeviations) / BUDGET_SIGMOID_K).
+ * Bidirectional axes (two opposing ministries, e.g., Axis 1 has Public Welfare
+ * → Collective and Economy & Growth → Market): score = tanh(diff / k) where
+ * diff = positive_ministry - negative_ministry.
+ *
+ * Unidirectional axes (one ministry): score = tanh((value - mean) / k) where
+ * mean is the equal-allocation baseline (50/7 ≈ 7.14).
+ *
  * Returns null when no ministry mappings exist for the axis.
  */
 export function scoreBudgetAxis(
-  deviations: Map<number, number>,
+  allocations: Record<number, number>,
   axisId: number
 ): number | null {
   const mappings = ministryAxisMappings.filter((m) => m.axisId === axisId);
   if (mappings.length === 0) return null;
 
-  const signedDeviations = mappings.map((mapping) => {
-    const deviation = deviations.get(mapping.ministryId) ?? 0;
-    return deviation * mapping.direction;
-  });
+  // Separate positive-direction (Pole B) and negative-direction (Pole A) ministries
+  const posBMappings = mappings.filter((m) => m.direction === 1);
+  const posAMappings = mappings.filter((m) => m.direction === -1);
 
-  const mean =
-    signedDeviations.reduce((sum, s) => sum + s, 0) / signedDeviations.length;
+  if (posBMappings.length > 0 && posAMappings.length > 0) {
+    // Bidirectional: normalized difference between opposing ministries
+    const poleBValue = posBMappings.reduce((sum, m) => sum + (allocations[m.ministryId] ?? BUDGET_MEAN), 0) / posBMappings.length;
+    const poleAValue = posAMappings.reduce((sum, m) => sum + (allocations[m.ministryId] ?? BUDGET_MEAN), 0) / posAMappings.length;
+    const diff = poleBValue - poleAValue;
+    return Math.tanh(diff / BUDGET_SIGMOID_K);
+  }
 
-  return Math.tanh(mean / BUDGET_SIGMOID_K);
+  // Unidirectional: deviation from mean allocation
+  const mapping = mappings[0];
+  const value = allocations[mapping.ministryId] ?? BUDGET_MEAN;
+  const deviation = (value - BUDGET_MEAN) * mapping.direction;
+  return Math.tanh(deviation / BUDGET_SIGMOID_K);
 }
 
 /**
@@ -177,14 +173,13 @@ export function computeAllFinalScores(
 export function computeAllPerModalityScores(
   responses: QuizResponses
 ): PerModalityScores {
-  const deviations = computeBudgetDeviations(responses.budget);
   const result: PerModalityScores = {};
 
   for (let axisId = 1; axisId <= 12; axisId++) {
     result[axisId] = {
       fc: scoreForcedChoiceAxis(responses.forcedChoice, axisId),
       sc: scoreScaledAxis(responses.scaled, axisId),
-      bg: scoreBudgetAxis(deviations, axisId),
+      bg: scoreBudgetAxis(responses.budget, axisId),
     };
   }
 

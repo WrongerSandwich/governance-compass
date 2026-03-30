@@ -63,26 +63,31 @@ export interface AxisWeightProfile {
   bg: number;
 }
 
-// Budget scoring constants
-export const BUDGET_BASELINE = 10;
-export const BUDGET_MINIMUM = 5;
-export const BUDGET_SIGMOID_K = 10;
+// Budget scoring constants (7 ministries, 50 total points)
+export const BUDGET_TOTAL = 50;
+export const BUDGET_MINISTRY_COUNT = 7;
+export const BUDGET_MINIMUM = 1;
+export const BUDGET_MEAN = BUDGET_TOTAL / BUDGET_MINISTRY_COUNT; // ≈ 7.14
+export const BUDGET_SIGMOID_K = 6;
 
 // Axis weight profiles for modality fusion (Stage 3)
 // Updated for 2 SC items per axis (was 3): SC -0.05, FC +0.05
 export const AXIS_WEIGHT_PROFILES: Record<number, AxisWeightProfile> = {
-  1:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
-  2:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
-  3:  { fc: 0.60, sc: 0.40, bg: 0.00 }, // No budget mapping
-  4:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  5:  { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
-  6:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  7:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  8:  { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  9:  { fc: 0.60, sc: 0.40, bg: 0.00 }, // No budget mapping
-  10: { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  11: { fc: 0.50, sc: 0.35, bg: 0.15 }, // Partial budget
-  12: { fc: 0.45, sc: 0.30, bg: 0.25 }, // Full budget
+  // Bidirectional budget signal (two opposing ministries)
+  1:  { fc: 0.45, sc: 0.30, bg: 0.25 },
+  2:  { fc: 0.45, sc: 0.30, bg: 0.25 },
+  5:  { fc: 0.45, sc: 0.30, bg: 0.25 },
+  // Unidirectional budget signal (one ministry)
+  4:  { fc: 0.50, sc: 0.35, bg: 0.15 },
+  6:  { fc: 0.50, sc: 0.35, bg: 0.15 },
+  10: { fc: 0.50, sc: 0.35, bg: 0.15 },
+  11: { fc: 0.50, sc: 0.35, bg: 0.15 },
+  12: { fc: 0.50, sc: 0.35, bg: 0.15 },
+  // No budget signal
+  3:  { fc: 0.60, sc: 0.40, bg: 0.00 },
+  7:  { fc: 0.60, sc: 0.40, bg: 0.00 },
+  8:  { fc: 0.60, sc: 0.40, bg: 0.00 },
+  9:  { fc: 0.60, sc: 0.40, bg: 0.00 },
 };
 
 // Tension thresholds (Stage 4)

@@ -413,9 +413,9 @@ export function QuizFlow({
       <PhaseTransition
         completedPhase={2}
         completedCount={Object.keys(state.scaledResponses).length}
-        nextPhaseTitle="The chancellor's budget"
-        nextPhaseDescription="Finally, allocate a fixed budget across government ministries. Your spending choices reveal priorities beyond what words alone can capture."
-        estimatedTime="~4 minutes"
+        nextPhaseTitle="The Chancellor's Budget"
+        nextPhaseDescription="You're now head of state. You have 50 points to allocate across 7 government ministries. Every point represents a real commitment — and there isn't enough to fund everything well. Watch what happens to each ministry as you decide what to prioritize — and what to sacrifice."
+        estimatedTime="~3 minutes"
         onContinue={() => dispatch({ type: "START_PHASE3" })}
       />
     );
