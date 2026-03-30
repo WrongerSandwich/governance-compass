@@ -94,7 +94,7 @@ export default function MethodologyPage() {
               </p>
               <p>
                 <span className="font-medium text-text-primary">The Chancellor&apos;s Budget</span>{" "}
-                is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates a fixed national budget across 10 government ministries. There isn&apos;t enough to fully fund everything &mdash; that&apos;s the point. A person who claims to prioritize environmental protection but consistently funds economic growth over ecological transition has revealed something their questionnaire answers obscured.
+                is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates 50 points across 7 government ministries &mdash; and there isn&apos;t enough to fund everything well. A person who claims to prioritize environmental protection but consistently funds economic growth over ecological transition has revealed something their questionnaire answers obscured.
               </p>
             </div>
           </section>
@@ -106,10 +106,10 @@ export default function MethodologyPage() {
             </h2>
             <div className="space-y-4">
               <p>
-                Each of the 12 axes produces a final score from -1.0 to +1.0, with 0.0 representing genuine ambivalence or a balanced position. The score is a weighted composite of the three formats: forced-choice responses receive the highest weight (40%), scaled responses capture intensity and nuance (35%), and the budget allocation reveals operational priorities (25%).
+                Each of the 12 axes produces a final score from -1.0 to +1.0, with 0.0 representing genuine ambivalence or a balanced position. The score is a weighted composite of the three formats: forced-choice responses receive the highest weight, scaled responses capture intensity and nuance, and the budget allocation reveals operational priorities. The exact weights vary by axis depending on how directly the budget maps to each dimension.
               </p>
               <p>
-                The weights vary by axis depending on how directly the budget exercise maps to that axis. Some axes get full budget weighting; others receive their scores entirely from the questionnaire formats.
+                Some axes receive strong budget signal from two opposing ministries. Others receive partial signal from a single ministry. And some axes have no direct budget mapping at all &mdash; those are scored entirely from the questionnaire formats.
               </p>
               <p>
                 One of the instrument&apos;s most distinctive features is its contradiction detection system. After scoring, the algorithm compares each axis&apos;s stated preference (from forced-choice and scaled items) against its revealed preference (from budget allocation). When these diverge significantly, the system flags the discrepancy as a &ldquo;tension.&rdquo; Tensions are reported as informative features, not errors. The tension between what you believe in principle and what you prioritize in practice is often where the most interesting self-knowledge lives.
