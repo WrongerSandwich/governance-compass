@@ -44,12 +44,7 @@ interface ScaledItemData {
   option5Detail: string;
 }
 
-interface MinistryData {
-  id: number;
-  name: string;
-  description: string;
-  belowBaselineWarning: string;
-}
+import type { MinistryData } from "@/data/ministries";
 
 export interface QuizFlowProps {
   forcedChoiceItems: ForcedChoiceItemData[];

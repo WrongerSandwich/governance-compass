@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { QuizFlow } from "@/components/quiz/QuizFlow";
 import { QuizProvider } from "@/components/quiz/QuizProvider";
+import { ministries } from "@/data/ministries";
 
 export default async function QuizPage() {
   const forcedChoiceItems = await db.forcedChoiceItem.findMany({
@@ -8,9 +9,6 @@ export default async function QuizPage() {
   });
   const scaledItems = await db.scaledItem.findMany({
     orderBy: [{ axisId: "asc" }, { itemNumber: "asc" }],
-  });
-  const ministries = await db.ministry.findMany({
-    orderBy: { id: "asc" },
   });
 
   return (
