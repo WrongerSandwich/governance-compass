@@ -83,33 +83,35 @@ export default function QuestionsPage() {
 
         {/* Axis nav */}
         <nav
-          className="mb-10 space-y-2"
+          className="mb-10 space-y-3"
           aria-label="Page sections"
         >
           {domainGroups.map((domain) => (
-            <div key={domain.key} className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+            <div key={domain.key}>
               <a
                 href={`#${domain.key}`}
-                className="font-medium hover:opacity-80 transition-opacity duration-150"
+                className="text-[11px] uppercase tracking-[0.08em] font-medium hover:opacity-80 transition-opacity duration-150"
                 style={{ color: DOMAIN_COLORS[domain.key][600] }}
               >
                 {DOMAIN_COLORS[domain.key].name}
               </a>
-              {domain.axes.map((axis) => (
-                <a
-                  key={axis.id}
-                  href={`#axis-${axis.id}`}
-                  className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-                >
-                  {axis.name}
-                </a>
-              ))}
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 pl-3 text-xs">
+                {domain.axes.map((axis) => (
+                  <a
+                    key={axis.id}
+                    href={`#axis-${axis.id}`}
+                    className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+                  >
+                    {axis.name}
+                  </a>
+                ))}
+              </div>
             </div>
           ))}
-          <div className="flex text-xs">
+          <div>
             <a
               href="#budget"
-              className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+              className="text-[11px] uppercase tracking-[0.08em] font-medium text-text-tertiary hover:text-text-secondary transition-colors duration-150"
             >
               Chancellor&apos;s Budget
             </a>
