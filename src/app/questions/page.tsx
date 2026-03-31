@@ -81,34 +81,39 @@ export default function QuestionsPage() {
           </p>
         </div>
 
-        {/* Domain nav */}
+        {/* Axis nav */}
         <nav
-          className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-tertiary mb-10"
-          aria-label="Domain sections"
+          className="mb-10 space-y-2"
+          aria-label="Page sections"
         >
-          {DOMAIN_KEYS.map((key, i) => (
-            <span key={key}>
+          {domainGroups.map((domain) => (
+            <div key={domain.key} className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
               <a
-                href={`#${key}`}
-                className="hover:text-text-secondary transition-colors duration-150"
-                style={{ color: DOMAIN_COLORS[key][600] }}
+                href={`#${domain.key}`}
+                className="font-medium hover:opacity-80 transition-opacity duration-150"
+                style={{ color: DOMAIN_COLORS[domain.key][600] }}
               >
-                {DOMAIN_COLORS[key].name}
+                {DOMAIN_COLORS[domain.key].name}
               </a>
-              {i < DOMAIN_KEYS.length - 1 && (
-                <span className="ml-3 opacity-30">&middot;</span>
-              )}
-            </span>
+              {domain.axes.map((axis) => (
+                <a
+                  key={axis.id}
+                  href={`#axis-${axis.id}`}
+                  className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+                >
+                  {axis.name}
+                </a>
+              ))}
+            </div>
           ))}
-          <span>
-            <span className="opacity-30">&middot;</span>
+          <div className="flex text-xs">
             <a
               href="#budget"
-              className="ml-3 hover:text-text-secondary transition-colors duration-150"
+              className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
             >
               Chancellor&apos;s Budget
             </a>
-          </span>
+          </div>
         </nav>
 
         {/* Questions by domain and axis */}
@@ -128,7 +133,7 @@ export default function QuestionsPage() {
                   const scItems = scByAxis.get(axis.id) ?? [];
 
                   return (
-                    <div key={axis.id}>
+                    <div key={axis.id} id={`axis-${axis.id}`}>
                       <h3 className="text-[17px] font-serif font-medium text-text-primary mb-0.5">
                         {axis.name}
                       </h3>
@@ -146,7 +151,8 @@ export default function QuestionsPage() {
                             {fcItems.map((fc) => (
                               <div
                                 key={fc.id}
-                                className="border border-border-secondary rounded-[8px] px-4 py-3"
+                                className="border border-border-secondary rounded-[8px] px-4 py-3 border-l-2"
+                                style={{ borderLeftColor: DOMAIN_COLORS[domain.key][600] }}
                               >
                                 <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-2.5">
                                   {ABSTRACTION_LABELS[fc.abstractionLevel]}
@@ -159,8 +165,10 @@ export default function QuestionsPage() {
                                     <p className="text-sm text-text-secondary leading-relaxed mt-0.5">
                                       {fc.bodyA}
                                     </p>
-                                    <p className="text-xs text-text-tertiary mt-1">
-                                      &rarr; {axis.poleALabel} (&minus;1.0)
+                                    <p className="mt-1.5">
+                                      <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5">
+                                        &rarr; {axis.poleALabel} (&minus;1.0)
+                                      </span>
                                     </p>
                                   </div>
                                   <div className="border-t border-border-secondary" />
@@ -171,8 +179,10 @@ export default function QuestionsPage() {
                                     <p className="text-sm text-text-secondary leading-relaxed mt-0.5">
                                       {fc.bodyB}
                                     </p>
-                                    <p className="text-xs text-text-tertiary mt-1">
-                                      &rarr; {axis.poleBLabel} (+1.0)
+                                    <p className="mt-1.5">
+                                      <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5">
+                                        &rarr; {axis.poleBLabel} (+1.0)
+                                      </span>
                                     </p>
                                   </div>
                                 </div>
@@ -228,8 +238,8 @@ export default function QuestionsPage() {
                                               &mdash; {detail}
                                             </span>
                                           )}
-                                          <span className="text-xs text-text-tertiary ml-1.5">
-                                            ({scoreLabel})
+                                          <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5 ml-1.5 align-middle">
+                                            {scoreLabel}
                                           </span>
                                         </div>
                                       </div>
@@ -251,7 +261,10 @@ export default function QuestionsPage() {
 
         {/* Chancellor's Budget section */}
         <section id="budget" className="mt-12">
-          <h2 className="text-[11px] uppercase tracking-[0.08em] font-medium text-text-tertiary border-b border-border-secondary pb-1.5 mb-6">
+          <h2
+            className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-6"
+            style={{ color: "#85735e" }}
+          >
             Chancellor&apos;s Budget
           </h2>
 
@@ -289,14 +302,13 @@ export default function QuestionsPage() {
                 </p>
                 {mappings.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                    {mappings.map(({ axis, pole, direction }) => (
-                      <p
+                    {mappings.map(({ axis, pole }) => (
+                      <span
                         key={axis.id}
-                        className="text-xs text-text-tertiary"
+                        className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5"
                       >
-                        &rarr; Axis {axis.id}: {axis.name} &mdash;{" "}
-                        {pole} ({direction === -1 ? "poleA" : "poleB"})
-                      </p>
+                        &rarr; {axis.name} &mdash; toward {pole}
+                      </span>
                     ))}
                   </div>
                 )}
