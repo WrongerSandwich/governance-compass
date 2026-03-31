@@ -126,6 +126,12 @@ export default function MethodologyPage() {
           >
             Begin the assessment
           </Link>
+          <p className="mt-3 text-xs text-text-tertiary">
+            or{" "}
+            <Link href="/questions" className="hover:text-text-secondary transition-colors duration-150">
+              view the complete question bank
+            </Link>
+          </p>
         </div>
       </article>
     </main>
