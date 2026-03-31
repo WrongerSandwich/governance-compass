@@ -10,7 +10,7 @@ const DOMAINS = [
         question: "What role should organized society play in determining economic outcomes and ensuring material welfare?",
         poleA: "The collective provision pole holds that organized society bears responsibility for ensuring no one falls below a dignified standard of living. It favors redistribution, public services, and constraints on the accumulation of private economic power \u2014 not out of hostility toward individual achievement, but from the conviction that unregulated markets produce inequalities that are neither efficient nor just. Real-world governance traditions at this pole include Nordic social democracy, postwar European welfare states, and socialist economic planning.",
         poleB: "The market allocation pole holds that voluntary exchange, private ownership, and price signals produce better outcomes than central direction. It favors minimal state intervention in the economy \u2014 not from indifference to poverty, but from the conviction that market mechanisms generate prosperity more reliably than bureaucratic allocation, and that the freedom to keep what you earn is a fundamental right. Real-world governance traditions at this pole include laissez-faire capitalism, free-trade city-states like historical Hong Kong, and supply-side economic policy.",
-        note: "This is the single most empirically robust dimension in political science. It appears in every major framework for mapping political ideology and consistently emerges as the primary factor in analyses of political attitudes worldwide.",
+        note: "This dimension appears in every major framework for mapping political ideology and consistently emerges as the primary factor in analyses of political attitudes.",
       },
       {
         name: "Ecological limits \u2194 Growth imperative",
@@ -50,7 +50,7 @@ const DOMAINS = [
         question: "Does a government\u2019s legitimacy come primarily from how it was chosen, or from what it delivers?",
         poleA: "The electoral process pole holds that a government\u2019s right to govern derives from the free consent of the governed. Elections, rule of law, peaceful transfer of power, and institutional accountability are not just useful mechanisms \u2014 they are the source of legitimate authority.",
         poleB: "The performance outcomes pole holds that a government\u2019s right to govern derives from results. A government that delivers sustained prosperity, personal safety, effective public services, and national dignity has earned its authority \u2014 regardless of how its leaders were selected.",
-        note: "This axis is absent from every other popular political quiz. Its absence is what makes most political assessments structurally Western-centric. Including it doesn\u2019t endorse any particular governance model \u2014 it simply measures where people actually stand.",
+        note: "",
       },
     ],
   },
@@ -76,7 +76,7 @@ const DOMAINS = [
         question: "Are human behavior and social hierarchies primarily shaped by culture and institutions, or by durable features of human nature?",
         poleA: "The constructivism pole holds that most of what we call \u201Chuman nature\u201D is primarily the product of culture, upbringing, and institutional design. If these are constructed, they can be reconstructed. Change the structures, and you change the outcomes.",
         poleB: "The essentialism pole holds that human beings have a durable nature shaped by biology, evolutionary history, or divine design. Social structures that ignore this nature will fail, because they are fighting against something more fundamental than policy.",
-        note: "This is the deepest and most philosophical axis in the instrument. It sits underneath many of the other axes \u2014 your position here influences how you think about economic inequality, social change, and group outcomes.",
+        note: "This axis sits underneath many of the others \u2014 your position here influences how you think about economic inequality, social change, and group outcomes.",
       },
     ],
   },
@@ -173,9 +173,6 @@ export default function AxesPage() {
         </div>
 
         <div className="border-t border-border-secondary mt-12 pt-6">
-          <p className="text-xs text-text-tertiary leading-relaxed mb-8">
-            No axis has a correct answer. The value of The Governance Compass is not in telling you which pole is right &mdash; it&apos;s in showing you where you stand across all twelve, where your commitments are strong, where you&apos;re genuinely ambivalent, and where your positions connect to each other in ways you might not have expected.
-          </p>
           <div className="text-center">
             <Link
               href="/quiz"

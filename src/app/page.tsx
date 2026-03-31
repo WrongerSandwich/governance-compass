@@ -16,8 +16,7 @@ export default function Home() {
         </h1>
         <p className="text-[15px] text-text-secondary mb-3 leading-relaxed max-w-md mx-auto">
           A research-informed assessment across 12 governance axes — from
-          economic philosophy to international engagement. Far beyond left
-          and right.
+          economic philosophy to international engagement.
         </p>
         <p className="text-sm text-text-tertiary mb-8 leading-relaxed max-w-md mx-auto">
           Compare your positions with friends axis by axis. See where
@@ -54,7 +53,7 @@ export default function Home() {
           </p>
           <p className="text-sm text-text-secondary mt-2 max-w-md mx-auto">
             Your positions mapped across economic, political, social, and
-            international domains. No oversimplified quadrants.
+            international domains.
           </p>
         </div>
 
