@@ -13,15 +13,26 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [style, setStyle] = useState<React.CSSProperties>({ top: 0, left: 0 });
+  const tooltipWidth = 280;
+  const pad = 16; // 1rem viewport padding
 
-  // Position the tooltip below the trigger
+  // Position the tooltip below the trigger, clamped to viewport
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    setPos({
+    const centerX = rect.left + rect.width / 2;
+    const vw = window.innerWidth;
+
+    // Clamp so the tooltip stays within pad..vw-pad
+    const halfW = Math.min(tooltipWidth, vw - pad * 2) / 2;
+    const clampedX = Math.max(pad + halfW, Math.min(vw - pad - halfW, centerX));
+
+    setStyle({
+      position: "absolute",
       top: rect.bottom + window.scrollY + 4,
-      left: rect.left + rect.width / 2 + window.scrollX,
+      left: clampedX + window.scrollX,
+      transform: "translateX(-50%)",
     });
   }, []);
 
@@ -79,13 +90,8 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
       {open && typeof document !== "undefined" && createPortal(
         <div
           ref={tooltipRef}
-          className="fixed z-[9999] max-w-[calc(100vw-2rem)] w-[280px] rounded-[8px] border border-border-secondary p-3 shadow-sm text-left bg-surface-1"
-          style={{
-            top: pos.top,
-            left: pos.left,
-            transform: "translateX(-50%)",
-            position: "absolute",
-          }}
+          className="z-[9999] max-w-[calc(100vw-2rem)] w-[280px] rounded-[8px] border border-border-secondary p-3 shadow-sm text-left bg-surface-1"
+          style={style}
           role="tooltip"
         >
           <span className="block text-xs font-medium text-text-primary mb-1">
