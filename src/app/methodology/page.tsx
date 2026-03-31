@@ -1,11 +1,9 @@
 import Link from "next/link";
 
 const SECTIONS = [
-  { id: "why", label: "Why quizzes fall short" },
-  { id: "dimensions", label: "Twelve dimensions" },
   { id: "formats", label: "Three ways of asking" },
   { id: "scoring", label: "Scoring" },
-  { id: "crosscultural", label: "Cross-cultural validity" },
+  { id: "crosscultural", label: "Cross-cultural design" },
   { id: "limitations", label: "Limitations" },
 ];
 
@@ -31,62 +29,17 @@ export default function MethodologyPage() {
 
         <div className="space-y-10 text-sm text-text-secondary leading-relaxed">
           {/* Section 1 */}
-          <section id="why">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
-              Why existing political quizzes fall short
-            </h2>
-            <div className="space-y-4">
-              <p>
-                If you&apos;ve ever taken a political quiz online, you&apos;ve probably had the experience of getting a result that felt partially right and partially absurd. You land somewhere on a 2D grid and think: &ldquo;Sure, I&apos;m roughly there on economics, but this completely misses how I feel about surveillance, or immigration, or whether experts or ordinary people should drive policy.&rdquo; The result captures a shadow of your worldview &mdash; recognizable in outline, missing in substance.
-              </p>
-              <p>
-                This isn&apos;t a failure of execution. It&apos;s a failure of architecture. The dominant model for mapping political beliefs &mdash; a two-dimensional plane with an economic axis and a social axis &mdash; was a genuine breakthrough when it emerged. It showed millions of people that politics has more than one dimension, which is a real insight. But two dimensions cannot represent the full space of governance philosophy any more than latitude and longitude can describe the shape of a mountain. You need elevation data. You need contour lines.
-              </p>
-              <p>
-                The problem goes deeper than dimensionality. Nearly every popular political quiz asks you to rate your agreement with a series of statements: &ldquo;Strongly agree, agree, disagree, strongly disagree.&rdquo; This format has a well-documented flaw called acquiescence bias &mdash; the tendency to agree with whatever statement is put in front of you, regardless of content. Research has shown this bias can inflate attitude measurements by up to 50% and in some cases reverse the apparent direction of a person&apos;s beliefs.
-              </p>
-              <p>
-                And then there&apos;s the problem of cultural portability. Most quizzes embed assumptions about Western democratic institutions so deeply that they become invisible to their designers. The word &ldquo;liberal&rdquo; means free-market in Australia and progressive in America. Questions about gun control, healthcare systems, or immigration policy assume specific institutional contexts that billions of people don&apos;t share. A quiz that only works in one political culture isn&apos;t measuring governance philosophy &mdash; it&apos;s measuring where you sit within a particular national debate.
-              </p>
-              <p>
-                None of this means existing quizzes are worthless. The Political Compass introduced the two-axis model to a mass audience. 8values and 9axes expanded the dimensional space. ISideWith made issue-based candidate matching practical. The Pew Research Center&apos;s Political Typology set a gold standard for methodological rigor. The Governance Compass builds on what all of them started &mdash; and tries to address what they left unfinished.
-              </p>
-            </div>
-          </section>
-
-          {/* Section 2 */}
-          <section id="dimensions">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
-              Twelve dimensions, not two
-            </h2>
-            <div className="space-y-4">
-              <p>
-                Political science has spent decades studying the structure of political ideology, and the research converges on a few key findings. First, there are at minimum two robust, independent dimensions: an economic dimension and a cultural dimension. These two dimensions appear in virtually every major framework &mdash; the Chapel Hill Expert Survey, the World Values Survey, Moral Foundations Theory.
-              </p>
-              <p>
-                But two dimensions are a validated floor, not a ceiling. Populism versus institutional trust has become one of the most important political cleavages globally &mdash; and it&apos;s orthogonal to both the economic and cultural dimensions. Attitudes toward international cooperation versus national sovereignty structure party competition across Europe in ways that the economic axis alone can&apos;t explain. Attitudes toward emerging technology governance are rapidly becoming a structuring political question with no natural home on a traditional left-right spectrum.
-              </p>
-              <p>
-                The Governance Compass measures 12 dimensions organized into four domains: Economic Organization (2 axes), Power and Authority (4 axes), Society and Identity (3 axes), and The State in the World (3 axes). This count reflects a deliberate balance. Fewer axes would sacrifice distinctions that matter. More axes would introduce redundancy and respondent fatigue without adding discriminant validity.
-              </p>
-              <p>
-                For quick visual comparison, the 12 axes are also reduced to two super-dimensions that produce a familiar compass-style plot. But the compass plot is always presented as a simplification &mdash; a concession to shareability, not the real result. The full 12-axis radar chart is the instrument&apos;s primary output.
-              </p>
-            </div>
-          </section>
-
-          {/* Section 3 */}
           <section id="formats">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
               Three ways of asking
             </h2>
             <div className="space-y-4">
               <p>
-                The Governance Compass doesn&apos;t just ask more questions than a typical political quiz &mdash; it asks them differently. Three distinct question formats are used, each designed to capture something the others can&apos;t.
+                The Governance Compass uses three distinct question formats, each designed to capture something the others can&apos;t.
               </p>
               <p>
                 <span className="font-medium text-text-primary">Forced-choice tradeoffs</span>{" "}
-                form the backbone of the assessment. Each of the 36 forced-choice items presents two statements representing opposite poles of a single axis. The respondent must choose which statement comes closer to their view. There is no neutral option, no &ldquo;both,&rdquo; and no scale. This format eliminates acquiescence bias and mirrors how governance actually works: political decisions are almost never about whether something is good or bad in a vacuum. They&apos;re about which competing good to prioritize when you can&apos;t have both.
+                form the backbone of the assessment. Each of the 36 forced-choice items presents two statements representing opposite poles of a single axis. There is no neutral option, no &ldquo;both,&rdquo; and no scale. The respondent chooses which statement comes closer to their view.
               </p>
               <p>
                 <span className="font-medium text-text-primary">Nuanced scales</span>{" "}
@@ -94,7 +47,7 @@ export default function MethodologyPage() {
               </p>
               <p>
                 <span className="font-medium text-text-primary">The Chancellor&apos;s Budget</span>{" "}
-                is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates 50 points across 7 government ministries &mdash; and there isn&apos;t enough to fund everything well. A person who claims to prioritize environmental protection but consistently funds economic growth over ecological transition has revealed something their questionnaire answers obscured.
+                is a single interactive exercise that captures something no questionnaire can: revealed preferences under scarcity. The respondent allocates 50 points across 7 government ministries &mdash; and there isn&apos;t enough to fund everything well. The resulting allocation often diverges from questionnaire responses, and that divergence is captured in scoring.
               </p>
             </div>
           </section>
@@ -117,16 +70,13 @@ export default function MethodologyPage() {
               <p>
                 Finally, the 12-axis profile is matched against a set of governance archetype prototypes &mdash; idealized profiles representing coherent governance philosophies. The respondent is assigned to the closest archetype and shown their degree of match, their second-closest archetype, and a description of each archetype&apos;s internal logic and characteristic tensions.
               </p>
-              <p>
-                The scoring does not tell you who to vote for. It does not assume any pole of any axis is the correct answer. It shows you where you stand, how consistently you stand there, and what governance tradition your overall profile most resembles.
-              </p>
             </div>
           </section>
 
           {/* Section 5 */}
           <section id="crosscultural">
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
-              Designing for cross-cultural validity
+              Designing for cross-cultural portability
             </h2>
             <div className="space-y-4">
               <p>
@@ -136,7 +86,7 @@ export default function MethodologyPage() {
                 For culturally sensitive items, the instrument uses the portrait method, adapted from Schwartz&apos;s Portrait Values Questionnaire. Rather than asking &ldquo;Do you believe X?&rdquo; the question describes a hypothetical person, giving respondents permission to identify with positions that might feel uncomfortable to endorse directly.
               </p>
               <p>
-                Most critically, the instrument includes an axis that explicitly treats non-democratic governance as a coherent position rather than a failure state. This axis is absent from every other popular political quiz, and its absence is what makes those quizzes Western-centric at a structural level. Including it doesn&apos;t endorse any particular governance model &mdash; it simply measures where people actually stand.
+                Most critically, the instrument includes an axis on legitimacy basis. Including this axis allows the instrument to treat non-democratic governance as a coherent position rather than a failure state.
               </p>
             </div>
           </section>
@@ -152,6 +102,9 @@ export default function MethodologyPage() {
               </p>
               <p>
                 This matters. It means the instrument should be used as a tool for structured self-reflection &mdash; a way to think about your governance philosophy across more dimensions than you&apos;ve probably considered &mdash; not as a scientific diagnostic or a validated psychometric measure.
+              </p>
+              <p>
+                The 12 governance archetypes are theoretically derived prototypes representing coherent governance philosophies &mdash; not empirical clusters extracted from response data. They serve as interpretive anchors, not statistical categories. As response data accumulates, empirically grounded clustering may refine or replace them.
               </p>
               <p>
                 The roadmap toward greater rigor is concrete: internal consistency testing, exploratory factor analysis, test-retest reliability assessment, and ultimately multi-group measurement invariance testing with respondents from diverse cultural contexts.

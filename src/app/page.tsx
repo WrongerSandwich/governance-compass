@@ -15,7 +15,7 @@ export default function Home() {
           The Governance Compass
         </h1>
         <p className="text-[15px] text-text-secondary mb-3 leading-relaxed max-w-md mx-auto">
-          A research-backed assessment across 12 governance axes — from
+          A research-informed assessment across 12 governance axes — from
           economic philosophy to international engagement. Far beyond left
           and right.
         </p>
@@ -82,7 +82,7 @@ export default function Home() {
         {/* Footer */}
         <div className="border-t border-border-secondary mt-12 pt-6 text-center">
           <p className="text-xs text-text-tertiary">
-            <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">Research-backed methodology</Link>
+            <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">Research-informed methodology</Link>
             {" "}&middot;{" "}
             <Link href="/axes" className="hover:text-text-secondary transition-colors duration-150">12 axes explained</Link>
             {" "}&middot;{" "}

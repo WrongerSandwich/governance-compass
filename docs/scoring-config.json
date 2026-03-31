@@ -1,0 +1,215 @@
+{
+  "_meta": {
+    "description": "Governance Compass scoring configuration — item-to-axis mappings, weight profiles, and budget config. Generated from source files in src/data/ and src/lib/scoring-types.ts.",
+    "generatedFrom": [
+      "src/data/forced-choice-items.ts",
+      "src/data/scaled-items.ts",
+      "src/data/axes.ts",
+      "src/data/ministries.ts",
+      "src/lib/scoring-types.ts"
+    ],
+    "codecVersion": 3,
+    "date": "2026-03-28"
+  },
+
+  "axes": {
+    "1":  { "name": "Economic Model",           "poleA": "Collective Provision",  "poleB": "Market Allocation",    "domain": "Economic Organization" },
+    "2":  { "name": "Environmental Policy",      "poleA": "Ecological Limits",     "poleB": "Growth Imperative",    "domain": "Economic Organization" },
+    "3":  { "name": "Governance Structure",       "poleA": "Distributed Governance","poleB": "Centralized Governance","domain": "Power and Authority" },
+    "4":  { "name": "Decision Authority",         "poleA": "Popular Sovereignty",   "poleB": "Institutional Authority","domain": "Power and Authority" },
+    "5":  { "name": "Rights Balance",             "poleA": "Liberty",               "poleB": "Security",              "domain": "Power and Authority" },
+    "6":  { "name": "Legitimacy Basis",           "poleA": "Electoral Process",     "poleB": "Performance Outcomes",  "domain": "Power and Authority" },
+    "7":  { "name": "Social Change",              "poleA": "Progressive Change",    "poleB": "Continuity and Tradition","domain": "Society and Identity" },
+    "8":  { "name": "Cultural Diversity",         "poleA": "Pluralism",             "poleB": "Cohesion",              "domain": "Society and Identity" },
+    "9":  { "name": "Human Nature",               "poleA": "Constructivism",        "poleB": "Essentialism",          "domain": "Society and Identity" },
+    "10": { "name": "International Engagement",   "poleA": "Internationalism",      "poleB": "Sovereignty",           "domain": "The State in the World" },
+    "11": { "name": "Military Policy",            "poleA": "Non-Interventionism",   "poleB": "Interventionism",       "domain": "The State in the World" },
+    "12": { "name": "Technology Governance",       "poleA": "Precautionary",         "poleB": "Innovation-First",      "domain": "The State in the World" }
+  },
+
+  "itemAxisMappings": {
+    "forcedChoice": {
+      "_scoring": "A = -1.0 (toward poleA), B = +1.0 (toward poleB). Per-axis FC score = mean of answered items. Range [-1, +1].",
+      "items": [
+        { "id": "fc-1-1",  "axisId": 1,  "itemNumber": 1 },
+        { "id": "fc-1-2",  "axisId": 1,  "itemNumber": 2 },
+        { "id": "fc-1-3",  "axisId": 1,  "itemNumber": 3 },
+        { "id": "fc-2-1",  "axisId": 2,  "itemNumber": 1 },
+        { "id": "fc-2-2",  "axisId": 2,  "itemNumber": 2 },
+        { "id": "fc-2-3",  "axisId": 2,  "itemNumber": 3 },
+        { "id": "fc-3-1",  "axisId": 3,  "itemNumber": 1 },
+        { "id": "fc-3-2",  "axisId": 3,  "itemNumber": 2 },
+        { "id": "fc-3-3",  "axisId": 3,  "itemNumber": 3 },
+        { "id": "fc-4-1",  "axisId": 4,  "itemNumber": 1 },
+        { "id": "fc-4-2",  "axisId": 4,  "itemNumber": 2 },
+        { "id": "fc-4-3",  "axisId": 4,  "itemNumber": 3 },
+        { "id": "fc-5-1",  "axisId": 5,  "itemNumber": 1 },
+        { "id": "fc-5-2",  "axisId": 5,  "itemNumber": 2 },
+        { "id": "fc-5-3",  "axisId": 5,  "itemNumber": 3 },
+        { "id": "fc-6-1",  "axisId": 6,  "itemNumber": 1 },
+        { "id": "fc-6-2",  "axisId": 6,  "itemNumber": 2 },
+        { "id": "fc-6-3",  "axisId": 6,  "itemNumber": 3 },
+        { "id": "fc-7-1",  "axisId": 7,  "itemNumber": 1 },
+        { "id": "fc-7-2",  "axisId": 7,  "itemNumber": 2 },
+        { "id": "fc-7-3",  "axisId": 7,  "itemNumber": 3 },
+        { "id": "fc-8-1",  "axisId": 8,  "itemNumber": 1 },
+        { "id": "fc-8-2",  "axisId": 8,  "itemNumber": 2 },
+        { "id": "fc-8-3",  "axisId": 8,  "itemNumber": 3 },
+        { "id": "fc-9-1",  "axisId": 9,  "itemNumber": 1 },
+        { "id": "fc-9-2",  "axisId": 9,  "itemNumber": 2 },
+        { "id": "fc-9-3",  "axisId": 9,  "itemNumber": 3 },
+        { "id": "fc-10-1", "axisId": 10, "itemNumber": 1 },
+        { "id": "fc-10-2", "axisId": 10, "itemNumber": 2 },
+        { "id": "fc-10-3", "axisId": 10, "itemNumber": 3 },
+        { "id": "fc-11-1", "axisId": 11, "itemNumber": 1 },
+        { "id": "fc-11-2", "axisId": 11, "itemNumber": 2 },
+        { "id": "fc-11-3", "axisId": 11, "itemNumber": 3 },
+        { "id": "fc-12-1", "axisId": 12, "itemNumber": 1 },
+        { "id": "fc-12-2", "axisId": 12, "itemNumber": 2 },
+        { "id": "fc-12-3", "axisId": 12, "itemNumber": 3 }
+      ]
+    },
+    "scaled": {
+      "_scoring": "Likert 1-5 mapped to [-2, -1, 0, +1, +2], then divided by 2 to normalize to [-1, +1]. 1 = strong poleA, 5 = strong poleB. Per-axis SC score = mean of answered items. Range [-1, +1].",
+      "items": [
+        { "id": "sc-1-1",  "axisId": 1,  "itemNumber": 1 },
+        { "id": "sc-1-3",  "axisId": 1,  "itemNumber": 3 },
+        { "id": "sc-2-1",  "axisId": 2,  "itemNumber": 1 },
+        { "id": "sc-2-2",  "axisId": 2,  "itemNumber": 2 },
+        { "id": "sc-3-1",  "axisId": 3,  "itemNumber": 1 },
+        { "id": "sc-3-3",  "axisId": 3,  "itemNumber": 3 },
+        { "id": "sc-4-1",  "axisId": 4,  "itemNumber": 1 },
+        { "id": "sc-4-2",  "axisId": 4,  "itemNumber": 2 },
+        { "id": "sc-5-1",  "axisId": 5,  "itemNumber": 1 },
+        { "id": "sc-5-2",  "axisId": 5,  "itemNumber": 2 },
+        { "id": "sc-6-1",  "axisId": 6,  "itemNumber": 1 },
+        { "id": "sc-6-3",  "axisId": 6,  "itemNumber": 3 },
+        { "id": "sc-7-1",  "axisId": 7,  "itemNumber": 1 },
+        { "id": "sc-7-2",  "axisId": 7,  "itemNumber": 2 },
+        { "id": "sc-8-1",  "axisId": 8,  "itemNumber": 1 },
+        { "id": "sc-8-2",  "axisId": 8,  "itemNumber": 2 },
+        { "id": "sc-9-1",  "axisId": 9,  "itemNumber": 1 },
+        { "id": "sc-9-2",  "axisId": 9,  "itemNumber": 2 },
+        { "id": "sc-10-1", "axisId": 10, "itemNumber": 1 },
+        { "id": "sc-10-2", "axisId": 10, "itemNumber": 2 },
+        { "id": "sc-11-2", "axisId": 11, "itemNumber": 2 },
+        { "id": "sc-11-3", "axisId": 11, "itemNumber": 3 },
+        { "id": "sc-12-1", "axisId": 12, "itemNumber": 1 },
+        { "id": "sc-12-3", "axisId": 12, "itemNumber": 3 }
+      ]
+    }
+  },
+
+  "weightProfiles": {
+    "_description": "Per-axis modality fusion weights (Stage 3). FC + SC + BG = 1.0 for each axis. Profile type depends on whether the axis has a bidirectional, unidirectional, or no budget signal.",
+    "bidirectional": {
+      "_description": "Two opposing ministries map to this axis (one positive, one negative). Axes: 1, 2, 5.",
+      "fc": 0.45,
+      "sc": 0.30,
+      "bg": 0.25,
+      "axes": [1, 2, 5]
+    },
+    "unidirectional": {
+      "_description": "One ministry maps to this axis. Axes: 4, 6, 10, 11, 12.",
+      "fc": 0.50,
+      "sc": 0.35,
+      "bg": 0.15,
+      "axes": [4, 6, 10, 11, 12]
+    },
+    "none": {
+      "_description": "No ministry maps to this axis. Budget weight is zero; FC and SC are renormalized. Axes: 3, 7, 8, 9.",
+      "fc": 0.60,
+      "sc": 0.40,
+      "bg": 0.00,
+      "axes": [3, 7, 8, 9]
+    }
+  },
+
+  "budgetConfig": {
+    "totalPoints": 50,
+    "ministryCount": 7,
+    "minimumPerMinistry": 1,
+    "meanAllocation": 7.142857142857143,
+    "sigmoidK": 6,
+    "_scoringNote": "Budget score for an axis = tanh(k * (deviation / mean)). For bidirectional axes, deviation = (ministryB_allocation - ministryA_allocation). For unidirectional axes, deviation = (ministry_allocation - mean). Range [-1, +1].",
+    "ministries": [
+      { "id": 1, "name": "Defense",                 "description": "Military capability, border security, and national defense" },
+      { "id": 2, "name": "Public Welfare",           "description": "Healthcare, housing, unemployment support, disability, pensions, and social safety net" },
+      { "id": 3, "name": "Economy & Growth",         "description": "Business development, trade, infrastructure, transportation, and job creation" },
+      { "id": 4, "name": "Education & Research",     "description": "Schools, universities, vocational training, and scientific research" },
+      { "id": 5, "name": "Environment",              "description": "Conservation, pollution control, climate policy, and natural resource management" },
+      { "id": 6, "name": "Justice & Civil Liberties", "description": "Courts, legal aid, policing, constitutional rights protection, and civil liberties oversight" },
+      { "id": 7, "name": "Foreign Affairs",          "description": "Diplomacy, international organizations, foreign aid, and treaty obligations" }
+    ],
+    "ministryAxisMappings": [
+      { "ministryId": 1, "axisId": 5,  "direction": 1,  "_label": "Defense → Security (poleB)" },
+      { "ministryId": 1, "axisId": 11, "direction": 1,  "_label": "Defense → Interventionism (poleB)" },
+      { "ministryId": 2, "axisId": 1,  "direction": -1, "_label": "Public Welfare → Collective Provision (poleA)" },
+      { "ministryId": 3, "axisId": 1,  "direction": 1,  "_label": "Economy & Growth → Market Allocation (poleB)" },
+      { "ministryId": 3, "axisId": 2,  "direction": 1,  "_label": "Economy & Growth → Growth Imperative (poleB)" },
+      { "ministryId": 4, "axisId": 4,  "direction": 1,  "_label": "Education & Research → Institutional Authority (poleB)" },
+      { "ministryId": 4, "axisId": 12, "direction": 1,  "_label": "Education & Research → Innovation-First (poleB)" },
+      { "ministryId": 5, "axisId": 2,  "direction": -1, "_label": "Environment → Ecological Limits (poleA)" },
+      { "ministryId": 6, "axisId": 5,  "direction": -1, "_label": "Justice & Civil Liberties → Liberty (poleA)" },
+      { "ministryId": 6, "axisId": 6,  "direction": -1, "_label": "Justice & Civil Liberties → Electoral Process (poleA)" },
+      { "ministryId": 7, "axisId": 10, "direction": -1, "_label": "Foreign Affairs → Internationalism (poleA)" }
+    ],
+    "bidirectionalAxes": {
+      "_description": "Axes with two opposing ministries. Budget score = tanh(k * (positiveMinistry - negativeMinistry) / mean).",
+      "1": { "positiveMinistry": 3, "negativeMinistry": 2, "_label": "Economy & Growth vs Public Welfare" },
+      "2": { "positiveMinistry": 3, "negativeMinistry": 5, "_label": "Economy & Growth vs Environment" },
+      "5": { "positiveMinistry": 1, "negativeMinistry": 6, "_label": "Defense vs Justice & Civil Liberties" }
+    },
+    "unidirectionalAxes": {
+      "_description": "Axes with one ministry. Budget score = tanh(k * (allocation - mean) / mean). Positive direction pushes toward the mapped pole.",
+      "4":  { "ministry": 4, "direction": 1,  "_label": "Education & Research → Institutional Authority" },
+      "6":  { "ministry": 6, "direction": -1, "_label": "Justice & Civil Liberties → Electoral Process" },
+      "10": { "ministry": 7, "direction": -1, "_label": "Foreign Affairs → Internationalism" },
+      "11": { "ministry": 1, "direction": 1,  "_label": "Defense → Interventionism" },
+      "12": { "ministry": 4, "direction": 1,  "_label": "Education & Research → Innovation-First" }
+    }
+  },
+
+  "tensionDetection": {
+    "_description": "Stage 4: Compares stated preferences (FC+SC weighted blend) against revealed preferences (budget). Magnitude = abs(statedScore - budgetScore). Range [0, 2].",
+    "statedFcWeight": 0.60,
+    "statedScWeight": 0.40,
+    "thresholds": {
+      "mild": 0.51,
+      "moderate": 1.01,
+      "strong": 1.51
+    }
+  },
+
+  "compassSuperDimensions": {
+    "_description": "Stage 5: Two super-dimensions computed as weighted sums of axis final scores.",
+    "economic": {
+      "1": 0.65,
+      "2": 0.35
+    },
+    "cultural": {
+      "7": 0.30,
+      "8": 0.20,
+      "9": 0.20,
+      "5": 0.15,
+      "4": 0.15
+    }
+  },
+
+  "confidenceThresholds": {
+    "_description": "Based on spread between FC and SC modality scores. Lower spread = higher confidence.",
+    "high": 0.40,
+    "moderate": 0.80,
+    "low": 1.20,
+    "_note": "Above 1.20 = conflicted"
+  },
+
+  "archetypeMatching": {
+    "_description": "Stage 6: Weighted Euclidean distance from profile to 12 archetype prototype vectors. MAX_DISTANCE = sqrt(12 * 2^2) = sqrt(48).",
+    "maxDistance": 6.928203230275509,
+    "blendedThresholdPct": 10,
+    "lowMatchThresholdPct": 55,
+    "distinctiveMatchCeiling": 72,
+    "distinctiveStddevFloor": 0.4
+  }
+}
