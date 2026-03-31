@@ -9,6 +9,7 @@ import { axes } from "@/data/axes";
 import { ComparisonRadar } from "@/components/comparison/ComparisonRadar";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { AlignmentScore } from "@/components/comparison/AlignmentScore";
+import { BudgetComparison } from "@/components/comparison/BudgetComparison";
 import { FadeInSection } from "@/components/FadeInSection";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import Link from "next/link";
@@ -90,7 +91,7 @@ function CompareResults() {
         axes.map((a) => [a.id, a])
       );
 
-      return { comparison, axisScoresA, axisScoresB, axisMap, encodedA, encodedB };
+      return { comparison, axisScoresA, axisScoresB, axisMap, encodedA, encodedB, budgetA: responsesA.budget, budgetB: responsesB.budget };
     } catch {
       return null;
     }
@@ -109,7 +110,7 @@ function CompareResults() {
     );
   }
 
-  const { comparison, axisScoresA, axisScoresB, axisMap } = data;
+  const { comparison, axisScoresA, axisScoresB, axisMap, budgetA, budgetB } = data;
 
   return (
     <main className="min-h-screen px-4 py-8 overflow-x-hidden">
@@ -222,6 +223,24 @@ function CompareResults() {
                 );
               })}
             </div>
+          </section>
+        </FadeInSection>
+
+        {/* Budget comparison */}
+        <FadeInSection delay={250}>
+          <section className="mt-10">
+            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+              Budget allocation
+            </h2>
+            <p className="text-xs font-serif italic text-text-tertiary mb-5">
+              How each of you funded the seven ministries out of 50 points.
+            </p>
+            <BudgetComparison
+              budgetA={budgetA}
+              budgetB={budgetB}
+              labelA="You"
+              labelB="Them"
+            />
           </section>
         </FadeInSection>
       </div>
