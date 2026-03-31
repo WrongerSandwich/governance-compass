@@ -254,7 +254,7 @@ export const forcedChoiceItems: ForcedChoiceItemData[] = [
     questionType: "PT",
     abstractionLevel: "P",
     headlineA:
-      "The right to choose is sacred, even if the people sometimes choose poorly",
+      "The freedom to elect your leaders is sacred, even when the people choose poorly",
     bodyA:
       "A government that was not chosen through fair, competitive elections is never fully legitimate, no matter how well it performs.",
     headlineB:

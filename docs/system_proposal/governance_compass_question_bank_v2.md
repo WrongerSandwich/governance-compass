@@ -364,7 +364,7 @@ Pole labels: Liberty ← → Security
 
 | | Person A | Person B |
 |---|---|---|
-| Headline | The right to choose is sacred, even if the people sometimes choose poorly | Results are what matter, regardless of how leaders were selected |
+| Headline | The freedom to elect your leaders is sacred, even when the people choose poorly | Results are what matter, regardless of how leaders were selected |
 | Body | A government that was not chosen through fair, competitive elections is never fully legitimate, no matter how well it performs. | A government that delivers prosperity, safety, and effective services is legitimate regardless of how its leaders were selected. |
 
 **FC-6.2 (I)**
