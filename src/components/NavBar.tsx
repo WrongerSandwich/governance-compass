@@ -23,9 +23,13 @@ export function NavBar() {
     }
   }, [pathname]);
 
-  function linkClasses(href: string): string {
+  const REFERENCE_PATHS = ["/references", "/axes", "/questions", "/archetypes"];
+
+  function linkClasses(href: string, alsoActive?: string[]): string {
     const isActive =
-      pathname === href || (href !== "/" && pathname.startsWith(href));
+      pathname === href ||
+      (href !== "/" && pathname.startsWith(href)) ||
+      (alsoActive?.some((p) => pathname === p || pathname.startsWith(p)) ?? false);
 
     const base =
       "py-2 text-sm transition-colors duration-150";
@@ -75,7 +79,7 @@ export function NavBar() {
           </Link>
           <Link
             href="/references"
-            className={linkClasses("/references")}
+            className={linkClasses("/references", REFERENCE_PATHS)}
             aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" || pathname === "/archetypes" ? "page" : undefined}
           >
             References
