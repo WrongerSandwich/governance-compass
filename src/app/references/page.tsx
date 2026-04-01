@@ -14,10 +14,10 @@ const PAGES = [
       "Every question in the assessment with scoring annotations showing which axis and pole each item maps to, including the Chancellor\u2019s Budget ministry-to-axis mappings.",
   },
   {
-    href: "/methodology",
-    title: "How the Governance Compass works",
+    href: "/archetypes",
+    title: "Governance archetypes",
     description:
-      "Three question formats, scoring pipeline, cross-cultural design choices, and the instrument\u2019s limitations.",
+      "The 12 archetype prototypes used to characterize your profile \u2014 their descriptions, characteristic tensions, and prototype vectors.",
   },
 ];
 

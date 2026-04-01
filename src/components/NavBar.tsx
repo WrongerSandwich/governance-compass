@@ -76,7 +76,7 @@ export function NavBar() {
           <Link
             href="/references"
             className={linkClasses("/references")}
-            aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" ? "page" : undefined}
+            aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" || pathname === "/archetypes" ? "page" : undefined}
           >
             References
           </Link>
