@@ -23,11 +23,27 @@ export default function ArchetypesPage() {
           degree of match, your second-nearest, and a description of each
           archetype&apos;s internal logic.
         </p>
-        <p className="text-sm text-text-secondary leading-relaxed mb-10">
+        <p className="text-sm text-text-secondary leading-relaxed mb-4">
           These prototypes are theoretically derived, not empirically clustered
           from response data. They serve as interpretive anchors, not statistical
           categories.
         </p>
+
+        {/* Spoiler notice */}
+        <div className="bg-surface-2 border-l-2 rounded-[8px] px-4 py-3 mb-10" style={{ borderLeftColor: "#85735e" }}>
+          <p className="text-sm text-text-secondary leading-relaxed">
+            Reading archetype descriptions before taking the assessment may
+            influence how you respond. If you haven&apos;t taken it yet, we
+            recommend{" "}
+            <Link
+              href="/quiz"
+              className="text-text-primary font-medium hover:text-text-secondary transition-colors duration-150"
+            >
+              completing it first
+            </Link>
+            .
+          </p>
+        </div>
 
         {/* Archetype nav */}
         <nav className="mb-10" aria-label="Archetype list">
