@@ -74,11 +74,11 @@ export function NavBar() {
             Methodology
           </Link>
           <Link
-            href="/axes"
-            className={linkClasses("/axes")}
-            aria-current={pathname === "/axes" ? "page" : undefined}
+            href="/references"
+            className={linkClasses("/references")}
+            aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" ? "page" : undefined}
           >
-            Axes
+            References
           </Link>
           {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>

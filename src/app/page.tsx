@@ -83,7 +83,7 @@ export default function Home() {
           <p className="text-xs text-text-tertiary">
             <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">Research-informed methodology</Link>
             {" "}&middot;{" "}
-            <Link href="/axes" className="hover:text-text-secondary transition-colors duration-150">12 axes explained</Link>
+            <Link href="/references" className="hover:text-text-secondary transition-colors duration-150">References</Link>
             {" "}&middot;{" "}
             Privacy-first &middot; No data sold
           </p>
