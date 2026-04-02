@@ -117,7 +117,6 @@ export default function ArchetypesPage() {
               className={`rounded-[8px] px-4 py-5 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
             >
               <div className="flex gap-3 mb-3">
-                <MiniRadar prototype={archetype.prototype} />
                 <div className="flex-1 min-w-0">
                   <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
                     <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
@@ -127,6 +126,7 @@ export default function ArchetypesPage() {
                     {archetype.description}
                   </p>
                 </div>
+                <MiniRadar prototype={archetype.prototype} />
               </div>
 
               {/* Characteristic tension */}
