@@ -66,7 +66,7 @@ export default function QuestionsPage() {
         </h1>
 
         {/* Spoiler notice */}
-        <div className="bg-surface-2 border-l-2 rounded-[8px] px-4 py-3 mb-8" style={{ borderLeftColor: "#85735e" }}>
+        <div className="border-l-2 rounded-[8px] px-4 py-3 mb-8" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
           <p className="text-sm text-text-secondary leading-relaxed">
             This page lists every question in the assessment and shows how each
             one maps to the scoring model. If you haven&apos;t taken the quiz

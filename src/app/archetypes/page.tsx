@@ -77,7 +77,7 @@ export default function ArchetypesPage() {
         </p>
 
         {/* Spoiler notice */}
-        <div className="bg-surface-2 border-l-2 rounded-[8px] px-4 py-3 mb-10" style={{ borderLeftColor: "#85735e" }}>
+        <div className="border-l-2 rounded-[8px] px-4 py-3 mb-10" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
           <p className="text-sm text-text-secondary leading-relaxed">
             Reading archetype descriptions before taking the assessment may
             influence how you respond. If you haven&apos;t taken it yet, we
