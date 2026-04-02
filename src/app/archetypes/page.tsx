@@ -47,13 +47,14 @@ export default function ArchetypesPage() {
 
         {/* Archetype nav */}
         <nav className="mb-10" aria-label="Archetype list">
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-            {sortedArchetypes.map((a) => (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-xs">
+            {sortedArchetypes.map((a, i) => (
               <a
                 key={a.id}
                 href={`#${a.id}`}
-                className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+                className="text-text-tertiary hover:text-text-secondary transition-colors duration-150 flex items-baseline gap-1.5"
               >
+                <span className="font-mono tabular-nums text-[10px] opacity-50">{i + 1}</span>
                 {a.name.replace("The ", "")}
               </a>
             ))}
@@ -61,10 +62,15 @@ export default function ArchetypesPage() {
         </nav>
 
         {/* Archetype entries */}
-        <div className="space-y-10">
-          {sortedArchetypes.map((archetype) => (
-            <section key={archetype.id} id={archetype.id}>
+        <div className="space-y-2">
+          {sortedArchetypes.map((archetype, i) => (
+            <section
+              key={archetype.id}
+              id={archetype.id}
+              className={`rounded-[8px] px-4 py-5 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
+            >
               <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
+                <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
                 {archetype.name}
               </h2>
               <p className="text-sm text-text-secondary leading-relaxed mb-3">
@@ -74,7 +80,7 @@ export default function ArchetypesPage() {
               {/* Characteristic tension */}
               <div className="border-l-2 border-border-secondary pl-3 mb-4">
                 <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-                  Characteristic tension
+                  Internal tension
                 </p>
                 <p className="text-xs text-text-tertiary leading-relaxed">
                   {archetype.characteristicTension}
@@ -84,55 +90,54 @@ export default function ArchetypesPage() {
               {/* Prototype vector */}
               <details className="group">
                 <summary className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
-                  Prototype vector
+                  Axis positions
                 </summary>
-                <div className="mt-2 space-y-0.5">
-                  {archetype.prototype.map((value, i) => {
-                    const axis = axes.find((a) => a.id === i + 1)!;
-                    const poleLabel =
-                      value < 0
-                        ? axis.poleALabel
-                        : value > 0
-                          ? axis.poleBLabel
-                          : "Neutral";
+                <div className="mt-2 space-y-1">
+                  {archetype.prototype.map((value, idx) => {
+                    const axis = axes.find((a) => a.id === idx + 1)!;
                     return (
-                      <div key={axis.id} className="flex items-center gap-2">
-                        <span className="w-36 shrink-0 text-xs text-text-secondary truncate">
-                          {axis.name}
-                        </span>
-                        {/* Bar */}
-                        <div className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
-                          style={{ backgroundColor: "var(--border-secondary)" }}
-                        >
-                          {value !== 0 && (
-                            <div
-                              className="absolute top-0 h-full rounded-[3px]"
-                              style={{
-                                backgroundColor: "var(--stone-600)",
-                                opacity: 0.4,
-                                left: value < 0 ? `${50 + value * 50}%` : "50%",
-                                width: `${Math.abs(value) * 50}%`,
-                              }}
-                            />
-                          )}
-                          {/* Center line */}
-                          <div
-                            className="absolute top-0 h-full"
-                            style={{
-                              left: "50%",
-                              width: "1px",
-                              backgroundColor: "var(--border-primary)",
-                            }}
-                          />
-                        </div>
-                        <span className="w-20 shrink-0 text-right">
+                      <div key={axis.id}>
+                        <div className="flex items-baseline justify-between mb-0.5">
+                          <span className="text-xs text-text-secondary">
+                            {axis.name}
+                          </span>
                           <span className="text-[11px] font-mono text-text-tertiary tabular-nums">
                             {value > 0 ? "+" : ""}{value.toFixed(1)}
                           </span>
-                          <span className="text-[10px] text-text-tertiary ml-1 hidden min-[480px]:inline">
-                            {poleLabel}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[10px] text-text-tertiary text-right truncate">
+                            {axis.poleALabel.split(" ")[0]}
                           </span>
-                        </span>
+                          {/* Bar */}
+                          <div className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
+                            style={{ backgroundColor: "var(--border-secondary)" }}
+                          >
+                            {value !== 0 && (
+                              <div
+                                className="absolute top-0 h-full rounded-[3px]"
+                                style={{
+                                  backgroundColor: "var(--stone-600)",
+                                  opacity: 0.4,
+                                  left: value < 0 ? `${50 + value * 50}%` : "50%",
+                                  width: `${Math.abs(value) * 50}%`,
+                                }}
+                              />
+                            )}
+                            {/* Center line */}
+                            <div
+                              className="absolute top-0 h-full"
+                              style={{
+                                left: "50%",
+                                width: "1px",
+                                backgroundColor: "var(--border-primary)",
+                              }}
+                            />
+                          </div>
+                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[10px] text-text-tertiary truncate">
+                            {axis.poleBLabel.split(" ")[0]}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}
