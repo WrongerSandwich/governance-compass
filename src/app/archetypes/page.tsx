@@ -2,6 +2,53 @@ import Link from "next/link";
 import { archetypes } from "@/data/archetypes";
 import { axes } from "@/data/axes";
 
+const RADAR_SIZE = 56;
+const RADAR_CX = RADAR_SIZE / 2;
+const RADAR_CY = RADAR_SIZE / 2;
+const RADAR_R = 22;
+const AXIS_COUNT = 12;
+
+function radarPoints(prototype: number[]): string {
+  return prototype
+    .map((score, i) => {
+      const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
+      const r = ((score + 1) / 2) * RADAR_R;
+      return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
+    })
+    .join(" ");
+}
+
+function MiniRadar({ prototype }: { prototype: number[] }) {
+  return (
+    <svg
+      viewBox={`0 0 ${RADAR_SIZE} ${RADAR_SIZE}`}
+      className="w-14 h-14 shrink-0"
+      aria-hidden="true"
+    >
+      {/* Outer ring */}
+      <polygon
+        points={Array.from({ length: AXIS_COUNT }, (_, i) => {
+          const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
+          return `${RADAR_CX + RADAR_R * Math.cos(angle)},${RADAR_CY + RADAR_R * Math.sin(angle)}`;
+        }).join(" ")}
+        fill="none"
+        style={{ stroke: "var(--border-secondary)" }}
+        strokeWidth={0.5}
+        opacity={0.5}
+      />
+      {/* Prototype shape */}
+      <polygon
+        points={radarPoints(prototype)}
+        style={{ fill: "var(--stone-600)", stroke: "var(--stone-600)" }}
+        fillOpacity={0.12}
+        strokeOpacity={0.5}
+        strokeWidth={1}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function ArchetypesPage() {
   const sortedArchetypes = [...archetypes].sort(
     (a, b) => a.displayOrder - b.displayOrder
@@ -69,13 +116,18 @@ export default function ArchetypesPage() {
               id={archetype.id}
               className={`rounded-[8px] px-4 py-5 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
             >
-              <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
-                <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
-                {archetype.name}
-              </h2>
-              <p className="text-sm text-text-secondary leading-relaxed mb-3">
-                {archetype.description}
-              </p>
+              <div className="flex gap-3 mb-3">
+                <MiniRadar prototype={archetype.prototype} />
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
+                    <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
+                    {archetype.name}
+                  </h2>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    {archetype.description}
+                  </p>
+                </div>
+              </div>
 
               {/* Characteristic tension */}
               <div className="border-l-2 border-border-secondary pl-3 mb-4">
