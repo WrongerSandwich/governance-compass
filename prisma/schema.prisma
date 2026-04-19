@@ -81,6 +81,7 @@ model Axis {
   name              String                // e.g., "Economic Model"
   poleALabel        String                // e.g., "Collective Provision"
   poleBLabel        String                // e.g., "Market Allocation"
+  tagline           String                // e.g., "How much should the state shape economic outcomes?"
   domain            String                // e.g., "Economic Organization"
   domainOrder       Int                   // ordering within domain
   order             Int                   // global display order 1-12
