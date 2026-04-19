@@ -150,6 +150,7 @@ model Archetype {
   summary               String
   description           String
   characteristicTension String
+  traditions            String  // Markdown prose with inline external links
   prototype             Float[] // 12-element array, axis scores -1.0 to +1.0
   displayOrder          Int
   emergence             String  // "empirical" | "refined" | "theoretical"

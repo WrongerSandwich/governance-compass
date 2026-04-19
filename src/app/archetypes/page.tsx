@@ -1,11 +1,51 @@
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import {
   archetypes,
   EMERGENCE_LABELS,
   EMERGENCE_TOOLTIPS,
+  TRADITIONS_INTRO,
   type ArchetypeEmergence,
 } from "@/data/archetypes";
 import { axes } from "@/data/axes";
+import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
+
+function TraditionsSection({ traditions }: { traditions: string }) {
+  return (
+    <div className="mb-4">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
+        Traditions
+      </p>
+      <p className="text-xs text-text-tertiary leading-relaxed mb-2 italic">
+        {TRADITIONS_INTRO}
+      </p>
+      <div className="text-xs text-text-secondary leading-relaxed">
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p>{children}</p>,
+            a: ({ href, children, ...rest }) => {
+              if (href && isExternalHref(href)) {
+                return (
+                  <ExternalLink href={href} {...rest}>
+                    {children}
+                  </ExternalLink>
+                );
+              }
+              return (
+                <a href={href} {...rest}>
+                  {children}
+                </a>
+              );
+            },
+            em: ({ children }) => <em className="italic">{children}</em>,
+          }}
+        >
+          {traditions}
+        </ReactMarkdown>
+      </div>
+    </div>
+  );
+}
 
 const EMERGENCE_BADGE_STYLES: Record<
   ArchetypeEmergence,
@@ -182,6 +222,9 @@ export default function ArchetypesPage() {
                   {archetype.characteristicTension}
                 </p>
               </div>
+
+              {/* Traditions */}
+              <TraditionsSection traditions={archetype.traditions} />
 
               {/* Prototype vector */}
               <details className="group">
