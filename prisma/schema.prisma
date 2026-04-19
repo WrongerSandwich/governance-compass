@@ -144,13 +144,14 @@ model MinistryAxisMapping {
 }
 
 model Archetype {
-  id                    String  @id                       // e.g., "civic-institutionalist"
-  name                  String                            // e.g., "The Civic Institutionalist"
+  id                    String  @id                       // e.g., "institutional-moderate"
+  name                  String                            // e.g., "The Institutional Moderate"
   summary               String
   description           String
   characteristicTension String
   prototype             Float[] // 12-element array, axis scores -1.0 to +1.0
   displayOrder          Int
+  emergence             String  // "empirical" | "refined" | "theoretical"
 }
 
 model ForcedChoiceResponse {

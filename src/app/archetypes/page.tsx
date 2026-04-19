@@ -1,6 +1,45 @@
 import Link from "next/link";
-import { archetypes } from "@/data/archetypes";
+import {
+  archetypes,
+  EMERGENCE_LABELS,
+  EMERGENCE_TOOLTIPS,
+  type ArchetypeEmergence,
+} from "@/data/archetypes";
 import { axes } from "@/data/axes";
+
+const EMERGENCE_BADGE_STYLES: Record<
+  ArchetypeEmergence,
+  { backgroundColor: string; color: string; borderColor: string }
+> = {
+  empirical: {
+    backgroundColor: "rgba(133, 115, 94, 0.16)",
+    color: "var(--stone-700)",
+    borderColor: "rgba(133, 115, 94, 0.4)",
+  },
+  refined: {
+    backgroundColor: "rgba(133, 115, 94, 0.08)",
+    color: "var(--stone-600)",
+    borderColor: "rgba(133, 115, 94, 0.25)",
+  },
+  theoretical: {
+    backgroundColor: "transparent",
+    color: "var(--text-tertiary)",
+    borderColor: "var(--border-secondary)",
+  },
+};
+
+function EmergenceBadge({ emergence }: { emergence: ArchetypeEmergence }) {
+  const style = EMERGENCE_BADGE_STYLES[emergence];
+  return (
+    <span
+      title={EMERGENCE_TOOLTIPS[emergence]}
+      className="inline-flex items-center text-[10px] uppercase tracking-[0.08em] font-medium rounded-[3px] px-1.5 py-0.5 border whitespace-nowrap cursor-help"
+      style={style}
+    >
+      {EMERGENCE_LABELS[emergence]}
+    </span>
+  );
+}
 
 const RADAR_SIZE = 56;
 const RADAR_CX = RADAR_SIZE / 2;
@@ -71,9 +110,11 @@ export default function ArchetypesPage() {
           archetype&apos;s internal logic.
         </p>
         <p className="text-sm text-text-secondary leading-relaxed mb-4">
-          These prototypes are theoretically derived, not empirically clustered
-          from response data. They serve as interpretive anchors, not statistical
-          categories.
+          Most prototypes are theoretically derived from comparative political
+          philosophy. A subset have been refined toward — or in one case
+          identified directly from — empirical clusters surfaced in an April
+          2026 synthetic population study. A small tag on each archetype
+          indicates its provenance.
         </p>
 
         {/* Spoiler notice */}
@@ -122,6 +163,9 @@ export default function ArchetypesPage() {
                     <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
                     {archetype.name}
                   </h2>
+                  <div className="mb-2">
+                    <EmergenceBadge emergence={archetype.emergence} />
+                  </div>
                   <p className="text-sm text-text-secondary leading-relaxed">
                     {archetype.description}
                   </p>

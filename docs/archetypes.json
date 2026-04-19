@@ -1,101 +1,197 @@
 [
   {
-    "id": "civic-institutionalist",
-    "name": "The Civic Institutionalist",
-    "summary": "Believes in democratic process above all. Favors moderate redistribution, distributed governance, and strong civil liberties.",
-    "description": "Believes in democratic process above all. Favors moderate redistribution, distributed governance, and strong civil liberties. Trusts institutions and expertise but insists they be democratically accountable. Moderate on cultural issues, neither strongly progressive nor traditional. Cautiously internationalist.",
-    "characteristicTension": "Commitment to democratic process can conflict with trust in institutional expertise when popular will produces policy that experts consider harmful.",
+    "id": "radical-egalitarian",
+    "name": "The Radical Egalitarian",
+    "emergence": "refined",
+    "summary": "Deeply committed to equality, progressive transformation, and cosmopolitan pluralism. Favors collective provision, distributed governance, and expansive civil liberties. Internationalist, non-interventionist, ecologically minded.",
+    "description": "Deeply committed to economic equality, progressive social transformation, and cosmopolitan pluralism. Favors strong collective provision, distributed governance, and expansive civil liberties. Internationalist in orientation and non-interventionist in practice. Sees most social hierarchies as constructed and unjust, and believes policy can and should dismantle them. Ecologically minded and precautionary toward technology that concentrates power or disrupts human relationships. More at home in cosmopolitan cities and diaspora networks than in nationally bounded political communities.",
+    "characteristicTension": "Transformative egalitarian goals often require concentrated state power to implement, conflicting with commitments to distributed governance and individual liberty.",
     "prototype": [
       {
         "axisId": 1,
         "axisName": "Economic Model",
         "poleA": "Collective Provision",
         "poleB": "Market Allocation",
-        "value": -0.3
+        "value": -0.85
       },
       {
         "axisId": 2,
         "axisName": "Environmental Policy",
         "poleA": "Ecological Limits",
         "poleB": "Growth Imperative",
-        "value": -0.2
+        "value": -0.45
       },
       {
         "axisId": 3,
         "axisName": "Governance Structure",
         "poleA": "Distributed Governance",
         "poleB": "Centralized Governance",
-        "value": -0.3
+        "value": -0.45
       },
       {
         "axisId": 4,
         "axisName": "Decision Authority",
         "poleA": "Popular Sovereignty",
         "poleB": "Institutional Authority",
-        "value": 0.3
+        "value": -0.2
       },
       {
         "axisId": 5,
         "axisName": "Rights Balance",
         "poleA": "Liberty",
         "poleB": "Security",
-        "value": -0.5
+        "value": -0.55
       },
       {
         "axisId": 6,
         "axisName": "Legitimacy Basis",
         "poleA": "Electoral Process",
         "poleB": "Performance Outcomes",
-        "value": -0.7
+        "value": -0.55
       },
       {
         "axisId": 7,
         "axisName": "Social Change",
         "poleA": "Progressive Change",
         "poleB": "Continuity and Tradition",
-        "value": -0.2
+        "value": -0.7
       },
       {
         "axisId": 8,
         "axisName": "Cultural Diversity",
         "poleA": "Pluralism",
         "poleB": "Cohesion",
-        "value": 0
+        "value": -0.6
       },
       {
         "axisId": 9,
         "axisName": "Human Nature",
         "poleA": "Constructivism",
         "poleB": "Essentialism",
-        "value": 0
+        "value": -0.75
       },
       {
         "axisId": 10,
         "axisName": "International Engagement",
         "poleA": "Internationalism",
         "poleB": "Sovereignty",
-        "value": -0.3
+        "value": -0.45
       },
       {
         "axisId": 11,
         "axisName": "Military Policy",
         "poleA": "Non-Interventionism",
         "poleB": "Interventionism",
-        "value": 0
+        "value": -0.6
       },
       {
         "axisId": 12,
         "axisName": "Technology Governance",
         "poleA": "Precautionary",
         "poleB": "Innovation-First",
-        "value": 0
+        "value": -0.4
+      }
+    ]
+  },
+  {
+    "id": "popular-egalitarian",
+    "name": "The Popular Egalitarian",
+    "emergence": "empirical",
+    "summary": "Material equality grounded in popular self-determination rather than expert coordination. Favors redistribution and collective provision within a growth-oriented, nationally autonomous frame. Distrusts elites, experts, and international institutions in equal measure.",
+    "description": "Believes material equality is the foundation of freedom, and that ordinary people — not experts, elites, or international institutions — should determine how their society is organized. Strongly favors collective provision and redistribution, but grounded in a developmentalist rather than post-growth frame: prosperity is the goal, and the state's job is to spread it broadly rather than hoard it at the top. Skeptical of concentrated power in all its forms — domestic oligarchies, foreign capital, and international bodies that set terms without accountability. Moderately pluralist and cautiously progressive, but not driven by cultural transformation; dignity and self-determination matter more than identity politics. Non-interventionist abroad. Sees sovereignty and equality as complementary: a people cannot be equal among themselves if they are not free as a nation.",
+    "characteristicTension": "Universalist egalitarian commitments — every person deserves dignity, every society deserves self-determination — sit alongside a sovereigntist resistance to the international coordination that would be needed to make those commitments real at scale. Solidarity is demanded at home and declined abroad.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": -0.7
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.4
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": -0.5
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": -0.35
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": -0.55
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": -0.45
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": -0.4
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": -0.2
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": -0.5
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.25
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": -0.7
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": -0.35
       }
     ]
   },
   {
     "id": "social-democrat",
     "name": "The Social Democrat",
-    "summary": "Strongly favors collective provision, redistribution, and public services within a democratic framework.",
+    "emergence": "theoretical",
+    "summary": "Strongly favors collective provision, public services, and redistribution within a democratic framework. Progressive on cultural issues, moderately pluralist, constructivist. Internationalist but not radically so; trusts institutions to implement an egalitarian agenda.",
     "description": "Strongly favors collective provision, redistribution, and public services within a democratic framework. Progressive on cultural issues, moderately pluralist, leans constructivist. Internationalist but not radically so. Trusts institutions and expertise to implement an egalitarian agenda. Moderate on governance structure.",
     "characteristicTension": "Desire for comprehensive public services requires centralized state capacity, which can conflict with progressive commitments to distributed power and individual autonomy.",
     "prototype": [
@@ -186,753 +282,10 @@
     ]
   },
   {
-    "id": "free-marketeer",
-    "name": "The Free Marketeer",
-    "summary": "Strongly favors market allocation, economic growth, and individual economic liberty.",
-    "description": "Strongly favors market allocation, economic growth, and individual economic liberty. Skeptical of state intervention in the economy. Strongly pro-innovation. Distributed governance as a check on state power. Moderate to neutral on cultural issues — economics is the primary lens. Leans slightly toward sovereignty over internationalism.",
-    "characteristicTension": "Belief in individual liberty can conflict with acceptance of the corporate power that unregulated markets produce — market dominance is its own form of centralized authority.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0.8
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.5
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": -0.3
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": 0
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": -0.6
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": -0.3
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": 0
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.2
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.2
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": 0
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": 0.6
-      }
-    ]
-  },
-  {
-    "id": "communitarian-steward",
-    "name": "The Communitarian Steward",
-    "summary": "Envisions small-scale, rooted, sustainable communities with local self-determination.",
-    "description": "Envisions small-scale, rooted, sustainable communities. Favors ecological limits, distributed governance, and local self-determination. Culturally traditional and values social cohesion, but skeptical of centralized state power. Populist — trusts community wisdom over expert authority. Non-interventionist and precautionary toward technology. Moderate on economics — not strongly market or collectivist, but oriented toward local sufficiency.",
-    "characteristicTension": "Commitment to local autonomy can conflict with desire for cultural cohesion when different communities develop in divergent directions.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": -0.4
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": -0.8
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": -0.7
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": -0.5
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": -0.2
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": -0.3
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": 0.5
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0.4
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.3
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.3
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": -0.6
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": -0.5
-      }
-    ]
-  },
-  {
-    "id": "cosmopolitan-technologist",
-    "name": "The Cosmopolitan Technologist",
-    "summary": "Believes global coordination and technological progress can solve most problems.",
-    "description": "Believes global coordination and technological progress can solve most problems. Strongly internationalist, pro-innovation, progressive, and pluralist. Trusts expert institutions and favors some centralization for coordination. Moderately market-oriented but comfortable with state investment in research and infrastructure. Leans constructivist.",
-    "characteristicTension": "Faith in expert governance can conflict with progressive values when technocratic recommendations cut against cultural inclusivity or individual autonomy.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0.2
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.4
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": 0.2
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": 0.6
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": -0.2
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": -0.3
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": -0.6
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": -0.5
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": -0.4
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": -0.8
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": 0.2
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": 0.8
-      }
-    ]
-  },
-  {
-    "id": "developmental-modernizer",
-    "name": "The Developmental Modernizer",
-    "summary": "Favors strong centralized state capacity directed toward rapid modernization.",
-    "description": "Favors strong centralized state capacity directed toward rapid modernization. Pro-growth, pro-innovation, performance-legitimacy oriented. Comfortable with security over liberty tradeoffs in service of development. Culturally moderate — modernization is the priority, not cultural reform per se. Slightly interventionist and sovereignty-oriented. Trusts institutional expertise over popular input.",
-    "characteristicTension": "Performance-based legitimacy works while performance is strong — this archetype has no stable fallback when the developmental model hits limits or fails to deliver.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0.3
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.7
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": 0.7
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": 0.7
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": 0.4
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": 0.6
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": 0
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0.3
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.2
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.2
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": 0.3
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": 0.7
-      }
-    ]
-  },
-  {
-    "id": "authoritarian-traditionalist",
-    "name": "The Authoritarian Traditionalist",
-    "summary": "Favors strong centralized authority, cultural cohesion, traditional values, and robust security.",
-    "description": "Favors strong centralized authority, cultural cohesion, traditional values, and robust security. Essentialist view of human nature. Performance-legitimacy oriented — distrustful of democratic process as chaotic and corrosive to social order. Moderately interventionist and sovereignty-focused. Somewhat precautionary toward technology that disrupts social structures. Populist in rhetoric (claims to speak for \"the people\") but favors institutional authority in practice. Neutral to moderate on economics.",
-    "characteristicTension": "Claims to represent ordinary people's values while concentrating power in ways that limit ordinary people's agency.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.3
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": 0.8
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": -0.3
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": 0.8
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": 0.7
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": 0.9
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0.8
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.8
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.6
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": 0.4
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": -0.2
-      }
-    ]
-  },
-  {
-    "id": "radical-egalitarian",
-    "name": "The Radical Egalitarian",
-    "summary": "Deeply committed to economic equality, progressive social change, and constructivist transformation.",
-    "description": "Deeply committed to economic equality, progressive social change, and constructivist transformation of society. Favors strong collective provision, distributed governance, and robust democratic process. Internationalist and non-interventionist. Somewhat precautionary. Sees most social hierarchies as constructed and unjust, and believes policy can and should dismantle them.",
-    "characteristicTension": "Transformative egalitarian goals often require concentrated state power to implement, conflicting with commitments to distributed governance and individual liberty.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": -0.9
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": -0.5
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": -0.5
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": -0.4
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": -0.3
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": -0.5
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": -0.8
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": -0.5
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": -0.8
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": -0.5
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": -0.5
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": -0.3
-      }
-    ]
-  },
-  {
-    "id": "libertarian-individualist",
-    "name": "The Libertarian Individualist",
-    "summary": "Individual liberty is the paramount value. Deeply skeptical of state power in all forms.",
-    "description": "Individual liberty is the paramount value. Deeply skeptical of state power in all forms — economic, security, cultural. Favors market allocation, distributed governance, minimal law enforcement, and strong constitutional constraints. Pro-innovation but wary of government-directed technology. Non-interventionist. Neutral to slightly progressive on cultural issues — not deeply invested in social transformation, but opposed to the state enforcing traditional norms. Slightly essentialist — skeptical of social engineering.",
-    "characteristicTension": "Radical decentralization and minimal state capacity can leave individuals vulnerable to private concentrations of power that function much like the state authority they oppose.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0.6
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.3
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": -0.7
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": -0.4
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": -0.9
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": -0.4
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": -0.2
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.2
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.3
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": -0.5
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": 0.5
-      }
-    ]
-  },
-  {
-    "id": "nationalist-populist",
-    "name": "The Nationalist Populist",
-    "summary": "Strongly sovereignty-oriented and culturally cohesive, trusts ordinary people over elites.",
-    "description": "Strongly sovereignty-oriented and culturally cohesive. Deeply skeptical of both international institutions and domestic elites — trusts the common sense of ordinary people over credentialed expertise. Favors cultural assimilation and traditional values. Moderate on economics — not ideologically committed to either markets or redistribution, but oriented toward whatever serves the national working population. Somewhat security-oriented. Moderately interventionist when national interests are at stake.",
-    "characteristicTension": "Anti-elite populism coexists with support for strong state authority, requiring trust in leaders who claim to embody the people's will rather than institutional checks.",
-    "prototype": [
-      {
-        "axisId": 1,
-        "axisName": "Economic Model",
-        "poleA": "Collective Provision",
-        "poleB": "Market Allocation",
-        "value": 0
-      },
-      {
-        "axisId": 2,
-        "axisName": "Environmental Policy",
-        "poleA": "Ecological Limits",
-        "poleB": "Growth Imperative",
-        "value": 0.3
-      },
-      {
-        "axisId": 3,
-        "axisName": "Governance Structure",
-        "poleA": "Distributed Governance",
-        "poleB": "Centralized Governance",
-        "value": 0.3
-      },
-      {
-        "axisId": 4,
-        "axisName": "Decision Authority",
-        "poleA": "Popular Sovereignty",
-        "poleB": "Institutional Authority",
-        "value": -0.7
-      },
-      {
-        "axisId": 5,
-        "axisName": "Rights Balance",
-        "poleA": "Liberty",
-        "poleB": "Security",
-        "value": 0.4
-      },
-      {
-        "axisId": 6,
-        "axisName": "Legitimacy Basis",
-        "poleA": "Electoral Process",
-        "poleB": "Performance Outcomes",
-        "value": 0.3
-      },
-      {
-        "axisId": 7,
-        "axisName": "Social Change",
-        "poleA": "Progressive Change",
-        "poleB": "Continuity and Tradition",
-        "value": 0.5
-      },
-      {
-        "axisId": 8,
-        "axisName": "Cultural Diversity",
-        "poleA": "Pluralism",
-        "poleB": "Cohesion",
-        "value": 0.8
-      },
-      {
-        "axisId": 9,
-        "axisName": "Human Nature",
-        "poleA": "Constructivism",
-        "poleB": "Essentialism",
-        "value": 0.5
-      },
-      {
-        "axisId": 10,
-        "axisName": "International Engagement",
-        "poleA": "Internationalism",
-        "poleB": "Sovereignty",
-        "value": 0.8
-      },
-      {
-        "axisId": 11,
-        "axisName": "Military Policy",
-        "poleA": "Non-Interventionism",
-        "poleB": "Interventionism",
-        "value": 0.2
-      },
-      {
-        "axisId": 12,
-        "axisName": "Technology Governance",
-        "poleA": "Precautionary",
-        "poleB": "Innovation-First",
-        "value": 0
-      }
-    ]
-  },
-  {
     "id": "green-communalist",
     "name": "The Green Communalist",
-    "summary": "Ecological sustainability is the organizing principle with radical decentralization.",
+    "emergence": "theoretical",
+    "summary": "Ecological sustainability as the organizing principle of politics. Favors degrowth or post-growth economics, radical decentralization, and local self-sufficiency. Skeptical of both state and market; internationalist in sympathy, localist in practice.",
     "description": "Ecological sustainability is the organizing principle. Favors degrowth or post-growth economics, radical decentralization, local self-sufficiency, and collective provision at the community level. Non-interventionist, precautionary toward technology, and moderately progressive. Skeptical of both state and market as drivers of ecological destruction. Internationalist in sympathy but localist in practice.",
     "characteristicTension": "Ecological goals at planetary scale require coordination that conflicts with deep commitment to local autonomy and anti-centralization.",
     "prototype": [
@@ -1023,81 +376,646 @@
     ]
   },
   {
-    "id": "pragmatic-centrist",
-    "name": "The Pragmatic Centrist",
-    "summary": "Sits near the midpoint on most axes, reflecting genuine moderation or contextual judgment.",
-    "description": "Sits near the midpoint on most or all axes. This may reflect genuine moderation — a considered view that most governance questions require balance and context rather than strong ideological commitments. It may also reflect low engagement or indecision. The archetype description should acknowledge both possibilities.",
-    "characteristicTension": "Pragmatic balance can be mistaken for — or can actually be — an absence of strong convictions. This archetype is defined by what it doesn't strongly favor, which can make it feel less like a worldview and more like a default.",
+    "id": "communitarian-steward",
+    "name": "The Communitarian Steward",
+    "emergence": "refined",
+    "summary": "Envisions small-scale, rooted communities shaped by tradition and local self-determination. Favors ecological limits, distributed governance, and cultural continuity. Non-interventionist and cautious about technology that disrupts community life.",
+    "description": "Envisions small-scale, rooted, sustainable communities shaped by tradition and local self-determination. Favors ecological limits, distributed governance, and the preservation of inherited ways of life. Skeptical of centralized state power and of technology that erodes communal relationships. Populist in register — trusts community wisdom and elders over expert authority. Non-interventionist abroad and cautiously sovereigntist. The commitment is to communal integrity rather than to uniform national culture: the archetype protects each community's right to remain itself, which often means defending pluralism at the national or international scale while valuing cohesion within the community.",
+    "characteristicTension": "Commitment to local autonomy means accepting that different communities will develop in directions the archetype itself disagrees with. Defense of one's own tradition and openness to others' traditions depend on the same principle but can be hard to hold together in practice.",
     "prototype": [
       {
         "axisId": 1,
         "axisName": "Economic Model",
         "poleA": "Collective Provision",
         "poleB": "Market Allocation",
-        "value": 0.1
+        "value": -0.55
       },
       {
         "axisId": 2,
         "axisName": "Environmental Policy",
         "poleA": "Ecological Limits",
         "poleB": "Growth Imperative",
-        "value": 0.1
+        "value": -0.65
       },
       {
         "axisId": 3,
         "axisName": "Governance Structure",
         "poleA": "Distributed Governance",
         "poleB": "Centralized Governance",
-        "value": 0.1
+        "value": -0.75
       },
       {
         "axisId": 4,
         "axisName": "Decision Authority",
         "poleA": "Popular Sovereignty",
         "poleB": "Institutional Authority",
-        "value": 0.15
+        "value": -0.6
       },
       {
         "axisId": 5,
         "axisName": "Rights Balance",
         "poleA": "Liberty",
         "poleB": "Security",
-        "value": 0.05
+        "value": -0.4
       },
       {
         "axisId": 6,
         "axisName": "Legitimacy Basis",
         "poleA": "Electoral Process",
         "poleB": "Performance Outcomes",
-        "value": -0.1
+        "value": -0.25
       },
       {
         "axisId": 7,
         "axisName": "Social Change",
         "poleA": "Progressive Change",
         "poleB": "Continuity and Tradition",
-        "value": 0.1
+        "value": 0.6
       },
       {
         "axisId": 8,
         "axisName": "Cultural Diversity",
         "poleA": "Pluralism",
         "poleB": "Cohesion",
-        "value": 0.1
+        "value": 0.15
       },
       {
         "axisId": 9,
         "axisName": "Human Nature",
         "poleA": "Constructivism",
         "poleB": "Essentialism",
-        "value": 0.05
+        "value": 0.3
       },
       {
         "axisId": 10,
         "axisName": "International Engagement",
         "poleA": "Internationalism",
         "poleB": "Sovereignty",
+        "value": 0.4
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": -0.7
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": -0.6
+      }
+    ]
+  },
+  {
+    "id": "institutional-moderate",
+    "name": "The Institutional Moderate",
+    "emergence": "refined",
+    "summary": "Trusts institutions, expertise, and process. Favors measured progress and growth-oriented policy over radical reform in any direction. Internationalist in sympathy, pragmatic about national constraints.",
+    "description": "Trusts institutions, expertise, and process as the foundations of good governance. Favors measured progress over radical transformation — progressive in general orientation, but skeptical of disruptive change from any direction. Prefers growth-oriented policy and targeted public investment to either market purism or sweeping redistribution. Internationalist in sympathy but pragmatic about national constraints. Comfortable with moderate centralization when it improves coordination and accountability. Less a defined ideology than a governing instinct: that competent, accountable administration is what democracy is actually for.",
+    "characteristicTension": "Commitment to competent administration can shade into technocratic paternalism — valuing outcomes legitimately produced by institutions over outcomes directly endorsed by voters. Tends to mistake proceduralism for democratic responsiveness.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": -0.3
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.5
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": 0.4
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": 0.55
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": -0.25
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": -0.35
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": -0.5
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0.25
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": -0.2
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": -0.15
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": -0.25
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
         "value": -0.1
+      }
+    ]
+  },
+  {
+    "id": "cosmopolitan-technologist",
+    "name": "The Cosmopolitan Technologist",
+    "emergence": "theoretical",
+    "summary": "Believes global coordination and technological progress can address most governance problems. Strongly internationalist, pro-innovation, progressive, and pluralist. Trusts expert institutions and favors coordination-oriented centralization.",
+    "description": "Believes global coordination and technological progress can solve most problems. Strongly internationalist, pro-innovation, progressive, and pluralist. Trusts expert institutions and favors some centralization for coordination. Moderately market-oriented but comfortable with state investment in research and infrastructure. Leans constructivist.",
+    "characteristicTension": "Faith in expert governance can conflict with progressive values when technocratic recommendations cut against cultural inclusivity or individual autonomy.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": 0.2
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.4
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": 0.2
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": 0.6
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": -0.2
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": -0.3
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": -0.6
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": -0.5
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": -0.4
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": -0.8
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": 0.2
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "id": "free-marketeer",
+    "name": "The Free Marketeer",
+    "emergence": "theoretical",
+    "summary": "Strongly favors market allocation, economic growth, and individual economic liberty. Skeptical of state intervention and strongly pro-innovation. Treats distributed governance as a check on state power.",
+    "description": "Strongly favors market allocation, economic growth, and individual economic liberty. Skeptical of state intervention in the economy. Strongly pro-innovation. Distributed governance as a check on state power. Moderate to neutral on cultural issues — economics is the primary lens. Leans slightly toward sovereignty over internationalism.",
+    "characteristicTension": "Belief in individual liberty can conflict with acceptance of the corporate power that unregulated markets produce — market dominance is its own form of centralized authority.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": 0.8
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.5
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": -0.3
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": 0
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": -0.6
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": -0.3
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": 0
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": 0.2
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.2
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": 0
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": 0.6
+      }
+    ]
+  },
+  {
+    "id": "libertarian-individualist",
+    "name": "The Libertarian Individualist",
+    "emergence": "theoretical",
+    "summary": "Individual liberty as the paramount value. Deeply skeptical of state power in all its forms — economic, security, and cultural. Favors markets, distributed governance, and minimal state. Non-interventionist abroad.",
+    "description": "Individual liberty is the paramount value. Deeply skeptical of state power in all forms — economic, security, cultural. Favors market allocation, distributed governance, minimal law enforcement, and strong constitutional constraints. Pro-innovation but wary of government-directed technology. Non-interventionist. Neutral to slightly progressive on cultural issues — not deeply invested in social transformation, but opposed to the state enforcing traditional norms. Slightly essentialist — skeptical of social engineering.",
+    "characteristicTension": "Radical decentralization and minimal state capacity can leave individuals vulnerable to private concentrations of power that function much like the state authority they oppose.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": 0.6
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.3
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": -0.7
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": -0.4
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": -0.9
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": -0.4
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": -0.2
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": 0.2
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.3
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": -0.5
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "id": "developmental-modernizer",
+    "name": "The Developmental Modernizer",
+    "emergence": "refined",
+    "summary": "Favors strong centralized state capacity directed toward rapid modernization and national ascent. Pro-growth, security-forward, performance-legitimacy oriented. Uses technology instrumentally and trusts institutional expertise over popular input.",
+    "description": "Favors strong centralized state capacity directed toward rapid modernization and national ascent. Pro-growth, performance-legitimacy oriented, and security-forward. Comfortable with liberty-for-security tradeoffs in service of development and with cultural cohesion in service of social stability. Sovereignty-oriented — sees international institutions as constraints on national trajectories rather than as sources of legitimacy. Uses technology instrumentally rather than ideologically, adopting what works and regulating what threatens social order. Trusts institutional expertise and long-horizon state planning over popular input.",
+    "characteristicTension": "Performance-based legitimacy works while performance is strong — this archetype has no stable fallback when the developmental model hits limits or fails to deliver.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": 0
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.7
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": 0.75
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": 0.65
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": 0.6
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": 0.6
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": 0.15
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0.6
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": 0.2
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.55
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": 0.2
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": 0.4
+      }
+    ]
+  },
+  {
+    "id": "nationalist-populist",
+    "name": "The Nationalist Populist",
+    "emergence": "refined",
+    "summary": "Sovereignty-oriented and culturally cohesive. Deeply skeptical of elites, experts, and international bodies — trusts ordinary people's common sense over credentialed authority. Ambivalent about both state power and markets; rejects concentrated power in most of its forms.",
+    "description": "Strongly sovereignty-oriented and culturally cohesive. Deeply skeptical of both international institutions and domestic elites — trusts the common sense of ordinary people over credentialed expertise. Favors cultural continuity and traditional values over rapid progressive change. Ambivalent about both state power and markets: distrusts government and business establishments alike, and does not treat either as a natural ally. Non-interventionist abroad — \"our people first\" rather than expansionist. Cautious about technology that disrupts familiar ways of life.",
+    "characteristicTension": "Distrust of concentrated power cuts across all directions — state, market, expert, international — leaving few institutions intact to act through. A politics of suspicion is easier to sustain than a politics of construction.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": -0.2
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.4
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": -0.2
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": -0.55
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": 0
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": 0
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": 0.6
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0.7
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": 0.6
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.7
       },
       {
         "axisId": 11,
@@ -1111,7 +1029,101 @@
         "axisName": "Technology Governance",
         "poleA": "Precautionary",
         "poleB": "Innovation-First",
-        "value": 0.1
+        "value": -0.25
+      }
+    ]
+  },
+  {
+    "id": "authoritarian-traditionalist",
+    "name": "The Authoritarian Traditionalist",
+    "emergence": "theoretical",
+    "summary": "Favors strong centralized authority, cultural cohesion, traditional values, and robust security. Performance-oriented; distrustful of democratic process as chaotic. Sovereignty-focused and moderately interventionist.",
+    "description": "Favors strong centralized authority, cultural cohesion, traditional values, and robust security. Essentialist view of human nature. Performance-legitimacy oriented — distrustful of democratic process as chaotic and corrosive to social order. Moderately interventionist and sovereignty-focused. Somewhat precautionary toward technology that disrupts social structures. Populist in rhetoric (claims to speak for \"the people\") but favors institutional authority in practice. Neutral to moderate on economics.",
+    "characteristicTension": "Claims to represent ordinary people's values while concentrating power in ways that limit ordinary people's agency.",
+    "prototype": [
+      {
+        "axisId": 1,
+        "axisName": "Economic Model",
+        "poleA": "Collective Provision",
+        "poleB": "Market Allocation",
+        "value": 0
+      },
+      {
+        "axisId": 2,
+        "axisName": "Environmental Policy",
+        "poleA": "Ecological Limits",
+        "poleB": "Growth Imperative",
+        "value": 0.3
+      },
+      {
+        "axisId": 3,
+        "axisName": "Governance Structure",
+        "poleA": "Distributed Governance",
+        "poleB": "Centralized Governance",
+        "value": 0.8
+      },
+      {
+        "axisId": 4,
+        "axisName": "Decision Authority",
+        "poleA": "Popular Sovereignty",
+        "poleB": "Institutional Authority",
+        "value": -0.3
+      },
+      {
+        "axisId": 5,
+        "axisName": "Rights Balance",
+        "poleA": "Liberty",
+        "poleB": "Security",
+        "value": 0.8
+      },
+      {
+        "axisId": 6,
+        "axisName": "Legitimacy Basis",
+        "poleA": "Electoral Process",
+        "poleB": "Performance Outcomes",
+        "value": 0.7
+      },
+      {
+        "axisId": 7,
+        "axisName": "Social Change",
+        "poleA": "Progressive Change",
+        "poleB": "Continuity and Tradition",
+        "value": 0.9
+      },
+      {
+        "axisId": 8,
+        "axisName": "Cultural Diversity",
+        "poleA": "Pluralism",
+        "poleB": "Cohesion",
+        "value": 0.8
+      },
+      {
+        "axisId": 9,
+        "axisName": "Human Nature",
+        "poleA": "Constructivism",
+        "poleB": "Essentialism",
+        "value": 0.8
+      },
+      {
+        "axisId": 10,
+        "axisName": "International Engagement",
+        "poleA": "Internationalism",
+        "poleB": "Sovereignty",
+        "value": 0.6
+      },
+      {
+        "axisId": 11,
+        "axisName": "Military Policy",
+        "poleA": "Non-Interventionism",
+        "poleB": "Interventionism",
+        "value": 0.4
+      },
+      {
+        "axisId": 12,
+        "axisName": "Technology Governance",
+        "poleA": "Precautionary",
+        "poleB": "Innovation-First",
+        "value": -0.2
       }
     ]
   }
