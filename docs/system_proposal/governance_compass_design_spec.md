@@ -242,7 +242,7 @@ A Surface 1 card with border, sitting inside the hero region's right column.
 ```
 "PRIMARY ARCHETYPE"          ← 11px, uppercase, letter-spaced, Stone 600
 87%                          ← 36px, serif, weight 500, text-primary
-The civic institutionalist   ← 17px, serif, weight 500, text-primary
+The institutional moderate   ← 17px, serif, weight 500, text-primary
 Description paragraph        ← 13px, sans, text-secondary, line-height 1.6
 ─────────────────────────    ← 0.5px border, 12px padding-top, 14px margin-top
 Adjacent: The social         ← 12px, sans, text-tertiary

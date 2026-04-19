@@ -272,7 +272,7 @@ Using Latent Class Analysis on the full 12-axis score vector, the respondent is 
 
 Example archetypes (illustrative — final archetypes would emerge from empirical clustering):
 
-- **The Civic Institutionalist** — Favors democratic process, distributed governance, strong civil liberties, moderate market economics, and cautious internationalism. Trusts institutional design over both populist energy and technocratic authority. Characteristic tension: commitment to democratic process can conflict with desire for effective governance when popular will produces poor policy.
+- **The Institutional Moderate** — Trusts institutions, expertise, and process as the foundations of good governance. Favors measured progress and growth-oriented policy over radical reform in any direction. Internationalist in sympathy but pragmatic about national constraints. Characteristic tension: commitment to competent administration can shade into technocratic paternalism — valuing outcomes legitimately produced by institutions over outcomes directly endorsed by voters.
 
 - **The Developmental Modernizer** — Favors centralized governance, performance-based legitimacy, rapid innovation, growth-oriented economics, and strong state capacity. Prioritizes results over process. Characteristic tension: belief in institutional authority can conflict with commitment to individual liberty when the state's modernization agenda meets cultural resistance.
 

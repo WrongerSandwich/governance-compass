@@ -391,9 +391,17 @@ This yields 100% for a perfect match and 0% for the maximum possible divergence.
 3. Also report the **second-closest** archetype as an "adjacent type"
 4. If the closest and second-closest archetypes have distances within 10% of each other, flag the result as a **"blended type"** and present both
 
-### Archetype Prototypes (v1)
+### Archetype Prototypes (v2)
 
-Below are the initial prototype definitions. Each archetype is defined by its 12-axis prototype scores and a narrative description. Axes scored as `0.0` indicate the archetype is relatively neutral on that dimension.
+The v2 set was finalized after the April 2026 synthetic population study. It removes the v1 Civic Institutionalist (absorbed into the renamed Institutional Moderate), adds the empirically-derived Popular Egalitarian, and refines five other vectors toward their matching empirical centroids. The full v1 → v2 rationale, vector deltas, and content rewrites live in `completed/archetype_revision_spec.md` and `completed/archetype_content_v2.md`.
+
+Each archetype carries a provenance tag (`emergence`):
+
+- **`empirical`** — prototype seeded directly from a synthetic-study cluster centroid (1 archetype: Popular Egalitarian)
+- **`refined`** — hand-crafted prototype, then adjusted toward the matching empirical centroid (5 archetypes)
+- **`theoretical`** — hand-crafted from comparative political philosophy; no matching empirical cluster surfaced (6 archetypes)
+
+The list-page ordering below groups related types visually; it has no semantic effect on scoring.
 
 Axis key for reference:
 ```
@@ -413,19 +421,31 @@ Axis key for reference:
 
 ---
 
-#### 1. The Civic Institutionalist
+#### 1. The Radical Egalitarian *(refined)*
 
 ```
-Prototype: [-0.3, -0.2, -0.3, +0.3, -0.5, -0.7, -0.2, 0.0, 0.0, -0.3, 0.0, 0.0]
+Prototype: [-0.85, -0.45, -0.45, -0.20, -0.55, -0.55, -0.70, -0.60, -0.75, -0.45, -0.60, -0.40]
 ```
 
-Believes in democratic process above all. Favors moderate redistribution, distributed governance, and strong civil liberties. Trusts institutions and expertise but insists they be democratically accountable. Moderate on cultural issues, neither strongly progressive nor traditional. Cautiously internationalist.
+Deeply committed to economic equality, progressive social transformation, and cosmopolitan pluralism. Favors strong collective provision, distributed governance, and expansive civil liberties. Internationalist in orientation and non-interventionist in practice. Sees most social hierarchies as constructed and unjust, and believes policy can and should dismantle them. Ecologically minded and precautionary toward technology that concentrates power or disrupts human relationships. More at home in cosmopolitan cities and diaspora networks than in nationally bounded political communities.
 
-*Characteristic tension:* Commitment to democratic process can conflict with trust in institutional expertise when popular will produces policy that experts consider harmful.
+*Characteristic tension:* Transformative egalitarian goals often require concentrated state power to implement, conflicting with commitments to distributed governance and individual liberty.
 
 ---
 
-#### 2. The Social Democrat
+#### 2. The Popular Egalitarian *(empirical)*
+
+```
+Prototype: [-0.70, +0.40, -0.50, -0.35, -0.55, -0.45, -0.40, -0.20, -0.50, +0.25, -0.70, -0.35]
+```
+
+Believes material equality is the foundation of freedom, and that ordinary people — not experts, elites, or international institutions — should determine how their society is organized. Strongly favors collective provision and redistribution, but grounded in a developmentalist rather than post-growth frame: prosperity is the goal, and the state's job is to spread it broadly rather than hoard it at the top. Skeptical of concentrated power in all its forms — domestic oligarchies, foreign capital, and international bodies that set terms without accountability. Moderately pluralist and cautiously progressive, but not driven by cultural transformation; dignity and self-determination matter more than identity politics. Non-interventionist abroad. Sees sovereignty and equality as complementary: a people cannot be equal among themselves if they are not free as a nation.
+
+*Characteristic tension:* Universalist egalitarian commitments — every person deserves dignity, every society deserves self-determination — sit alongside a sovereigntist resistance to the international coordination that would be needed to make those commitments real at scale. Solidarity is demanded at home and declined abroad.
+
+---
+
+#### 3. The Social Democrat *(theoretical)*
 
 ```
 Prototype: [-0.7, -0.3, 0.0, +0.2, -0.2, -0.5, -0.5, -0.3, -0.4, -0.4, -0.2, 0.0]
@@ -437,103 +457,7 @@ Strongly favors collective provision, redistribution, and public services within
 
 ---
 
-#### 3. The Free Marketeer
-
-```
-Prototype: [+0.8, +0.5, -0.3, 0.0, -0.6, -0.3, 0.0, 0.0, +0.2, +0.2, 0.0, +0.6]
-```
-
-Strongly favors market allocation, economic growth, and individual economic liberty. Skeptical of state intervention in the economy. Strongly pro-innovation. Distributed governance as a check on state power. Moderate to neutral on cultural issues — economics is the primary lens. Leans slightly toward sovereignty over internationalism.
-
-*Characteristic tension:* Belief in individual liberty can conflict with acceptance of the corporate power that unregulated markets produce — market dominance is its own form of centralized authority.
-
----
-
-#### 4. The Communitarian Steward
-
-```
-Prototype: [-0.4, -0.8, -0.7, -0.5, -0.2, -0.3, +0.5, +0.4, +0.3, +0.3, -0.6, -0.5]
-```
-
-Envisions small-scale, rooted, sustainable communities. Favors ecological limits, distributed governance, and local self-determination. Culturally traditional and values social cohesion, but skeptical of centralized state power. Populist — trusts community wisdom over expert authority. Non-interventionist and precautionary toward technology. Moderate on economics — not strongly market or collectivist, but oriented toward local sufficiency.
-
-*Characteristic tension:* Commitment to local autonomy can conflict with desire for cultural cohesion when different communities develop in divergent directions.
-
----
-
-#### 5. The Cosmopolitan Technologist
-
-```
-Prototype: [+0.2, +0.4, +0.2, +0.6, -0.2, -0.3, -0.6, -0.5, -0.4, -0.8, +0.2, +0.8]
-```
-
-Believes global coordination and technological progress can solve most problems. Strongly internationalist, pro-innovation, progressive, and pluralist. Trusts expert institutions and favors some centralization for coordination. Moderately market-oriented but comfortable with state investment in research and infrastructure. Leans constructivist.
-
-*Characteristic tension:* Faith in expert governance can conflict with progressive values when technocratic recommendations cut against cultural inclusivity or individual autonomy.
-
----
-
-#### 6. The Developmental Modernizer
-
-```
-Prototype: [+0.3, +0.7, +0.7, +0.7, +0.4, +0.6, 0.0, +0.3, +0.2, +0.2, +0.3, +0.7]
-```
-
-Favors strong centralized state capacity directed toward rapid modernization. Pro-growth, pro-innovation, performance-legitimacy oriented. Comfortable with security over liberty tradeoffs in service of development. Culturally moderate — modernization is the priority, not cultural reform per se. Slightly interventionist and sovereignty-oriented. Trusts institutional expertise over popular input.
-
-*Characteristic tension:* Performance-based legitimacy works while performance is strong — this archetype has no stable fallback when the developmental model hits limits or fails to deliver.
-
----
-
-#### 7. The Authoritarian Traditionalist
-
-```
-Prototype: [0.0, +0.3, +0.8, -0.3, +0.8, +0.7, +0.9, +0.8, +0.8, +0.6, +0.4, -0.2]
-```
-
-Favors strong centralized authority, cultural cohesion, traditional values, and robust security. Essentialist view of human nature. Performance-legitimacy oriented — distrustful of democratic process as chaotic and corrosive to social order. Moderately interventionist and sovereignty-focused. Somewhat precautionary toward technology that disrupts social structures. Populist in rhetoric (claims to speak for "the people") but favors institutional authority in practice. Neutral to moderate on economics.
-
-*Characteristic tension:* Claims to represent ordinary people's values while concentrating power in ways that limit ordinary people's agency.
-
----
-
-#### 8. The Radical Egalitarian
-
-```
-Prototype: [-0.9, -0.5, -0.5, -0.4, -0.3, -0.5, -0.8, -0.5, -0.8, -0.5, -0.5, -0.3]
-```
-
-Deeply committed to economic equality, progressive social change, and constructivist transformation of society. Favors strong collective provision, distributed governance, and robust democratic process. Internationalist and non-interventionist. Somewhat precautionary. Sees most social hierarchies as constructed and unjust, and believes policy can and should dismantle them.
-
-*Characteristic tension:* Transformative egalitarian goals often require concentrated state power to implement, conflicting with commitments to distributed governance and individual liberty.
-
----
-
-#### 9. The Libertarian Individualist
-
-```
-Prototype: [+0.6, +0.3, -0.7, -0.4, -0.9, -0.4, -0.2, 0.0, +0.2, +0.3, -0.5, +0.5]
-```
-
-Individual liberty is the paramount value. Deeply skeptical of state power in all forms — economic, security, cultural. Favors market allocation, distributed governance, minimal law enforcement, and strong constitutional constraints. Pro-innovation but wary of government-directed technology. Non-interventionist. Neutral to slightly progressive on cultural issues — not deeply invested in social transformation, but opposed to the state enforcing traditional norms. Slightly essentialist — skeptical of social engineering.
-
-*Characteristic tension:* Radical decentralization and minimal state capacity can leave individuals vulnerable to private concentrations of power that function much like the state authority they oppose.
-
----
-
-#### 10. The Nationalist Populist
-
-```
-Prototype: [0.0, +0.3, +0.3, -0.7, +0.4, +0.3, +0.5, +0.8, +0.5, +0.8, +0.2, 0.0]
-```
-
-Strongly sovereignty-oriented and culturally cohesive. Deeply skeptical of both international institutions and domestic elites — trusts the common sense of ordinary people over credentialed expertise. Favors cultural assimilation and traditional values. Moderate on economics — not ideologically committed to either markets or redistribution, but oriented toward whatever serves the national working population. Somewhat security-oriented. Moderately interventionist when national interests are at stake.
-
-*Characteristic tension:* Anti-elite populism coexists with support for strong state authority, requiring trust in leaders who claim to embody the people's will rather than institutional checks.
-
----
-
-#### 11. The Green Communalist
+#### 4. The Green Communalist *(theoretical)*
 
 ```
 Prototype: [-0.6, -0.9, -0.8, -0.5, -0.3, -0.4, -0.4, -0.2, -0.3, -0.4, -0.7, -0.6]
@@ -545,17 +469,107 @@ Ecological sustainability is the organizing principle. Favors degrowth or post-g
 
 ---
 
-#### 12. The Pragmatic Centrist
+#### 5. The Communitarian Steward *(refined)*
 
 ```
-Prototype: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+Prototype: [-0.55, -0.65, -0.75, -0.60, -0.40, -0.25, +0.60, +0.15, +0.30, +0.40, -0.70, -0.60]
 ```
 
-Sits near the midpoint on most or all axes. This may reflect genuine moderation — a considered view that most governance questions require balance and context rather than strong ideological commitments. It may also reflect low engagement or indecision. The archetype description should acknowledge both possibilities.
+Envisions small-scale, rooted, sustainable communities shaped by tradition and local self-determination. Favors ecological limits, distributed governance, and the preservation of inherited ways of life. Skeptical of centralized state power and of technology that erodes communal relationships. Populist in register — trusts community wisdom and elders over expert authority. Non-interventionist abroad and cautiously sovereigntist. The commitment is to communal integrity rather than to uniform national culture: the archetype protects each community's right to remain itself, which often means defending pluralism at the national or international scale while valuing cohesion within the community.
 
-*Characteristic tension:* Pragmatic balance can be mistaken for — or can actually be — an absence of strong convictions. This archetype is defined by what it doesn't strongly favor, which can make it feel less like a worldview and more like a default.
+*Characteristic tension:* Commitment to local autonomy means accepting that different communities will develop in directions the archetype itself disagrees with. Defense of one's own tradition and openness to others' traditions depend on the same principle but can be hard to hold together in practice.
 
-**Note:** The Pragmatic Centrist serves as a catch-all for profiles that don't match any other archetype closely. If the closest match distance is above a threshold (suggested: match percentage below 55%), the system should display this archetype with a note that the respondent's profile is unusually distributed and doesn't map cleanly to any single governance philosophy.
+---
+
+#### 6. The Institutional Moderate *(refined)*
+
+```
+Prototype: [-0.30, +0.50, +0.40, +0.55, -0.25, -0.35, -0.50, +0.25, -0.20, -0.15, -0.25, -0.10]
+```
+
+Trusts institutions, expertise, and process as the foundations of good governance. Favors measured progress over radical transformation — progressive in general orientation, but skeptical of disruptive change from any direction. Prefers growth-oriented policy and targeted public investment to either market purism or sweeping redistribution. Internationalist in sympathy but pragmatic about national constraints. Comfortable with moderate centralization when it improves coordination and accountability. Less a defined ideology than a governing instinct: that competent, accountable administration is what democracy is actually for.
+
+*Characteristic tension:* Commitment to competent administration can shade into technocratic paternalism — valuing outcomes legitimately produced by institutions over outcomes directly endorsed by voters. Tends to mistake proceduralism for democratic responsiveness.
+
+*v1 → v2 note:* This entry replaces v1's Pragmatic Centrist (a near-zero placeholder) and absorbs v1's Civic Institutionalist. The empirical center is institutionally-trusting, mildly progressive, and growth-oriented — not ideologically null.
+
+---
+
+#### 7. The Cosmopolitan Technologist *(theoretical)*
+
+```
+Prototype: [+0.2, +0.4, +0.2, +0.6, -0.2, -0.3, -0.6, -0.5, -0.4, -0.8, +0.2, +0.8]
+```
+
+Believes global coordination and technological progress can solve most problems. Strongly internationalist, pro-innovation, progressive, and pluralist. Trusts expert institutions and favors some centralization for coordination. Moderately market-oriented but comfortable with state investment in research and infrastructure. Leans constructivist.
+
+*Characteristic tension:* Faith in expert governance can conflict with progressive values when technocratic recommendations cut against cultural inclusivity or individual autonomy.
+
+---
+
+#### 8. The Free Marketeer *(theoretical)*
+
+```
+Prototype: [+0.8, +0.5, -0.3, 0.0, -0.6, -0.3, 0.0, 0.0, +0.2, +0.2, 0.0, +0.6]
+```
+
+Strongly favors market allocation, economic growth, and individual economic liberty. Skeptical of state intervention in the economy. Strongly pro-innovation. Distributed governance as a check on state power. Moderate to neutral on cultural issues — economics is the primary lens. Leans slightly toward sovereignty over internationalism.
+
+*Characteristic tension:* Belief in individual liberty can conflict with acceptance of the corporate power that unregulated markets produce — market dominance is its own form of centralized authority.
+
+---
+
+#### 9. The Libertarian Individualist *(theoretical)*
+
+```
+Prototype: [+0.6, +0.3, -0.7, -0.4, -0.9, -0.4, -0.2, 0.0, +0.2, +0.3, -0.5, +0.5]
+```
+
+Individual liberty is the paramount value. Deeply skeptical of state power in all forms — economic, security, cultural. Favors market allocation, distributed governance, minimal law enforcement, and strong constitutional constraints. Pro-innovation but wary of government-directed technology. Non-interventionist. Neutral to slightly progressive on cultural issues — not deeply invested in social transformation, but opposed to the state enforcing traditional norms. Slightly essentialist — skeptical of social engineering.
+
+*Characteristic tension:* Radical decentralization and minimal state capacity can leave individuals vulnerable to private concentrations of power that function much like the state authority they oppose.
+
+---
+
+#### 10. The Developmental Modernizer *(refined)*
+
+```
+Prototype: [0.0, +0.70, +0.75, +0.65, +0.60, +0.60, +0.15, +0.60, +0.20, +0.55, +0.20, +0.40]
+```
+
+Favors strong centralized state capacity directed toward rapid modernization and national ascent. Pro-growth, performance-legitimacy oriented, and security-forward. Comfortable with liberty-for-security tradeoffs in service of development and with cultural cohesion in service of social stability. Sovereignty-oriented — sees international institutions as constraints on national trajectories rather than as sources of legitimacy. Uses technology instrumentally rather than ideologically, adopting what works and regulating what threatens social order. Trusts institutional expertise and long-horizon state planning over popular input.
+
+*Characteristic tension:* Performance-based legitimacy works while performance is strong — this archetype has no stable fallback when the developmental model hits limits or fails to deliver.
+
+---
+
+#### 11. The Nationalist Populist *(refined)*
+
+```
+Prototype: [-0.20, +0.40, -0.20, -0.55, 0.0, 0.0, +0.60, +0.70, +0.60, +0.70, -0.10, -0.25]
+```
+
+Strongly sovereignty-oriented and culturally cohesive. Deeply skeptical of both international institutions and domestic elites — trusts the common sense of ordinary people over credentialed expertise. Favors cultural continuity and traditional values over rapid progressive change. Ambivalent about both state power and markets: distrusts government and business establishments alike, and does not treat either as a natural ally. Non-interventionist abroad — "our people first" rather than expansionist. Cautious about technology that disrupts familiar ways of life.
+
+*Characteristic tension:* Distrust of concentrated power cuts across all directions — state, market, expert, international — leaving few institutions intact to act through. A politics of suspicion is easier to sustain than a politics of construction.
+
+*v1 → v2 note:* The biggest substantive change in v2. The v1 prototype described state-authoritarian populism (Orbán/Modi type); the empirical C2 cluster is closer to Brexit / Five Star / Yellow Vests — anti-institutional across the board, including toward state power. Axes 3, 5, 6, and 11 all flipped sign. The state-authoritarian-traditionalist position remains held by the Authoritarian Traditionalist archetype below.
+
+---
+
+#### 12. The Authoritarian Traditionalist *(theoretical)*
+
+```
+Prototype: [0.0, +0.3, +0.8, -0.3, +0.8, +0.7, +0.9, +0.8, +0.8, +0.6, +0.4, -0.2]
+```
+
+Favors strong centralized authority, cultural cohesion, traditional values, and robust security. Essentialist view of human nature. Performance-legitimacy oriented — distrustful of democratic process as chaotic and corrosive to social order. Moderately interventionist and sovereignty-focused. Somewhat precautionary toward technology that disrupts social structures. Populist in rhetoric (claims to speak for "the people") but favors institutional authority in practice. Neutral to moderate on economics.
+
+*Characteristic tension:* Claims to represent ordinary people's values while concentrating power in ways that limit ordinary people's agency.
+
+---
+
+**Note on low-match handling:** v2 has no catch-all/centrist archetype. Profiles that don't fit any prototype well are surfaced via two UI affordances rather than a synthetic match: a low-match warning (when `primaryMatchPct < 55`) and a "distinctive profile" mode (when match is low *and* axis-score variance is high, indicating opinionated-but-cross-cutting positions rather than absent positions). See `governance_compass_results_ui_spec.md`.
 
 ---
 
