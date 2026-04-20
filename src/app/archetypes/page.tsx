@@ -10,6 +10,7 @@ import {
 } from "@/data/archetypes";
 import { axes } from "@/data/axes";
 import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
+import { ReturningUserLink } from "@/components/ReturningUserLink";
 
 const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   empirical: "●",
@@ -18,10 +19,11 @@ const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
 };
 
 function EmergenceMark({ emergence }: { emergence: ArchetypeEmergence }) {
+  const fullLabel = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
   return (
     <span
-      title={`${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`}
-      aria-label={EMERGENCE_LABELS[emergence]}
+      title={fullLabel}
+      aria-label={fullLabel}
       className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] font-medium text-text-tertiary whitespace-nowrap cursor-help"
     >
       <span
@@ -135,10 +137,23 @@ function TraditionsProse({
   );
 }
 
+const EMERGENCE_ORDER: ArchetypeEmergence[] = ["empirical", "refined", "theoretical"];
+
 export default function ArchetypesPage() {
   const sortedArchetypes = [...archetypes].sort(
     (a, b) => a.displayOrder - b.displayOrder
   );
+
+  // Map each archetype to its 1-based position (01..12) in displayOrder so the
+  // number stays stable across grouped / flat presentations.
+  const numberFor = new Map<string, number>(
+    sortedArchetypes.map((a, i) => [a.id, i + 1])
+  );
+
+  const navGroups = EMERGENCE_ORDER.map((tier) => ({
+    tier,
+    items: sortedArchetypes.filter((a) => a.emergence === tier),
+  })).filter((g) => g.items.length > 0);
 
   return (
     <main className="min-h-screen px-4 py-12">
@@ -159,28 +174,23 @@ export default function ArchetypesPage() {
         <p className="text-sm text-text-secondary leading-relaxed mb-4">
           {TRADITIONS_INTRO.replace(/:$/, ".")} Each entry also lists the
           governance traditions and movements that have historically expressed
-          that orientation. Most prototypes are theoretically derived from
-          comparative political philosophy; a subset have been refined toward
-          — or in one case identified directly from — empirical clusters
-          surfaced in an April 2026 synthetic population study. A small mark
-          on each archetype indicates its provenance
-          (<span style={{ color: "var(--stone-600)" }}>●</span> empirical,
-          {" "}
-          <span style={{ color: "var(--stone-600)" }}>◐</span> refined,
-          {" "}
-          <span style={{ color: "var(--stone-600)" }}>○</span> theoretical).
+          that orientation.
+        </p>
+        <p className="text-sm text-text-secondary leading-relaxed mb-6">
+          Most prototypes are theoretically derived from comparative political
+          philosophy; a subset have been refined toward — or in one case
+          identified directly from — empirical clusters surfaced in an
+          April 2026 synthetic population study. A mark on each archetype
+          indicates its provenance.
         </p>
 
-        {/* Spoiler notice — uses the advisory (warning) accent */}
+        {/* Spoiler notice — flat, border-stripe only, to match the full-bleed surface system */}
         <div
-          className="border-l-2 rounded-[8px] px-4 py-3 mb-10"
-          style={{
-            borderLeftColor: "var(--warning)",
-            backgroundColor: "var(--warning-bg)",
-          }}
+          className="border-l-2 pl-4 py-1 my-8"
+          style={{ borderLeftColor: "var(--warning)" }}
         >
           <p className="text-sm text-text-secondary leading-relaxed">
-            <em className="not-italic font-medium text-warning-text">A note before reading —</em>{" "}
+            <em className="font-serif italic text-warning-text">A note before reading —</em>{" "}
             archetype descriptions may influence how you answer. If you
             haven&apos;t taken the assessment yet, we recommend{" "}
             <Link
@@ -193,22 +203,66 @@ export default function ArchetypesPage() {
           </p>
         </div>
 
-        {/* Archetype nav */}
-        <nav className="mb-10" aria-label="Archetype list">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-            {sortedArchetypes.map((a, i) => (
-              <a
-                key={a.id}
-                href={`#${a.id}`}
-                className="text-text-tertiary hover:text-text-primary transition-colors duration-150 flex items-baseline gap-1.5"
-              >
-                <span className="font-mono tabular-nums text-[10px] opacity-50">
-                  {String(i + 1).padStart(2, "0")}
+        {/* Provenance legend — scannable key for the \u25cf/\u25d0/\u25cb marks */}
+        <div className="mb-8">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">
+            Provenance
+          </p>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-text-secondary">
+            <li className="inline-flex items-baseline gap-1.5">
+              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>●</span>
+              <span>
+                <span className="font-medium text-text-primary">Emerged from data</span>
+                {" — "}identified from an empirical cluster in the April 2026 synthetic study
+              </span>
+            </li>
+            <li className="inline-flex items-baseline gap-1.5">
+              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>◐</span>
+              <span>
+                <span className="font-medium text-text-primary">Refined with data</span>
+                {" — "}hand-crafted, then adjusted toward a matching empirical centroid
+              </span>
+            </li>
+            <li className="inline-flex items-baseline gap-1.5">
+              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>○</span>
+              <span>
+                <span className="font-medium text-text-primary">Theoretically derived</span>
+                {" — "}grounded in comparative political philosophy, no empirical match surfaced
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Archetype nav — grouped by provenance tier */}
+        <nav className="mb-10 space-y-5" aria-label="Archetype list">
+          {navGroups.map(({ tier, items }) => (
+            <div key={tier}>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2 inline-flex items-baseline gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="text-[11px]"
+                  style={{ color: "var(--stone-600)" }}
+                >
+                  {EMERGENCE_GLYPH[tier]}
                 </span>
-                {a.name.replace(/^The\s+/, "")}
-              </a>
-            ))}
-          </div>
+                {EMERGENCE_LABELS[tier]}
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+                {items.map((a) => (
+                  <a
+                    key={a.id}
+                    href={`#${a.id}`}
+                    className="text-text-tertiary hover:text-text-primary transition-colors duration-150 flex items-baseline gap-1.5"
+                  >
+                    <span className="font-mono tabular-nums text-[10px] opacity-50">
+                      {String(numberFor.get(a.id)).padStart(2, "0")}
+                    </span>
+                    {a.name.replace(/^The\s+/, "")}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Archetype entries — full-bleed zebra rows, no card radius */}
@@ -265,10 +319,10 @@ export default function ArchetypesPage() {
 
               {/* Axis positions — disclosure with caret */}
               <details className="group mt-3">
-                <summary className="list-none inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
+                <summary className="list-none inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
                   <span
                     aria-hidden="true"
-                    className="inline-block transition-transform duration-150 group-open:rotate-90"
+                    className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
                   >
                     ▸
                   </span>
@@ -358,6 +412,11 @@ export default function ArchetypesPage() {
               back to references
             </Link>
           </p>
+          <ReturningUserLink
+            label="← Back to your results"
+            wrapperClassName="mt-1 text-center"
+            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+          />
         </div>
       </article>
     </main>

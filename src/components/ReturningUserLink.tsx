@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 
-export function ReturningUserLink() {
+interface ReturningUserLinkProps {
+  label?: ReactNode;
+  className?: string;
+  wrapperClassName?: string;
+}
+
+export function ReturningUserLink({
+  label = "or view your existing results",
+  className = "text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150",
+  wrapperClassName = "mt-2",
+}: ReturningUserLinkProps = {}) {
   const [resultsHref, setResultsHref] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,12 +29,9 @@ export function ReturningUserLink() {
   if (!resultsHref) return null;
 
   return (
-    <p className="mt-2">
-      <Link
-        href={resultsHref}
-        className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-      >
-        or view your existing results
+    <p className={wrapperClassName}>
+      <Link href={resultsHref} className={className}>
+        {label}
       </Link>
     </p>
   );
