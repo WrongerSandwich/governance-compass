@@ -32,9 +32,6 @@ export const EMERGENCE_TOOLTIPS: Record<ArchetypeEmergence, string> = {
     "This archetype is derived from comparative political philosophy. No strong empirical cluster matched it in the synthetic population study, but it represents a coherent and historically grounded tradition.",
 };
 
-export const TRADITIONS_INTRO =
-  "Governance traditions and movements that express this orientation, globally and historically:";
-
 export const archetypes: ArchetypeData[] = [
   {
     id: "radical-egalitarian",

@@ -5,7 +5,6 @@ import {
   archetypes,
   EMERGENCE_LABELS,
   EMERGENCE_TOOLTIPS,
-  TRADITIONS_INTRO,
   type ArchetypeEmergence,
 } from "@/data/archetypes";
 import { axes } from "@/data/axes";
@@ -18,22 +17,17 @@ const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   theoretical: "○",
 };
 
-function EmergenceMark({ emergence }: { emergence: ArchetypeEmergence }) {
+function EmergenceGlyph({ emergence }: { emergence: ArchetypeEmergence }) {
   const fullLabel = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
   return (
     <span
+      role="img"
       title={fullLabel}
       aria-label={fullLabel}
-      className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] font-medium text-text-tertiary whitespace-nowrap cursor-help"
+      className="text-[14px] leading-none cursor-help"
+      style={{ color: "var(--stone-600)" }}
     >
-      <span
-        aria-hidden="true"
-        className="text-[11px] leading-none"
-        style={{ color: "var(--stone-600)" }}
-      >
-        {EMERGENCE_GLYPH[emergence]}
-      </span>
-      {EMERGENCE_LABELS[emergence]}
+      {EMERGENCE_GLYPH[emergence]}
     </span>
   );
 }
@@ -164,24 +158,20 @@ export default function ArchetypesPage() {
         <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
           Governance archetypes
         </h1>
-        <p className="text-sm text-text-secondary leading-relaxed mb-4">
+        <p className="text-sm text-text-secondary leading-relaxed mb-3">
           After scoring, your 12-axis profile is compared against {archetypes.length} archetype
           prototypes &mdash; idealized profiles representing coherent governance
           philosophies. You are assigned to the nearest archetype and shown your
           degree of match, your second-nearest, and a description of each
           archetype&apos;s internal logic.
         </p>
-        <p className="text-sm text-text-secondary leading-relaxed mb-4">
-          {TRADITIONS_INTRO.replace(/:$/, ".")} Each entry also lists the
-          governance traditions and movements that have historically expressed
-          that orientation.
-        </p>
-        <p className="text-sm text-text-secondary leading-relaxed mb-6">
-          Most prototypes are theoretically derived from comparative political
-          philosophy; a subset have been refined toward — or in one case
-          identified directly from — empirical clusters surfaced in an
-          April 2026 synthetic population study. A mark on each archetype
-          indicates its provenance.
+        <p className="text-sm text-text-secondary leading-relaxed mb-8">
+          Each entry lists the governance traditions and movements that have
+          historically expressed that orientation. Most prototypes are
+          theoretically derived from comparative political philosophy; a subset
+          have been refined toward — or in one case identified directly from
+          — empirical clusters surfaced in an April 2026 synthetic population
+          study.
         </p>
 
         {/* Spoiler notice — flat, border-stripe only, to match the full-bleed surface system */}
@@ -277,16 +267,14 @@ export default function ArchetypesPage() {
             >
               <header className="flex gap-4 mb-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 mb-1">
+                  <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="font-mono text-[13px] text-text-tertiary tabular-nums">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <h2 className="text-[18px] font-serif font-medium text-text-primary leading-tight">
                       {archetype.name}
                     </h2>
-                  </div>
-                  <div className="mb-2">
-                    <EmergenceMark emergence={archetype.emergence} />
+                    <EmergenceGlyph emergence={archetype.emergence} />
                   </div>
                 </div>
                 <MiniRadar prototype={archetype.prototype} />
@@ -315,7 +303,6 @@ export default function ArchetypesPage() {
                   </>
                 }
               />
-
 
               {/* Axis positions — disclosure with caret */}
               <details className="group mt-3">
@@ -386,37 +373,41 @@ export default function ArchetypesPage() {
           ))}
         </div>
 
-        {/* Back-to-top + footer */}
-        <div className="mt-6 text-right">
-          <a
-            href="#top"
-            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-          >
-            ↑ Back to top
-          </a>
-        </div>
-
-        <div className="border-t border-border-secondary mt-8 pt-6 text-center">
+        {/* Footer — ghost CTA above a single inline row of tertiary nav links */}
+        <div className="border-t border-border-secondary mt-12 pt-6 text-center">
           <Link
             href="/quiz"
             className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-[8px] text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
           >
             Begin assessment
           </Link>
-          <p className="mt-3 text-xs text-text-tertiary">
-            or{" "}
+          <nav
+            aria-label="Page navigation"
+            className="mt-4 flex flex-wrap justify-center items-baseline gap-x-2 text-xs text-text-tertiary"
+          >
             <Link
               href="/references"
               className="hover:text-text-secondary transition-colors duration-150"
             >
               back to references
             </Link>
-          </p>
-          <ReturningUserLink
-            label="← Back to your results"
-            wrapperClassName="mt-1 text-center"
-            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-          />
+            <span aria-hidden="true" className="text-text-tertiary/60">·</span>
+            <a
+              href="#top"
+              className="hover:text-text-secondary transition-colors duration-150"
+            >
+              ↑ back to top
+            </a>
+            <ReturningUserLink
+              as="span"
+              wrapperClassName="inline-flex items-baseline gap-x-2"
+              className="hover:text-text-secondary transition-colors duration-150"
+              label="← back to your results"
+              prefix={
+                <span aria-hidden="true" className="text-text-tertiary/60">·</span>
+              }
+            />
+          </nav>
         </div>
       </article>
     </main>
