@@ -151,3 +151,25 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Archetype :target highlight — used when arriving from /results with #archetype-id.
+   Pure CSS so the page stays a server component. Animation is a one-shot rail
+   on the left edge, consistent with the restrained motion system. */
+.archetype-entry:target {
+  position: relative;
+}
+.archetype-entry:target::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--stone-600);
+  animation: archetype-target-fade 2s ease-out forwards;
+}
+@keyframes archetype-target-fade {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0.35; }
+}

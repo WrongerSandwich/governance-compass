@@ -58,7 +58,13 @@ Politically engaged individuals seeking nuanced understanding of their governanc
 **Scholarly, precise, warm.** The site feels like a well-made atlas crossed with a policy journal. It draws from three traditions: cartographic surveying (earth tones, contour lines, monospace coordinates), editorial publishing (serif headings, large typographic numbers, layered surfaces), and Swiss modernist data design (strict grids, alternating rows, no decoration without information). Authority comes from stillness and restraint, not from color or animation.
 
 ### Aesthetic Direction
-- **Visual tone:** Near-monochrome with a single warm accent (Stone 600: `#85735e`). Serious without being cold. Information-dense without being overwhelming.
+- **Visual tone:** Near-monochrome. Two accents, each with a defined role:
+  - **Stone (primary accent)** — Stone 600 (`#85735e`), used for emphasis, selected states, data marks, and the single warm hue that unifies the palette.
+  - **Warning (advisory accent)** — the `--warning` token family (amber `#d97706` / `--warning-bg` / `--warning-border` / `--warning-text`), reserved for editorial notices and caution states: spoilers, unanswered-question flags, tension callouts, low-match warnings. Never decorative.
+
+  Domain color marks (slate, sage, clay) appear only on the results page radar/axis breakdown and are not part of the general palette. No other hues are permitted.
+
+  Serious without being cold. Information-dense without being overwhelming.
 - **Anti-references:** BuzzFeed-style quizzes (no gamification, no share-bait), political party sites (no partisan color, no persuasion design), social media platforms (no feeds, no engagement metrics, no notification patterns).
 - **Theme:** Light and dark mode, both using the same Stone accent. Dark mode inverts surfaces while preserving the cartographic warmth.
 - **Typography is the primary design tool.** Serif/sans/mono contrast creates the journal feel. Two weights only (400, 500). Sentence case everywhere except 11px structural labels.

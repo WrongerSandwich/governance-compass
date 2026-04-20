@@ -263,6 +263,7 @@ export function ResultsView({
         <section id={SECTION_IDS.archetype} className="bg-surface-2 rounded-[12px] p-6">
           <ArchetypeCard
             primary={{
+              id: archetype.primary.id,
               name: archetype.primary.name,
               matchPercentage: archetype.primary.matchPercentage,
               summary: archetype.primary.summary,

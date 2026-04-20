@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import {
@@ -10,81 +11,35 @@ import {
 import { axes } from "@/data/axes";
 import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
 
-function TraditionsSection({ traditions }: { traditions: string }) {
-  return (
-    <div className="mb-4">
-      <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-        Traditions
-      </p>
-      <p className="text-xs text-text-tertiary leading-relaxed mb-2 italic">
-        {TRADITIONS_INTRO}
-      </p>
-      <div className="text-xs text-text-secondary leading-relaxed">
-        <ReactMarkdown
-          components={{
-            p: ({ children }) => <p>{children}</p>,
-            a: ({ href, children, ...rest }) => {
-              if (href && isExternalHref(href)) {
-                return (
-                  <ExternalLink href={href} {...rest}>
-                    {children}
-                  </ExternalLink>
-                );
-              }
-              return (
-                <a href={href} {...rest}>
-                  {children}
-                </a>
-              );
-            },
-            em: ({ children }) => <em className="italic">{children}</em>,
-          }}
-        >
-          {traditions}
-        </ReactMarkdown>
-      </div>
-    </div>
-  );
-}
-
-const EMERGENCE_BADGE_STYLES: Record<
-  ArchetypeEmergence,
-  { backgroundColor: string; color: string; borderColor: string }
-> = {
-  empirical: {
-    backgroundColor: "rgba(133, 115, 94, 0.16)",
-    color: "var(--stone-700)",
-    borderColor: "rgba(133, 115, 94, 0.4)",
-  },
-  refined: {
-    backgroundColor: "rgba(133, 115, 94, 0.08)",
-    color: "var(--stone-600)",
-    borderColor: "rgba(133, 115, 94, 0.25)",
-  },
-  theoretical: {
-    backgroundColor: "transparent",
-    color: "var(--text-tertiary)",
-    borderColor: "var(--border-secondary)",
-  },
+const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
+  empirical: "●",
+  refined: "◐",
+  theoretical: "○",
 };
 
-function EmergenceBadge({ emergence }: { emergence: ArchetypeEmergence }) {
-  const style = EMERGENCE_BADGE_STYLES[emergence];
+function EmergenceMark({ emergence }: { emergence: ArchetypeEmergence }) {
   return (
     <span
-      title={EMERGENCE_TOOLTIPS[emergence]}
-      className="inline-flex items-center text-[10px] uppercase tracking-[0.08em] font-medium rounded-[3px] px-1.5 py-0.5 border whitespace-nowrap cursor-help"
-      style={style}
+      title={`${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`}
+      aria-label={EMERGENCE_LABELS[emergence]}
+      className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] font-medium text-text-tertiary whitespace-nowrap cursor-help"
     >
+      <span
+        aria-hidden="true"
+        className="text-[11px] leading-none"
+        style={{ color: "var(--stone-600)" }}
+      >
+        {EMERGENCE_GLYPH[emergence]}
+      </span>
       {EMERGENCE_LABELS[emergence]}
     </span>
   );
 }
 
-const RADAR_SIZE = 56;
+const RADAR_SIZE = 72;
 const RADAR_CX = RADAR_SIZE / 2;
 const RADAR_CY = RADAR_SIZE / 2;
-const RADAR_R = 22;
+const RADAR_R = 30;
 const AXIS_COUNT = 12;
 
 function radarPoints(prototype: number[]): string {
@@ -98,33 +53,85 @@ function radarPoints(prototype: number[]): string {
 }
 
 function MiniRadar({ prototype }: { prototype: number[] }) {
+  const ringPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
+    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
+    return `${RADAR_CX + RADAR_R * Math.cos(angle)},${RADAR_CY + RADAR_R * Math.sin(angle)}`;
+  }).join(" ");
+
+  const midRingPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
+    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
+    const r = RADAR_R * 0.5;
+    return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
+  }).join(" ");
+
   return (
     <svg
       viewBox={`0 0 ${RADAR_SIZE} ${RADAR_SIZE}`}
-      className="w-14 h-14 shrink-0"
+      className="w-[72px] h-[72px] shrink-0"
       aria-hidden="true"
     >
-      {/* Outer ring */}
       <polygon
-        points={Array.from({ length: AXIS_COUNT }, (_, i) => {
-          const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-          return `${RADAR_CX + RADAR_R * Math.cos(angle)},${RADAR_CY + RADAR_R * Math.sin(angle)}`;
-        }).join(" ")}
+        points={ringPoints}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
-        opacity={0.5}
+        opacity={0.6}
       />
-      {/* Prototype shape */}
+      <polygon
+        points={midRingPoints}
+        fill="none"
+        style={{ stroke: "var(--border-secondary)" }}
+        strokeWidth={0.4}
+        strokeDasharray="1.5 1.5"
+        opacity={0.35}
+      />
       <polygon
         points={radarPoints(prototype)}
         style={{ fill: "var(--stone-600)", stroke: "var(--stone-600)" }}
-        fillOpacity={0.12}
-        strokeOpacity={0.5}
+        fillOpacity={0.14}
+        strokeOpacity={0.6}
         strokeWidth={1}
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function TraditionsProse({
+  traditions,
+  leadIn,
+}: {
+  traditions: string;
+  leadIn?: ReactNode;
+}) {
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => (
+          <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+            {leadIn}
+            {children}
+          </p>
+        ),
+        a: ({ href, children, ...rest }) => {
+          if (href && isExternalHref(href)) {
+            return (
+              <ExternalLink href={href} {...rest}>
+                {children}
+              </ExternalLink>
+            );
+          }
+          return (
+            <a href={href} {...rest}>
+              {children}
+            </a>
+          );
+        },
+        em: ({ children }) => <em className="italic">{children}</em>,
+      }}
+    >
+      {traditions}
+    </ReactMarkdown>
   );
 }
 
@@ -135,7 +142,7 @@ export default function ArchetypesPage() {
 
   return (
     <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-2xl">
+      <article id="top" className="mx-auto max-w-2xl">
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Reference
         </p>
@@ -150,22 +157,35 @@ export default function ArchetypesPage() {
           archetype&apos;s internal logic.
         </p>
         <p className="text-sm text-text-secondary leading-relaxed mb-4">
-          Most prototypes are theoretically derived from comparative political
-          philosophy. A subset have been refined toward — or in one case
-          identified directly from — empirical clusters surfaced in an April
-          2026 synthetic population study. A small tag on each archetype
-          indicates its provenance.
+          {TRADITIONS_INTRO.replace(/:$/, ".")} Each entry also lists the
+          governance traditions and movements that have historically expressed
+          that orientation. Most prototypes are theoretically derived from
+          comparative political philosophy; a subset have been refined toward
+          — or in one case identified directly from — empirical clusters
+          surfaced in an April 2026 synthetic population study. A small mark
+          on each archetype indicates its provenance
+          (<span style={{ color: "var(--stone-600)" }}>●</span> empirical,
+          {" "}
+          <span style={{ color: "var(--stone-600)" }}>◐</span> refined,
+          {" "}
+          <span style={{ color: "var(--stone-600)" }}>○</span> theoretical).
         </p>
 
-        {/* Spoiler notice */}
-        <div className="border-l-2 rounded-[8px] px-4 py-3 mb-10" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
+        {/* Spoiler notice — uses the advisory (warning) accent */}
+        <div
+          className="border-l-2 rounded-[8px] px-4 py-3 mb-10"
+          style={{
+            borderLeftColor: "var(--warning)",
+            backgroundColor: "var(--warning-bg)",
+          }}
+        >
           <p className="text-sm text-text-secondary leading-relaxed">
-            Reading archetype descriptions before taking the assessment may
-            influence how you respond. If you haven&apos;t taken it yet, we
-            recommend{" "}
+            <em className="not-italic font-medium text-warning-text">A note before reading —</em>{" "}
+            archetype descriptions may influence how you answer. If you
+            haven&apos;t taken the assessment yet, we recommend{" "}
             <Link
               href="/quiz"
-              className="text-text-primary font-medium hover:text-text-secondary transition-colors duration-150"
+              className="text-text-primary font-medium underline decoration-border-primary underline-offset-2 hover:decoration-text-secondary transition-colors duration-150"
             >
               completing it first
             </Link>
@@ -175,63 +195,86 @@ export default function ArchetypesPage() {
 
         {/* Archetype nav */}
         <nav className="mb-10" aria-label="Archetype list">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-xs">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
             {sortedArchetypes.map((a, i) => (
               <a
                 key={a.id}
                 href={`#${a.id}`}
-                className="text-text-tertiary hover:text-text-secondary transition-colors duration-150 flex items-baseline gap-1.5"
+                className="text-text-tertiary hover:text-text-primary transition-colors duration-150 flex items-baseline gap-1.5"
               >
-                <span className="font-mono tabular-nums text-[10px] opacity-50">{i + 1}</span>
-                {a.name.replace("The ", "")}
+                <span className="font-mono tabular-nums text-[10px] opacity-50">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                {a.name.replace(/^The\s+/, "")}
               </a>
             ))}
           </div>
         </nav>
 
-        {/* Archetype entries */}
-        <div className="space-y-2">
+        {/* Archetype entries — full-bleed zebra rows, no card radius */}
+        <div className="archetype-list -mx-4">
           {sortedArchetypes.map((archetype, i) => (
             <section
               key={archetype.id}
               id={archetype.id}
-              className={`rounded-[8px] px-4 py-5 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
+              className={`archetype-entry px-4 py-6 scroll-mt-20 ${
+                i % 2 === 1 ? "bg-surface-2" : ""
+              }`}
             >
-              <div className="flex gap-3 mb-3">
+              <header className="flex gap-4 mb-3">
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
-                    <span className="font-mono text-[13px] text-text-tertiary mr-2 tabular-nums">{i + 1}</span>
-                    {archetype.name}
-                  </h2>
-                  <div className="mb-2">
-                    <EmergenceBadge emergence={archetype.emergence} />
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="font-mono text-[13px] text-text-tertiary tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h2 className="text-[18px] font-serif font-medium text-text-primary leading-tight">
+                      {archetype.name}
+                    </h2>
                   </div>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    {archetype.description}
-                  </p>
+                  <div className="mb-2">
+                    <EmergenceMark emergence={archetype.emergence} />
+                  </div>
                 </div>
                 <MiniRadar prototype={archetype.prototype} />
-              </div>
+              </header>
 
-              {/* Characteristic tension */}
-              <div className="border-l-2 border-border-secondary pl-3 mb-4">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-                  Internal tension
-                </p>
-                <p className="text-xs text-text-tertiary leading-relaxed">
-                  {archetype.characteristicTension}
-                </p>
-              </div>
+              <p className="text-sm text-text-secondary leading-relaxed mb-3">
+                {archetype.description}
+              </p>
 
-              {/* Traditions */}
-              <TraditionsSection traditions={archetype.traditions} />
+              {/* Internal tension — serif italic lead-in */}
+              <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+                <em className="font-serif italic text-text-primary">
+                  Internal tension.
+                </em>{" "}
+                {archetype.characteristicTension}
+              </p>
 
-              {/* Prototype vector */}
-              <details className="group">
-                <summary className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
+              {/* Traditions — serif italic lead-in injected into the markdown <p> */}
+              <TraditionsProse
+                traditions={archetype.traditions}
+                leadIn={
+                  <>
+                    <em className="font-serif italic text-text-primary">
+                      Traditions.
+                    </em>{" "}
+                  </>
+                }
+              />
+
+
+              {/* Axis positions — disclosure with caret */}
+              <details className="group mt-3">
+                <summary className="list-none inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block transition-transform duration-150 group-open:rotate-90"
+                  >
+                    ▸
+                  </span>
                   Axis positions
                 </summary>
-                <div className="mt-2 space-y-1">
+                <div className="mt-3 space-y-1">
                   {archetype.prototype.map((value, idx) => {
                     const axis = axes.find((a) => a.id === idx + 1)!;
                     return (
@@ -241,15 +284,16 @@ export default function ArchetypesPage() {
                             {axis.name}
                           </span>
                           <span className="text-[11px] font-mono text-text-tertiary tabular-nums">
-                            {value > 0 ? "+" : ""}{value.toFixed(1)}
+                            {value > 0 ? "+" : ""}
+                            {value.toFixed(1)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="hidden min-[480px]:inline w-16 shrink-0 text-[10px] text-text-tertiary text-right truncate">
                             {axis.poleALabel.split(" ")[0]}
                           </span>
-                          {/* Bar */}
-                          <div className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
+                          <div
+                            className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
                             style={{ backgroundColor: "var(--border-secondary)" }}
                           >
                             {value !== 0 && (
@@ -258,12 +302,14 @@ export default function ArchetypesPage() {
                                 style={{
                                   backgroundColor: "var(--stone-600)",
                                   opacity: 0.4,
-                                  left: value < 0 ? `${50 + value * 50}%` : "50%",
+                                  left:
+                                    value < 0
+                                      ? `${50 + value * 50}%`
+                                      : "50%",
                                   width: `${Math.abs(value) * 50}%`,
                                 }}
                               />
                             )}
-                            {/* Center line */}
                             <div
                               className="absolute top-0 h-full"
                               style={{
@@ -286,25 +332,32 @@ export default function ArchetypesPage() {
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-border-secondary mt-12 pt-6">
-          <div className="text-center">
+        {/* Back-to-top + footer */}
+        <div className="mt-6 text-right">
+          <a
+            href="#top"
+            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+          >
+            ↑ Back to top
+          </a>
+        </div>
+
+        <div className="border-t border-border-secondary mt-8 pt-6 text-center">
+          <Link
+            href="/quiz"
+            className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-[8px] text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
+          >
+            Begin assessment
+          </Link>
+          <p className="mt-3 text-xs text-text-tertiary">
+            or{" "}
             <Link
-              href="/quiz"
-              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+              href="/references"
+              className="hover:text-text-secondary transition-colors duration-150"
             >
-              Take the assessment
+              back to references
             </Link>
-            <p className="mt-3 text-xs text-text-tertiary">
-              or{" "}
-              <Link
-                href="/references"
-                className="hover:text-text-secondary transition-colors duration-150"
-              >
-                back to references
-              </Link>
-            </p>
-          </div>
+          </p>
         </div>
       </article>
     </main>

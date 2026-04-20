@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface ArchetypeCardProps {
   primary: {
+    id: string;
     name: string;
     matchPercentage: number;
     summary: string;
@@ -169,15 +171,23 @@ export function ArchetypeCard({
         )}
       </div>
 
-      {/* Expand toggle — text-only with triangle */}
-      <button
-        onClick={() => setExpanded((prev) => !prev)}
-        className="mt-3 text-[13px] text-text-secondary hover:text-text-primary transition-colors duration-150"
-        aria-expanded={expanded}
-        aria-label={expanded ? "Hide archetype details" : "Show archetype details"}
-      >
-        {expanded ? "\u25BE Hide details" : "\u25B8 Learn more"}
-      </button>
+      {/* Expand toggle + reference link */}
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+        <button
+          onClick={() => setExpanded((prev) => !prev)}
+          className="text-[13px] text-text-secondary hover:text-text-primary transition-colors duration-150"
+          aria-expanded={expanded}
+          aria-label={expanded ? "Hide archetype details" : "Show archetype details"}
+        >
+          {expanded ? "\u25BE Hide details" : "\u25B8 Learn more"}
+        </button>
+        <Link
+          href={`/archetypes#${primary.id}`}
+          className="text-[12px] text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+        >
+          Read in the archetype reference →
+        </Link>
+      </div>
 
       {expanded && (
         <div className="mt-3 space-y-3">
