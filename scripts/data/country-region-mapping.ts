@@ -55,7 +55,7 @@ export const COUNTRY_REGION_MAP: Record<string, RegionKey> = {
   HND: "latin_america",
   HTI: "latin_america",
   JAM: "latin_america",
-  MEX: "latin_america",
+  MEX: "north_america",
   NIC: "latin_america",
   PAN: "latin_america",
   PER: "latin_america",
