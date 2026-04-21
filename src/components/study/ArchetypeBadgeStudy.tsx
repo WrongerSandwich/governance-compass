@@ -41,7 +41,6 @@ export function ArchetypeBadgeStudy({
     border: `0.5px solid var(${colorVar})`,
     backgroundColor: `color-mix(in srgb, var(${colorVar}) 8%, transparent)`,
     textDecoration: "none",
-    cursor: "pointer",
   };
 
   const inner = (

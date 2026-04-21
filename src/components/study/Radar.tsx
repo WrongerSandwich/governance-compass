@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { axes } from "@/data/axes";
 
 const NUM_AXES = 12;
@@ -66,27 +65,10 @@ export function Radar({
   const labelPad = axisLabels ? 20 : 0;
   const r = size / 2 - 8 - labelPad;
 
-  const [revealed, setRevealed] = useState(false);
-  const reducedMotion = useRef(false);
-
-  useEffect(() => {
-    reducedMotion.current = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    // Small defer to allow the CSS transition to trigger on mount
-    const id = requestAnimationFrame(() => setRevealed(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const primaryColor = `var(${colorVar})`;
   const overlayColor = `var(${overlayColorVar})`;
 
-  // Clip path id for draw-in animation
-  const clipOpacity = reducedMotion.current ? 1 : revealed ? 1 : 0;
-  const transitionStyle =
-    !reducedMotion.current
-      ? { transition: "opacity 400ms ease-in" }
-      : undefined;
+  // No fade-in: consistent with MiniRadar (ArchetypeCard) and avoids reduced-motion flash on mount.
 
   return (
     <svg
@@ -134,12 +116,7 @@ export function Radar({
       {overlayScores && (
         <polygon
           points={radarPoints(overlayScores, cx, cy, r)}
-          style={{
-            fill: overlayColor,
-            stroke: overlayColor,
-            opacity: clipOpacity,
-            ...transitionStyle,
-          }}
+          style={{ fill: overlayColor, stroke: overlayColor }}
           fillOpacity={0.08}
           strokeOpacity={0.45}
           strokeWidth={1}
@@ -150,12 +127,7 @@ export function Radar({
       {/* Primary polygon */}
       <polygon
         points={radarPoints(scores, cx, cy, r)}
-        style={{
-          fill: primaryColor,
-          stroke: primaryColor,
-          opacity: clipOpacity,
-          ...transitionStyle,
-        }}
+        style={{ fill: primaryColor, stroke: primaryColor }}
         fillOpacity={0.12}
         strokeOpacity={0.7}
         strokeWidth={1.2}
