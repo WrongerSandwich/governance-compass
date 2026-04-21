@@ -1,0 +1,167 @@
+"use client";
+
+export interface HorizontalBarChartRow {
+  label: string;
+  value: number;
+  color?: string;
+  secondaryLabel?: string;
+  emergenceTag?: string;
+}
+
+export interface HorizontalBarChartProps {
+  rows: HorizontalBarChartRow[];
+  diverging?: boolean;
+  range?: [number, number];
+  barHeight?: number;
+  zeroLineColor?: string;
+  ariaLabel?: string;
+  className?: string;
+}
+
+const LABEL_WIDTH = 140;
+const SECONDARY_WIDTH = 44;
+const BAR_AREA_WIDTH = 200;
+const ROW_GAP = 6;
+const PADDING_TOP = 8;
+
+export function HorizontalBarChart({
+  rows,
+  diverging = false,
+  range,
+  barHeight = 24,
+  zeroLineColor = "var(--border-secondary)",
+  ariaLabel,
+  className,
+}: HorizontalBarChartProps) {
+  // Infer range if not provided
+  const inferredRange: [number, number] = range ?? (() => {
+    const values = rows.map((r) => r.value);
+    const min = Math.min(...values, 0);
+    const max = Math.max(...values, 0);
+    return [min, max];
+  })();
+
+  const [rangeMin, rangeMax] = inferredRange;
+  const rangeSpan = rangeMax - rangeMin || 1;
+
+  const totalWidth = LABEL_WIDTH + BAR_AREA_WIDTH + SECONDARY_WIDTH;
+  const rowStride = barHeight + ROW_GAP;
+  const totalHeight = PADDING_TOP + rows.length * rowStride;
+
+  // X position within bar area
+  function valToX(val: number): number {
+    return LABEL_WIDTH + ((val - rangeMin) / rangeSpan) * BAR_AREA_WIDTH;
+  }
+
+  // Zero X line position
+  const zeroX = diverging ? valToX(0) : LABEL_WIDTH;
+
+  return (
+    <svg
+      viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+      width={totalWidth}
+      height={totalHeight}
+      className={className}
+      role="img"
+      aria-label={ariaLabel ?? "Horizontal bar chart"}
+    >
+      <title>{ariaLabel ?? "Horizontal bar chart"}</title>
+
+      {/* Zero / baseline line */}
+      <line
+        x1={zeroX}
+        y1={PADDING_TOP}
+        x2={zeroX}
+        y2={totalHeight}
+        stroke={zeroLineColor}
+        strokeWidth={1}
+        strokeDasharray={diverging ? "3 2" : undefined}
+        opacity={0.6}
+      />
+
+      {rows.map((row, i) => {
+        const y = PADDING_TOP + i * rowStride;
+        const barY = y + rowStride / 2 - barHeight / 2;
+        const defaultColor = row.color ?? "var(--stone-600)";
+
+        // Bar x and width
+        let barX: number;
+        let barWidth: number;
+
+        if (diverging) {
+          const valueX = valToX(row.value);
+          barX = Math.min(zeroX, valueX);
+          barWidth = Math.abs(valueX - zeroX);
+        } else {
+          barX = LABEL_WIDTH;
+          barWidth = ((row.value - rangeMin) / rangeSpan) * BAR_AREA_WIDTH;
+        }
+
+        return (
+          <g key={i} role="group" aria-label={`${row.label}: ${row.value}`}>
+            {/* Label */}
+            <text
+              x={LABEL_WIDTH - 8}
+              y={barY + barHeight / 2}
+              textAnchor="end"
+              dominantBaseline="middle"
+              style={{
+                fontSize: "11px",
+                fill: "var(--text-primary)",
+                fontFamily: "var(--font-sans)",
+              }}
+            >
+              {row.label}
+            </text>
+
+            {/* Emergence tag — small italic text after label */}
+            {row.emergenceTag && (
+              <text
+                x={LABEL_WIDTH - 8}
+                y={barY + barHeight / 2 + 11}
+                textAnchor="end"
+                dominantBaseline="middle"
+                style={{
+                  fontSize: "9px",
+                  fill: "var(--text-tertiary)",
+                  fontFamily: "var(--font-sans)",
+                  fontStyle: "italic",
+                }}
+              >
+                {row.emergenceTag}
+              </text>
+            )}
+
+            {/* Bar */}
+            <rect
+              x={barX}
+              y={barY + 1}
+              width={Math.max(barWidth, 0)}
+              height={barHeight - 2}
+              fill={defaultColor}
+              fillOpacity={0.75}
+              rx={1}
+              aria-label={`${row.label}: ${row.value}`}
+            />
+
+            {/* Secondary label */}
+            {row.secondaryLabel && (
+              <text
+                x={LABEL_WIDTH + BAR_AREA_WIDTH + 6}
+                y={barY + barHeight / 2}
+                dominantBaseline="middle"
+                style={{
+                  fontSize: "10px",
+                  fill: "var(--text-tertiary)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {row.secondaryLabel}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
