@@ -69,6 +69,13 @@
   --map-hover: #5a4636;     /* Stone 800 */
   --map-accent: #8B6914;    /* Warm gold — glossary-highlight */
 
+  /* --- Axis-gradient tokens (synthetic study section only) --- */
+  --axis-gradient-positive-strong: #8B5E3C; /* warm terracotta/clay — score ≥ 0.3 */
+  --axis-gradient-positive-mild:   #B8836B; /* lighter warm — 0.0 to 0.3 */
+  --axis-gradient-neutral:         #e0d6cc; /* pale stone — near 0 (matches map-density-1) */
+  --axis-gradient-negative-mild:   #8BA3B0; /* light cool — -0.3 to 0 */
+  --axis-gradient-negative-strong: #5B7A8A; /* slate — ≤ -0.3 */
+
   /* --- Model tones (synthetic study section only) --- */
   --model-claude: #8c6e58;  /* Stone/Clay blend close to Stone 600 */
   --model-gemini: #7a8e96;  /* Cooler slate/sage tone */
@@ -112,6 +119,13 @@
     --map-border: #5a4636;    /* Stone 800 */
     --map-hover: #cdbfb2;     /* Stone 300 */
     --map-accent: #c49a2e;    /* Warm gold lifted for dark */
+
+    /* --- Axis-gradient tokens (dark mode) --- */
+    --axis-gradient-positive-strong: #b07050; /* clay lifted for dark contrast */
+    --axis-gradient-positive-mild:   #c89882; /* lighter warm lifted */
+    --axis-gradient-neutral:         #3d2e1f; /* Stone-900 (matches map-density-1) */
+    --axis-gradient-negative-mild:   #6a8898; /* cool slate lifted */
+    --axis-gradient-negative-strong: #4a6878; /* deeper slate lifted */
 
     /* --- Model tones (dark mode) --- */
     --model-claude: #b09278;  /* Stone/Clay lifted */

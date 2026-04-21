@@ -27,11 +27,11 @@ function clusterOpacity(share: number): number {
 }
 
 function axisFill(mean: number): string {
-  if (mean >= 0.3) return "var(--color-clay-600, #8B5E3C)";
-  if (mean >= 0.1) return "var(--color-clay-400, #B8836B)";
-  if (mean >= -0.1) return "var(--map-density-1)";
-  if (mean >= -0.3) return "var(--color-slate-400, #8BA3B0)";
-  return "var(--color-slate-600, #5B7A8A)";
+  if (mean >= 0.3) return "var(--axis-gradient-positive-strong)";
+  if (mean >= 0.1) return "var(--axis-gradient-positive-mild)";
+  if (mean >= -0.1) return "var(--axis-gradient-neutral)";
+  if (mean >= -0.3) return "var(--axis-gradient-negative-mild)";
+  return "var(--axis-gradient-negative-strong)";
 }
 
 export function TransnationalTile({

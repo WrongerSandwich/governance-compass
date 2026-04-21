@@ -88,11 +88,11 @@ function densityFill(count: number): string {
 // Warm (clay/terracotta) for positive, cool (slate) for negative
 // ---------------------------------------------------------------------------
 function axisFill(mean: number): string {
-  if (mean >= 0.3) return "var(--color-clay-600, #8B5E3C)";
-  if (mean >= 0.1) return "var(--color-clay-400, #B8836B)";
-  if (mean >= -0.1) return "var(--map-density-1)";
-  if (mean >= -0.3) return "var(--color-slate-400, #8BA3B0)";
-  return "var(--color-slate-600, #5B7A8A)";
+  if (mean >= 0.3) return "var(--axis-gradient-positive-strong)";
+  if (mean >= 0.1) return "var(--axis-gradient-positive-mild)";
+  if (mean >= -0.1) return "var(--axis-gradient-neutral)";
+  if (mean >= -0.3) return "var(--axis-gradient-negative-mild)";
+  return "var(--axis-gradient-negative-strong)";
 }
 
 // ---------------------------------------------------------------------------
@@ -341,6 +341,89 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   if (mean !== undefined) ariaLabel += `, axis ${mode.axis} mean: ${mean.toFixed(2)}`;
                 }
 
+                // For hatched regions we render two Geography elements:
+                // 1. The cluster color at 60% opacity (base fill, visible underneath)
+                // 2. A transparent path with the hatch pattern overlaid on top
+                // This matches Option A from the spec and mirrors TransnationalTile's approach.
+                if (hatched) {
+                  return (
+                    <>
+                      {/* Base layer: cluster color at 60% opacity */}
+                      <Geography
+                        key={`${geo.rsmKey}-base`}
+                        geography={geo}
+                        tabIndex={-1}
+                        aria-hidden
+                        style={{
+                          default: {
+                            fill,
+                            stroke: "var(--map-border)",
+                            strokeWidth: 0.5,
+                            outline: "none",
+                            opacity: isDimmed ? 0.4 : 0.6,
+                          },
+                          hover: {
+                            fill: "var(--map-hover)",
+                            stroke: "var(--map-accent)",
+                            strokeWidth: 1,
+                            outline: "none",
+                            opacity: isDimmed ? 0.4 : 0.6,
+                          },
+                          pressed: {
+                            fill: "var(--map-hover)",
+                            stroke: "var(--map-accent)",
+                            strokeWidth: 1.5,
+                            outline: "none",
+                          },
+                        }}
+                      />
+                      {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
+                      <Geography
+                        key={`${geo.rsmKey}-hatch`}
+                        geography={geo}
+                        tabIndex={isInteractive ? 0 : -1}
+                        aria-label={ariaLabel}
+                        aria-selected={isInteractive ? isSelected : undefined}
+                        role={isInteractive ? "button" : undefined}
+                        style={{
+                          default: {
+                            fill: `url(#${hatchId})`,
+                            stroke: "none",
+                            strokeWidth: 0,
+                            outline: "none",
+                            opacity: isDimmed ? 0.4 : fillOpacity,
+                          },
+                          hover: {
+                            fill: "transparent",
+                            stroke: "none",
+                            strokeWidth: 0,
+                            outline: "none",
+                            opacity: isDimmed ? 0.4 : fillOpacity,
+                            cursor: isInteractive ? "pointer" : "default",
+                          },
+                          pressed: {
+                            fill: "transparent",
+                            stroke: "none",
+                            strokeWidth: 0,
+                            outline: "none",
+                          },
+                        }}
+                        onMouseEnter={(e: React.MouseEvent) =>
+                          handleMouseEnter(region, e)
+                        }
+                        onMouseMove={(e: React.MouseEvent) =>
+                          handleMouseMove(region, e)
+                        }
+                        onMouseLeave={handleMouseLeave}
+                        onClick={(e: React.MouseEvent) => handleClick(region, e)}
+                        onKeyDown={(e: React.KeyboardEvent) =>
+                          handleKeyDown(region, e)
+                        }
+                      />
+                    </>
+                  );
+                }
+
                 return (
                   <Geography
                     key={geo.rsmKey}
@@ -351,15 +434,15 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                     role={isInteractive ? "button" : undefined}
                     style={{
                       default: {
-                        fill: hatched ? `url(#${hatchId})` : fill,
+                        fill,
                         stroke: "var(--map-border)",
                         strokeWidth: 0.5,
                         outline: "none",
                         opacity: isDimmed ? 0.4 : fillOpacity,
                       },
                       hover: {
-                        fill: isInteractive ? "var(--map-hover)" : fill,
-                        stroke: isInteractive ? "var(--map-accent)" : "var(--map-border)",
+                        fill: "var(--map-hover)",
+                        stroke: "var(--map-accent)",
                         strokeWidth: isInteractive ? 1 : 0.5,
                         outline: "none",
                         opacity: isDimmed ? 0.4 : fillOpacity,
@@ -388,6 +471,16 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
               })
             }
           </Geographies>
+
+          {/*
+           * TODO (Phase 4b/5): Country-level shading (optional sub-layer)
+           * Spec ref: "Country-level shading (optional sub-layer)" in the WorldMap spec.
+           * Prerequisites already in place: `public/geo/world-110m.json` (country polygons)
+           * and `CountryAggregate[]` passed via `mode.countryAggregates`.
+           * When wired in, render a second <Geographies> pass over world-110m.json,
+           * shading each country by its aggregate score within the region color scheme.
+           * Only active in "static-density" and "interactive" modes.
+           */}
 
           {/* Selected region outline overlay */}
           {mode.type === "interactive" && mode.selectedRegion && (
