@@ -13,6 +13,7 @@ import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
 import { usePinnedPersonas } from "@/lib/study/usePinnedPersonas";
 import { REGION_LABELS } from "@/lib/study/types";
+import { archetypes } from "@/data/archetypes";
 import type {
   PersonaSlim,
   RegionalAggregate,
@@ -271,9 +272,11 @@ function PersonasPageClientInner({
       (a, b) => a - b
     ) as ClusterId[];
     const archetypeIds = [...new Set(catalog.map((p) => p.nearest_archetype_id))];
-    const archetypes = archetypeIds.map((id) => ({
+    const archetypeLabel = (id: string) =>
+      archetypes.find((a) => a.id === id)?.name ?? id;
+    const archetypeOptions = archetypeIds.map((id) => ({
       id,
-      name: id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      name: archetypeLabel(id),
     }));
     const governanceCategories = [
       ...new Set(catalog.map((p) => p.governance_experience)),
@@ -297,7 +300,7 @@ function PersonasPageClientInner({
     return {
       regions: regions as RegionKey[],
       clusters,
-      archetypes,
+      archetypes: archetypeOptions,
       governanceCategories,
       economicCategories,
       urbanRuralCategories,

@@ -11,14 +11,14 @@
         "count": 7
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 6
       },
       {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 5
+        "count": 3
       }
     ]
   },
@@ -31,11 +31,11 @@
       {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 10
+        "count": 9
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 4
       },
       {
@@ -52,13 +52,13 @@
     "count": 19,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 9
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 6
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
         "count": 6
       },
       {
@@ -85,8 +85,8 @@
         "count": 2
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 2
       }
     ]
@@ -103,14 +103,14 @@
         "count": 6
       },
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 3
-      },
-      {
         "id": "communitarian-steward",
         "name": "The Communitarian Steward",
         "count": 3
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 2
       }
     ]
   },
@@ -121,9 +121,9 @@
     "count": 35,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 18
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 10
       },
       {
         "id": "communitarian-steward",
@@ -131,9 +131,9 @@
         "count": 8
       },
       {
-        "id": "nationalist-populist",
-        "name": "The Nationalist Populist",
-        "count": 6
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 8
       }
     ]
   },
@@ -154,8 +154,8 @@
         "count": 5
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 4
       }
     ]
@@ -167,19 +167,19 @@
     "count": 43,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 18
-      },
-      {
         "id": "nationalist-populist",
         "name": "The Nationalist Populist",
         "count": 16
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
-        "count": 6
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 11
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 7
       }
     ]
   },
@@ -200,8 +200,8 @@
         "count": 2
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 2
       }
     ]
@@ -213,18 +213,18 @@
     "count": 22,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 7
-      },
-      {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 6
       },
       {
         "id": "communitarian-steward",
         "name": "The Communitarian Steward",
+        "count": 4
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
         "count": 4
       }
     ]
@@ -238,11 +238,11 @@
       {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 7
+        "count": 6
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 5
       },
       {
@@ -259,18 +259,18 @@
     "count": 16,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 5
-      },
-      {
         "id": "nationalist-populist",
         "name": "The Nationalist Populist",
         "count": 4
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
         "count": 3
       }
     ]
@@ -289,7 +289,7 @@
       {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 3
+        "count": 2
       },
       {
         "id": "nationalist-populist",
@@ -305,18 +305,18 @@
     "count": 19,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 7
-      },
-      {
         "id": "nationalist-populist",
         "name": "The Nationalist Populist",
         "count": 4
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
         "count": 4
       }
     ]
@@ -328,19 +328,19 @@
     "count": 14,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 6
-      },
-      {
         "id": "communitarian-steward",
         "name": "The Communitarian Steward",
         "count": 4
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
-        "count": 2
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
       }
     ]
   },
@@ -351,19 +351,19 @@
     "count": 13,
     "top_archetypes": [
       {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 5
+      },
+      {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 9
+        "count": 4
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 2
-      },
-      {
-        "id": "communitarian-steward",
-        "name": "The Communitarian Steward",
-        "count": 1
       }
     ]
   },
@@ -379,13 +379,13 @@
         "count": 7
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 3
       },
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
         "count": 2
       }
     ]
@@ -397,19 +397,19 @@
     "count": 12,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 8
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 6
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
         "count": 2
       },
       {
-        "id": "communitarian-steward",
-        "name": "The Communitarian Steward",
-        "count": 1
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 2
       }
     ]
   },
@@ -422,7 +422,7 @@
       {
         "id": "radical-egalitarian",
         "name": "The Radical Egalitarian",
-        "count": 7
+        "count": 4
       },
       {
         "id": "communitarian-steward",
@@ -430,9 +430,9 @@
         "count": 3
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
-        "count": 1
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
       }
     ]
   },
@@ -448,14 +448,14 @@
         "count": 4
       },
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 3
-      },
-      {
         "id": "communitarian-steward",
         "name": "The Communitarian Steward",
         "count": 3
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 2
       }
     ]
   },
@@ -471,8 +471,8 @@
         "count": 5
       },
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 4
       },
       {
@@ -512,8 +512,8 @@
     "count": 10,
     "top_archetypes": [
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 3
       },
       {
@@ -535,19 +535,19 @@
     "count": 10,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 5
-      },
-      {
         "id": "communitarian-steward",
         "name": "The Communitarian Steward",
         "count": 4
       },
       {
-        "id": "developmental-modernizer",
-        "name": "The Developmental Modernizer",
-        "count": 1
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 2
       }
     ]
   },
@@ -558,19 +558,19 @@
     "count": 11,
     "top_archetypes": [
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 6
-      },
-      {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 4
       },
       {
-        "id": "communitarian-steward",
-        "name": "The Communitarian Steward",
-        "count": 1
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
       }
     ]
   },
@@ -581,13 +581,13 @@
     "count": 10,
     "top_archetypes": [
       {
-        "id": "pragmatic-centrist",
-        "name": "pragmatic-centrist",
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
         "count": 4
       },
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
         "count": 3
       },
       {
@@ -614,9 +614,9 @@
         "count": 3
       },
       {
-        "id": "radical-egalitarian",
-        "name": "The Radical Egalitarian",
-        "count": 2
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 1
       }
     ]
   }

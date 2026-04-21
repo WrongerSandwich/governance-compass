@@ -57,7 +57,7 @@
       0.3515,
       0.3166
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0003",
@@ -147,7 +147,7 @@
       -0.158,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0006",
@@ -297,7 +297,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0011",
@@ -357,7 +357,7 @@
       -0.6497,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0013",
@@ -417,7 +417,7 @@
       -0.9122,
       -0.5377
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0015",
@@ -507,7 +507,7 @@
       -0.7372,
       -0.4375
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0018",
@@ -567,7 +567,7 @@
       0.2626,
       0.4041
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0020",
@@ -717,7 +717,7 @@
       0.4759,
       0.4623
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0025",
@@ -747,7 +747,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0026",
@@ -837,7 +837,7 @@
       -0.6485,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0029",
@@ -867,7 +867,7 @@
       -0.8247,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0030",
@@ -957,7 +957,7 @@
       -0.8235,
       0.0842
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0033",
@@ -1047,7 +1047,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0036",
@@ -1257,7 +1257,7 @@
       0.4455,
       -0.4375
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0043",
@@ -1377,7 +1377,7 @@
       -0.0693,
       -0.5251
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0047",
@@ -1437,7 +1437,7 @@
       0.2626,
       -0.5825
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0049",
@@ -1497,7 +1497,7 @@
       -0.78035,
       -0.40645
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0051",
@@ -1527,7 +1527,7 @@
       -0.8249,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0052",
@@ -1587,7 +1587,7 @@
       -0.817,
       -0.495
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0054",
@@ -1617,7 +1617,7 @@
       -0.817,
       -0.5179
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0055",
@@ -1647,7 +1647,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0056",
@@ -1767,7 +1767,7 @@
       -0.736,
       -0.5825
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0060",
@@ -1857,7 +1857,7 @@
       -0.561,
       0.5498
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0063",
@@ -1887,7 +1887,7 @@
       -0.0325,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0064",
@@ -2097,7 +2097,7 @@
       0.3515,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0071",
@@ -2247,7 +2247,7 @@
       -0.6991,
       -0.5377
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0076",
@@ -2307,7 +2307,7 @@
       -0.8247,
       -0.5255
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0078",
@@ -2337,7 +2337,7 @@
       -0.7372,
       -0.1117
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0079",
@@ -2397,7 +2397,7 @@
       -0.7372,
       -0.48155
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0081",
@@ -2607,7 +2607,7 @@
       -0.6497,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0088",
@@ -2667,7 +2667,7 @@
       -0.78095,
       -0.3938
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0090",
@@ -2697,7 +2697,7 @@
       -0.736,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0091",
@@ -3057,7 +3057,7 @@
       -0.736,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0103",
@@ -3207,7 +3207,7 @@
       -0.23274999999999998,
       -0.39385000000000003
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0108",
@@ -3267,7 +3267,7 @@
       -0.8235,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0110",
@@ -3357,7 +3357,7 @@
       -0.642,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0113",
@@ -3597,7 +3597,7 @@
       0.2705,
       -0.5377
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0121",
@@ -3657,7 +3657,7 @@
       -0.6485,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0123",
@@ -3777,7 +3777,7 @@
       -0.736,
       -0.5251
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0127",
@@ -3927,7 +3927,7 @@
       0.0182,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0132",
@@ -4077,7 +4077,7 @@
       0.2705,
       0.479
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0137",
@@ -4197,7 +4197,7 @@
       0.3515,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0141",
@@ -4287,7 +4287,7 @@
       -0.4533,
       -0.5825
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0144",
@@ -4347,7 +4347,7 @@
       0.3884,
       0.2267
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0146",
@@ -4407,7 +4407,7 @@
       0.5925,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0148",
@@ -4527,7 +4527,7 @@
       -0.8247,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0152",
@@ -4677,7 +4677,7 @@
       0.7375,
       -0.4075
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0157",
@@ -4767,7 +4767,7 @@
       0.5925,
       0.2291
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0160",
@@ -4827,7 +4827,7 @@
       -0.57175,
       -0.35125
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0162",
@@ -5007,7 +5007,7 @@
       -0.17379999999999998,
       0.024650000000000005
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0168",
@@ -5277,7 +5277,7 @@
       0.65,
       -0.13924999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0177",
@@ -5307,7 +5307,7 @@
       0.264,
       0.4017
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0178",
@@ -5367,7 +5367,7 @@
       0.264,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0180",
@@ -5517,7 +5517,7 @@
       -0.51005,
       0.43205
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0185",
@@ -5697,7 +5697,7 @@
       0.2705,
       0.505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0191",
@@ -5877,7 +5877,7 @@
       -0.8247,
       0.4892
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0197",
@@ -5997,7 +5997,7 @@
       -0.7372,
       -0.4502
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0201",
@@ -6087,7 +6087,7 @@
       0.7374,
       0.3166
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0204",
@@ -6177,7 +6177,7 @@
       0.7351,
       0.8249
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0207",
@@ -6237,7 +6237,7 @@
       -0.8235,
       -0.35
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0209",
@@ -6267,7 +6267,7 @@
       0.1753,
       0.5925
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0210",
@@ -6297,7 +6297,7 @@
       0.358,
       -0.4075
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0211",
@@ -6327,7 +6327,7 @@
       0.7374,
       -0.4502
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0212",
@@ -6447,7 +6447,7 @@
       0.4607,
       0.19344999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0216",
@@ -6537,7 +6537,7 @@
       -0.6485,
       0.737
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0219",
@@ -6597,7 +6597,7 @@
       -0.2325,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0221",
@@ -6687,7 +6687,7 @@
       0.3946,
       0.4017
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0224",
@@ -6717,7 +6717,7 @@
       -0.12,
       -0.5251
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0225",
@@ -6777,7 +6777,7 @@
       -0.57505,
       -0.44504999999999995
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0227",
@@ -6807,7 +6807,7 @@
       0.7375,
       -0.4075
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0228",
@@ -6867,7 +6867,7 @@
       0.264,
       -0.1846
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0230",
@@ -6927,7 +6927,7 @@
       -0.736,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0232",
@@ -6987,7 +6987,7 @@
       -0.72495,
       -0.52265
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0234",
@@ -7077,7 +7077,7 @@
       0.4455,
       0.5624
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0237",
@@ -7107,7 +7107,7 @@
       0.9125,
       -0.1504
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0238",
@@ -7197,7 +7197,7 @@
       -0.817,
       0.129
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0241",
@@ -7227,7 +7227,7 @@
       0.3946,
       -0.4375
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0242",
@@ -7287,7 +7287,7 @@
       0.2628,
       0.6499
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0244",
@@ -7347,7 +7347,7 @@
       -0.4901,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0246",
@@ -7407,7 +7407,7 @@
       -0.73335,
       -0.06189999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0248",
@@ -7437,7 +7437,7 @@
       -0.6237,
       -0.43875
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0249",
@@ -7467,7 +7467,7 @@
       -0.8247,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0250",
@@ -7527,7 +7527,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0252",
@@ -7707,7 +7707,7 @@
       0.358,
       0.3166
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0258",
@@ -7887,7 +7887,7 @@
       -0.9045,
       -0.6054
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0264",
@@ -8007,7 +8007,7 @@
       -0.7372,
       -0.5251
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0268",
@@ -8037,7 +8037,7 @@
       -0.6485,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0269",
@@ -8127,7 +8127,7 @@
       -0.817,
       -0.525
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0272",
@@ -8157,7 +8157,7 @@
       -0.78105,
       -0.3362
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0273",
@@ -8277,7 +8277,7 @@
       -0.6497,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0277",
@@ -8367,7 +8367,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0280",
@@ -8427,7 +8427,7 @@
       -0.7295,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0282",
@@ -8487,7 +8487,7 @@
       -0.7866,
       -0.5825
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0284",
@@ -8607,7 +8607,7 @@
       -0.4471,
       0.4041
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0288",
@@ -8637,7 +8637,7 @@
       0.264,
       0.0708
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0289",
@@ -8787,7 +8787,7 @@
       -0.8018000000000001,
       -0.4726
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0294",
@@ -8847,7 +8847,7 @@
       -0.6485,
       0.4041
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0296",
@@ -8877,7 +8877,7 @@
       -0.6806,
       -0.4375
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0297",
@@ -9237,7 +9237,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0309",
@@ -9267,7 +9267,7 @@
       -0.736,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0310",
@@ -10137,7 +10137,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0339",
@@ -10227,7 +10227,7 @@
       -0.911,
       -0.5274
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0342",
@@ -10257,7 +10257,7 @@
       -0.7374,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0343",
@@ -10317,7 +10317,7 @@
       -0.3962,
       0.4821
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0345",
@@ -10407,7 +10407,7 @@
       -0.7295,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0348",
@@ -10527,7 +10527,7 @@
       -0.4914,
       0.3884
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0352",
@@ -10557,7 +10557,7 @@
       -0.3524,
       -0.5179
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0353",
@@ -10587,7 +10587,7 @@
       -0.7295,
       -0.438
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0354",
@@ -10617,7 +10617,7 @@
       -0.7372,
       -0.495
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0355",
@@ -10647,7 +10647,7 @@
       -0.8249,
       0.4623
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0356",
@@ -10707,7 +10707,7 @@
       -0.7372,
       0.6499
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0358",
@@ -10797,7 +10797,7 @@
       -0.9124,
       0.3915
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0361",
@@ -10947,7 +10947,7 @@
       -0.9124,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0366",
@@ -11067,7 +11067,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0370",
@@ -11217,7 +11217,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0375",
@@ -11247,7 +11247,7 @@
       -0.7770999999999999,
       0.05495
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0376",
@@ -11397,7 +11397,7 @@
       -0.8249,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0381",
@@ -11517,7 +11517,7 @@
       -0.0325,
       -0.6929
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0385",
@@ -11547,7 +11547,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0386",
@@ -11637,7 +11637,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0389",
@@ -11667,7 +11667,7 @@
       -0.7365999999999999,
       -0.44504999999999995
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0390",
@@ -11757,7 +11757,7 @@
       -0.7372,
       -0.4502
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0393",
@@ -11787,7 +11787,7 @@
       -0.9999,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0394",
@@ -11877,7 +11877,7 @@
       -0.8247,
       0.4041
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0397",
@@ -12027,7 +12027,7 @@
       -0.8247,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0402",
@@ -12087,7 +12087,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0404",
@@ -12147,7 +12147,7 @@
       -0.8247,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0406",
@@ -12177,7 +12177,7 @@
       -0.9045,
       -0.7804
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0407",
@@ -12297,7 +12297,7 @@
       0.5925,
       0.5925
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0411",
@@ -12357,7 +12357,7 @@
       -0.8247,
       -0.4399
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0413",
@@ -12507,7 +12507,7 @@
       -0.73275,
       -0.44504999999999995
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0418",
@@ -12537,7 +12537,7 @@
       -0.7365999999999999,
       -0.4375
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0419",
@@ -12597,7 +12597,7 @@
       -0.8685499999999999,
       -0.5278
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0421",
@@ -12627,7 +12627,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0422",
@@ -12717,7 +12717,7 @@
       -0.8247,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0425",
@@ -12747,7 +12747,7 @@
       -0.8741,
       -0.67
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0426",
@@ -12777,7 +12777,7 @@
       -0.8247,
       0.2592
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0427",
@@ -12897,7 +12897,7 @@
       -0.4075,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0431",
@@ -12927,7 +12927,7 @@
       -0.736,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0432",
@@ -13047,7 +13047,7 @@
       -0.9997,
       -0.8679
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0436",
@@ -13107,7 +13107,7 @@
       -0.9122,
       0.4037
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0438",
@@ -13167,7 +13167,7 @@
       -0.911,
       -0.5377
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0440",
@@ -13257,7 +13257,7 @@
       -0.7765,
       -0.44504999999999995
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0443",
@@ -13467,7 +13467,7 @@
       0.2134,
       -0.0262
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0450",
@@ -13527,7 +13527,7 @@
       0.7374,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0452",
@@ -13557,7 +13557,7 @@
       -0.825,
       -0.495
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0453",
@@ -13617,7 +13617,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0455",
@@ -13677,7 +13677,7 @@
       -0.6497,
       0.6495
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0457",
@@ -13887,7 +13887,7 @@
       -0.9985,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0464",
@@ -14067,7 +14067,7 @@
       0.4455,
       0.3162
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0470",
@@ -14157,7 +14157,7 @@
       -0.0693,
       0.0707
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0473",
@@ -14397,7 +14397,7 @@
       -0.0693,
       -0.4375
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0481",
@@ -14427,7 +14427,7 @@
       -0.7372,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0482",
@@ -14487,7 +14487,7 @@
       0.3086,
       -0.5533
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0484",
@@ -14517,7 +14517,7 @@
       -0.6497,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0485",
@@ -14577,7 +14577,7 @@
       0.0246,
       0.4892
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0487",
@@ -14637,7 +14637,7 @@
       -0.7295,
       -0.525
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0489",
@@ -14667,7 +14667,7 @@
       -0.5545,
       -0.2044
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0490",
@@ -14937,7 +14937,7 @@
       -0.7295,
       0.1392
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0499",
@@ -15057,7 +15057,7 @@
       0.3503,
       0.3162
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0503",
@@ -15177,7 +15177,7 @@
       -0.27275000000000005,
       0.19135
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0507",
@@ -15267,7 +15267,7 @@
       -0.69225,
       -0.35125
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0510",
@@ -15327,7 +15327,7 @@
       -0.3524,
       -0.4075
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0512",
@@ -15657,7 +15657,7 @@
       0.7375,
       0.4017
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0523",
@@ -15867,7 +15867,7 @@
       -0.736,
       0.8245
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0530",
@@ -15897,7 +15897,7 @@
       0.5925,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0531",
@@ -16137,7 +16137,7 @@
       -0.7295,
       -0.5377
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0539",
@@ -16617,7 +16617,7 @@
       0.358,
       0.4037
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0555",
@@ -16647,7 +16647,7 @@
       -0.911,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0556",
@@ -16707,7 +16707,7 @@
       0.0707,
       -0.4502
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0558",
@@ -16737,7 +16737,7 @@
       -0.8247,
       -0.525
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0559",
@@ -16797,7 +16797,7 @@
       -0.8247,
       0.2291
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0561",
@@ -16827,7 +16827,7 @@
       -0.6929,
       -0.7575
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0562",
@@ -16857,7 +16857,7 @@
       -0.736,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0563",
@@ -16887,7 +16887,7 @@
       -0.5241,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0564",
@@ -16947,7 +16947,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0566",
@@ -17007,7 +17007,7 @@
       0.304,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0568",
@@ -17067,7 +17067,7 @@
       0.1753,
       0.3142
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0570",
@@ -17187,7 +17187,7 @@
       -0.736,
       0.737
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0574",
@@ -17247,7 +17247,7 @@
       -0.73335,
       -0.4665
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0576",
@@ -17277,7 +17277,7 @@
       -0.642,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0577",
@@ -17337,7 +17337,7 @@
       0.0182,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0579",
@@ -17367,7 +17367,7 @@
       -0.7372,
       -0.4502
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0580",
@@ -17397,7 +17397,7 @@
       -0.817,
       -0.495
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0581",
@@ -17487,7 +17487,7 @@
       0.3142,
       -0.4376
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0584",
@@ -17547,7 +17547,7 @@
       -0.7587999999999999,
       -0.0028499999999999914
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0586",
@@ -17607,7 +17607,7 @@
       -0.736,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0588",
@@ -17637,7 +17637,7 @@
       -0.7295,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0589",
@@ -17697,7 +17697,7 @@
       -0.7372,
       0.304
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0591",
@@ -17847,7 +17847,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0596",
@@ -18087,7 +18087,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0604",
@@ -18117,7 +18117,7 @@
       -0.8249,
       -0.525
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0605",
@@ -18177,7 +18177,7 @@
       -0.8248,
       -0.46745000000000003
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0607",
@@ -18357,7 +18357,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0613",
@@ -18387,7 +18387,7 @@
       -0.7374,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0614",
@@ -18537,7 +18537,7 @@
       -0.4915,
       -0.13925
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0619",
@@ -18597,7 +18597,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0621",
@@ -18627,7 +18627,7 @@
       -0.736,
       0.1392
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0622",
@@ -18687,7 +18687,7 @@
       -0.642,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0624",
@@ -18717,7 +18717,7 @@
       -0.7374,
       -0.46745000000000003
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0625",
@@ -18777,7 +18777,7 @@
       -0.90835,
       -0.5538
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0627",
@@ -18807,7 +18807,7 @@
       -0.73275,
       0.062450000000000006
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0628",
@@ -18927,7 +18927,7 @@
       0.3515,
       0.825
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0632",
@@ -18987,7 +18987,7 @@
       0.3009,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0634",
@@ -19227,7 +19227,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0642",
@@ -19287,7 +19287,7 @@
       -0.817,
       -0.5274
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0644",
@@ -19347,7 +19347,7 @@
       -0.7295,
       -0.35
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0646",
@@ -19437,7 +19437,7 @@
       -0.736,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0649",
@@ -19557,7 +19557,7 @@
       -0.61365,
       -0.02780000000000002
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0653",
@@ -19587,7 +19587,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0654",
@@ -19617,7 +19617,7 @@
       -0.736,
       0.4042
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0655",
@@ -19737,7 +19737,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0659",
@@ -19827,7 +19827,7 @@
       -0.736,
       0.062450000000000006
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0662",
@@ -19917,7 +19917,7 @@
       -0.6485,
       -0.2625
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0665",
@@ -20067,7 +20067,7 @@
       -0.6485,
       -0.2626
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0670",
@@ -20277,7 +20277,7 @@
       -0.7372,
       -0.4375
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0677",
@@ -20367,7 +20367,7 @@
       -0.7372,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0680",
@@ -20397,7 +20397,7 @@
       -0.7613,
       -0.06189999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0681",
@@ -20427,7 +20427,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0682",
@@ -20487,7 +20487,7 @@
       -0.7375,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0684",
@@ -20547,7 +20547,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0686",
@@ -20577,7 +20577,7 @@
       -0.73335,
       -0.5502
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0687",
@@ -20697,7 +20697,7 @@
       -0.6485,
       0.4037
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0691",
@@ -20817,7 +20817,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0695",
@@ -20877,7 +20877,7 @@
       -0.8247,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0697",
@@ -20937,7 +20937,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0699",
@@ -21027,7 +21027,7 @@
       -0.6485,
       0.6495
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0702",
@@ -21117,7 +21117,7 @@
       -0.9122,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0705",
@@ -21327,7 +21327,7 @@
       -0.7866,
       -0.4502
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0712",
@@ -21567,7 +21567,7 @@
       -0.911,
       0.7374
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0720",
@@ -21687,7 +21687,7 @@
       -0.8247,
       -0.4375
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0724",
@@ -21807,7 +21807,7 @@
       -0.8741,
       -0.6252
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0728",
@@ -22017,7 +22017,7 @@
       -0.817,
       -0.5377
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0735",
@@ -22047,7 +22047,7 @@
       -0.8741,
       0.2363
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0736",
@@ -22107,7 +22107,7 @@
       -0.7181500000000001,
       -0.35145
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0738",
@@ -22227,7 +22227,7 @@
       0.007450000000000012,
       -0.5278
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0742",
@@ -22257,7 +22257,7 @@
       -0.9122,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0743",
@@ -22377,7 +22377,7 @@
       -0.642,
       0.3142
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0747",
@@ -22527,7 +22527,7 @@
       -0.4026,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0752",
@@ -22617,7 +22617,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0755",
@@ -22677,7 +22677,7 @@
       -0.6126,
       -0.5825
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0757",
@@ -22707,7 +22707,7 @@
       -0.9077500000000001,
       -0.4813
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0758",
@@ -22767,7 +22767,7 @@
       -0.7372,
       0.4037
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0760",
@@ -22797,7 +22797,7 @@
       -0.9125,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0761",
@@ -23217,7 +23217,7 @@
       -0.817,
       -0.5377
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0775",
@@ -23277,7 +23277,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0777",
@@ -23367,7 +23367,7 @@
       -0.8247,
       -0.4376
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0780",
@@ -23397,7 +23397,7 @@
       -0.6116,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0781",
@@ -23457,7 +23457,7 @@
       -0.7866,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0783",
@@ -23607,7 +23607,7 @@
       -0.7372,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0788",
@@ -23727,7 +23727,7 @@
       -0.80265,
       -0.48715
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0792",
@@ -23817,7 +23817,7 @@
       -0.6991,
       -0.5274
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0795",
@@ -23847,7 +23847,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0796",
@@ -24117,7 +24117,7 @@
       -0.5545,
       0.4017
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0805",
@@ -24147,7 +24147,7 @@
       -0.8249,
       -0.5825
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0806",
@@ -24177,7 +24177,7 @@
       0.65,
       0.4821
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0807",
@@ -24207,7 +24207,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0808",
@@ -24267,7 +24267,7 @@
       -0.7372,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0810",
@@ -24297,7 +24297,7 @@
       -0.7770999999999999,
       0.06104999999999999
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0811",
@@ -24327,7 +24327,7 @@
       -0.736,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0812",
@@ -24357,7 +24357,7 @@
       0.1765,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0813",
@@ -24387,7 +24387,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0814",
@@ -24417,7 +24417,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0815",
@@ -24447,7 +24447,7 @@
       -0.4041,
       0.4892
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0816",
@@ -24477,7 +24477,7 @@
       -0.9124,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0817",
@@ -24537,7 +24537,7 @@
       -0.3524,
       -0.4075
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0819",
@@ -24567,7 +24567,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0820",
@@ -24597,7 +24597,7 @@
       -0.7372,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0821",
@@ -24627,7 +24627,7 @@
       0.0134,
       -0.6587
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0822",
@@ -24657,7 +24657,7 @@
       -0.7295,
       -0.3501
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0823",
@@ -24747,7 +24747,7 @@
       -0.8019499999999999,
       -0.4387
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0826",
@@ -24777,7 +24777,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0827",
@@ -24957,7 +24957,7 @@
       -0.9997,
       -0.7575
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0833",
@@ -24987,7 +24987,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0834",
@@ -25317,7 +25317,7 @@
       -0.7295,
       -0.1918
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0845",
@@ -25407,7 +25407,7 @@
       -0.5667,
       0.06239999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0848",
@@ -25437,7 +25437,7 @@
       -0.4533,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0849",
@@ -25617,7 +25617,7 @@
       -0.4026,
       -0.4399
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0855",
@@ -25677,7 +25677,7 @@
       -0.7374,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0857",
@@ -25767,7 +25767,7 @@
       -0.09705,
       -0.52265
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0860",
@@ -25857,7 +25857,7 @@
       -0.2291,
       0.183
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0863",
@@ -25887,7 +25887,7 @@
       -0.7374,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0864",
@@ -25947,7 +25947,7 @@
       -0.7374,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0866",
@@ -26007,7 +26007,7 @@
       -0.8235,
       -0.5274
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0868",
@@ -26067,7 +26067,7 @@
       0.264,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0870",
@@ -26127,7 +26127,7 @@
       -0.7181500000000001,
       0.035749999999999976
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0872",
@@ -26157,7 +26157,7 @@
       -0.7374,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0873",
@@ -26217,7 +26217,7 @@
       -0.4026,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0875",
@@ -26307,7 +26307,7 @@
       -0.7295,
       0.6495
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0878",
@@ -26337,7 +26337,7 @@
       -0.7372,
       -0.5251
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0879",
@@ -26367,7 +26367,7 @@
       -0.7372,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0880",
@@ -26397,7 +26397,7 @@
       -0.736,
       -0.3505
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0881",
@@ -26517,7 +26517,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0885",
@@ -26547,7 +26547,7 @@
       -0.911,
       0.129
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0886",
@@ -26577,7 +26577,7 @@
       0.3009,
       0.6476
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0887",
@@ -26607,7 +26607,7 @@
       0.2628,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0888",
@@ -26757,7 +26757,7 @@
       -0.65925,
       -0.43875
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0893",
@@ -26787,7 +26787,7 @@
       -0.7374,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0894",
@@ -26817,7 +26817,7 @@
       -0.7372,
       0.4892
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0895",
@@ -26877,7 +26877,7 @@
       -0.9616,
       -0.5274
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0897",
@@ -27027,7 +27027,7 @@
       -0.4039,
       -0.3627
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0902",
@@ -27057,7 +27057,7 @@
       -0.7372,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0903",
@@ -27327,7 +27327,7 @@
       -0.8247,
       -0.1921
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0912",
@@ -27357,7 +27357,7 @@
       -0.73335,
       -0.016649999999999998
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0913",
@@ -27387,7 +27387,7 @@
       -0.86785,
       -0.5549499999999999
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0914",
@@ -27447,7 +27447,7 @@
       -0.8247,
       -0.5377
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0916",
@@ -27507,7 +27507,7 @@
       -0.8247,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0918",
@@ -27897,7 +27897,7 @@
       -0.7372,
       0.4042
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0931",
@@ -27957,7 +27957,7 @@
       -0.9997,
       0.4175
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0933",
@@ -28137,7 +28137,7 @@
       -0.8247,
       -0.3627
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0939",
@@ -28167,7 +28167,7 @@
       0.2705,
       -0.4376
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0940",
@@ -28287,7 +28287,7 @@
       -0.9125,
       -0.7575
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0944",
@@ -28317,7 +28317,7 @@
       -0.7374,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0945",
@@ -28407,7 +28407,7 @@
       -0.3962,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0948",
@@ -28437,7 +28437,7 @@
       -0.7372,
       -0.3505
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0949",
@@ -28467,7 +28467,7 @@
       -0.7804,
       0.3142
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0950",
@@ -28497,7 +28497,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0951",
@@ -28527,7 +28527,7 @@
       -0.2366,
       -0.39405
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0952",
@@ -28617,7 +28617,7 @@
       -0.7295,
       -0.1169
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0955",
@@ -28677,7 +28677,7 @@
       -0.657,
       -0.5664
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0957",
@@ -28797,7 +28797,7 @@
       -0.736,
       -0.263
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0961",
@@ -28947,7 +28947,7 @@
       -0.8202499999999999,
       -0.46745000000000003
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0966",
@@ -28977,7 +28977,7 @@
       0.264,
       0.2592
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0967",
@@ -29067,7 +29067,7 @@
       -0.736,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0970",
@@ -29187,7 +29187,7 @@
       -0.2783,
       0.6499
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0974",
@@ -29277,7 +29277,7 @@
       0.4623,
       -0.5274
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0977",
@@ -29307,7 +29307,7 @@
       0.2628,
       -0.4399
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0978",
@@ -29457,7 +29457,7 @@
       0.358,
       0.3166
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0983",
@@ -29487,7 +29487,7 @@
       -0.7374,
       -0.4375
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0984",
@@ -29547,7 +29547,7 @@
       0.0182,
       -0.3524
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0986",
@@ -29637,7 +29637,7 @@
       -0.0693,
       0.4892
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0989",
@@ -29667,7 +29667,7 @@
       -0.7372,
       -0.35
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0990",
@@ -29697,7 +29697,7 @@
       -0.736,
       -0.3501
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0991",
@@ -29727,7 +29727,7 @@
       0.5925,
       0.533
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0992",
@@ -29757,7 +29757,7 @@
       -0.2721,
       -0.817
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0993",
@@ -29787,7 +29787,7 @@
       0.1753,
       -0.1043
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0994",
@@ -29817,7 +29817,7 @@
       -0.6991,
       -0.6929
     ],
-    "nearest_archetype_id": "radical-egalitarian"
+    "nearest_archetype_id": "popular-egalitarian"
   },
   {
     "id": "P0995",
@@ -29877,7 +29877,7 @@
       -0.63005,
       0.4981
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0997",
@@ -29907,7 +29907,7 @@
       0.06515,
       -0.39375000000000004
     ],
-    "nearest_archetype_id": "pragmatic-centrist"
+    "nearest_archetype_id": "institutional-moderate"
   },
   {
     "id": "P0998",

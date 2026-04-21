@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { parse as parseCsv } from "csv-parse/sync";
-import { archetypes } from "@/data/archetypes";
 import { bucketMatchStrength } from "@/lib/study/matchStrength";
+import { postRevisionArchetypeForCluster } from "@/lib/study/archetypeResolution";
 import type {
   PersonaRecord,
   ScoredProfile,
@@ -36,19 +36,6 @@ interface ClusterLabelRow {
   [key: string]: string | undefined;
 }
 
-interface ArchetypeComparisonEntry {
-  cluster: number;
-  nearest_archetype: {
-    id: string;
-    name: string;
-    distance: number;
-  };
-}
-
-interface ArchetypeComparisonFile {
-  cluster_to_archetype: ArchetypeComparisonEntry[];
-}
-
 interface PersonasFile {
   personas: PersonaRecord[];
 }
@@ -77,7 +64,7 @@ interface DataCache {
   profilesByPersona: Map<string, ScoredProfile[]>;
   claudeById: Map<string, ResponseRecord>;
   geminiById: Map<string, ResponseRecord>;
-  clusterToArchetype: Map<number, ArchetypeComparisonEntry>;
+  clusterCentroidById: Map<number, readonly number[]>;
 }
 
 let cache: DataCache | null = null;
@@ -86,15 +73,22 @@ let cachePromise: Promise<DataCache> | null = null;
 const DATA_DIR = path.join(process.cwd(), "data", "synthetic_study");
 const DERIVED_DIR = path.join(process.cwd(), "public", "study", "derived");
 
+interface ClusterCentroidRaw {
+  cluster: number;
+  axis_1: number; axis_2: number; axis_3: number; axis_4: number;
+  axis_5: number; axis_6: number; axis_7: number; axis_8: number;
+  axis_9: number; axis_10: number; axis_11: number; axis_12: number;
+}
+
 async function loadData(): Promise<DataCache> {
-  const [personasRaw, scoredRaw, claudeRaw, geminiRaw, csvRaw, archetypeRaw, slimRaw] =
+  const [personasRaw, scoredRaw, claudeRaw, geminiRaw, csvRaw, centroidsRaw, slimRaw] =
     await Promise.all([
       fs.promises.readFile(path.join(DATA_DIR, "personas.json"), "utf-8"),
       fs.promises.readFile(path.join(DATA_DIR, "scored_profiles.json"), "utf-8"),
       fs.promises.readFile(path.join(DATA_DIR, "claude_responses.json"), "utf-8"),
       fs.promises.readFile(path.join(DATA_DIR, "gemini_responses.json"), "utf-8"),
       fs.promises.readFile(path.join(DATA_DIR, "cluster_labels.csv"), "utf-8"),
-      fs.promises.readFile(path.join(DATA_DIR, "archetype_comparison.json"), "utf-8"),
+      fs.promises.readFile(path.join(DATA_DIR, "cluster_centroids.json"), "utf-8"),
       fs.promises.readFile(path.join(DERIVED_DIR, "personas_slim.json"), "utf-8"),
     ]);
 
@@ -102,7 +96,7 @@ async function loadData(): Promise<DataCache> {
   const scoredFile = JSON.parse(scoredRaw) as ScoredProfilesFile;
   const claudeFile = JSON.parse(claudeRaw) as ResponseFile;
   const geminiFile = JSON.parse(geminiRaw) as ResponseFile;
-  const archetypeFile = JSON.parse(archetypeRaw) as ArchetypeComparisonFile;
+  const centroidsFile = JSON.parse(centroidsRaw) as ClusterCentroidRaw[];
   const slimEntries = JSON.parse(slimRaw) as PersonaSlimEntry[];
 
   const clusterRows = parseCsv(csvRaw, {
@@ -144,9 +138,12 @@ async function loadData(): Promise<DataCache> {
     countryIsoById.set(slim.id, slim.country_iso);
   }
 
-  const clusterToArchetype = new Map<number, ArchetypeComparisonEntry>();
-  for (const entry of archetypeFile.cluster_to_archetype) {
-    clusterToArchetype.set(entry.cluster, entry);
+  const clusterCentroidById = new Map<number, readonly number[]>();
+  for (const c of centroidsFile) {
+    clusterCentroidById.set(c.cluster, [
+      c.axis_1, c.axis_2, c.axis_3, c.axis_4, c.axis_5, c.axis_6,
+      c.axis_7, c.axis_8, c.axis_9, c.axis_10, c.axis_11, c.axis_12,
+    ]);
   }
 
   return {
@@ -156,7 +153,7 @@ async function loadData(): Promise<DataCache> {
     profilesByPersona,
     claudeById,
     geminiById,
-    clusterToArchetype,
+    clusterCentroidById,
   };
 }
 
@@ -219,25 +216,24 @@ export async function GET(
     // country_iso comes from personas_slim.json (not cluster_labels.csv)
     const country_iso = data.countryIsoById.get(id) ?? "";
 
-    // Nearest archetype for this persona's cluster
-    const clusterArchetypeEntry = data.clusterToArchetype.get(cluster);
-    if (!clusterArchetypeEntry) {
+    // Nearest archetype for this persona's cluster — derived from post-revision
+    // catalog via CLUSTERS × archetypes.ts prototypes (no archetype_comparison.json).
+    const centroid = data.clusterCentroidById.get(cluster);
+    if (!centroid) {
       return NextResponse.json(
-        { error: "Archetype data not found for cluster" },
+        { error: "Centroid data not found for cluster" },
         { status: 500 }
       );
     }
 
-    const archetypeRecord = archetypes.find(
-      (a) => a.id === clusterArchetypeEntry.nearest_archetype.id
-    );
+    const archetypeMatch = postRevisionArchetypeForCluster(cluster, centroid);
 
     const nearest_archetype: PersonaDetailResponse["nearest_archetype"] = {
-      id: clusterArchetypeEntry.nearest_archetype.id,
-      name: clusterArchetypeEntry.nearest_archetype.name,
-      emergence: archetypeRecord?.emergence ?? "theoretical",
-      distance: clusterArchetypeEntry.nearest_archetype.distance,
-      match_strength: bucketMatchStrength(clusterArchetypeEntry.nearest_archetype.distance),
+      id: archetypeMatch.id,
+      name: archetypeMatch.name,
+      emergence: archetypeMatch.emergence,
+      distance: archetypeMatch.distance,
+      match_strength: bucketMatchStrength(archetypeMatch.distance),
     };
 
     // Build administrations from scored profiles + raw responses

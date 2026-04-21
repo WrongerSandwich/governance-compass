@@ -16,6 +16,7 @@ import { archetypes } from "../src/data/archetypes";
 import {
   verifyCountryRegionMapping,
 } from "./data/country-region-mapping";
+import { postRevisionArchetypeForCluster } from "./data/archetype-remap";
 import {
   computeEuclideanDistance,
   computeHistogram,
@@ -25,6 +26,7 @@ import {
   computePercentile,
 } from "./lib/stats";
 import type {
+  ClusterId,
   PersonaRecord,
   ScoredProfile,
   ScoredProfilesFile,
@@ -192,6 +194,30 @@ function main() {
     fs.readFileSync(src("archetype_comparison.json"), "utf8")
   ) as { cluster_to_archetype: ClusterArchetypeEntry[] };
 
+  const clusterCentroidsRaw = JSON.parse(
+    fs.readFileSync(src("cluster_centroids.json"), "utf8")
+  ) as Array<{
+    cluster: number;
+    axis_1: number; axis_2: number; axis_3: number; axis_4: number;
+    axis_5: number; axis_6: number; axis_7: number; axis_8: number;
+    axis_9: number; axis_10: number; axis_11: number; axis_12: number;
+  }>;
+
+  // Build centroid lookup: cluster id → 12-element axis-score vector
+  const centroidVecById = new Map<number, readonly number[]>();
+  for (const c of clusterCentroidsRaw) {
+    centroidVecById.set(c.cluster, [
+      c.axis_1, c.axis_2, c.axis_3, c.axis_4, c.axis_5, c.axis_6,
+      c.axis_7, c.axis_8, c.axis_9, c.axis_10, c.axis_11, c.axis_12,
+    ]);
+  }
+
+  function centroidFor(clusterId: number): readonly number[] {
+    const vec = centroidVecById.get(clusterId);
+    if (!vec) throw new Error(`No centroid found for cluster ${clusterId}`);
+    return vec;
+  }
+
   const claudeResponsesFile = JSON.parse(
     fs.readFileSync(src("claude_responses.json"), "utf8")
   ) as { responses: Array<{ persona_id: string; fc_responses: unknown[]; sc_responses: unknown[]; budget: unknown }> };
@@ -325,8 +351,8 @@ function main() {
 
   const personasSlim = personas.map((persona) => {
     const row = clusterRowById.get(persona.id)!;
-    const cluster = parseInt(row.cluster, 10);
-    const entry = clusterToArchetype.get(cluster)!;
+    const cluster = parseInt(row.cluster, 10) as ClusterId;
+    const archetypeMatch = postRevisionArchetypeForCluster(cluster, centroidFor(cluster));
     return {
       id: persona.id,
       name: persona.name,
@@ -342,7 +368,7 @@ function main() {
       cluster,
       n_models: parseInt(row.n_models, 10),
       averaged_axis_scores: axisVecFromRow(row),
-      nearest_archetype_id: entry.nearest_archetype.id,
+      nearest_archetype_id: archetypeMatch.id,
     };
   });
 
@@ -732,9 +758,12 @@ function main() {
 
   const publicPersonas = personas.map((persona) => {
     const slim = slimById.get(persona.id)!;
-    const clusterEntry = clusterToArchetype.get(slim.cluster)!;
-    const archetypeId = clusterEntry.nearest_archetype.id;
-    const archetypeDistance = clusterEntry.nearest_archetype.distance;
+    const archetypeMatch = postRevisionArchetypeForCluster(
+      slim.cluster as ClusterId,
+      centroidFor(slim.cluster)
+    );
+    const archetypeId = archetypeMatch.id;
+    const archetypeDistance = archetypeMatch.distance;
 
     const administrations: PublicAdministration[] = [];
 
@@ -802,8 +831,8 @@ function main() {
       cluster: slim.cluster,
       nearest_archetype: {
         id: archetypeId,
-        name: ARCHETYPE_NAMES[archetypeId] ?? archetypeId,
-        emergence: ARCHETYPE_EMERGENCE[archetypeId] ?? "theoretical",
+        name: archetypeMatch.name,
+        emergence: archetypeMatch.emergence,
         distance: archetypeDistance,
         match_strength: bucketMatchStrength(archetypeDistance),
       },

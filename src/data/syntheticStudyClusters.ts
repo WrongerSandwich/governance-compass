@@ -17,12 +17,13 @@ export interface SyntheticStudyCluster {
 
 // Values sourced from:
 //   data/synthetic_study/cluster_narratives.json — size, share, topAxes
-//   data/synthetic_study/archetype_comparison.json — matchDistance
 //   docs/system_proposal/synthetic_study_spec/patterns_page.md — label, nearestArchetype*
-//     (the patterns_page.md reflects the post-revision archetype set; the pipeline JSON
-//      predates the Popular Egalitarian / Institutional Moderate additions, so labels
-//      and nearest archetype ids are taken from the spec, not the raw JSON)
 //   src/data/archetypes.ts — emergence tags
+//   matchDistance — Euclidean distance from cluster centroid (cluster_centroids.json)
+//     to the matched archetype's prototype (archetypes.ts).
+//     C0 (institutional-moderate): 0.0585 (post-revision; old pre-revision was 1.1262)
+//     C1 (popular-egalitarian): 0.0514 (post-revision; old pre-revision was 1.3933)
+//     C2–C5: unchanged from pipeline output (archetypes were not reassigned)
 
 export const CLUSTERS: readonly SyntheticStudyCluster[] = [
   {
@@ -41,7 +42,7 @@ export const CLUSTERS: readonly SyntheticStudyCluster[] = [
     nearestArchetypeId: "institutional-moderate",
     nearestArchetypeName: "The Institutional Moderate",
     nearestArchetypeEmergence: "refined",
-    matchDistance: 1.1262,
+    matchDistance: 0.0585,
   },
   {
     id: 1,
@@ -59,7 +60,7 @@ export const CLUSTERS: readonly SyntheticStudyCluster[] = [
     nearestArchetypeId: "popular-egalitarian",
     nearestArchetypeName: "The Popular Egalitarian",
     nearestArchetypeEmergence: "empirical",
-    matchDistance: 1.3933,
+    matchDistance: 0.0514,
   },
   {
     id: 2,
