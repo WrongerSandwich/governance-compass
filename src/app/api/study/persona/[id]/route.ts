@@ -81,13 +81,12 @@ interface DataCache {
 }
 
 let cache: DataCache | null = null;
+let cachePromise: Promise<DataCache> | null = null;
 
 const DATA_DIR = path.join(process.cwd(), "data", "synthetic_study");
 const DERIVED_DIR = path.join(process.cwd(), "public", "study", "derived");
 
-async function getData(): Promise<DataCache> {
-  if (cache) return cache;
-
+async function loadData(): Promise<DataCache> {
   const [personasRaw, scoredRaw, claudeRaw, geminiRaw, csvRaw, archetypeRaw, slimRaw] =
     await Promise.all([
       fs.promises.readFile(path.join(DATA_DIR, "personas.json"), "utf-8"),
@@ -150,7 +149,7 @@ async function getData(): Promise<DataCache> {
     clusterToArchetype.set(entry.cluster, entry);
   }
 
-  cache = {
+  return {
     personaById,
     clusterLabelById,
     countryIsoById,
@@ -159,7 +158,12 @@ async function getData(): Promise<DataCache> {
     geminiById,
     clusterToArchetype,
   };
+}
 
+async function getData(): Promise<DataCache> {
+  if (cache) return cache;
+  if (!cachePromise) cachePromise = loadData();
+  cache = await cachePromise;
   return cache;
 }
 

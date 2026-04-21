@@ -199,6 +199,7 @@ export function useStudyFilters(): {
       searchParams.forEach((value, key) => {
         if (!IGNORED_PARAMS.has(key)) filterParams.set(key, value);
       });
+      // Writing the empty string on clean URLs is intentional — it mirrors the "no filters" state so subsequent mounts don't falsely restore stale state.
       sessionStorage.setItem(STUDY_SESSION_KEY, filterParams.toString());
     } catch {
       // sessionStorage unavailable

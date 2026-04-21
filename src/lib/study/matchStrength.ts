@@ -1,4 +1,6 @@
-export type MatchStrength = "strong" | "moderate" | "close" | "weak";
+import type { MatchStrength } from "./types";
+
+export type { MatchStrength };
 
 export function bucketMatchStrength(distance: number): MatchStrength {
   if (distance < 1.0) return "strong";
