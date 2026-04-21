@@ -1,3 +1,5 @@
+export type ClusterId = 0 | 1 | 2 | 3 | 4 | 5;
+
 export type RegionKey =
   | "western_europe"
   | "eastern_europe_central_asia"
