@@ -1,3 +1,6 @@
+import type { ArchetypeEmergence } from "@/data/archetypes";
+export type { ArchetypeEmergence };
+
 export type ClusterId = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type RegionKey =
@@ -327,3 +330,39 @@ export type ScoredProfilesFile = {
 export type PersonasFile = {
   personas: PersonaRecord[];
 };
+
+// ---------------------------------------------------------------------------
+// API response types
+// ---------------------------------------------------------------------------
+
+export interface PersonaDetailResponse {
+  persona: PersonaRecord;
+  country_iso: string;
+  cluster: ClusterId;
+  n_models: 1 | 2;
+  averaged_axis_scores: number[]; // 12 elements
+  nearest_archetype: {
+    id: string;
+    name: string;
+    emergence: ArchetypeEmergence;
+    distance: number;
+    match_strength: "strong" | "moderate" | "close" | "weak";
+  };
+  administrations: Array<{
+    model: "claude" | "gemini";
+    axis_scores: Record<string, number>; // "1_economic_model" etc.
+    modality_scores: Record<string, { fc?: number; sc?: number; budget?: number }>;
+    tensions: Array<{
+      axis: number;
+      severity: "mild" | "moderate" | "strong";
+      description?: string;
+    }>;
+    confidence: Record<string, "high" | "moderate" | "low">;
+    super_dimensions: { economic: number; cultural: number };
+    raw_responses: {
+      fc: Array<{ item: string; choice: "A" | "B" }>;
+      sc: Array<{ item: string; choice: number }>;
+      budget: Record<string, number>;
+    };
+  }>;
+}

@@ -64,6 +64,8 @@ export function computeCorrelationMatrix(rowsOfAxes: number[][]): number[][] {
   return matrix;
 }
 
+// NOTE: Duplicated from src/lib/study/matchStrength.ts — scripts/ cannot reach
+// into src/ at build time. Keep both copies in sync if thresholds change.
 export function bucketMatchStrength(
   distance: number
 ): "strong" | "moderate" | "close" | "weak" {
