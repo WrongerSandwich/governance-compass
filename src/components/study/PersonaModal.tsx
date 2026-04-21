@@ -13,11 +13,7 @@ import { Radar, DEFAULT_AXIS_LABELS } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
-import { ministries } from "@/data/ministries";
-import {
-  getQuestion,
-  getQuestionsForAxis,
-} from "@/lib/study/questionLookup";
+import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
@@ -614,23 +610,142 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 // Zone 3 — Scored profile
 // ---------------------------------------------------------------------------
 
-function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
+// Shared constants for scored profile rendering
+const AXIS_KEYS = [
+  "1_economic_model",
+  "2_environmental_policy",
+  "3_governance_structure",
+  "4_decision_authority",
+  "5_rights_balance",
+  "6_legitimacy_basis",
+  "7_social_change",
+  "8_cultural_diversity",
+  "9_human_nature",
+  "10_international_engagement",
+  "11_military_policy",
+  "12_technology_governance",
+] as const;
+
+type AxisKey = (typeof AXIS_KEYS)[number];
+
+const SEVERITY_COLORS: Record<string, string> = {
+  mild: "var(--warning)",
+  moderate: "var(--stone-600)",
+  strong: "var(--cluster-4)",
+};
+
+/** Inline score bar for a single model score value */
+function ScoreBar({
+  score,
+  colorVar,
+}: {
+  score: number;
+  colorVar: string;
+}) {
+  const barPct = ((score + 1) / 2) * 100;
+  return (
+    <div
+      style={{
+        flex: 1,
+        height: "6px",
+        backgroundColor: "var(--border-secondary)",
+        borderRadius: "3px",
+        position: "relative",
+        minWidth: "40px",
+      }}
+      role="presentation"
+    >
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: 0,
+          bottom: 0,
+          width: "1px",
+          backgroundColor: "var(--border-primary)",
+        }}
+        aria-hidden
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: `${barPct}%`,
+          top: "-2px",
+          width: "10px",
+          height: "10px",
+          backgroundColor: `var(${colorVar})`,
+          borderRadius: "50%",
+          transform: "translateX(-50%)",
+          border: "1.5px solid var(--surface-1)",
+        }}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
+/** Tension badge button for a single tension entry */
+function TensionBadge({
+  tension,
+  axisNum,
+  isExpanded,
+  onToggle,
+  modelLabel,
+}: {
+  tension: { axis: number; severity: string; description?: string };
+  axisNum: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+  modelLabel?: string;
+}) {
+  const label = modelLabel
+    ? `${modelLabel}: ${tension.severity} tension on axis ${axisNum}`
+    : `${tension.severity} tension on axis ${axisNum}`;
+  return (
+    <button
+      onClick={onToggle}
+      aria-expanded={isExpanded}
+      aria-label={`${label} — click to ${isExpanded ? "collapse" : "expand"}`}
+      style={{
+        background: "none",
+        border: `0.5px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
+        borderRadius: "2px",
+        padding: "0 4px",
+        fontSize: "9px",
+        cursor: "pointer",
+        color: SEVERITY_COLORS[tension.severity] ?? "var(--warning)",
+        lineHeight: 1.6,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        flexShrink: 0,
+      }}
+    >
+      {modelLabel ? `${modelLabel[0]}: ` : ""}{tension.severity}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Single-model scored profile (original code path — preserved)
+// ---------------------------------------------------------------------------
+
+function SingleModelScoredProfile({
+  data,
+}: {
+  data: PersonaDetailResponse;
+}) {
   const [expandedTensions, setExpandedTensions] = useState<Set<number>>(
     new Set()
   );
 
-  // Single-model: use first administration (Claude if present, else Gemini)
-  const admin = data.administrations.find((a) => a.model === "claude") ??
+  const admin =
+    data.administrations.find((a) => a.model === "claude") ??
     data.administrations[0];
 
   if (!admin) return null;
 
   const scoreArray = axisScoresToArray(admin.axis_scores);
-
-  // Build tension map keyed by axis number
-  const tensionMap = new Map(
-    admin.tensions.map((t) => [t.axis, t])
-  );
+  const tensionMap = new Map(admin.tensions.map((t) => [t.axis, t]));
 
   const toggleTension = (axisNum: number) => {
     setExpandedTensions((prev) => {
@@ -641,50 +756,8 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
     });
   };
 
-  // Axis score keys in order
-  const AXIS_KEYS = [
-    "1_economic_model",
-    "2_environmental_policy",
-    "3_governance_structure",
-    "4_decision_authority",
-    "5_rights_balance",
-    "6_legitimacy_basis",
-    "7_social_change",
-    "8_cultural_diversity",
-    "9_human_nature",
-    "10_international_engagement",
-    "11_military_policy",
-    "12_technology_governance",
-  ] as const;
-
-  const SEVERITY_COLORS: Record<string, string> = {
-    mild: "var(--warning)",
-    moderate: "var(--stone-600)",
-    strong: "var(--cluster-4)",
-  };
-
   return (
-    <div
-      style={{
-        padding: "20px 24px",
-        borderBottom: "1px solid var(--border-secondary)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "11px",
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.07em",
-          color: "var(--text-tertiary)",
-          marginBottom: "16px",
-        }}
-      >
-        Scored profile
-      </div>
-
-      {/* Phase 4b-2 will add dual-model overlay here for shared personas */}
-
+    <>
       {/* Radar + axis rows */}
       <div className="scored-profile-layout">
         {/* Radar chart */}
@@ -714,16 +787,10 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
               | undefined;
             const tension = tensionMap.get(axisNum);
             const isExpanded = expandedTensions.has(axisNum);
-
-            // Bar: -1 to +1; 0 is center; negative = toward poleA
-            const barPct = ((score + 1) / 2) * 100;
             const isNeg = score < 0;
 
             return (
-              <div
-                key={key}
-                style={{ marginBottom: "6px" }}
-              >
+              <div key={key} style={{ marginBottom: "6px" }}>
                 <div
                   style={{
                     display: "flex",
@@ -732,7 +799,6 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
                     padding: "3px 0",
                   }}
                 >
-                  {/* Axis number */}
                   <span
                     style={{
                       fontSize: "11px",
@@ -744,7 +810,6 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
                     {axisNum}
                   </span>
 
-                  {/* Axis name */}
                   <span
                     style={{
                       fontSize: "12px",
@@ -756,50 +821,15 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
                     {axisData?.name ?? key}
                   </span>
 
-                  {/* Score bar */}
-                  <div
-                    style={{
-                      flex: 1,
-                      height: "6px",
-                      backgroundColor: "var(--border-secondary)",
-                      borderRadius: "3px",
-                      position: "relative",
-                      minWidth: "60px",
-                    }}
-                    role="presentation"
-                  >
-                    {/* Center marker */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: "50%",
-                        top: 0,
-                        bottom: 0,
-                        width: "1px",
-                        backgroundColor: "var(--border-primary)",
-                      }}
-                      aria-hidden
-                    />
-                    {/* Score marker */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: `${barPct}%`,
-                        top: "-2px",
-                        width: "10px",
-                        height: "10px",
-                        backgroundColor: isNeg
-                          ? "var(--axis-gradient-negative-strong)"
-                          : "var(--axis-gradient-positive-strong)",
-                        borderRadius: "50%",
-                        transform: "translateX(-50%)",
-                        border: "1.5px solid var(--surface-1)",
-                      }}
-                      aria-hidden
-                    />
-                  </div>
+                  <ScoreBar
+                    score={score}
+                    colorVar={
+                      isNeg
+                        ? "--axis-gradient-negative-strong"
+                        : "--axis-gradient-positive-strong"
+                    }
+                  />
 
-                  {/* Score value */}
                   <span
                     style={{
                       fontSize: "11px",
@@ -818,36 +848,18 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
                     {score.toFixed(2)}
                   </span>
 
-                  {/* Confidence indicator */}
                   {confidence && <ConfidenceDot level={confidence} />}
 
-                  {/* Tension badge */}
                   {tension && (
-                    <button
-                      onClick={() => toggleTension(axisNum)}
-                      aria-expanded={isExpanded}
-                      aria-label={`${tension.severity} tension on axis ${axisNum} — click to ${isExpanded ? "collapse" : "expand"}`}
-                      style={{
-                        background: "none",
-                        border: `0.5px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
-                        borderRadius: "2px",
-                        padding: "0 4px",
-                        fontSize: "9px",
-                        cursor: "pointer",
-                        color:
-                          SEVERITY_COLORS[tension.severity] ?? "var(--warning)",
-                        lineHeight: 1.6,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {tension.severity}
-                    </button>
+                    <TensionBadge
+                      tension={tension}
+                      axisNum={axisNum}
+                      isExpanded={isExpanded}
+                      onToggle={() => toggleTension(axisNum)}
+                    />
                   )}
                 </div>
 
-                {/* Expanded tension description */}
                 {isExpanded && tension?.description && (
                   <div
                     style={{
@@ -905,6 +917,666 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
             <BudgetStrip budget={admin.raw_responses.budget} />
           </div>
         )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dual-model scored profile (Phase 4b-2 — shared personas)
+// ---------------------------------------------------------------------------
+
+function DualModelScoredProfile({
+  data,
+}: {
+  data: PersonaDetailResponse;
+}) {
+  // Track expanded tension state per model+axis: key = "claude-3" or "gemini-3"
+  const [expandedTensions, setExpandedTensions] = useState<Set<string>>(
+    new Set()
+  );
+
+  const claudeAdmin = data.administrations.find((a) => a.model === "claude");
+  const geminiAdmin = data.administrations.find((a) => a.model === "gemini");
+
+  // Graceful fallback — shouldn't happen for shared personas, but be safe
+  if (!claudeAdmin && !geminiAdmin) return null;
+
+  const claudeScores = claudeAdmin
+    ? axisScoresToArray(claudeAdmin.axis_scores)
+    : new Array(12).fill(0);
+  const geminiScores = geminiAdmin
+    ? axisScoresToArray(geminiAdmin.axis_scores)
+    : new Array(12).fill(0);
+
+  const claudeTensionMap = new Map(
+    (claudeAdmin?.tensions ?? []).map((t) => [t.axis, t])
+  );
+  const geminiTensionMap = new Map(
+    (geminiAdmin?.tensions ?? []).map((t) => [t.axis, t])
+  );
+
+  const toggleTension = (model: string, axisNum: number) => {
+    const key = `${model}-${axisNum}`;
+    setExpandedTensions((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  /** Delta magnitude → gradient token */
+  function deltaColor(delta: number): string {
+    const abs = Math.abs(delta);
+    if (abs >= 0.6) return "var(--axis-gradient-positive-strong)";
+    if (abs >= 0.3) return "var(--axis-gradient-positive-mild)";
+    return "var(--text-tertiary)";
+  }
+
+  return (
+    <>
+      {/* Radar + axis rows */}
+      <div className="scored-profile-layout">
+        {/* Overlaid radar */}
+        <div className="scored-radar" style={{ flexShrink: 0 }}>
+          {/* Single SVG with both polygons overlaid via Radar's overlayScores prop */}
+          <div
+            role="img"
+            aria-label={`Overlaid radar chart: Claude and Gemini scored profiles for ${data.persona.name}`}
+          >
+            <Radar
+              scores={claudeScores}
+              overlayScores={geminiScores}
+              axisLabels={DEFAULT_AXIS_LABELS}
+              size={300}
+              colorVar="--model-claude"
+              overlayColorVar="--model-gemini"
+            />
+          </div>
+
+          {/* Model color legend */}
+          <div
+            style={{
+              display: "flex",
+              gap: "14px",
+              justifyContent: "center",
+              marginTop: "8px",
+            }}
+            aria-label="Radar chart legend"
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "20px",
+                  height: "2px",
+                  backgroundColor: "var(--model-claude)",
+                  borderRadius: "1px",
+                  opacity: 0.85,
+                }}
+                aria-hidden
+              />
+              <span style={{ fontVariant: "small-caps", letterSpacing: "0.05em" }}>
+                Claude
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "20px",
+                  height: "2px",
+                  backgroundColor: "var(--model-gemini)",
+                  borderRadius: "1px",
+                  opacity: 0.85,
+                }}
+                aria-hidden
+              />
+              <span style={{ fontVariant: "small-caps", letterSpacing: "0.05em" }}>
+                Gemini
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dual-column axis scores table */}
+        <div className="scored-axis-rows" style={{ flex: 1, minWidth: 0 }}>
+          {/* Header row */}
+          <div
+            className="dual-axis-header"
+            style={{
+              display: "flex",
+              gap: "6px",
+              padding: "0 0 6px 0",
+              borderBottom: "1px solid var(--border-secondary)",
+              marginBottom: "6px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text-tertiary)",
+                fontFamily: "var(--font-mono)",
+                minWidth: "18px",
+              }}
+              aria-hidden
+            />
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text-tertiary)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                flex: "0 0 100px",
+              }}
+            >
+              Axis
+            </span>
+            <span
+              className="dual-axis-col-header"
+              style={{
+                fontSize: "10px",
+                color: "var(--model-claude)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontVariant: "small-caps",
+                flex: 1,
+                minWidth: 0,
+                textAlign: "center",
+              }}
+            >
+              Claude
+            </span>
+            <span
+              className="dual-axis-col-header"
+              style={{
+                fontSize: "10px",
+                color: "var(--model-gemini)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontVariant: "small-caps",
+                flex: 1,
+                minWidth: 0,
+                textAlign: "center",
+              }}
+            >
+              Gemini
+            </span>
+            <span
+              className="dual-axis-col-header"
+              style={{
+                fontSize: "10px",
+                color: "var(--text-tertiary)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                flex: "0 0 30px",
+                textAlign: "right",
+              }}
+            >
+              Δ
+            </span>
+          </div>
+
+          {AXIS_KEYS.map((key: AxisKey, i) => {
+            const axisNum = i + 1;
+            const axisData = axes[i];
+            const cScore = claudeAdmin?.axis_scores[key] ?? 0;
+            const gScore = geminiAdmin?.axis_scores[key] ?? 0;
+            const delta = gScore - cScore;
+            const cConf = claudeAdmin?.confidence[key] as
+              | "high"
+              | "moderate"
+              | "low"
+              | undefined;
+            const gConf = geminiAdmin?.confidence[key] as
+              | "high"
+              | "moderate"
+              | "low"
+              | undefined;
+            const cTension = claudeTensionMap.get(axisNum);
+            const gTension = geminiTensionMap.get(axisNum);
+            const cExpanded = expandedTensions.has(`claude-${axisNum}`);
+            const gExpanded = expandedTensions.has(`gemini-${axisNum}`);
+
+            return (
+              <div key={key} style={{ marginBottom: "6px" }}>
+                {/* Desktop/tablet: side-by-side row */}
+                <div
+                  className="dual-axis-row"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "3px 0",
+                  }}
+                >
+                  {/* Axis number */}
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text-tertiary)",
+                      fontFamily: "var(--font-mono)",
+                      minWidth: "18px",
+                    }}
+                  >
+                    {axisNum}
+                  </span>
+
+                  {/* Axis name */}
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--text-secondary)",
+                      flex: "0 0 100px",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {axisData?.name ?? key}
+                  </span>
+
+                  {/* Claude column: bar + value + confidence + tension */}
+                  <div
+                    className="dual-axis-model-col"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <ScoreBar
+                      score={cScore}
+                      colorVar="--model-claude"
+                    />
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--model-claude)",
+                        minWidth: "36px",
+                        textAlign: "right",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {cScore >= 0 ? "+" : ""}
+                      {cScore.toFixed(2)}
+                    </span>
+                    {cConf && <ConfidenceDot level={cConf} />}
+                    {cTension && (
+                      <TensionBadge
+                        tension={cTension}
+                        axisNum={axisNum}
+                        isExpanded={cExpanded}
+                        onToggle={() => toggleTension("claude", axisNum)}
+                        modelLabel="C"
+                      />
+                    )}
+                  </div>
+
+                  {/* Gemini column: bar + value + confidence + tension */}
+                  <div
+                    className="dual-axis-model-col"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <ScoreBar
+                      score={gScore}
+                      colorVar="--model-gemini"
+                    />
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--model-gemini)",
+                        minWidth: "36px",
+                        textAlign: "right",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {gScore >= 0 ? "+" : ""}
+                      {gScore.toFixed(2)}
+                    </span>
+                    {gConf && <ConfidenceDot level={gConf} />}
+                    {gTension && (
+                      <TensionBadge
+                        tension={gTension}
+                        axisNum={axisNum}
+                        isExpanded={gExpanded}
+                        onToggle={() => toggleTension("gemini", axisNum)}
+                        modelLabel="G"
+                      />
+                    )}
+                  </div>
+
+                  {/* Delta column */}
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--font-mono)",
+                      color: deltaColor(delta),
+                      flex: "0 0 38px",
+                      textAlign: "right",
+                    }}
+                    title={`Δ = Gemini − Claude = ${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`}
+                  >
+                    {delta >= 0 ? "+" : ""}
+                    {delta.toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Mobile stacked version — hidden on desktop via CSS */}
+                <div
+                  className="dual-axis-row-mobile"
+                  style={{
+                    display: "none",
+                    flexDirection: "column",
+                    gap: "3px",
+                    padding: "3px 0",
+                  }}
+                >
+                  {/* Axis label row */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text-tertiary)",
+                        fontFamily: "var(--font-mono)",
+                        minWidth: "18px",
+                      }}
+                    >
+                      {axisNum}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      {axisData?.name ?? key}
+                    </span>
+                    {/* Δ shown inline on mobile */}
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: deltaColor(delta),
+                        marginLeft: "auto",
+                      }}
+                    >
+                      Δ{delta >= 0 ? "+" : ""}
+                      {delta.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Claude stacked row */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      alignItems: "center",
+                      paddingLeft: "24px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "var(--model-claude)",
+                        fontVariant: "small-caps",
+                        minWidth: "10px",
+                      }}
+                    >
+                      C:
+                    </span>
+                    <ScoreBar score={cScore} colorVar="--model-claude" />
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--model-claude)",
+                        minWidth: "36px",
+                        textAlign: "right",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {cScore >= 0 ? "+" : ""}
+                      {cScore.toFixed(2)}
+                    </span>
+                    {cConf && <ConfidenceDot level={cConf} />}
+                    {cTension && (
+                      <TensionBadge
+                        tension={cTension}
+                        axisNum={axisNum}
+                        isExpanded={cExpanded}
+                        onToggle={() => toggleTension("claude", axisNum)}
+                        modelLabel="C"
+                      />
+                    )}
+                  </div>
+
+                  {/* Gemini stacked row */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      alignItems: "center",
+                      paddingLeft: "24px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "var(--model-gemini)",
+                        fontVariant: "small-caps",
+                        minWidth: "10px",
+                      }}
+                    >
+                      G:
+                    </span>
+                    <ScoreBar score={gScore} colorVar="--model-gemini" />
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--model-gemini)",
+                        minWidth: "36px",
+                        textAlign: "right",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {gScore >= 0 ? "+" : ""}
+                      {gScore.toFixed(2)}
+                    </span>
+                    {gConf && <ConfidenceDot level={gConf} />}
+                    {gTension && (
+                      <TensionBadge
+                        tension={gTension}
+                        axisNum={axisNum}
+                        isExpanded={gExpanded}
+                        onToggle={() => toggleTension("gemini", axisNum)}
+                        modelLabel="G"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Expanded tension details — Claude */}
+                {cExpanded && cTension?.description && (
+                  <div
+                    style={{
+                      marginLeft: "24px",
+                      marginTop: "2px",
+                      marginBottom: "2px",
+                      fontSize: "12px",
+                      color: "var(--text-secondary)",
+                      lineHeight: 1.5,
+                      padding: "5px 8px",
+                      backgroundColor: "var(--surface-2)",
+                      borderRadius: "3px",
+                      borderLeft: `2px solid var(--model-claude)`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "var(--model-claude)",
+                        fontVariant: "small-caps",
+                        marginRight: "4px",
+                      }}
+                    >
+                      Claude:
+                    </span>
+                    {cTension.description}
+                  </div>
+                )}
+
+                {/* Expanded tension details — Gemini */}
+                {gExpanded && gTension?.description && (
+                  <div
+                    style={{
+                      marginLeft: "24px",
+                      marginTop: "2px",
+                      marginBottom: "2px",
+                      fontSize: "12px",
+                      color: "var(--text-secondary)",
+                      lineHeight: 1.5,
+                      padding: "5px 8px",
+                      backgroundColor: "var(--surface-2)",
+                      borderRadius: "3px",
+                      borderLeft: `2px solid var(--model-gemini)`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "var(--model-gemini)",
+                        fontVariant: "small-caps",
+                        marginRight: "4px",
+                      }}
+                    >
+                      Gemini:
+                    </span>
+                    {gTension.description}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Two stacked budget strips */}
+      <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+        {claudeAdmin?.raw_responses.budget &&
+          Object.keys(claudeAdmin.raw_responses.budget).length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  color: "var(--model-claude)",
+                  marginBottom: "6px",
+                  fontVariant: "small-caps",
+                }}
+              >
+                Claude — budget allocation
+              </div>
+              <BudgetStrip budget={claudeAdmin.raw_responses.budget} />
+            </div>
+          )}
+        {geminiAdmin?.raw_responses.budget &&
+          Object.keys(geminiAdmin.raw_responses.budget).length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  color: "var(--model-gemini)",
+                  marginBottom: "6px",
+                  fontVariant: "small-caps",
+                }}
+              >
+                Gemini — budget allocation
+              </div>
+              <BudgetStrip budget={geminiAdmin.raw_responses.budget} />
+            </div>
+          )}
+      </div>
+
+      <style>{`
+        @media (max-width: 639px) {
+          .dual-axis-row        { display: none !important; }
+          .dual-axis-row-mobile { display: flex !important; }
+          .dual-axis-header     { display: none !important; }
+        }
+      `}</style>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ScoredProfile — branches between single and dual model
+// ---------------------------------------------------------------------------
+
+function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
+  const isDual = data.administrations.length === 2;
+
+  return (
+    <div
+      style={{
+        padding: "20px 24px",
+        borderBottom: "1px solid var(--border-secondary)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "11px",
+          fontWeight: 500,
+          textTransform: "uppercase",
+          letterSpacing: "0.07em",
+          color: "var(--text-tertiary)",
+          marginBottom: "16px",
+        }}
+      >
+        Scored profile
+      </div>
+
+      {isDual ? (
+        <DualModelScoredProfile data={data} />
+      ) : (
+        <SingleModelScoredProfile data={data} />
+      )}
 
       <style>{`
         .scored-profile-layout {
@@ -914,6 +1586,8 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
         }
         .scored-radar {
           display: flex;
+          flex-direction: column;
+          align-items: center;
           justify-content: center;
         }
         @media (min-width: 640px) {
@@ -932,19 +1606,14 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
 }
 
 // ---------------------------------------------------------------------------
-// Zone 4 — Raw responses (collapsible)
+// Zone 4 — Raw responses inner content (shared between single and dual mode)
 // ---------------------------------------------------------------------------
 
-function RawResponses({ data }: { data: PersonaDetailResponse }) {
-  const [open, setOpen] = useState(false);
-
-  // Single-model: use first administration (Claude if present, else Gemini)
-  // Phase 4b-2 will add Claude/Gemini toggle here for dual-model personas
-  const admin = data.administrations.find((a) => a.model === "claude") ??
-    data.administrations[0];
-
-  if (!admin) return null;
-
+function ResponsesContent({
+  admin,
+}: {
+  admin: PersonaDetailResponse["administrations"][number];
+}) {
   const { fc, sc, budget } = admin.raw_responses;
 
   const CHOICE_LABELS_LIKERT: Record<number, string> = {
@@ -954,6 +1623,242 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
     4: "Agree (pole B)",
     5: "Strongly agree (pole B)",
   };
+
+  return (
+    <>
+      {axes.map((axisData) => {
+        const axisNum = axisData.id;
+        const fcForAxis = fc.filter((r) => {
+          const q = getQuestion(r.item);
+          return q?.axis === axisNum;
+        });
+        const scForAxis = sc.filter((r) => {
+          const q = getQuestion(r.item);
+          return q?.axis === axisNum;
+        });
+
+        if (fcForAxis.length === 0 && scForAxis.length === 0) return null;
+
+        // Budget signal for this axis from modality scores
+        const axisKey = Object.keys(admin.modality_scores).find((k) =>
+          k.startsWith(`${axisNum}_`)
+        );
+        const budgetScore = axisKey
+          ? admin.modality_scores[axisKey]?.budget ?? null
+          : null;
+
+        return (
+          <div key={axisNum} style={{ marginBottom: "20px" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.07em",
+                color: "var(--text-tertiary)",
+                marginBottom: "8px",
+                paddingBottom: "4px",
+                borderBottom: "1px solid var(--border-tertiary)",
+              }}
+            >
+              Axis {axisNum} — {axisData.name}
+            </div>
+
+            {fcForAxis.map((r) => {
+              const q = getQuestion(r.item);
+              const poleLabel =
+                r.choice === "A" ? axisData.poleALabel : axisData.poleBLabel;
+              return (
+                <div
+                  key={r.item}
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--text-tertiary)",
+                      flexShrink: 0,
+                      fontSize: "11px",
+                    }}
+                  >
+                    {r.item}
+                  </span>
+                  <span style={{ color: "var(--text-secondary)", flex: 1 }}>
+                    {q ? q.text : r.item}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontWeight: 500,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {r.choice}{" "}
+                    <span
+                      style={{
+                        fontWeight: 400,
+                        color: "var(--text-tertiary)",
+                        fontSize: "11px",
+                      }}
+                    >
+                      (toward {poleLabel})
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+
+            {scForAxis.map((r) => {
+              const q = getQuestion(r.item);
+              const choiceLabel =
+                CHOICE_LABELS_LIKERT[r.choice as number] ??
+                SC_CHOICE_LABELS[r.choice as number] ??
+                String(r.choice);
+              return (
+                <div
+                  key={r.item}
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--text-tertiary)",
+                      flexShrink: 0,
+                      fontSize: "11px",
+                    }}
+                  >
+                    {r.item}
+                  </span>
+                  <span style={{ color: "var(--text-secondary)", flex: 1 }}>
+                    {q ? q.text : r.item}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontWeight: 500,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {r.choice}{" "}
+                    <span
+                      style={{
+                        fontWeight: 400,
+                        color: "var(--text-tertiary)",
+                        fontSize: "11px",
+                      }}
+                    >
+                      ({choiceLabel})
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+
+            {budgetScore !== null && (
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-tertiary)",
+                  fontStyle: "italic",
+                  marginTop: "2px",
+                }}
+              >
+                Budget signal:{" "}
+                <span style={{ color: "var(--text-secondary)" }}>
+                  {budgetScore >= 0 ? "+" : ""}
+                  {budgetScore.toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Zone 4 — Raw responses (collapsible)
+// ---------------------------------------------------------------------------
+
+function RawResponses({ data }: { data: PersonaDetailResponse }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [open, setOpen] = useState(false);
+
+  // For dual-model personas, manage active tab via URL param `model`
+  const isDual = data.administrations.length === 2;
+
+  // Read active model from URL; default to "claude"
+  const modelParam = searchParams.get("model");
+  const activeModel: "claude" | "gemini" =
+    modelParam === "gemini" ? "gemini" : "claude";
+
+  // Ref to the scrollable content container for scroll-position preservation
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Resolve active administration
+  const admin = isDual
+    ? (data.administrations.find((a) => a.model === activeModel) ??
+        data.administrations[0])
+    : (data.administrations.find((a) => a.model === "claude") ??
+        data.administrations[0]);
+
+  if (!admin) return null;
+
+  // Toggle active model tab: preserve scroll, update URL
+  const handleTabSwitch = (model: "claude" | "gemini") => {
+    if (model === activeModel) return;
+    // Capture scroll offset before state change
+    const scrollTop = contentRef.current?.scrollTop ?? 0;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (model === "claude") {
+      params.delete("model"); // default; keep URL clean
+    } else {
+      params.set("model", model);
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+    // Restore scroll after render — use a microtask so the DOM has updated
+    requestAnimationFrame(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollTop = scrollTop;
+      }
+    });
+  };
+
+  // Keyboard navigation for tablist
+  const handleTabKeyDown = (
+    e: React.KeyboardEvent,
+    model: "claude" | "gemini"
+  ) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      handleTabSwitch(model === "claude" ? "gemini" : "claude");
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleTabSwitch(model);
+    }
+  };
+
+  const claudeTabId = "raw-responses-tab-claude";
+  const geminiTabId = "raw-responses-tab-gemini";
+  const panelId = "raw-responses-panel";
 
   return (
     <div
@@ -995,199 +1900,81 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
       </button>
 
       {open && (
-        <div style={{ padding: "0 24px 20px" }}>
-          {/* Phase 4b-2 will add Claude/Gemini toggle here */}
-
-          {axes.map((axisData) => {
-            const axisNum = axisData.id;
-            const axisQuestions = getQuestionsForAxis(axisNum);
-            const fcForAxis = fc.filter((r) => {
-              const q = getQuestion(r.item);
-              return q?.axis === axisNum;
-            });
-            const scForAxis = sc.filter((r) => {
-              const q = getQuestion(r.item);
-              return q?.axis === axisNum;
-            });
-
-            if (fcForAxis.length === 0 && scForAxis.length === 0) return null;
-
-            // Budget signal for this axis from modality scores
-            const axisKey = Object.keys(admin.modality_scores).find(
-              (k) => k.startsWith(`${axisNum}_`)
-            );
-            const budgetScore = axisKey
-              ? admin.modality_scores[axisKey]?.budget ?? null
-              : null;
-
-            // Budget ministries mapped to axis
-            const ministryNames = ministries
-              .filter((m) => {
-                // Use budget key lookup in allocation
-                const keyMap: Record<number, string> = {
-                  1: "defense",
-                  2: "public_welfare",
-                  3: "economy_growth",
-                  4: "education_research",
-                  5: "environment",
-                  6: "justice_civil_liberties",
-                  7: "foreign_affairs",
-                };
-                const budgetKey = keyMap[m.id];
+        <div ref={contentRef} style={{ padding: "0 24px 20px" }}>
+          {/* Dual-model tab toggle */}
+          {isDual && (
+            <div
+              role="tablist"
+              aria-label="Select model responses"
+              style={{
+                display: "flex",
+                gap: "0",
+                marginBottom: "16px",
+                border: "1px solid var(--border-primary)",
+                borderRadius: "4px",
+                overflow: "hidden",
+                width: "fit-content",
+              }}
+            >
+              {(["claude", "gemini"] as const).map((model) => {
+                const isActive = activeModel === model;
+                const tabId = model === "claude" ? claudeTabId : geminiTabId;
+                const modelColor =
+                  model === "claude" ? "var(--model-claude)" : "var(--model-gemini)";
                 return (
-                  budgetKey &&
-                  budget[budgetKey] !== undefined
-                );
-              })
-              .map((m) => m.name);
-
-            return (
-              <div
-                key={axisNum}
-                style={{
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                    color: "var(--text-tertiary)",
-                    marginBottom: "8px",
-                    paddingBottom: "4px",
-                    borderBottom: "1px solid var(--border-tertiary)",
-                  }}
-                >
-                  Axis {axisNum} — {axisData.name}
-                </div>
-
-                {fcForAxis.map((r) => {
-                  const q = getQuestion(r.item);
-                  const poleLabel =
-                    r.choice === "A"
-                      ? axisData.poleALabel
-                      : axisData.poleBLabel;
-                  return (
-                    <div
-                      key={r.item}
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginBottom: "4px",
-                        fontSize: "12px",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          color: "var(--text-tertiary)",
-                          flexShrink: 0,
-                          fontSize: "11px",
-                        }}
-                      >
-                        {r.item}
-                      </span>
-                      <span style={{ color: "var(--text-secondary)", flex: 1 }}>
-                        {q ? q.text : r.item}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--text-primary)",
-                          fontWeight: 500,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {r.choice}{" "}
-                        <span
-                          style={{
-                            fontWeight: 400,
-                            color: "var(--text-tertiary)",
-                            fontSize: "11px",
-                          }}
-                        >
-                          (toward {poleLabel})
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-
-                {scForAxis.map((r) => {
-                  const q = getQuestion(r.item);
-                  const choiceLabel =
-                    CHOICE_LABELS_LIKERT[r.choice as number] ??
-                    SC_CHOICE_LABELS[r.choice as number] ??
-                    String(r.choice);
-                  return (
-                    <div
-                      key={r.item}
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginBottom: "4px",
-                        fontSize: "12px",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          color: "var(--text-tertiary)",
-                          flexShrink: 0,
-                          fontSize: "11px",
-                        }}
-                      >
-                        {r.item}
-                      </span>
-                      <span style={{ color: "var(--text-secondary)", flex: 1 }}>
-                        {q ? q.text : r.item}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--text-primary)",
-                          fontWeight: 500,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {r.choice}{" "}
-                        <span
-                          style={{
-                            fontWeight: 400,
-                            color: "var(--text-tertiary)",
-                            fontSize: "11px",
-                          }}
-                        >
-                          ({choiceLabel})
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-
-                {budgetScore !== null && (
-                  <div
+                  <button
+                    key={model}
+                    id={tabId}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={panelId}
+                    tabIndex={isActive ? 0 : -1}
+                    onClick={() => handleTabSwitch(model)}
+                    onKeyDown={(e) => handleTabKeyDown(e, model)}
                     style={{
+                      padding: "6px 18px",
+                      background: isActive ? modelColor : "none",
+                      border: "none",
+                      cursor: "pointer",
                       fontSize: "12px",
-                      color: "var(--text-tertiary)",
-                      fontStyle: "italic",
-                      marginTop: "2px",
+                      fontVariant: "small-caps",
+                      letterSpacing: "0.05em",
+                      color: isActive ? "var(--surface-1)" : "var(--text-secondary)",
+                      fontWeight: isActive ? 500 : 400,
+                      transition: "background 200ms ease, color 200ms ease",
                     }}
                   >
-                    Budget signal:{" "}
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      {budgetScore >= 0 ? "+" : ""}
-                      {budgetScore.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                    {model === "claude" ? "Claude" : "Gemini"}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Response content panel */}
+          <div
+            id={panelId}
+            role={isDual ? "tabpanel" : undefined}
+            aria-labelledby={
+              isDual
+                ? activeModel === "claude"
+                  ? claudeTabId
+                  : geminiTabId
+                : undefined
+            }
+          >
+            <ResponsesContent admin={admin} />
+          </div>
         </div>
       )}
+
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          [role="tab"] {
+            transition: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
