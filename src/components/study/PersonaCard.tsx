@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
+import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaSlim, ClusterId } from "@/lib/study/types";
 
 export interface PersonaCardProps {
@@ -121,19 +122,6 @@ export function PersonaCard({ persona, isPinned = false, onTogglePin }: PersonaC
 // Helpers
 // ---------------------------------------------------------------------------
 
-const REGION_LABELS: Record<string, string> = {
-  western_europe: "Western Europe",
-  eastern_europe_central_asia: "Eastern Europe & Central Asia",
-  north_america: "North America",
-  latin_america: "Latin America",
-  middle_east_north_africa: "Middle East & N. Africa",
-  sub_saharan_africa: "Sub-Saharan Africa",
-  south_southeast_asia: "South & SE Asia",
-  east_asia: "East Asia",
-  oceania_small_states: "Oceania",
-  diaspora_transnational: "Diaspora / Transnational",
-};
-
 function regionLabel(region: string): string {
-  return REGION_LABELS[region] ?? region;
+  return (REGION_LABELS as Record<string, string>)[region] ?? region;
 }

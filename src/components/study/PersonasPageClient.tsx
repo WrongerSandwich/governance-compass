@@ -9,6 +9,7 @@ import { PersonaGrid } from "@/components/study/PersonaGrid";
 import { PersonaModal } from "@/components/study/PersonaModal";
 import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
+import { REGION_LABELS } from "@/lib/study/types";
 import type {
   PersonaSlim,
   RegionalAggregate,
@@ -91,19 +92,6 @@ function applyFilters(
 // ---------------------------------------------------------------------------
 // Active filter chips
 // ---------------------------------------------------------------------------
-
-const REGION_LABELS: Record<RegionKey, string> = {
-  western_europe: "Western Europe",
-  eastern_europe_central_asia: "Eastern Europe & Central Asia",
-  north_america: "North America",
-  latin_america: "Latin America",
-  middle_east_north_africa: "Middle East & N. Africa",
-  sub_saharan_africa: "Sub-Saharan Africa",
-  south_southeast_asia: "South & SE Asia",
-  east_asia: "East Asia",
-  oceania_small_states: "Oceania",
-  diaspora_transnational: "Diaspora / Transnational",
-};
 
 interface FilterChipsProps {
   filters: ReturnType<typeof useStudyFilters>["filters"];
@@ -385,40 +373,44 @@ function PersonasPageClientInner({
           </p>
         </div>
 
-        {/* Map section */}
+        {/* Map + Transnational tile: side-by-side on desktop, stacked on mobile */}
         <div
-          style={{
-            marginBottom: "16px",
-            border: "1px solid var(--border-secondary)",
-            borderRadius: "6px",
-            overflow: "hidden",
-            backgroundColor: "var(--surface-2)",
-          }}
+          className="map-tile-layout"
+          style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "12px" }}
         >
-          <WorldMap
-            mode={{
-              type: "interactive",
-              selectedRegion,
-              onRegionSelect: handleRegionSelect,
-              regionCounts,
-              topArchetypesByRegion,
-              countryAggregates,
+          <div
+            style={{
+              flex: "1 1 0",
+              border: "1px solid var(--border-secondary)",
+              borderRadius: "6px",
+              overflow: "hidden",
+              backgroundColor: "var(--surface-2)",
             }}
-          />
-        </div>
+          >
+            <WorldMap
+              mode={{
+                type: "interactive",
+                selectedRegion,
+                onRegionSelect: handleRegionSelect,
+                regionCounts,
+                topArchetypesByRegion,
+                countryAggregates,
+              }}
+            />
+          </div>
 
-        {/* Transnational tile */}
-        <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
-          <TransnationalTile
-            mode={{
-              type: "interactive",
-              selectedRegion,
-              onRegionSelect: handleRegionSelect,
-              regionCounts,
-              topArchetypesByRegion,
-            }}
-            count={transnationalCount}
-          />
+          <div style={{ flex: "0 0 auto" }}>
+            <TransnationalTile
+              mode={{
+                type: "interactive",
+                selectedRegion,
+                onRegionSelect: handleRegionSelect,
+                regionCounts,
+                topArchetypesByRegion,
+              }}
+              count={transnationalCount}
+            />
+          </div>
         </div>
 
         {/* Filter chips */}
@@ -499,6 +491,9 @@ function PersonasPageClientInner({
       )}
 
       <style>{`
+        .map-tile-layout {
+          flex-direction: column;
+        }
         .personas-layout {
           display: flex;
           flex-direction: column;
@@ -512,6 +507,10 @@ function PersonasPageClientInner({
           min-width: 0;
         }
         @media (min-width: 768px) {
+          .map-tile-layout {
+            flex-direction: row !important;
+            align-items: flex-start;
+          }
           .personas-layout {
             flex-direction: row;
             align-items: flex-start;

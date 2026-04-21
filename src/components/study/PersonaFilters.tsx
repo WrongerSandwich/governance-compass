@@ -1,6 +1,7 @@
 "use client";
 
 import { useStudyFilters } from "@/lib/study/filterState";
+import { REGION_LABELS } from "@/lib/study/types";
 import type { RegionKey, ClusterId, UrbanRural } from "@/lib/study/types";
 
 export interface PersonaFiltersProps {
@@ -14,19 +15,6 @@ export interface PersonaFiltersProps {
   genderCategories: string[];
   ageRange: [number, number]; // min/max available
 }
-
-const REGION_LABELS: Record<RegionKey, string> = {
-  western_europe: "Western Europe",
-  eastern_europe_central_asia: "Eastern Europe & Central Asia",
-  north_america: "North America",
-  latin_america: "Latin America",
-  middle_east_north_africa: "Middle East & N. Africa",
-  sub_saharan_africa: "Sub-Saharan Africa",
-  south_southeast_asia: "South & SE Asia",
-  east_asia: "East Asia",
-  oceania_small_states: "Oceania",
-  diaspora_transnational: "Diaspora / Transnational",
-};
 
 const CLUSTER_LABELS: Record<ClusterId, string> = {
   0: "C0 — Institutional authority",

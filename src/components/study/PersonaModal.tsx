@@ -253,10 +253,12 @@ function ModalHeader({
   data,
   titleId,
   onClose,
+  closeBtnRef,
 }: {
   data: PersonaDetailResponse;
   titleId: string;
   onClose: () => void;
+  closeBtnRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   const { persona, nearest_archetype, cluster, n_models } = data;
   const regionLabel = REGION_LABELS[persona.region] ?? persona.region;
@@ -350,6 +352,7 @@ function ModalHeader({
 
       {/* Close button */}
       <button
+        ref={closeBtnRef}
         onClick={onClose}
         aria-label="Close persona modal"
         style={{
@@ -1366,10 +1369,17 @@ export function PersonaModal({ id }: PersonaModalProps) {
     };
   }, [id]);
 
-  // Focus management: move focus to close button when opened
+  // Focus management: move focus to loading-state close button on initial mount
   useEffect(() => {
     closeBtnRef.current?.focus();
   }, []);
+
+  // Once data has loaded, shift focus to the loaded-state close button (in ModalHeader)
+  useEffect(() => {
+    if (data && closeBtnRef.current) {
+      closeBtnRef.current.focus();
+    }
+  }, [data]);
 
   // Close handler
   const handleClose = useCallback(() => {
@@ -1561,6 +1571,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   data={data}
                   titleId={titleId}
                   onClose={handleClose}
+                  closeBtnRef={closeBtnRef}
                 />
               </div>
 
