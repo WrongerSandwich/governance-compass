@@ -1,0 +1,951 @@
+{
+  "max_distance": 6.9282,
+  "cluster_to_archetype": [
+    {
+      "cluster": 0,
+      "size": 161,
+      "share": 0.1607,
+      "nearest_archetype": {
+        "id": "pragmatic-centrist",
+        "name": "The Pragmatic Centrist",
+        "distance": 1.1262
+      },
+      "second_nearest": {
+        "id": "social-democrat",
+        "name": "The Social Democrat",
+        "distance": 1.2566
+      },
+      "all_distances": [
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 1.1262
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 1.2566
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 1.2741
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 1.5284
+        },
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 1.8012
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 1.8293
+        },
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 2.1056
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 2.109
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 2.3451
+        },
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 2.3481
+        },
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 2.44
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 2.7351
+        }
+      ]
+    },
+    {
+      "cluster": 1,
+      "size": 178,
+      "share": 0.1776,
+      "nearest_archetype": {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "distance": 1.3933
+      },
+      "second_nearest": {
+        "id": "social-democrat",
+        "name": "The Social Democrat",
+        "distance": 1.4238
+      },
+      "all_distances": [
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 1.3933
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 1.4238
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 1.515
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 1.567
+        },
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 1.7515
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 1.7629
+        },
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 1.883
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 2.1005
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 2.3861
+        },
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 2.5649
+        },
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 2.9133
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 3.2942
+        }
+      ]
+    },
+    {
+      "cluster": 2,
+      "size": 210,
+      "share": 0.2096,
+      "nearest_archetype": {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "distance": 1.4159
+      },
+      "second_nearest": {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "distance": 1.4253
+      },
+      "all_distances": [
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 1.4159
+        },
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 1.4253
+        },
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 1.6909
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 1.9467
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 2.0056
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 2.0254
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 2.088
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 2.41
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 2.4214
+        },
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 2.5891
+        },
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 2.8101
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 3.091
+        }
+      ]
+    },
+    {
+      "cluster": 3,
+      "size": 116,
+      "share": 0.1158,
+      "nearest_archetype": {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "distance": 1.089
+      },
+      "second_nearest": {
+        "id": "green-communalist",
+        "name": "The Green Communalist",
+        "distance": 1.7017
+      },
+      "all_distances": [
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 1.089
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 1.7017
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 2.1369
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 2.2431
+        },
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 2.2536
+        },
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 2.3032
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 2.3292
+        },
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 2.5669
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 2.6322
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 3.1484
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 3.4049
+        },
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 3.5315
+        }
+      ]
+    },
+    {
+      "cluster": 4,
+      "size": 196,
+      "share": 0.1956,
+      "nearest_archetype": {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "distance": 0.7841
+      },
+      "second_nearest": {
+        "id": "social-democrat",
+        "name": "The Social Democrat",
+        "distance": 1.0609
+      },
+      "all_distances": [
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 0.7841
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 1.0609
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 1.2462
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 1.4646
+        },
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 2.1166
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 2.2518
+        },
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 2.2632
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 2.3666
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 2.6292
+        },
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 3.3656
+        },
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 3.3915
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 3.9512
+        }
+      ]
+    },
+    {
+      "cluster": 5,
+      "size": 141,
+      "share": 0.1407,
+      "nearest_archetype": {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "distance": 1.0175
+      },
+      "second_nearest": {
+        "id": "authoritarian-traditionalist",
+        "name": "The Authoritarian Traditionalist",
+        "distance": 1.3863
+      },
+      "all_distances": [
+        {
+          "archetype_id": "developmental-modernizer",
+          "archetype_name": "The Developmental Modernizer",
+          "distance": 1.0175
+        },
+        {
+          "archetype_id": "authoritarian-traditionalist",
+          "archetype_name": "The Authoritarian Traditionalist",
+          "distance": 1.3863
+        },
+        {
+          "archetype_id": "nationalist-populist",
+          "archetype_name": "The Nationalist Populist",
+          "distance": 1.5407
+        },
+        {
+          "archetype_id": "pragmatic-centrist",
+          "archetype_name": "The Pragmatic Centrist",
+          "distance": 1.7175
+        },
+        {
+          "archetype_id": "free-marketeer",
+          "archetype_name": "The Free Marketeer",
+          "distance": 2.4138
+        },
+        {
+          "archetype_id": "civic-institutionalist",
+          "archetype_name": "The Civic Institutionalist",
+          "distance": 2.6156
+        },
+        {
+          "archetype_id": "cosmopolitan-technologist",
+          "archetype_name": "The Cosmopolitan Technologist",
+          "distance": 2.6829
+        },
+        {
+          "archetype_id": "social-democrat",
+          "archetype_name": "The Social Democrat",
+          "distance": 2.6895
+        },
+        {
+          "archetype_id": "communitarian-steward",
+          "archetype_name": "The Communitarian Steward",
+          "distance": 2.8985
+        },
+        {
+          "archetype_id": "libertarian-individualist",
+          "archetype_name": "The Libertarian Individualist",
+          "distance": 2.9398
+        },
+        {
+          "archetype_id": "green-communalist",
+          "archetype_name": "The Green Communalist",
+          "distance": 3.4873
+        },
+        {
+          "archetype_id": "radical-egalitarian",
+          "archetype_name": "The Radical Egalitarian",
+          "distance": 3.5017
+        }
+      ]
+    }
+  ],
+  "archetype_to_cluster": [
+    {
+      "archetype_id": "civic-institutionalist",
+      "archetype_name": "The Civic Institutionalist",
+      "nearest_cluster": 0,
+      "nearest_distance": 1.2741,
+      "all_distances": [
+        {
+          "cluster": 0,
+          "distance": 1.2741
+        },
+        {
+          "cluster": 4,
+          "distance": 1.4646
+        },
+        {
+          "cluster": 1,
+          "distance": 1.515
+        },
+        {
+          "cluster": 2,
+          "distance": 2.0056
+        },
+        {
+          "cluster": 3,
+          "distance": 2.1369
+        },
+        {
+          "cluster": 5,
+          "distance": 2.6156
+        }
+      ]
+    },
+    {
+      "archetype_id": "social-democrat",
+      "archetype_name": "The Social Democrat",
+      "nearest_cluster": 4,
+      "nearest_distance": 1.0609,
+      "all_distances": [
+        {
+          "cluster": 4,
+          "distance": 1.0609
+        },
+        {
+          "cluster": 0,
+          "distance": 1.2566
+        },
+        {
+          "cluster": 1,
+          "distance": 1.4238
+        },
+        {
+          "cluster": 3,
+          "distance": 2.3292
+        },
+        {
+          "cluster": 2,
+          "distance": 2.41
+        },
+        {
+          "cluster": 5,
+          "distance": 2.6895
+        }
+      ]
+    },
+    {
+      "archetype_id": "free-marketeer",
+      "archetype_name": "The Free Marketeer",
+      "nearest_cluster": 0,
+      "nearest_distance": 1.8293,
+      "all_distances": [
+        {
+          "cluster": 0,
+          "distance": 1.8293
+        },
+        {
+          "cluster": 2,
+          "distance": 2.0254
+        },
+        {
+          "cluster": 1,
+          "distance": 2.1005
+        },
+        {
+          "cluster": 5,
+          "distance": 2.4138
+        },
+        {
+          "cluster": 4,
+          "distance": 2.6292
+        },
+        {
+          "cluster": 3,
+          "distance": 2.6322
+        }
+      ]
+    },
+    {
+      "archetype_id": "communitarian-steward",
+      "archetype_name": "The Communitarian Steward",
+      "nearest_cluster": 3,
+      "nearest_distance": 1.089,
+      "all_distances": [
+        {
+          "cluster": 3,
+          "distance": 1.089
+        },
+        {
+          "cluster": 2,
+          "distance": 1.4253
+        },
+        {
+          "cluster": 1,
+          "distance": 1.883
+        },
+        {
+          "cluster": 4,
+          "distance": 2.2632
+        },
+        {
+          "cluster": 0,
+          "distance": 2.44
+        },
+        {
+          "cluster": 5,
+          "distance": 2.8985
+        }
+      ]
+    },
+    {
+      "archetype_id": "cosmopolitan-technologist",
+      "archetype_name": "The Cosmopolitan Technologist",
+      "nearest_cluster": 0,
+      "nearest_distance": 1.5284,
+      "all_distances": [
+        {
+          "cluster": 0,
+          "distance": 1.5284
+        },
+        {
+          "cluster": 4,
+          "distance": 2.2518
+        },
+        {
+          "cluster": 1,
+          "distance": 2.3861
+        },
+        {
+          "cluster": 5,
+          "distance": 2.6829
+        },
+        {
+          "cluster": 2,
+          "distance": 3.091
+        },
+        {
+          "cluster": 3,
+          "distance": 3.4049
+        }
+      ]
+    },
+    {
+      "archetype_id": "developmental-modernizer",
+      "archetype_name": "The Developmental Modernizer",
+      "nearest_cluster": 5,
+      "nearest_distance": 1.0175,
+      "all_distances": [
+        {
+          "cluster": 5,
+          "distance": 1.0175
+        },
+        {
+          "cluster": 0,
+          "distance": 1.8012
+        },
+        {
+          "cluster": 2,
+          "distance": 2.5891
+        },
+        {
+          "cluster": 1,
+          "distance": 2.9133
+        },
+        {
+          "cluster": 4,
+          "distance": 3.3656
+        },
+        {
+          "cluster": 3,
+          "distance": 3.5315
+        }
+      ]
+    },
+    {
+      "archetype_id": "authoritarian-traditionalist",
+      "archetype_name": "The Authoritarian Traditionalist",
+      "nearest_cluster": 5,
+      "nearest_distance": 1.3863,
+      "all_distances": [
+        {
+          "cluster": 5,
+          "distance": 1.3863
+        },
+        {
+          "cluster": 2,
+          "distance": 2.088
+        },
+        {
+          "cluster": 0,
+          "distance": 2.7351
+        },
+        {
+          "cluster": 3,
+          "distance": 3.1484
+        },
+        {
+          "cluster": 1,
+          "distance": 3.2942
+        },
+        {
+          "cluster": 4,
+          "distance": 3.9512
+        }
+      ]
+    },
+    {
+      "archetype_id": "radical-egalitarian",
+      "archetype_name": "The Radical Egalitarian",
+      "nearest_cluster": 4,
+      "nearest_distance": 0.7841,
+      "all_distances": [
+        {
+          "cluster": 4,
+          "distance": 0.7841
+        },
+        {
+          "cluster": 1,
+          "distance": 1.3933
+        },
+        {
+          "cluster": 0,
+          "distance": 2.1056
+        },
+        {
+          "cluster": 3,
+          "distance": 2.3032
+        },
+        {
+          "cluster": 2,
+          "distance": 2.8101
+        },
+        {
+          "cluster": 5,
+          "distance": 3.5017
+        }
+      ]
+    },
+    {
+      "archetype_id": "libertarian-individualist",
+      "archetype_name": "The Libertarian Individualist",
+      "nearest_cluster": 1,
+      "nearest_distance": 1.7629,
+      "all_distances": [
+        {
+          "cluster": 1,
+          "distance": 1.7629
+        },
+        {
+          "cluster": 2,
+          "distance": 1.9467
+        },
+        {
+          "cluster": 0,
+          "distance": 2.109
+        },
+        {
+          "cluster": 3,
+          "distance": 2.2431
+        },
+        {
+          "cluster": 4,
+          "distance": 2.3666
+        },
+        {
+          "cluster": 5,
+          "distance": 2.9398
+        }
+      ]
+    },
+    {
+      "archetype_id": "nationalist-populist",
+      "archetype_name": "The Nationalist Populist",
+      "nearest_cluster": 2,
+      "nearest_distance": 1.4159,
+      "all_distances": [
+        {
+          "cluster": 2,
+          "distance": 1.4159
+        },
+        {
+          "cluster": 5,
+          "distance": 1.5407
+        },
+        {
+          "cluster": 0,
+          "distance": 2.3481
+        },
+        {
+          "cluster": 1,
+          "distance": 2.5649
+        },
+        {
+          "cluster": 3,
+          "distance": 2.5669
+        },
+        {
+          "cluster": 4,
+          "distance": 3.3915
+        }
+      ]
+    },
+    {
+      "archetype_id": "green-communalist",
+      "archetype_name": "The Green Communalist",
+      "nearest_cluster": 4,
+      "nearest_distance": 1.2462,
+      "all_distances": [
+        {
+          "cluster": 4,
+          "distance": 1.2462
+        },
+        {
+          "cluster": 1,
+          "distance": 1.567
+        },
+        {
+          "cluster": 3,
+          "distance": 1.7017
+        },
+        {
+          "cluster": 0,
+          "distance": 2.3451
+        },
+        {
+          "cluster": 2,
+          "distance": 2.4214
+        },
+        {
+          "cluster": 5,
+          "distance": 3.4873
+        }
+      ]
+    },
+    {
+      "archetype_id": "pragmatic-centrist",
+      "archetype_name": "The Pragmatic Centrist",
+      "nearest_cluster": 0,
+      "nearest_distance": 1.1262,
+      "all_distances": [
+        {
+          "cluster": 0,
+          "distance": 1.1262
+        },
+        {
+          "cluster": 2,
+          "distance": 1.6909
+        },
+        {
+          "cluster": 5,
+          "distance": 1.7175
+        },
+        {
+          "cluster": 1,
+          "distance": 1.7515
+        },
+        {
+          "cluster": 4,
+          "distance": 2.1166
+        },
+        {
+          "cluster": 3,
+          "distance": 2.2536
+        }
+      ]
+    }
+  ],
+  "summary_matches": [
+    {
+      "cluster": 0,
+      "size": 161,
+      "nearest_archetype_id": "pragmatic-centrist",
+      "nearest_archetype_name": "The Pragmatic Centrist",
+      "distance": 1.1262,
+      "distance_pct_of_max": 16.3,
+      "second_nearest_id": "social-democrat",
+      "margin_to_second": 0.1304
+    },
+    {
+      "cluster": 1,
+      "size": 178,
+      "nearest_archetype_id": "radical-egalitarian",
+      "nearest_archetype_name": "The Radical Egalitarian",
+      "distance": 1.3933,
+      "distance_pct_of_max": 20.1,
+      "second_nearest_id": "social-democrat",
+      "margin_to_second": 0.0305
+    },
+    {
+      "cluster": 2,
+      "size": 210,
+      "nearest_archetype_id": "nationalist-populist",
+      "nearest_archetype_name": "The Nationalist Populist",
+      "distance": 1.4159,
+      "distance_pct_of_max": 20.4,
+      "second_nearest_id": "communitarian-steward",
+      "margin_to_second": 0.0094
+    },
+    {
+      "cluster": 3,
+      "size": 116,
+      "nearest_archetype_id": "communitarian-steward",
+      "nearest_archetype_name": "The Communitarian Steward",
+      "distance": 1.089,
+      "distance_pct_of_max": 15.7,
+      "second_nearest_id": "green-communalist",
+      "margin_to_second": 0.6127
+    },
+    {
+      "cluster": 4,
+      "size": 196,
+      "nearest_archetype_id": "radical-egalitarian",
+      "nearest_archetype_name": "The Radical Egalitarian",
+      "distance": 0.7841,
+      "distance_pct_of_max": 11.3,
+      "second_nearest_id": "social-democrat",
+      "margin_to_second": 0.2768
+    },
+    {
+      "cluster": 5,
+      "size": 141,
+      "nearest_archetype_id": "developmental-modernizer",
+      "nearest_archetype_name": "The Developmental Modernizer",
+      "distance": 1.0175,
+      "distance_pct_of_max": 14.7,
+      "second_nearest_id": "authoritarian-traditionalist",
+      "margin_to_second": 0.3688
+    }
+  ],
+  "unmatched_archetypes": [
+    {
+      "id": "civic-institutionalist",
+      "name": "The Civic Institutionalist"
+    },
+    {
+      "id": "social-democrat",
+      "name": "The Social Democrat"
+    },
+    {
+      "id": "free-marketeer",
+      "name": "The Free Marketeer"
+    },
+    {
+      "id": "cosmopolitan-technologist",
+      "name": "The Cosmopolitan Technologist"
+    },
+    {
+      "id": "authoritarian-traditionalist",
+      "name": "The Authoritarian Traditionalist"
+    },
+    {
+      "id": "libertarian-individualist",
+      "name": "The Libertarian Individualist"
+    },
+    {
+      "id": "green-communalist",
+      "name": "The Green Communalist"
+    }
+  ],
+  "collapsed_archetypes": [
+    {
+      "archetype_id": "radical-egalitarian",
+      "cluster_count": 2
+    }
+  ]
+}

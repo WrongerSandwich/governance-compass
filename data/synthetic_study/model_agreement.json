@@ -1,0 +1,71 @@
+{
+  "n_shared_personas": 150,
+  "per_axis": [
+    {
+      "axis": 1,
+      "pearson_r": 0.8361,
+      "mean_diff_gemini_minus_claude": 0.197
+    },
+    {
+      "axis": 2,
+      "pearson_r": 0.8549,
+      "mean_diff_gemini_minus_claude": 0.0016
+    },
+    {
+      "axis": 3,
+      "pearson_r": 0.7042,
+      "mean_diff_gemini_minus_claude": 0.096
+    },
+    {
+      "axis": 4,
+      "pearson_r": 0.8657,
+      "mean_diff_gemini_minus_claude": -0.1577
+    },
+    {
+      "axis": 5,
+      "pearson_r": 0.7231,
+      "mean_diff_gemini_minus_claude": 0.1383
+    },
+    {
+      "axis": 6,
+      "pearson_r": 0.6624,
+      "mean_diff_gemini_minus_claude": 0.2697
+    },
+    {
+      "axis": 7,
+      "pearson_r": 0.714,
+      "mean_diff_gemini_minus_claude": 0.338
+    },
+    {
+      "axis": 8,
+      "pearson_r": 0.8184,
+      "mean_diff_gemini_minus_claude": 0.0413
+    },
+    {
+      "axis": 9,
+      "pearson_r": 0.6867,
+      "mean_diff_gemini_minus_claude": 0.2407
+    },
+    {
+      "axis": 10,
+      "pearson_r": 0.6204,
+      "mean_diff_gemini_minus_claude": 0.3126
+    },
+    {
+      "axis": 11,
+      "pearson_r": 0.6927,
+      "mean_diff_gemini_minus_claude": 0.1157
+    },
+    {
+      "axis": 12,
+      "pearson_r": 0.652,
+      "mean_diff_gemini_minus_claude": 0.0066
+    }
+  ],
+  "euclidean_distance": {
+    "mean": 1.5127,
+    "median": 1.4614,
+    "p90": 2.3545,
+    "max": 3.1045
+  }
+}

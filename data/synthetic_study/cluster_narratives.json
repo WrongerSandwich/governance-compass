@@ -1,0 +1,71 @@
+{
+  "k": 6,
+  "clusters": [
+    {
+      "cluster": 0,
+      "size": 161,
+      "share": 0.1607,
+      "top_axes": [
+        "axis 4 (Decision Authority): +0.57 \u2014 toward Institutional Authority",
+        "axis 2 (Environmental Policy): +0.53 \u2014 toward Growth Imperative",
+        "axis 7 (Social Change): -0.50 \u2014 toward Progressive Change",
+        "axis 3 (Governance Structure): +0.43 \u2014 toward Centralized Governance"
+      ]
+    },
+    {
+      "cluster": 1,
+      "size": 178,
+      "share": 0.1776,
+      "top_axes": [
+        "axis 11 (Military Policy): -0.70 \u2014 toward Non-Interventionism",
+        "axis 1 (Economic Model): -0.68 \u2014 toward Collective Provision",
+        "axis 5 (Rights Balance): -0.55 \u2014 toward Liberty",
+        "axis 9 (Human Nature): -0.49 \u2014 toward Constructivism"
+      ]
+    },
+    {
+      "cluster": 2,
+      "size": 210,
+      "share": 0.2096,
+      "top_axes": [
+        "axis 10 (International Engagement): +0.69 \u2014 toward Sovereignty",
+        "axis 9 (Human Nature): +0.62 \u2014 toward Essentialism",
+        "axis 7 (Social Change): +0.60 \u2014 toward Continuity and Tradition",
+        "axis 8 (Cultural Diversity): +0.57 \u2014 toward Cohesion"
+      ]
+    },
+    {
+      "cluster": 3,
+      "size": 116,
+      "share": 0.1158,
+      "top_axes": [
+        "axis 3 (Governance Structure): -0.80 \u2014 toward Distributed Governance",
+        "axis 11 (Military Policy): -0.76 \u2014 toward Non-Interventionism",
+        "axis 7 (Social Change): +0.73 \u2014 toward Continuity and Tradition",
+        "axis 4 (Decision Authority): -0.70 \u2014 toward Popular Sovereignty"
+      ]
+    },
+    {
+      "cluster": 4,
+      "size": 196,
+      "share": 0.1956,
+      "top_axes": [
+        "axis 1 (Economic Model): -0.77 \u2014 toward Collective Provision",
+        "axis 5 (Rights Balance): -0.75 \u2014 toward Liberty",
+        "axis 9 (Human Nature): -0.72 \u2014 toward Constructivism",
+        "axis 11 (Military Policy): -0.68 \u2014 toward Non-Interventionism"
+      ]
+    },
+    {
+      "cluster": 5,
+      "size": 141,
+      "share": 0.1407,
+      "top_axes": [
+        "axis 3 (Governance Structure): +0.74 \u2014 toward Centralized Governance",
+        "axis 8 (Cultural Diversity): +0.73 \u2014 toward Cohesion",
+        "axis 5 (Rights Balance): +0.72 \u2014 toward Security",
+        "axis 2 (Environmental Policy): +0.67 \u2014 toward Growth Imperative"
+      ]
+    }
+  ]
+}

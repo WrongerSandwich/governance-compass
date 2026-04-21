@@ -1,0 +1,390 @@
+{
+  "overall_by_axis": [
+    {
+      "model": "claude",
+      "axis": 1,
+      "count": 133,
+      "pct": 23.09
+    },
+    {
+      "model": "claude",
+      "axis": 2,
+      "count": 321,
+      "pct": 55.73
+    },
+    {
+      "model": "claude",
+      "axis": 4,
+      "count": 382,
+      "pct": 66.32
+    },
+    {
+      "model": "claude",
+      "axis": 5,
+      "count": 177,
+      "pct": 30.73
+    },
+    {
+      "model": "claude",
+      "axis": 6,
+      "count": 388,
+      "pct": 67.36
+    },
+    {
+      "model": "claude",
+      "axis": 10,
+      "count": 335,
+      "pct": 58.16
+    },
+    {
+      "model": "claude",
+      "axis": 11,
+      "count": 120,
+      "pct": 20.83
+    },
+    {
+      "model": "claude",
+      "axis": 12,
+      "count": 490,
+      "pct": 85.07
+    },
+    {
+      "model": "gemini",
+      "axis": 1,
+      "count": 255,
+      "pct": 44.27
+    },
+    {
+      "model": "gemini",
+      "axis": 2,
+      "count": 226,
+      "pct": 39.24
+    },
+    {
+      "model": "gemini",
+      "axis": 4,
+      "count": 313,
+      "pct": 54.34
+    },
+    {
+      "model": "gemini",
+      "axis": 5,
+      "count": 205,
+      "pct": 35.59
+    },
+    {
+      "model": "gemini",
+      "axis": 6,
+      "count": 326,
+      "pct": 56.6
+    },
+    {
+      "model": "gemini",
+      "axis": 10,
+      "count": 191,
+      "pct": 33.16
+    },
+    {
+      "model": "gemini",
+      "axis": 11,
+      "count": 210,
+      "pct": 36.46
+    },
+    {
+      "model": "gemini",
+      "axis": 12,
+      "count": 421,
+      "pct": 73.09
+    }
+  ],
+  "by_cluster": [
+    {
+      "cluster": 0,
+      "axis": 1,
+      "count": 81,
+      "pct_of_cluster_calls": 25.16
+    },
+    {
+      "cluster": 0,
+      "axis": 2,
+      "count": 63,
+      "pct_of_cluster_calls": 19.57
+    },
+    {
+      "cluster": 0,
+      "axis": 4,
+      "count": 45,
+      "pct_of_cluster_calls": 13.98
+    },
+    {
+      "cluster": 0,
+      "axis": 5,
+      "count": 97,
+      "pct_of_cluster_calls": 30.12
+    },
+    {
+      "cluster": 0,
+      "axis": 6,
+      "count": 122,
+      "pct_of_cluster_calls": 37.89
+    },
+    {
+      "cluster": 0,
+      "axis": 10,
+      "count": 133,
+      "pct_of_cluster_calls": 41.3
+    },
+    {
+      "cluster": 0,
+      "axis": 11,
+      "count": 72,
+      "pct_of_cluster_calls": 22.36
+    },
+    {
+      "cluster": 0,
+      "axis": 12,
+      "count": 160,
+      "pct_of_cluster_calls": 49.69
+    },
+    {
+      "cluster": 1,
+      "axis": 1,
+      "count": 64,
+      "pct_of_cluster_calls": 17.98
+    },
+    {
+      "cluster": 1,
+      "axis": 2,
+      "count": 126,
+      "pct_of_cluster_calls": 35.39
+    },
+    {
+      "cluster": 1,
+      "axis": 4,
+      "count": 199,
+      "pct_of_cluster_calls": 55.9
+    },
+    {
+      "cluster": 1,
+      "axis": 5,
+      "count": 52,
+      "pct_of_cluster_calls": 14.61
+    },
+    {
+      "cluster": 1,
+      "axis": 6,
+      "count": 125,
+      "pct_of_cluster_calls": 35.11
+    },
+    {
+      "cluster": 1,
+      "axis": 10,
+      "count": 104,
+      "pct_of_cluster_calls": 29.21
+    },
+    {
+      "cluster": 1,
+      "axis": 11,
+      "count": 30,
+      "pct_of_cluster_calls": 8.43
+    },
+    {
+      "cluster": 1,
+      "axis": 12,
+      "count": 198,
+      "pct_of_cluster_calls": 55.62
+    },
+    {
+      "cluster": 2,
+      "axis": 1,
+      "count": 91,
+      "pct_of_cluster_calls": 21.67
+    },
+    {
+      "cluster": 2,
+      "axis": 2,
+      "count": 128,
+      "pct_of_cluster_calls": 30.48
+    },
+    {
+      "cluster": 2,
+      "axis": 4,
+      "count": 181,
+      "pct_of_cluster_calls": 43.1
+    },
+    {
+      "cluster": 2,
+      "axis": 5,
+      "count": 126,
+      "pct_of_cluster_calls": 30.0
+    },
+    {
+      "cluster": 2,
+      "axis": 6,
+      "count": 175,
+      "pct_of_cluster_calls": 41.67
+    },
+    {
+      "cluster": 2,
+      "axis": 10,
+      "count": 23,
+      "pct_of_cluster_calls": 5.48
+    },
+    {
+      "cluster": 2,
+      "axis": 11,
+      "count": 78,
+      "pct_of_cluster_calls": 18.57
+    },
+    {
+      "cluster": 2,
+      "axis": 12,
+      "count": 175,
+      "pct_of_cluster_calls": 41.67
+    },
+    {
+      "cluster": 3,
+      "axis": 1,
+      "count": 44,
+      "pct_of_cluster_calls": 18.97
+    },
+    {
+      "cluster": 3,
+      "axis": 2,
+      "count": 63,
+      "pct_of_cluster_calls": 27.16
+    },
+    {
+      "cluster": 3,
+      "axis": 4,
+      "count": 85,
+      "pct_of_cluster_calls": 36.64
+    },
+    {
+      "cluster": 3,
+      "axis": 5,
+      "count": 44,
+      "pct_of_cluster_calls": 18.97
+    },
+    {
+      "cluster": 3,
+      "axis": 6,
+      "count": 91,
+      "pct_of_cluster_calls": 39.22
+    },
+    {
+      "cluster": 3,
+      "axis": 10,
+      "count": 40,
+      "pct_of_cluster_calls": 17.24
+    },
+    {
+      "cluster": 3,
+      "axis": 11,
+      "count": 19,
+      "pct_of_cluster_calls": 8.19
+    },
+    {
+      "cluster": 3,
+      "axis": 12,
+      "count": 85,
+      "pct_of_cluster_calls": 36.64
+    },
+    {
+      "cluster": 4,
+      "axis": 1,
+      "count": 33,
+      "pct_of_cluster_calls": 8.42
+    },
+    {
+      "cluster": 4,
+      "axis": 2,
+      "count": 135,
+      "pct_of_cluster_calls": 34.44
+    },
+    {
+      "cluster": 4,
+      "axis": 4,
+      "count": 137,
+      "pct_of_cluster_calls": 34.95
+    },
+    {
+      "cluster": 4,
+      "axis": 5,
+      "count": 18,
+      "pct_of_cluster_calls": 4.59
+    },
+    {
+      "cluster": 4,
+      "axis": 6,
+      "count": 151,
+      "pct_of_cluster_calls": 38.52
+    },
+    {
+      "cluster": 4,
+      "axis": 10,
+      "count": 204,
+      "pct_of_cluster_calls": 52.04
+    },
+    {
+      "cluster": 4,
+      "axis": 11,
+      "count": 39,
+      "pct_of_cluster_calls": 9.95
+    },
+    {
+      "cluster": 4,
+      "axis": 12,
+      "count": 214,
+      "pct_of_cluster_calls": 54.59
+    },
+    {
+      "cluster": 5,
+      "axis": 1,
+      "count": 75,
+      "pct_of_cluster_calls": 26.6
+    },
+    {
+      "cluster": 5,
+      "axis": 2,
+      "count": 32,
+      "pct_of_cluster_calls": 11.35
+    },
+    {
+      "cluster": 5,
+      "axis": 4,
+      "count": 48,
+      "pct_of_cluster_calls": 17.02
+    },
+    {
+      "cluster": 5,
+      "axis": 5,
+      "count": 45,
+      "pct_of_cluster_calls": 15.96
+    },
+    {
+      "cluster": 5,
+      "axis": 6,
+      "count": 50,
+      "pct_of_cluster_calls": 17.73
+    },
+    {
+      "cluster": 5,
+      "axis": 10,
+      "count": 22,
+      "pct_of_cluster_calls": 7.8
+    },
+    {
+      "cluster": 5,
+      "axis": 11,
+      "count": 92,
+      "pct_of_cluster_calls": 32.62
+    },
+    {
+      "cluster": 5,
+      "axis": 12,
+      "count": 79,
+      "pct_of_cluster_calls": 28.01
+    }
+  ]
+}
