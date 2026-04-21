@@ -15,6 +15,33 @@ export type RegionKey =
   | "oceania_small_states"
   | "diaspora_transnational";
 
+export type RegionHumanLabel =
+  | "Western Europe"
+  | "Eastern Europe & Central Asia"
+  | "North America"
+  | "Latin America"
+  | "Middle East & N. Africa"
+  | "Sub-Saharan Africa"
+  | "South & SE Asia"
+  | "East Asia"
+  | "Oceania"
+  | "Diaspora / Transnational";
+
+// Authoritative source for human-readable region labels
+// Used by modal, badges, filter UI, and any component needing region display text.
+export const REGION_LABELS: Record<RegionKey, string> = {
+  western_europe: "Western Europe",
+  eastern_europe_central_asia: "Eastern Europe & Central Asia",
+  north_america: "North America",
+  latin_america: "Latin America",
+  middle_east_north_africa: "Middle East & N. Africa",
+  sub_saharan_africa: "Sub-Saharan Africa",
+  south_southeast_asia: "South & SE Asia",
+  east_asia: "East Asia",
+  oceania_small_states: "Oceania",
+  diaspora_transnational: "Diaspora / Transnational",
+};
+
 export type UrbanRural = "urban" | "peri_urban" | "rural";
 
 export type EconomicPosition =
