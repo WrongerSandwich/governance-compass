@@ -1,5 +1,4 @@
-import type { RegionKey } from "../../src/lib/study/types";
-import type { PersonaRecord } from "../../src/lib/study/types";
+import type { PersonaRecord, RegionKey } from "../../src/lib/study/types";
 import { normalizeLocation } from "./country-name-normalization";
 
 export const COUNTRY_REGION_MAP: Record<string, RegionKey> = {
@@ -55,7 +54,6 @@ export const COUNTRY_REGION_MAP: Record<string, RegionKey> = {
   HND: "latin_america",
   HTI: "latin_america",
   JAM: "latin_america",
-  MEX: "north_america",
   NIC: "latin_america",
   PAN: "latin_america",
   PER: "latin_america",
@@ -90,6 +88,7 @@ export const COUNTRY_REGION_MAP: Record<string, RegionKey> = {
 
   // North America
   CAN: "north_america",
+  MEX: "north_america",
   USA: "north_america",
 
   // Oceania & Small States
@@ -207,12 +206,12 @@ export function verifyCountryRegionMapping(
 
     covered++;
 
-    if (mappedRegion !== (persona.region as RegionKey)) {
+    if (mappedRegion !== persona.region) {
       const warning: VerificationWarning = {
         persona_id: persona.id,
         location: persona.location,
         country_iso: normalized.iso3,
-        authored_region: persona.region as RegionKey,
+        authored_region: persona.region,
         mapped_region: mappedRegion,
       };
       warnings.push(warning);

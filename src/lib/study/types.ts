@@ -153,6 +153,7 @@ export type ResponseFile = {
   responses: ResponseRecord[];
 };
 
+// Mirrors pipeline output shape — flat axis_* keys rather than number[].
 export type ClusterCentroid = {
   cluster: number;
   axis_1: number;

@@ -1,3 +1,5 @@
+// Case-sensitivity contract: lookup is exact-case by design because the pipeline outputs title-cased names; if that contract changes, convert ALIAS_MAP keys + inputs to .normalize("NFC").toLowerCase().
+
 export type NormalizedCountry = {
   name: string;
   iso3: string;
@@ -193,6 +195,9 @@ const ALIAS_MAP: Record<string, NormalizedCountry> = {
   "Zimbabwe": { name: "Zimbabwe", iso3: "ZWE" },
 };
 
+// Substring fallback: last resort; longer keys win to avoid prefix collisions.
+const ALIAS_KEYS_BY_LENGTH = Object.keys(ALIAS_MAP).sort((a, b) => b.length - a.length);
+
 function stripParenthetical(location: string): string {
   return location.replace(/\s*\([^)]*\)/g, "").trim();
 }
@@ -209,7 +214,7 @@ function extractCountryFromLocation(raw: string): string | null {
 
   for (let i = parts.length - 1; i >= 0; i--) {
     const candidate = parts[i];
-    for (const alias of Object.keys(ALIAS_MAP)) {
+    for (const alias of ALIAS_KEYS_BY_LENGTH) {
       if (candidate.includes(alias)) return alias;
     }
   }
@@ -218,7 +223,7 @@ function extractCountryFromLocation(raw: string): string | null {
 }
 
 export function normalizeLocation(raw: string): NormalizedCountry | null {
-  const cleaned = raw.trim().replace(/\)$/, "").trim();
+  const cleaned = raw.trim();
 
   const countryKey = extractCountryFromLocation(cleaned);
   if (countryKey) return ALIAS_MAP[countryKey];

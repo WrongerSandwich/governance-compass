@@ -6,7 +6,7 @@
     "dev": "next dev",
     "prebuild": "npm run build:study",
     "build": "next build",
-    "build:study": "echo 'build:study not yet implemented' && exit 0",
+    "build:study": "echo 'build:study not yet implemented'",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
