@@ -32,11 +32,11 @@ export type MapLegendProps =
 // Five bins from negative to positive
 // ---------------------------------------------------------------------------
 const AXIS_GRADIENT_SWATCHES: Array<{ fill: string; label?: string }> = [
-  { fill: "var(--color-slate-600, #5B7A8A)" },
-  { fill: "var(--color-slate-400, #8BA3B0)" },
-  { fill: "var(--map-density-1)" },
-  { fill: "var(--color-clay-400, #B8836B)" },
-  { fill: "var(--color-clay-600, #8B5E3C)" },
+  { fill: "var(--axis-gradient-negative-strong)" },
+  { fill: "var(--axis-gradient-negative-mild)" },
+  { fill: "var(--axis-gradient-neutral)" },
+  { fill: "var(--axis-gradient-positive-mild)" },
+  { fill: "var(--axis-gradient-positive-strong)" },
 ];
 
 // ---------------------------------------------------------------------------

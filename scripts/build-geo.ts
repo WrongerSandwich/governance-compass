@@ -210,13 +210,12 @@ const GEO_REGIONS: RegionKey[] = [
 // Countries intentionally excluded from any region (non-sovereign territories, disputed, etc.)
 // These will be logged but not fail the build.
 const EXPECTED_UNMAPPED = new Set([
-  "GRL", // Greenland — overseas territory of Denmark
-  "FLK", // Falkland Islands
-  "NCL", // New Caledonia — overseas collectivity of France
+  "AFG", // Afghanistan — not in persona dataset
+  "ATA", // Antarctica
   "ATF", // French Southern and Antarctic Lands
-  "PRI", // Puerto Rico — US territory
-  "BHS", // Bahamas — not in persona dataset
   "BDI", // Burundi — not in country-region map
+  "BFA", // Burkina Faso — not in persona dataset
+  "BHS", // Bahamas — not in persona dataset
   "BLZ", // Belize — not in country-region map
   "BRN", // Brunei — not in country-region map
   "BTN", // Bhutan — not in country-region map
@@ -225,10 +224,12 @@ const EXPECTED_UNMAPPED = new Set([
   "CYP", // Cyprus
   "DJI", // Djibouti
   "ESH", // Western Sahara
-  "FLK", // Falkland Is.
+  "FLK", // Falkland Islands — overseas territory
+  "GAB", // Gabon — not in persona dataset
   "GIN", // Guinea — not in country-region map
   "GNB", // Guinea-Bissau
   "GNQ", // Equatorial Guinea
+  "GRL", // Greenland — overseas territory of Denmark
   "ISL", // Iceland — not in country-region map
   "LBR", // Liberia — not in country-region map
   "LSO", // Lesotho — not in country-region map
@@ -236,26 +237,19 @@ const EXPECTED_UNMAPPED = new Set([
   "MDG", // Madagascar — not in country-region map
   "MNE", // Montenegro — not in country-region map
   "MRT", // Mauritania — not in country-region map
-  "NCL", // New Caledonia
-  "PRI", // Puerto Rico
+  "NCL", // New Caledonia — overseas collectivity of France
+  "PRI", // Puerto Rico — US territory
+  "SLB", // Solomon Islands
   "SOM", // Somalia — not in country-region map
-  "SSD", // South Sudan — SSD is in the map, actually it is
   "SUR", // Suriname — not in country-region map
+  "SVN", // Slovenia — not in country-region map
   "SWZ", // eSwatini — not in country-region map
+  "TCD", // Chad — not in persona dataset
   "TGO", // Togo — not in country-region map
   "TKM", // Turkmenistan — not in country-region map
   "TLS", // Timor-Leste — not in country-region map
-  "TTO", // Trinidad and Tobago — IS in map
+  "TTO", // Trinidad and Tobago — not in persona dataset
   "VUT", // Vanuatu — not in country-region map
-  "ATA", // Antarctica
-  "SVN", // Slovenia — not in country-region map
-  "LBR", // Liberia
-  "GRL", // Greenland
-  "AFG", // Afghanistan — not in persona dataset
-  "TCD", // Chad — not in persona dataset
-  "BFA", // Burkina Faso — not in persona dataset
-  "GAB", // Gabon — not in persona dataset
-  "SLB", // Solomon Islands
 ]);
 
 interface CountryGeometry {
@@ -353,7 +347,7 @@ function main() {
     features: regionFeatures,
   };
 
-  fs.writeFileSync(outputPath, JSON.stringify(output));
+  fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
   console.log(`\nWrote ${regionFeatures.length} region features to ${outputPath}`);
   console.log(`File size: ${(fs.statSync(outputPath).size / 1024).toFixed(1)} KB`);
 }

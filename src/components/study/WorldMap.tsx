@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import type { ClusterId, CountryAggregate, RegionKey } from "@/lib/study/types";
 
@@ -113,8 +113,7 @@ function clusterFillStyle(
 // ---------------------------------------------------------------------------
 function buildTooltip(
   region: RegionKey,
-  mode: WorldMapMode,
-  _count?: number
+  mode: WorldMapMode
 ): string {
   const name = REGION_DISPLAY[region];
   switch (mode.type) {
@@ -145,8 +144,6 @@ function buildTooltip(
 export function WorldMap({ mode, className = "" }: WorldMapProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [mobileTooltip, setMobileTooltip] = useState<string | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Escape key clears selection in interactive mode
   useEffect(() => {
@@ -163,7 +160,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
 
   const handleMouseEnter = useCallback(
     (region: RegionKey, e: React.MouseEvent) => {
-      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
       const content = buildTooltip(region, mode);
       setTooltip({ x: e.clientX, y: e.clientY, content });
     },
@@ -172,18 +168,14 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
 
   const handleMouseMove = useCallback(
     (_region: RegionKey, e: React.MouseEvent) => {
-      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
-      tooltipTimerRef.current = setTimeout(() => {
-        setTooltip((prev) =>
-          prev ? { ...prev, x: e.clientX, y: e.clientY } : prev
-        );
-      }, 16);
+      setTooltip((prev) =>
+        prev ? { ...prev, x: e.clientX, y: e.clientY } : prev
+      );
     },
     []
   );
 
   const handleMouseLeave = useCallback(() => {
-    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
     setTooltip(null);
   }, []);
 
@@ -347,10 +339,9 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                 // This matches Option A from the spec and mirrors TransnationalTile's approach.
                 if (hatched) {
                   return (
-                    <>
+                    <React.Fragment key={geo.rsmKey}>
                       {/* Base layer: cluster color at 60% opacity */}
                       <Geography
-                        key={`${geo.rsmKey}-base`}
                         geography={geo}
                         tabIndex={-1}
                         aria-hidden
@@ -379,7 +370,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       />
                       {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
                       <Geography
-                        key={`${geo.rsmKey}-hatch`}
                         geography={geo}
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
@@ -420,7 +410,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                           handleKeyDown(region, e)
                         }
                       />
-                    </>
+                    </React.Fragment>
                   );
                 }
 
