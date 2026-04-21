@@ -5,6 +5,8 @@ import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
 import type { HorizontalBarChartRow } from "@/components/study/HorizontalBarChart";
 import { DisagreementByAttribute } from "@/components/study/model-agreement/DisagreementByAttribute";
 import type { AttributePanel } from "@/components/study/model-agreement/DisagreementByAttribute";
+import { CaseStudy } from "@/components/study/model-agreement/CaseStudy";
+import type { CaseStudyProps } from "@/components/study/model-agreement/CaseStudy";
 
 // ---------------------------------------------------------------------------
 // Types matching server-passed props
@@ -29,6 +31,7 @@ export interface ModelAgreementClientProps {
   perAxis: PerAxisEntry[];
   distanceStats: DistanceStats;
   attributePanels: AttributePanel[];
+  caseStudies: CaseStudyProps[];
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +136,7 @@ export function ModelAgreementClient({
   perAxis,
   distanceStats,
   attributePanels,
+  caseStudies,
 }: ModelAgreementClientProps) {
   const { mean, median, p90, max, distances } = distanceStats;
 
@@ -632,14 +636,84 @@ export function ModelAgreementClient({
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 4 — Individual cases (Phase 6b)                            */}
+      {/* Section 4 — Individual cases                                        */}
       {/* ------------------------------------------------------------------ */}
-      {/* Phase 6b */}
+      <section className="mb-16">
+        <div className="mx-auto max-w-3xl mb-8">
+          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+            Individual cases
+          </h2>
+          <p className="text-sm text-text-secondary leading-relaxed mt-4" style={{ maxWidth: "42rem" }}>
+            The aggregate statistics smooth over what individual disagreements
+            actually look like. These four personas illustrate the range: one
+            where the models agree closely, one near the typical midpoint, one
+            where they diverge significantly, and one where the drift is
+            consistent and directional rather than noisy.
+          </p>
+        </div>
+
+        <div
+          className="mx-auto"
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+        >
+          {caseStudies.map((cs, i) => (
+            <div key={cs.personaId}>
+              <CaseStudy {...cs} />
+              {i < caseStudies.length - 1 && (
+                <hr
+                  style={{
+                    border: "none",
+                    borderTop: "0.5px solid var(--border-secondary)",
+                    margin: "40px 0",
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 5 — What this means for the instrument (Phase 6b)          */}
+      {/* Section 5 — What this means for the instrument                      */}
       {/* ------------------------------------------------------------------ */}
-      {/* Phase 6b */}
+      <section className="mb-16">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-[22px] font-serif font-medium text-text-primary mb-8">
+            What this means for the instrument
+          </h2>
+          <div className="text-sm text-text-secondary leading-relaxed space-y-4">
+            <p>
+              The shared-persona comparison tells us something about the
+              instrument and something about large language models as survey
+              respondents. On the instrument: axes 1, 2, 4, and 8 produce the
+              most consistent scoring across models, and are the ones readers
+              can place the most weight on when interpreting individual results.
+              Axes 10, 12, and 6 produce meaningfully more model-dependent
+              scoring, and individual scores on those axes carry more noise.
+            </p>
+            <p>
+              On LLMs as respondents: two frontier models, given the same
+              persona description and the same instrument, will produce profiles
+              that are broadly similar but meaningfully distinct. The model
+              matters. This is worth naming when any claim is made about what
+              &ldquo;AI models think&rdquo; on a given governance question — the
+              answer depends on which model you asked. The 150-persona comparison
+              here is small, and it&apos;s on synthetic personas rather than
+              neutral responses, but the direction of the finding is clear enough
+              to carry that caveat.
+            </p>
+            <p>
+              For real users taking the Governance Compass, this analysis has
+              limited direct relevance — the instrument administers to human
+              respondents, not to LLMs. But if the tool is ever used by people
+              to explore how language models would score hypothetical profiles (a
+              use we don&apos;t endorse but can&apos;t prevent), knowing that
+              model choice substantially affects the scoring for three axes is
+              material.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
