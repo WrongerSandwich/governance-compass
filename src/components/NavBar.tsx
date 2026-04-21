@@ -78,6 +78,13 @@ export function NavBar() {
             Methodology
           </Link>
           <Link
+            href="/study"
+            className={linkClasses("/study")}
+            aria-current={pathname.startsWith("/study") ? "page" : undefined}
+          >
+            Synthetic Study
+          </Link>
+          <Link
             href="/references"
             className={linkClasses("/references", REFERENCE_PATHS)}
             aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" || pathname === "/archetypes" ? "page" : undefined}
