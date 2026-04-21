@@ -6,6 +6,8 @@ export interface HorizontalBarChartRow {
   color?: string;
   secondaryLabel?: string;
   emergenceTag?: string;
+  /** If true and value === 0, render a faint dotted line across the bar area instead of a filled bar. */
+  dottedIfZero?: boolean;
 }
 
 export interface HorizontalBarChartProps {
@@ -132,17 +134,30 @@ export function HorizontalBarChart({
               </text>
             )}
 
-            {/* Bar */}
-            <rect
-              x={barX}
-              y={barY + 1}
-              width={Math.max(barWidth, 0)}
-              height={barHeight - 2}
-              fill={defaultColor}
-              fillOpacity={0.75}
-              rx={1}
-              aria-label={`${row.label}: ${row.value}`}
-            />
+            {/* Bar or dotted zero line */}
+            {row.dottedIfZero && row.value === 0 ? (
+              <line
+                x1={LABEL_WIDTH}
+                y1={barY + barHeight / 2}
+                x2={LABEL_WIDTH + BAR_AREA_WIDTH}
+                y2={barY + barHeight / 2}
+                stroke={defaultColor}
+                strokeWidth={1}
+                strokeDasharray="3 4"
+                opacity={0.4}
+              />
+            ) : (
+              <rect
+                x={barX}
+                y={barY + 1}
+                width={Math.max(barWidth, 0)}
+                height={barHeight - 2}
+                fill={defaultColor}
+                fillOpacity={0.75}
+                rx={1}
+                aria-label={`${row.label}: ${row.value}`}
+              />
+            )}
 
             {/* Secondary label */}
             {row.secondaryLabel && (
