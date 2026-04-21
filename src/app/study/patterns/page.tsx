@@ -4,11 +4,20 @@ import { ClusterCard } from "@/components/study/patterns/ClusterCard";
 import { ArchetypeDistribution } from "@/components/study/patterns/ArchetypeDistribution";
 import type { ArchetypeDistributionRow } from "@/components/study/patterns/ArchetypeDistribution";
 import { DemographicAggregates } from "@/components/study/patterns/DemographicAggregates";
+import { TopCorrelationsList } from "@/components/study/patterns/TopCorrelationsList";
 import { WorldMap } from "@/components/study/WorldMap";
 import { MapLegend } from "@/components/study/MapLegend";
 import { TransnationalTile } from "@/components/study/TransnationalTile";
+import { ViolinOrRidge } from "@/components/study/ViolinOrRidge";
+import type { RidgeSeries } from "@/components/study/ViolinOrRidge";
+import { CorrelationHeatmap } from "@/components/study/CorrelationHeatmap";
+import { TensionMatrix } from "@/components/study/TensionMatrix";
+import type { TensionMatrixDatum } from "@/components/study/TensionMatrix";
+import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
+import type { HorizontalBarChartRow } from "@/components/study/HorizontalBarChart";
 import { CLUSTERS } from "@/data/syntheticStudyClusters";
 import { archetypes } from "@/data/archetypes";
+import { axes } from "@/data/axes";
 import type {
   ClusterCentroid,
   ClusterNarrative,
@@ -27,9 +36,53 @@ interface ClusterNarrativesFile {
 
 interface ClusterCentroidsFile extends Array<ClusterCentroid> {}
 
+interface AxisHistogramBin {
+  min: number;
+  max: number;
+  count: number;
+}
+
+interface AxisHistogram {
+  axis: number;
+  bins: AxisHistogramBin[];
+  mean: number;
+}
+
+interface CorrelationFile {
+  axes: string[];
+  matrix: number[][];
+}
+
+interface TensionOverallRow {
+  model: "claude" | "gemini";
+  axis: number;
+  count: number;
+  pct: number;
+}
+
+interface TensionByClusterRow {
+  cluster: number;
+  axis: number;
+  count: number;
+  pct_of_cluster_calls: number;
+}
+
+interface TensionPatternsFile {
+  overall_by_axis: TensionOverallRow[];
+  by_cluster: TensionByClusterRow[];
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Domain fill color for ViolinOrRidge series (hex, from design-tokens DOMAIN_COLORS). */
+function domainColorFor(axisId: number): string {
+  if (axisId <= 2) return "#85735e";   // Economic Organization — Stone 600
+  if (axisId <= 6) return "#6b7d8a";  // Power and Authority — Slate 600
+  if (axisId <= 9) return "#7a8b6e";  // Society and Identity — Sage 600
+  return "#96716b";                    // The State in the World — Clay 600
+}
 
 /** Convert the flat axis_1..axis_12 centroid into a number[12] ordered array. */
 function centroidToAxisScores(c: ClusterCentroid): number[] {
@@ -56,19 +109,32 @@ export default async function PatternsPage() {
   const dataDir = path.join(process.cwd(), "data/synthetic_study");
   const derivedDir = path.join(process.cwd(), "public/study/derived");
 
-  const [centroidsRaw, narrativesRaw, regionalRaw, demographicRaw] =
-    await Promise.all([
-      fs.readFile(path.join(dataDir, "cluster_centroids.json"), "utf8"),
-      fs.readFile(path.join(dataDir, "cluster_narratives.json"), "utf8"),
-      fs.readFile(path.join(derivedDir, "regional_aggregates.json"), "utf8"),
-      fs.readFile(path.join(derivedDir, "demographic_aggregates.json"), "utf8"),
-    ]);
+  const [
+    centroidsRaw,
+    narrativesRaw,
+    regionalRaw,
+    demographicRaw,
+    axisHistogramsRaw,
+    axisCorrelationsRaw,
+    tensionPatternsRaw,
+  ] = await Promise.all([
+    fs.readFile(path.join(dataDir, "cluster_centroids.json"), "utf8"),
+    fs.readFile(path.join(dataDir, "cluster_narratives.json"), "utf8"),
+    fs.readFile(path.join(derivedDir, "regional_aggregates.json"), "utf8"),
+    fs.readFile(path.join(derivedDir, "demographic_aggregates.json"), "utf8"),
+    fs.readFile(path.join(derivedDir, "axis_histograms.json"), "utf8"),
+    fs.readFile(path.join(derivedDir, "axis_correlations.json"), "utf8"),
+    fs.readFile(path.join(dataDir, "tension_patterns.json"), "utf8"),
+  ]);
 
   const centroids: ClusterCentroidsFile = JSON.parse(centroidsRaw);
   const narrativesFile: ClusterNarrativesFile = JSON.parse(narrativesRaw);
   const regionalAggregates: RegionalAggregate[] = JSON.parse(regionalRaw);
   const demographicAggregates: DemographicAggregate =
     JSON.parse(demographicRaw);
+  const axisHistograms: AxisHistogram[] = JSON.parse(axisHistogramsRaw);
+  const axisCorrelations: CorrelationFile = JSON.parse(axisCorrelationsRaw);
+  const tensionPatterns: TensionPatternsFile = JSON.parse(tensionPatternsRaw);
 
   // Build a map from cluster id → centroid axis scores
   const centroidMap = new Map<number, number[]>(
@@ -118,6 +184,84 @@ export default async function PatternsPage() {
     (r) => r.region === "diaspora_transnational"
   );
   const diasporaCount = diasporaRegion?.count ?? 0;
+
+  // ---------------------------------------------------------------------------
+  // Section 4 — Axis-level distributions
+  // ---------------------------------------------------------------------------
+
+  const ridgeSeries: RidgeSeries[] = axes.map((axis) => {
+    const histData = axisHistograms.find((h) => h.axis === axis.id);
+    return {
+      label: `${axis.id}. ${axis.name}`,
+      bins: histData ? histData.bins.map((b) => b.count) : [],
+      mean: histData?.mean,
+      domainColor: domainColorFor(axis.id),
+    };
+  });
+
+  // ---------------------------------------------------------------------------
+  // Section 5 — Correlations
+  // ---------------------------------------------------------------------------
+
+  const correlationMatrix = axisCorrelations.matrix;
+  const correlationLabels = axes.map((a) => `A${a.id}`);
+
+  // ---------------------------------------------------------------------------
+  // Section 6 — Tension patterns
+  // ---------------------------------------------------------------------------
+
+  // Build TensionMatrix data from overall_by_axis and by_cluster.
+  // by_cluster has no model split — treat as combined (use same pct for both models).
+  const tensionMatrixData: TensionMatrixDatum[] = [];
+
+  // Overall column from overall_by_axis (has model split)
+  for (const row of tensionPatterns.overall_by_axis) {
+    tensionMatrixData.push({
+      axis: row.axis,
+      cluster: "overall",
+      model: row.model,
+      pct: Math.round(row.pct),
+    });
+  }
+
+  // Per-cluster from by_cluster (no model split — use as combined/claude row)
+  for (const row of tensionPatterns.by_cluster) {
+    const cluster = row.cluster as 0 | 1 | 2 | 3 | 4 | 5;
+    tensionMatrixData.push({
+      axis: row.axis,
+      cluster,
+      model: "claude",
+      pct: Math.round(row.pct_of_cluster_calls),
+    });
+  }
+
+  // Horizontal bar chart rows for overall tension rate (Section 6 header chart)
+  const tensionOverallMap = new Map<string, number>();
+  for (const row of tensionPatterns.overall_by_axis) {
+    tensionOverallMap.set(`${row.model}-${row.axis}`, row.pct);
+  }
+
+  // Build rows: one per axis, two models interleaved (claude then gemini)
+  const tensionBarRows: HorizontalBarChartRow[] = [];
+  for (const axis of axes) {
+    const claudePct = tensionOverallMap.get(`claude-${axis.id}`) ?? 0;
+    const geminiPct = tensionOverallMap.get(`gemini-${axis.id}`) ?? 0;
+    tensionBarRows.push({
+      label: `A${axis.id} Claude`,
+      value: claudePct,
+      color: "var(--model-claude)",
+      secondaryLabel: claudePct > 0 ? `${claudePct.toFixed(0)}%` : "—",
+    });
+    tensionBarRows.push({
+      label: `A${axis.id} Gemini`,
+      value: geminiPct,
+      color: "var(--model-gemini)",
+      secondaryLabel: geminiPct > 0 ? `${geminiPct.toFixed(0)}%` : "—",
+    });
+  }
+
+  const tensionAxisLabels = axes.map((a) => `${a.id}. ${a.name}`);
+  const tensionClusterLabels = ["C0", "C1", "C2", "C3", "C4", "C5", "Overall"];
 
   // ---------------------------------------------------------------------------
   // Archetype distribution rows
@@ -466,19 +610,219 @@ export default async function PatternsPage() {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 4 — Axis-level distributions (Phase 5c)                    */}
+      {/* Section 4 — Axis-level distributions                               */}
       {/* ------------------------------------------------------------------ */}
-      {/* Phase 5c */}
+      <section className="mb-16">
+        <div className="mx-auto max-w-3xl mb-8">
+          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+            Axis-level distributions
+          </h2>
+        </div>
+
+        {/* Ridge plot — full width, single stacked series ordered axis 1→12 */}
+        <div
+          className="mx-auto overflow-x-auto"
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+        >
+          <ViolinOrRidge
+            series={ridgeSeries}
+            range={[-1, 1]}
+            ridgeHeight={52}
+            ariaLabel="Ridge plot of axis score distributions for all 12 axes"
+          />
+        </div>
+
+        {/* Prose */}
+        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+          <p>
+            Most axes are unimodal — the population spreads along a continuum
+            without clear bimodality. The exceptions worth naming: Axes 3
+            (Governance Structure) and 4 (Decision Authority) show clear
+            bimodality, which reflects the cluster structure — distributed/popular
+            clusters (C1, C3) versus centralized/institutional clusters (C0, C5).
+            Axes 5 (Rights Balance) and 6 (Legitimacy Basis) also show bimodal
+            separation, corresponding to the liberty-leaning clusters versus
+            security-oriented ones.
+          </p>
+          <p>
+            Axis 9 (Human Nature) shows the widest constructivism-essentialism
+            split: two significant peaks at opposite ends of the scale,
+            corresponding to the collective-provision clusters (constructivist)
+            versus the nationalist-populist cluster (essentialist). Axis 2
+            (Environmental Policy) is similarly polarized.
+          </p>
+          <p>
+            Axis 11 (Military Policy) is worth flagging for its one-sidedness:
+            the population leans uniformly non-interventionist with variation only
+            in degree, and no secondary peak appears on the interventionist side.
+            This says something about the personas Gemini generated rather than
+            about the axis itself.
+          </p>
+        </div>
+      </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 5 — Correlations (Phase 5c)                                 */}
+      {/* Section 5 — Correlations                                            */}
       {/* ------------------------------------------------------------------ */}
-      {/* Phase 5b/5c */}
+      <section className="mb-16">
+        <div className="mx-auto max-w-3xl mb-8">
+          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+            Correlations
+          </h2>
+        </div>
+
+        {/* Desktop: full heatmap */}
+        <div
+          className="mx-auto overflow-x-auto hidden md:block"
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+        >
+          <CorrelationHeatmap
+            matrix={correlationMatrix}
+            labels={correlationLabels}
+            lowerTriangleOnly={true}
+            cellSize={32}
+            ariaLabel="12×12 correlation heatmap of axis scores"
+          />
+        </div>
+
+        {/* Mobile: top correlations list */}
+        <div
+          className="mx-auto block md:hidden"
+          style={{ maxWidth: "600px", padding: "0 1rem" }}
+        >
+          <TopCorrelationsList
+            matrix={correlationMatrix}
+            labels={axes.map((a) => `Axis ${a.id} (${a.name})`)}
+            n={10}
+          />
+        </div>
+
+        {/* Prose — same on both */}
+        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+          <p>
+            A few axis pairs covary strongly enough to note. Axis 7 (Social
+            Change) correlates most tightly with Axis 9 (Human Nature) at r =
+            +0.72 — progressive change preferences come packaged with
+            constructivist views of human nature. Axis 3 (Governance Structure)
+            and Axis 4 (Decision Authority) also correlate tightly at r = +0.71,
+            which is expected: centralized governance and institutional authority
+            co-occur, distributed governance and popular sovereignty co-occur.
+            Axis 5 (Rights Balance) and Axis 6 (Legitimacy Basis) cluster
+            together at r = +0.69.
+          </p>
+          <p>
+            Most axes are substantially independent. The 12 axes were designed to
+            capture distinct dimensions of governance philosophy, and the
+            correlation structure suggests they largely succeed — no two axes are
+            so correlated as to be measuring the same thing. The claimed close
+            relationship between Axis 1 (Economic Model) and Axis 5 (Rights
+            Balance) is modest in this dataset at r = +0.28 — the pairing exists
+            but is not dominant.
+          </p>
+        </div>
+      </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 6 — Tension patterns (Phase 5c)                             */}
+      {/* Section 6 — Tension patterns                                        */}
       {/* ------------------------------------------------------------------ */}
-      {/* Phase 5b/5c */}
+      <section className="mb-16">
+        <div className="mx-auto max-w-3xl mb-8">
+          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+            Tension patterns
+          </h2>
+        </div>
+
+        {/* Overall tension rate per axis — horizontal bar chart */}
+        <div
+          className="mx-auto mb-10 overflow-x-auto"
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+        >
+          <div className="mx-auto max-w-3xl mb-4">
+            <p
+              style={{
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "var(--text-tertiary)",
+                fontFamily: "var(--font-sans)",
+                marginBottom: "8px",
+              }}
+            >
+              Overall tension rate by axis (Claude / Gemini)
+            </p>
+          </div>
+          <HorizontalBarChart
+            rows={tensionBarRows}
+            range={[0, 100]}
+            barHeight={14}
+            ariaLabel="Overall tension rate per axis for Claude and Gemini models"
+          />
+        </div>
+
+        {/* Tension matrix */}
+        <div
+          className="mx-auto overflow-x-auto"
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+        >
+          <div className="mx-auto max-w-3xl mb-4">
+            <p
+              style={{
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "var(--text-tertiary)",
+                fontFamily: "var(--font-sans)",
+                marginBottom: "8px",
+              }}
+            >
+              Tension rate by axis × cluster (C = Claude overall; cluster rows
+              are model-combined)
+            </p>
+          </div>
+          <TensionMatrix
+            data={tensionMatrixData}
+            axisLabels={tensionAxisLabels}
+            clusterLabels={tensionClusterLabels}
+            cellSize={28}
+            ariaLabel="Tension rates by axis and cluster"
+          />
+        </div>
+
+        {/* Prose */}
+        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+          <p>
+            Tensions surface when a persona&apos;s forced-choice answer pulls one
+            direction and their budget allocation pulls another on the same axis.
+            They&apos;re a signal about the instrument&apos;s internal consistency
+            — where tensions are rare, the modalities converge; where
+            they&apos;re frequent, stated preferences and revealed preferences
+            part ways.
+          </p>
+          <p>
+            Axis 12 (Technology Governance) produces the highest tension rate in
+            the dataset: 85% of Claude administrations and 73% of Gemini&apos;s
+            trigger a mild-or-greater tension on that axis. This is a large and
+            consistent divergence between what personas say about technology
+            governance in forced-choice and scaled items versus how they allocate
+            the education-and-research budget that proxies for it. Worth reviewing
+            whether the ministry mapping for Axis 12 is a good proxy for the
+            underlying axis, or whether the axis itself needs tightening.
+          </p>
+          <p>
+            Axes 4 (Decision Authority) and 6 (Legitimacy Basis) are the next
+            most tension-prone: Axis 4 runs at 66% (Claude) and 54% (Gemini);
+            Axis 6 at 67% (Claude) and 57% (Gemini). These are axes where the
+            budget&apos;s institutional-versus-popular signal consistently pulls
+            against stated preferences. Axes 1 and 11 run quietest, with tension
+            rates at 23% and 21% for Claude respectively.
+          </p>
+          <p>
+            Axes 3, 7, 8, and 9 produce no tension in this dataset — they are
+            not mapped to any ministry in the budget phase, so the forced-choice
+            and scaled modalities are the only signal.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
