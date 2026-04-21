@@ -23,7 +23,7 @@ export interface StudyFilters {
 }
 
 // Params that belong to the modal/compare UI — not managed by this hook
-const IGNORED_PARAMS = new Set(["persona", "compare", "model"]);
+const IGNORED_PARAMS = new Set(["persona", "compare", "compareView", "model"]);
 
 export const DEFAULT_FILTERS: Required<
   Pick<StudyFilters, "shared" | "sort" | "page">

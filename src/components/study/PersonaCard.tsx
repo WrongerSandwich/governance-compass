@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
+import { ComparePinButton } from "@/components/study/ComparePinButton";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaSlim, ClusterId } from "@/lib/study/types";
 
 export interface PersonaCardProps {
   persona: PersonaSlim;
   isPinned?: boolean;
+  canPin?: boolean;
   onTogglePin?: (id: string) => void;
 }
 
-export function PersonaCard({ persona, isPinned = false, onTogglePin }: PersonaCardProps) {
+export function PersonaCard({
+  persona,
+  isPinned = false,
+  canPin = true,
+  onTogglePin,
+}: PersonaCardProps) {
   const searchParams = useSearchParams();
 
   // Build the link URL: preserve current filter params and add persona param
@@ -27,12 +33,6 @@ export function PersonaCard({ persona, isPinned = false, onTogglePin }: PersonaC
   ]
     .filter(Boolean)
     .join(" · ");
-
-  function handlePinClick(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    onTogglePin?.(persona.id);
-  }
 
   return (
     <div
@@ -90,30 +90,21 @@ export function PersonaCard({ persona, isPinned = false, onTogglePin }: PersonaC
       </Link>
 
       {/* Pin button — outside the Link to avoid nested interactive elements */}
-      <button
-        onClick={handlePinClick}
-        aria-label={isPinned ? `Unpin ${persona.name}` : `Pin ${persona.name}`}
-        title={isPinned ? "Unpin" : "Pin"}
+      <div
         style={{
           position: "absolute",
           top: "10px",
           right: "10px",
-          padding: "4px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: isPinned ? "var(--stone-600)" : "var(--text-tertiary)",
-          lineHeight: 1,
-          borderRadius: "3px",
-          transition: "color 120ms ease",
         }}
       >
-        <Bookmark
-          size={14}
-          fill={isPinned ? "currentColor" : "none"}
-          strokeWidth={1.5}
+        <ComparePinButton
+          personaId={persona.id}
+          personaName={persona.name}
+          isPinned={isPinned}
+          canPin={canPin}
+          onToggle={onTogglePin ?? (() => {})}
         />
-      </button>
+      </div>
     </div>
   );
 }

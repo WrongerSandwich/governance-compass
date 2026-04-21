@@ -1,14 +1,17 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { WorldMap } from "@/components/study/WorldMap";
 import { TransnationalTile } from "@/components/study/TransnationalTile";
 import { PersonaFilters } from "@/components/study/PersonaFilters";
 import { PersonaGrid } from "@/components/study/PersonaGrid";
 import { PersonaModal } from "@/components/study/PersonaModal";
+import { CompareFloatingButton } from "@/components/study/CompareFloatingButton";
+import { CompareView } from "@/components/study/CompareView";
 import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
+import { usePinnedPersonas } from "@/lib/study/usePinnedPersonas";
 import { REGION_LABELS } from "@/lib/study/types";
 import type {
   PersonaSlim,
@@ -233,18 +236,33 @@ function PersonasPageClientInner({
   const { filters, setFilter, clearFilter, clearAll, activeCount } =
     useStudyFilters();
 
-  const [pinned, setPinned] = useState<Set<string>>(new Set());
+  const { pinned, togglePin, canPin, clearAll: clearAllPins } =
+    usePinnedPersonas();
 
   const personaId = searchParams.get("persona");
+  const compareView = searchParams.get("compareView");
 
-  const handleTogglePin = useCallback((id: string) => {
-    setPinned((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else if (next.size < 4) next.add(id);
-      return next;
-    });
-  }, []);
+  const openCompareView = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("compareView", "open");
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  const closeCompareView = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("compareView");
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  const unpinPersona = useCallback((id: string) => {
+    togglePin(id);
+    // If only 1 left after unpin, close the compare view
+    if (pinned.length <= 2) {
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("compareView");
+      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    }
+  }, [togglePin, pinned.length, router, pathname, searchParams]);
 
   // Derive catalog metadata for filter options
   const catalogMeta = useMemo(() => {
@@ -437,39 +455,21 @@ function PersonasPageClientInner({
               ageRange={catalogMeta.ageRange}
             />
 
-            {/* Pin compare button */}
-            {pinned.size > 0 && (
+            {/* Pin count annotation */}
+            {pinned.length > 0 && (
               <div
                 style={{
                   marginTop: "16px",
-                  padding: "10px",
+                  padding: "8px 10px",
                   border: "1px solid var(--border-primary)",
                   borderRadius: "4px",
                   backgroundColor: "var(--surface-2)",
-                  fontSize: "13px",
-                  color: "var(--text-secondary)",
+                  fontSize: "12px",
+                  color: "var(--text-tertiary)",
                 }}
               >
-                <div style={{ fontWeight: 500, color: "var(--text-primary)", marginBottom: "4px" }}>
-                  {pinned.size} pinned
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
-                  Compare feature coming in Phase 4c.
-                </div>
-                <button
-                  onClick={() => setPinned(new Set())}
-                  style={{
-                    marginTop: "8px",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    color: "var(--stone-600)",
-                    padding: 0,
-                  }}
-                >
-                  Clear pins
-                </button>
+                {pinned.length} pinned
+                {pinned.length < 2 && " — pin one more to compare"}
               </div>
             )}
           </div>
@@ -479,13 +479,30 @@ function PersonasPageClientInner({
             <PersonaGrid
               personas={filteredPersonas}
               pinned={pinned}
-              onTogglePin={handleTogglePin}
+              canPin={canPin}
+              onTogglePin={togglePin}
             />
           </div>
         </div>
       </main>
 
-      {/* Modal */}
+      {/* Floating compare button (≥2 pinned) */}
+      <CompareFloatingButton
+        count={pinned.length}
+        onOpen={openCompareView}
+        onClear={clearAllPins}
+      />
+
+      {/* Compare view (compareView=open in URL) */}
+      {compareView === "open" && pinned.length >= 2 && (
+        <CompareView
+          pinnedIds={pinned}
+          onClose={closeCompareView}
+          onUnpin={unpinPersona}
+        />
+      )}
+
+      {/* Modal — renders on top of compare view if both are active */}
       {personaId && (
         <PersonaModal key={personaId} id={personaId} />
       )}

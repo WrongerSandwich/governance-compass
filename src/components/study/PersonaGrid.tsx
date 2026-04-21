@@ -6,8 +6,9 @@ import type { PersonaSlim } from "@/lib/study/types";
 
 export interface PersonaGridProps {
   personas: PersonaSlim[]; // full filtered list
-  pinned: Set<string>;
+  pinned: string[];
   onTogglePin: (id: string) => void;
+  canPin: boolean;
   pageSize?: number; // default 60
 }
 
@@ -15,6 +16,7 @@ export function PersonaGrid({
   personas,
   pinned,
   onTogglePin,
+  canPin,
   pageSize = 60,
 }: PersonaGridProps) {
   const { filters, setFilter } = useStudyFilters();
@@ -47,7 +49,8 @@ export function PersonaGrid({
           <PersonaCard
             key={persona.id}
             persona={persona}
-            isPinned={pinned.has(persona.id)}
+            isPinned={pinned.includes(persona.id)}
+            canPin={canPin || pinned.includes(persona.id)}
             onTogglePin={onTogglePin}
           />
         ))}
