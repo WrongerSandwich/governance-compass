@@ -11,6 +11,7 @@ export interface ViolinOrRidgeProps {
   series: RidgeSeries[];
   range: [number, number];
   ridgeHeight?: number;
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -27,6 +28,7 @@ export function ViolinOrRidge({
   series,
   range,
   ridgeHeight = 48,
+  ariaLabel,
   className,
 }: ViolinOrRidgeProps) {
   const n = series.length;
@@ -47,8 +49,10 @@ export function ViolinOrRidge({
       width={svgWidth}
       height={svgHeight}
       className={className}
-      aria-hidden="true"
+      role="img"
+      aria-label={ariaLabel}
     >
+      {ariaLabel && <title>{ariaLabel}</title>}
       {/* Zero reference line */}
       <line
         x1={zeroX}

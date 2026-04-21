@@ -175,7 +175,8 @@ export function TensionMatrix({
 
                   {/* Cells */}
                   {clusterLabels.map((_clLabel, ci) => {
-                    const cluster = ci as TensionMatrixDatum["cluster"];
+                    const clusterKey: TensionMatrixDatum["cluster"] = ci === 6 ? "overall" : (ci as 0 | 1 | 2 | 3 | 4 | 5);
+                    const cluster = clusterKey;
                     const pct = getPct(axisNum, cluster, model);
                     const opacity = pctToOpacity(pct);
                     const cx = cellX(ci);

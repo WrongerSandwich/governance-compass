@@ -112,6 +112,7 @@ export function Histogram({
               y2={PADDING.top + plotH}
               stroke={color}
               strokeWidth={1}
+              // overlay lines are dashed by default; pass dashed: false for a solid line
               strokeDasharray={ov.dashed !== false ? "3 2" : undefined}
             />
             <text
