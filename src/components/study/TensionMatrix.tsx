@@ -243,7 +243,7 @@ export function TensionMatrix({
         <g style={{ pointerEvents: "none" }}>
           <rect
             x={Math.min(tooltip.x + 4, totalWidth - 160)}
-            y={tooltip.y - 22}
+            y={Math.max(tooltip.y - 22, 4)}
             width={156}
             height={18}
             rx={2}
@@ -252,7 +252,7 @@ export function TensionMatrix({
           />
           <text
             x={Math.min(tooltip.x + 8, totalWidth - 156)}
-            y={tooltip.y - 10}
+            y={Math.max(tooltip.y - 10, 16)}
             dominantBaseline="middle"
             style={{
               fontSize: "9px",

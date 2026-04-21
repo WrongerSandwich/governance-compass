@@ -23,6 +23,7 @@ npm run dev
   - If the container doesn't exist: `docker run -d --name political-platform-db -e POSTGRES_USER=ppuser -e POSTGRES_PASSWORD=ppdevpass -e POSTGRES_DB=political_platform -p 5433:5432 postgres:16-alpine`
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
+- **Synthetic Study preprocessing:** `npm run build:study` and `npm run build:geo` preprocess synthetic study data — run before dev if `data/synthetic_study/` files changed
 
 ## Testing
 
@@ -39,6 +40,10 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 - `src/app/api/` — API routes
 - `docs/system_proposal/` — Authoritative specs: design system, scoring engine, results UI, question bank
 - `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` — Current implementation plan
+- `src/app/study/` — Synthetic Study section: four public pages (index, /personas, /patterns, /model-agreement) presenting findings from the 500-persona AI-generated respondent dataset
+- `src/components/study/` — All visualization and UI components specific to the Synthetic Study section (WorldMap, CorrelationHeatmap, TensionMatrix, PersonaGrid, etc.)
+- `src/lib/study/` — Study-specific pure logic: data loaders, filter helpers, aggregation utilities
+- `data/synthetic_study/` — Raw and preprocessed JSON/CSV files for the synthetic study (personas, scored profiles, cluster labels, model agreement, tension patterns)
 
 ## Architecture Notes
 
