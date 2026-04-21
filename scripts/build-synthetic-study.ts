@@ -12,8 +12,8 @@ import fs from "fs";
 import path from "path";
 import { parse as parseCsv } from "csv-parse/sync";
 import { normalizeLocation } from "./data/country-name-normalization";
+import { archetypes } from "../src/data/archetypes";
 import {
-  getRegionForIso3,
   verifyCountryRegionMapping,
 } from "./data/country-region-mapping";
 import {
@@ -58,40 +58,16 @@ function writeJson(filePath: string, data: unknown): void {
 }
 
 // ---------------------------------------------------------------------------
-// Archetype emergence lookup (from archetypes.ts at build time via source text)
+// Archetype emergence lookup — derived from src/data/archetypes.ts at build time
 // ---------------------------------------------------------------------------
 
-type EmergenceTag = "refined" | "empirical" | "theoretical";
+const ARCHETYPE_EMERGENCE: Record<string, string> = Object.fromEntries(
+  archetypes.map((a) => [a.id, a.emergence])
+);
 
-const ARCHETYPE_EMERGENCE: Record<string, EmergenceTag> = {
-  "radical-egalitarian": "refined",
-  "popular-egalitarian": "empirical",
-  "social-democrat": "theoretical",
-  "green-communalist": "theoretical",
-  "communitarian-steward": "refined",
-  "institutional-moderate": "refined",
-  "cosmopolitan-technologist": "theoretical",
-  "free-marketeer": "theoretical",
-  "libertarian-individualist": "theoretical",
-  "developmental-modernizer": "refined",
-  "nationalist-populist": "refined",
-  "authoritarian-traditionalist": "theoretical",
-};
-
-const ARCHETYPE_NAMES: Record<string, string> = {
-  "radical-egalitarian": "The Radical Egalitarian",
-  "popular-egalitarian": "The Popular Egalitarian",
-  "social-democrat": "The Social Democrat",
-  "green-communalist": "The Green Communalist",
-  "communitarian-steward": "The Communitarian Steward",
-  "institutional-moderate": "The Institutional Moderate",
-  "cosmopolitan-technologist": "The Cosmopolitan Technologist",
-  "free-marketeer": "The Free Marketeer",
-  "libertarian-individualist": "The Libertarian Individualist",
-  "developmental-modernizer": "The Developmental Modernizer",
-  "nationalist-populist": "The Nationalist Populist",
-  "authoritarian-traditionalist": "The Authoritarian Traditionalist",
-};
+const ARCHETYPE_NAMES: Record<string, string> = Object.fromEntries(
+  archetypes.map((a) => [a.id, a.name])
+);
 
 // Axis metadata for the public download
 const AXES_META = [
@@ -597,7 +573,7 @@ function main() {
   const matrix = computeCorrelationMatrix(allAxisVecs);
 
   const axisCorrelations: AxisCorrelationMatrix = {
-    axes: AXIS_KEYS as unknown as string[],
+    axes: [...AXIS_KEYS],
     matrix,
   };
 
@@ -659,15 +635,23 @@ function main() {
     geminiVec: axisVecFromProfile(geminiById.get(id)!),
   }));
 
-  // high_agreement: distance closest to 0.5
-  const highAgreement = sharedWithDist.reduce((best, cur) =>
-    Math.abs(cur.dist - 0.5) < Math.abs(best.dist - 0.5) ? cur : best
-  );
+  // high_agreement: distance closest to 0.5; tie-break: persona_id ascending
+  const highAgreement = sharedWithDist.reduce((best, cur) => {
+    const dCur = Math.abs(cur.dist - 0.5);
+    const dBest = Math.abs(best.dist - 0.5);
+    if (dCur < dBest) return cur;
+    if (dCur > dBest) return best;
+    return cur.id < best.id ? cur : best;
+  });
 
-  // typical: distance closest to median
-  const typical = sharedWithDist.reduce((best, cur) =>
-    Math.abs(cur.dist - distMedian) < Math.abs(best.dist - distMedian) ? cur : best
-  );
+  // typical: distance closest to median; tie-break: persona_id ascending
+  const typical = sharedWithDist.reduce((best, cur) => {
+    const dCur = Math.abs(cur.dist - distMedian);
+    const dBest = Math.abs(best.dist - distMedian);
+    if (dCur < dBest) return cur;
+    if (dCur > dBest) return best;
+    return cur.id < best.id ? cur : best;
+  });
 
   // high_disagreement: largest distance
   const highDisagreement = sharedWithDist.reduce((best, cur) => (cur.dist > best.dist ? cur : best));
@@ -682,6 +666,10 @@ function main() {
   const driftCandidates = sharedWithDist.filter(
     (s) => Math.abs(s.dist - distMedian) <= 0.4
   );
+  if (driftCandidates.length === 0) {
+    console.error("[BUILD FAIL] no directional-drift candidates within ±0.4 of median distance");
+    process.exit(1);
+  }
   const directionalDrift = driftCandidates.reduce((best, cur) => {
     const curScore =
       (cur.geminiVec[idx6] - cur.claudeVec[idx6]) +
@@ -732,13 +720,23 @@ function main() {
 
   const slimById = new Map(personasSlim.map((s) => [s.id, s]));
 
+  type PublicAdministration = {
+    model: string;
+    axis_scores: ScoredProfile["axis_scores"];
+    modality_scores: ScoredProfile["modality_scores"];
+    tensions: ScoredProfile["tensions"];
+    confidence: ScoredProfile["confidence"];
+    super_dimensions: ScoredProfile["super_dimensions"];
+    raw_responses: { fc: unknown[]; sc: unknown[]; budget: unknown } | null;
+  };
+
   const publicPersonas = personas.map((persona) => {
     const slim = slimById.get(persona.id)!;
     const clusterEntry = clusterToArchetype.get(slim.cluster)!;
     const archetypeId = clusterEntry.nearest_archetype.id;
     const archetypeDistance = clusterEntry.nearest_archetype.distance;
 
-    const administrations: unknown[] = [];
+    const administrations: PublicAdministration[] = [];
 
     const claudeProfile = claudeById.get(persona.id);
     if (claudeProfile) {
@@ -861,41 +859,42 @@ function main() {
   // --------------------------------------------------------------------------
   console.log("Verifying output integrity...");
 
+  const outputErrors: string[] = [];
+
   if (personasSlim.length !== 1002) {
-    console.error(`[INTEGRITY FAIL] personas_slim has ${personasSlim.length} entries`);
-    process.exit(1);
+    outputErrors.push(`personas_slim has ${personasSlim.length} entries`);
   }
 
   const nullIsos = personasSlim.filter((s) => !s.country_iso);
   if (nullIsos.length > 0) {
-    console.error(`[INTEGRITY FAIL] ${nullIsos.length} personas_slim entries have null country_iso`);
-    process.exit(1);
+    outputErrors.push(`${nullIsos.length} personas_slim entries have null country_iso`);
   }
 
   const outOfBoundsAxis = personasSlim.filter((s) =>
     s.averaged_axis_scores.some((v) => v < -1.0 - 1e-9 || v > 1.0 + 1e-9)
   );
   if (outOfBoundsAxis.length > 0) {
-    console.error(`[INTEGRITY FAIL] ${outOfBoundsAxis.length} personas have out-of-bounds averaged axis scores`);
-    process.exit(1);
+    outputErrors.push(`${outOfBoundsAxis.length} personas have out-of-bounds averaged axis scores`);
   }
 
   const invalidClusters = personasSlim.filter((s) => s.cluster < 0 || s.cluster > 5);
   if (invalidClusters.length > 0) {
-    console.error(`[INTEGRITY FAIL] ${invalidClusters.length} personas have invalid cluster`);
-    process.exit(1);
+    outputErrors.push(`${invalidClusters.length} personas have invalid cluster`);
   }
 
   const missingArchetypes = personasSlim.filter((s) => !s.nearest_archetype_id);
   if (missingArchetypes.length > 0) {
-    console.error(`[INTEGRITY FAIL] ${missingArchetypes.length} personas have missing nearest_archetype_id`);
-    process.exit(1);
+    outputErrors.push(`${missingArchetypes.length} personas have missing nearest_archetype_id`);
   }
 
   // Verify shared count from n_models
   const sharedFromSlim = personasSlim.filter((s) => s.n_models === 2);
   if (sharedFromSlim.length !== 150) {
-    console.error(`[INTEGRITY FAIL] n_models==2 count: expected 150, got ${sharedFromSlim.length}`);
+    outputErrors.push(`n_models==2 count: expected 150, got ${sharedFromSlim.length}`);
+  }
+
+  if (outputErrors.length > 0) {
+    for (const e of outputErrors) console.error(`[INTEGRITY FAIL] ${e}`);
     process.exit(1);
   }
 

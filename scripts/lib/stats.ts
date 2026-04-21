@@ -41,6 +41,7 @@ export function computePearson(xs: number[], ys: number[]): number {
     dy2 += dy * dy;
   }
   const denom = Math.sqrt(dx2 * dy2);
+  // Convention: returns 0 when either series has zero variance (mathematically undefined); the UI renders this as "—" or similar.
   if (denom === 0) return 0;
   return num / denom;
 }
@@ -50,7 +51,17 @@ export function computeCorrelationMatrix(rowsOfAxes: number[][]): number[][] {
   const cols: number[][] = Array.from({ length: n }, (_, j) =>
     rowsOfAxes.map((row) => row[j])
   );
-  return cols.map((ci) => cols.map((cj) => computePearson(ci, cj)));
+  // Compute lower triangle + diagonal (78 calls for 12×12) and mirror to upper
+  const matrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    matrix[i][i] = 1.0;
+    for (let j = 0; j < i; j++) {
+      const r = computePearson(cols[i], cols[j]);
+      matrix[i][j] = r;
+      matrix[j][i] = r;
+    }
+  }
+  return matrix;
 }
 
 export function bucketMatchStrength(
