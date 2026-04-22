@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { GovernanceCompassMark } from "./GovernanceCompassMark";
+
+const RESEARCH_PATHS = [
+  "/methodology",
+  "/study",
+  "/references",
+  "/axes",
+  "/questions",
+  "/archetypes",
+];
+
+function matchesAny(pathname: string, paths: string[]): boolean {
+  return paths.some((p) => pathname === p || pathname.startsWith(p));
+}
 
 export function NavBar() {
   const { data: session, status } = useSession();
@@ -23,16 +36,13 @@ export function NavBar() {
     }
   }, [pathname]);
 
-  const REFERENCE_PATHS = ["/references", "/axes", "/questions", "/archetypes"];
-
   function linkClasses(href: string, alsoActive?: string[]): string {
     const isActive =
       pathname === href ||
       (href !== "/" && pathname.startsWith(href)) ||
       (alsoActive?.some((p) => pathname === p || pathname.startsWith(p)) ?? false);
 
-    const base =
-      "py-2 text-sm transition-colors duration-150";
+    const base = "py-2 text-sm transition-colors duration-150";
 
     if (isActive) {
       return `${base} text-text-primary border-b-2 border-stone-600`;
@@ -72,30 +82,116 @@ export function NavBar() {
               Results
             </Link>
           )}
-          <Link
-            href="/methodology"
-            className={linkClasses("/methodology")}
-            aria-current={pathname === "/methodology" ? "page" : undefined}
-          >
-            Methodology
-          </Link>
-          <Link
-            href="/study"
-            className={linkClasses("/study")}
-            aria-current={pathname.startsWith("/study") ? "page" : undefined}
-          >
-            Synthetic Study
-          </Link>
-          <Link
-            href="/references"
-            className={linkClasses("/references", REFERENCE_PATHS)}
-            aria-current={pathname === "/references" || pathname === "/axes" || pathname === "/questions" || pathname === "/archetypes" ? "page" : undefined}
-          >
-            References
-          </Link>
+          <ResearchMenu pathname={pathname} />
           {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>
       </div>
     </nav>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Research dropdown — groups Methodology, Synthetic Study, References
+// ---------------------------------------------------------------------------
+
+function ResearchMenu({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const isActive = matchesAny(pathname, RESEARCH_PATHS);
+
+  // Close on outside click / Escape
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  // Close when navigation changes
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const base = "py-2 text-sm transition-colors duration-150 flex items-baseline gap-1";
+  const activeClasses = isActive
+    ? "text-text-primary border-b-2 border-stone-600"
+    : "text-text-secondary hover:text-text-primary";
+
+  const ITEMS = [
+    { href: "/methodology", label: "Methodology" },
+    { href: "/study", label: "Synthetic Study" },
+    { href: "/references", label: "References" },
+  ];
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        className={`${base} ${activeClasses}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        Research
+        <span
+          aria-hidden="true"
+          className="text-[10px] leading-none"
+          style={{
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform 120ms ease",
+            display: "inline-block",
+          }}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          aria-label="Research sections"
+          className="absolute right-0 top-full mt-1 min-w-[180px] bg-surface-1 border border-border-secondary py-1"
+        >
+          {ITEMS.map((item) => {
+            const itemActive =
+              pathname === item.href ||
+              pathname.startsWith(item.href + "/") ||
+              (item.href === "/references" &&
+                matchesAny(pathname, ["/axes", "/questions", "/archetypes"]));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                role="menuitem"
+                className="block px-4 py-2 text-sm transition-colors duration-150 text-text-secondary hover:text-text-primary hover:bg-surface-2"
+                style={{
+                  color: itemActive ? "var(--text-primary)" : undefined,
+                  fontWeight: itemActive ? 500 : undefined,
+                }}
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
