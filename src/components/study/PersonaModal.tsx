@@ -400,22 +400,23 @@ function ModalHeader({
 function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
   const { persona } = data;
 
+  // Section header styling — serif medium, sentence case, text-primary.
+  // Clearly differentiated from the 11px uppercase field labels below.
+  const sectionHeaderStyle: React.CSSProperties = {
+    fontSize: "13px",
+    fontFamily: "var(--font-serif)",
+    fontWeight: 500,
+    color: "var(--text-primary)",
+    marginBottom: "8px",
+    paddingBottom: "4px",
+    borderBottom: "0.5px solid var(--border-secondary)",
+  };
+
   const detailFields = (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {/* Situation */}
       <div>
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: "var(--text-tertiary)",
-            marginBottom: "6px",
-          }}
-        >
-          Situation
-        </div>
+        <div style={sectionHeaderStyle}>Situation</div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -462,18 +463,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Life context */}
       <div>
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: "var(--text-tertiary)",
-            marginBottom: "6px",
-          }}
-        >
-          Life context
-        </div>
+        <div style={sectionHeaderStyle}>Life context</div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -514,18 +504,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Governance experience */}
       <div>
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: "var(--text-tertiary)",
-            marginBottom: "6px",
-          }}
-        >
-          Governance experience
-        </div>
+        <div style={sectionHeaderStyle}>Governance experience</div>
         <div
           style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "3px" }}
         >
@@ -727,8 +706,17 @@ function TensionBadge({
   const label = modelLabel
     ? `${modelLabel}: ${tension.severity} tension on axis ${axisNum}`
     : `${tension.severity} tension on axis ${axisNum}`;
+  // Mobile: abbreviate to a 3-char form so every badge has the same visual
+  // width (Mld/Mod/Str), preventing differential bar-width compression
+  // across axes. Color (warning-family ramp) still carries severity.
+  const abbrev: Record<string, string> = {
+    mild: "Mld",
+    moderate: "Mod",
+    strong: "Str",
+  };
   return (
     <button
+      className="tension-badge"
       onClick={onToggle}
       aria-expanded={isExpanded}
       aria-label={`${label} — click to ${isExpanded ? "collapse" : "expand"}`}
@@ -746,7 +734,11 @@ function TensionBadge({
         flexShrink: 0,
       }}
     >
-      {modelLabel ? `${modelLabel[0]}: ` : ""}{tension.severity}
+      {modelLabel ? `${modelLabel[0]}: ` : ""}
+      <span className="tension-full">{tension.severity}</span>
+      <span className="tension-abbr" aria-hidden="true">
+        {abbrev[tension.severity] ?? tension.severity}
+      </span>
     </button>
   );
 }
@@ -2446,13 +2438,26 @@ export function PersonaModal({ id }: PersonaModalProps) {
         }
         /* Full-screen modal on mobile + responsive identity / budget labels. */
         .identity-short { display: none; }
+        .tension-abbr { display: none; }
         @media (max-width: 640px) {
           .persona-modal-container {
-            border-radius: 0 !important;
-            max-height: 100vh !important;
+            border-radius: 4px !important;
+            /* 100dvh adapts to iOS URL-bar toggle; 24px gap leaves
+               breathing room at top and bottom so prev/next footer
+               isn't cut off by the viewport edge. */
+            max-height: calc(100vh - 24px) !important;
+            max-height: calc(100dvh - 24px) !important;
           }
           .identity-full { display: none; }
           .identity-short { display: inline; }
+          /* Tension badges: abbreviate text so every badge has equal
+             visual width, preventing differential bar compression. */
+          .tension-full { display: none; }
+          .tension-abbr { display: inline; }
+          .tension-badge {
+            min-width: 44px;
+            text-align: center;
+          }
           /* Budget labels: 2-column grid, swatches hidden (bar above
              already carries color → ministry mapping). */
           .budget-labels {

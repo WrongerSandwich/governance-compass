@@ -65,6 +65,14 @@ export function Radar({
   const labelPad = axisLabels ? 20 : 0;
   const r = size / 2 - 8 - labelPad;
 
+  // When axis labels are present, expand the viewBox on all sides so long
+  // labels (e.g. "International Engagement") don't clip at narrow viewports.
+  // SVG rendered size stays at `size` via responsive style — the radar
+  // circle scales down slightly inside the expanded viewBox to make room.
+  const labelMargin = axisLabels ? 60 : 0;
+  const viewBoxMin = -labelMargin;
+  const viewBoxSize = size + 2 * labelMargin;
+
   const primaryColor = `var(${colorVar})`;
   const overlayColor = `var(${overlayColorVar})`;
 
@@ -72,9 +80,12 @@ export function Radar({
 
   return (
     <svg
-      viewBox={`0 0 ${size} ${size}`}
-      width={size}
-      height={size}
+      viewBox={`${viewBoxMin} ${viewBoxMin} ${viewBoxSize} ${viewBoxSize}`}
+      style={{
+        width: "100%",
+        maxWidth: `${size}px`,
+        height: "auto",
+      }}
       className={className}
       aria-hidden="true"
     >
