@@ -64,7 +64,7 @@ export default function StudyOverviewPage() {
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Synthetic Study
         </p>
-        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6">
+        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6 text-balance">
           The Synthetic Study
         </h1>
 
@@ -78,11 +78,10 @@ export default function StudyOverviewPage() {
         {/* Key figures — atlas-style frontmatter */}
         <section aria-label="Study at a glance" className="mb-12">
           <dl
-            className="grid items-baseline gap-x-6 gap-y-5 border-t border-b border-border-secondary py-5"
+            className="grid grid-cols-2 min-[500px]:[grid-template-columns:repeat(auto-fit,minmax(90px,1fr))] items-baseline gap-x-6 gap-y-5 border-t border-b border-border-secondary py-5"
             style={{
               borderTopWidth: "0.5px",
               borderBottomWidth: "0.5px",
-              gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
             }}
           >
             {KEY_FIGURES.map((f) => (
@@ -105,17 +104,20 @@ export default function StudyOverviewPage() {
               <span aria-hidden="true">↓</span> Full dataset — {fileSizeLabel}{" "}
               JSON
             </a>
-            <span aria-hidden="true" className="mx-2 text-border-secondary">
-              ·
+            {/* Separator + version kept together so they never orphan on wrap */}
+            <span className="whitespace-nowrap">
+              <span aria-hidden="true" className="mx-2 text-border-secondary">
+                ·
+              </span>
+              <span>version {downloadMeta.version}</span>
             </span>
-            <span>version {downloadMeta.version}</span>
           </p>
         </section>
 
         <div className="text-[15px] text-text-secondary leading-relaxed">
           {/* Section: How it was built */}
           <section className="mb-10">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
               How it was built
             </h2>
             <div className="space-y-4">
@@ -145,7 +147,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: What this study can support */}
           <section className="mb-10">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
               What this study can support
             </h2>
             <div className="space-y-4">
@@ -170,7 +172,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: What this study cannot support */}
           <section className="mb-14">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
               What this study cannot support
             </h2>
             <div className="space-y-4">
@@ -197,7 +199,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: Download and explore */}
           <section>
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
               Download and explore
             </h2>
             <div className="space-y-4">
