@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { WorldMap } from "@/components/study/WorldMap";
 import { TransnationalTile } from "@/components/study/TransnationalTile";
 import { PersonaFilters } from "@/components/study/PersonaFilters";
@@ -505,17 +506,22 @@ function PersonasPageClientInner({
       <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 48px" }}>
         {/* Page header */}
         <div style={{ padding: "24px 0 20px" }}>
-          <p
-            style={{
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "var(--text-tertiary)",
-              fontWeight: 500,
-              marginBottom: "4px",
-            }}
-          >
-            Synthetic Study
+          <p style={{ marginBottom: "4px" }}>
+            <Link
+              href="/study"
+              className="study-kicker-link"
+              style={{
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "var(--text-tertiary)",
+                fontWeight: 500,
+                textDecoration: "none",
+                transition: "color 120ms ease",
+              }}
+            >
+              ← Synthetic Study
+            </Link>
           </p>
           <h1
             style={{
@@ -666,6 +672,9 @@ function PersonasPageClientInner({
       )}
 
       <style>{`
+        .study-kicker-link:hover {
+          color: var(--text-secondary);
+        }
         .map-tile-layout {
           flex-direction: column;
         }
