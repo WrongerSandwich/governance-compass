@@ -274,11 +274,15 @@ function main() {
   const countriesCollection = topo.objects.countries as GeometryCollection;
   const geometries = countriesCollection.geometries as CountryGeometry[];
 
-  // Group geometry indices by region
+  // Group geometry indices by region. A synthetic "unmapped" bucket
+  // collects countries that aren't part of any persona region — those
+  // still render on the world map, with a neutral no-data fill, so the
+  // viewer sees a complete globe rather than gaps of missing land.
   const regionGeomIndices: Record<string, number[]> = {};
   for (const region of GEO_REGIONS) {
     regionGeomIndices[region] = [];
   }
+  regionGeomIndices["unmapped"] = [];
 
   const unmapped: string[] = [];
 
@@ -290,6 +294,8 @@ function main() {
       // No numeric mapping (e.g., Kosovo, Somaliland, N. Cyprus with undefined id)
       const name = geom.properties?.name ?? "(unnamed)";
       console.warn(`  [skip] No numeric→alpha3 mapping for id=${geom.id} (${name})`);
+      // Still include on the map as unmapped land so we don't leave holes.
+      regionGeomIndices["unmapped"].push(idx);
       return;
     }
 
@@ -298,9 +304,10 @@ function main() {
     if (!region) {
       if (!EXPECTED_UNMAPPED.has(alpha3)) {
         unmapped.push(`${alpha3} (${geom.properties?.name ?? geom.id})`);
-      } else {
-        // Silently skip expected unmapped
       }
+      // Expected-unmapped countries get merged into the synthetic
+      // "unmapped" region so they render with a no-data fill.
+      regionGeomIndices["unmapped"].push(idx);
       return;
     }
 
@@ -313,12 +320,17 @@ function main() {
     process.exit(1);
   }
 
-  // Build region features by merging country geometries
+  // Build region features by merging country geometries. The 9 persona
+  // regions are emitted in the configured order; "unmapped" is emitted
+  // last so it renders underneath (lower z in the SVG stack, though
+  // react-simple-maps renders in source order → earlier = drawn first).
   const regionFeatures: RegionFeature[] = [];
 
-  for (const region of GEO_REGIONS) {
+  const allRegionKeys: string[] = [...GEO_REGIONS, "unmapped"];
+
+  for (const region of allRegionKeys) {
     const indices = regionGeomIndices[region];
-    if (indices.length === 0) {
+    if (!indices || indices.length === 0) {
       console.warn(`  [warn] No geometries for region: ${region}`);
       continue;
     }
@@ -334,6 +346,17 @@ function main() {
     });
 
     console.log(`  ${region}: merged ${indices.length} countries`);
+  }
+
+  // Ensure "unmapped" is the FIRST feature in the output so it renders
+  // below the persona regions. react-simple-maps draws in array order;
+  // earlier features sit behind later ones.
+  const unmappedIdx = regionFeatures.findIndex(
+    (f) => f.properties.region === "unmapped"
+  );
+  if (unmappedIdx > 0) {
+    const [u] = regionFeatures.splice(unmappedIdx, 1);
+    regionFeatures.unshift(u);
   }
 
   // Write as a TopoJSON-like structure with objects.regions

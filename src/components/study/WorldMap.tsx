@@ -301,9 +301,51 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           <Geographies geography="/geo/world-regions-110m.json">
             {({ geographies }) =>
               geographies.map((geo) => {
-                const region = geo.properties?.region as RegionKey | undefined;
-                if (!region) return null;
+                const regionRaw = geo.properties?.region as
+                  | RegionKey
+                  | "unmapped"
+                  | undefined;
+                if (!regionRaw) return null;
 
+                // Unmapped countries: render with a neutral no-data fill,
+                // no interactivity, no tooltip. Keeps the globe visually
+                // complete without implying the absence of persona data
+                // is itself a data point.
+                if (regionRaw === "unmapped") {
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      tabIndex={-1}
+                      aria-hidden
+                      style={{
+                        default: {
+                          fill: "var(--map-no-data)",
+                          stroke: "var(--map-border)",
+                          strokeWidth: 0.5,
+                          outline: "none",
+                          pointerEvents: "none",
+                        },
+                        hover: {
+                          fill: "var(--map-no-data)",
+                          stroke: "var(--map-border)",
+                          strokeWidth: 0.5,
+                          outline: "none",
+                          pointerEvents: "none",
+                        },
+                        pressed: {
+                          fill: "var(--map-no-data)",
+                          stroke: "var(--map-border)",
+                          strokeWidth: 0.5,
+                          outline: "none",
+                          pointerEvents: "none",
+                        },
+                      }}
+                    />
+                  );
+                }
+
+                const region = regionRaw as RegionKey;
                 const isInteractive = mode.type === "interactive";
                 const isSelected =
                   isInteractive && mode.selectedRegion === region;

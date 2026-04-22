@@ -60,8 +60,9 @@
   --cluster-5: #6b7d8a; /* Slate 600 */
 
   /* --- Map tokens (synthetic study section only) --- */
-  --map-density-0: #efe9e3; /* Stone 100 */
-  --map-density-1: #e0d6cc; /* Stone 200 */
+  --map-no-data: #f1ece6;   /* Faint stone — unmapped countries (keeps the globe visually complete) */
+  --map-density-0: #e6dbce; /* Darker than no-data so Oceania etc. are visibly distinct from non-persona land */
+  --map-density-1: #d9cabb; /* Stone 250 */
   --map-density-2: #b5a594; /* Stone 400 */
   --map-density-3: #85735e; /* Stone 600 */
   --map-density-4: #5a4636; /* Stone 800 */
@@ -111,8 +112,9 @@
     --cluster-5: #8096a4; /* Slate lifted */
 
     /* --- Map tokens (dark mode) --- */
-    --map-density-0: #2a2118; /* Surface-1 dark */
-    --map-density-1: #3d2e1f; /* Stone-900 */
+    --map-no-data: #241c14;   /* Slightly darker than surface-1; unmapped land is faintly present */
+    --map-density-0: #3d2e1f; /* Clearly above background for low-coverage regions (Oceania, etc.) */
+    --map-density-1: #54402c; /* Between old 0 and 1 */
     --map-density-2: #6e5a48; /* Stone 700 */
     --map-density-3: #9d8b78; /* Stone 500 */
     --map-density-4: #cdbfb2; /* Stone 300 */
