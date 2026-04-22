@@ -183,39 +183,53 @@ export function MapLegend(props: MapLegendProps) {
     );
   }
 
-  // axis-gradient
+  // axis-gradient — laid out as two stacked rows so endpoint labels never
+  // orphan on narrow viewports: swatches on top, labels beneath with
+  // justify-between. Prevents "Cohesion →" wrapping to its own line on mobile.
   const { lowLabel, highLabel } = props;
+  const endpointLabelStyle: React.CSSProperties = {
+    fontSize: "var(--text-xs, 10px)",
+    fontFamily: "var(--font-mono)",
+    color: "var(--text-tertiary)",
+    whiteSpace: "nowrap",
+  };
   return (
     <div
-      style={containerStyle}
       aria-label={`Axis gradient legend: ${lowLabel} to ${highLabel}`}
       role="img"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        padding: "8px 0",
+        maxWidth: "360px",
+      }}
     >
-      <span
+      <div style={{ display: "flex", gap: "4px", justifyContent: "stretch" }}>
+        {AXIS_GRADIENT_SWATCHES.map((s, i) => (
+          <div
+            key={i}
+            aria-hidden
+            style={{
+              flex: 1,
+              height: 12,
+              background: s.fill,
+              border: "1px solid var(--map-border)",
+              borderRadius: 2,
+            }}
+          />
+        ))}
+      </div>
+      <div
         style={{
-          fontSize: "var(--text-xs, 10px)",
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-tertiary)",
-          alignSelf: "center",
-          whiteSpace: "nowrap",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
         }}
       >
-        ← {lowLabel}
-      </span>
-      {AXIS_GRADIENT_SWATCHES.map((s, i) => (
-        <Swatch key={i} fill={s.fill} />
-      ))}
-      <span
-        style={{
-          fontSize: "var(--text-xs, 10px)",
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-tertiary)",
-          alignSelf: "center",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {highLabel} →
-      </span>
+        <span style={endpointLabelStyle}>← {lowLabel}</span>
+        <span style={endpointLabelStyle}>{highLabel} →</span>
+      </div>
     </div>
   );
 }

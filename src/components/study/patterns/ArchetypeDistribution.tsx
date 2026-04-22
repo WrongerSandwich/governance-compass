@@ -47,6 +47,7 @@ export function ArchetypeDistribution({
         diverging={false}
         range={[0, maxCount]}
         barHeight={26}
+        labelWidth={210}
         ariaLabel="Distribution of 1,002 personas across twelve archetypes, colored by their nearest empirical cluster"
       />
     </div>
