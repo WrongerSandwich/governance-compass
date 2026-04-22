@@ -65,6 +65,36 @@ function driftColor(diff: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Shared color key — small swatches + label, used above chart sections
+// ---------------------------------------------------------------------------
+
+function ColorKey({
+  items,
+}: {
+  items: Array<{ color: string; label: string }>;
+}) {
+  return (
+    <div className="flex flex-wrap gap-x-5 gap-y-2 mb-3">
+      {items.map(({ color, label }) => (
+        <div key={label} className="flex items-center gap-1.5">
+          <span
+            aria-hidden="true"
+            className="shrink-0"
+            style={{
+              width: "12px",
+              height: "12px",
+              background: color,
+              borderRadius: "2px",
+            }}
+          />
+          <span className="text-[11px] text-text-tertiary">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Stat — atlas-style, rule-framed (no card chrome)
 // ---------------------------------------------------------------------------
 
@@ -158,7 +188,7 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-3xl mb-8">
+        <div className="mx-auto max-w-2xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Overall agreement
           </h2>
@@ -197,17 +227,8 @@ export function ModelAgreementClient({
 
           {/* Histogram — centered within its container to avoid orphaned gutter */}
           <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-            <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
-            >
-              Distribution of per-persona Euclidean distances (n=150)
+            <p className="text-[11px] text-text-tertiary mb-2 italic">
+              Distribution of per-persona Euclidean distances (n=150).
             </p>
             <Histogram
               bins={histBins}
@@ -235,7 +256,7 @@ export function ModelAgreementClient({
         </div>
 
         {/* Prose */}
-        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Across the 150 shared personas, Claude and Gemini score the same
             persona at a mean Euclidean distance of {mean.toFixed(2)} in the
@@ -263,10 +284,10 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       <section
         id="section-2a"
-        className="mb-16"
+        className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-3xl mb-8">
+        <div className="mx-auto max-w-2xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Per-axis correlation
           </h2>
@@ -276,16 +297,8 @@ export function ModelAgreementClient({
           className="mx-auto overflow-x-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          {/* Color key */}
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              marginBottom: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            {[
+          <ColorKey
+            items={[
               {
                 color: "var(--axis-gradient-positive-strong)",
                 label: "r ≥ 0.80 — strong agreement",
@@ -298,36 +311,8 @@ export function ModelAgreementClient({
                 color: "var(--axis-gradient-negative-mild)",
                 label: "r < 0.70 — weaker",
               },
-            ].map(({ color, label }) => (
-              <div
-                key={label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    background: color,
-                    borderRadius: "2px",
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--text-tertiary)",
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
+            ]}
+          />
 
           <HorizontalBarChart
             rows={rRows}
@@ -338,7 +323,7 @@ export function ModelAgreementClient({
         </div>
 
         {/* Prose — verified against data */}
-        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Agreement varies substantially by axis. Four axes reach Pearson r
             above 0.80:{" "}
@@ -375,7 +360,7 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       <section
         id="section-2b"
-        className="mb-16 border-t border-b py-10"
+        className="mb-20 border-t border-b py-10"
         style={{
           scrollMarginTop: "72px",
           borderTopColor: "var(--warning-border)",
@@ -384,7 +369,7 @@ export function ModelAgreementClient({
           borderBottomWidth: "0.5px",
         }}
       >
-        <div className="mx-auto max-w-3xl mb-8">
+        <div className="mx-auto max-w-2xl mb-8">
           <p className="text-[10px] uppercase tracking-[0.1em] text-warning-text font-medium mb-2">
             Load-bearing finding
           </p>
@@ -402,50 +387,12 @@ export function ModelAgreementClient({
         </div>
 
         <div className="mx-auto overflow-x-auto" style={{ maxWidth: "1120px" }}>
-          {/* Color key for drift */}
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              marginBottom: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              {
-                color: "var(--model-gemini)",
-                label: "Gemini scores higher",
-              },
-              {
-                color: "var(--model-claude)",
-                label: "Claude scores higher",
-              },
-            ].map(({ color, label }) => (
-              <div
-                key={label}
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    background: color,
-                    borderRadius: "2px",
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--text-tertiary)",
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
+          <ColorKey
+            items={[
+              { color: "var(--model-gemini)", label: "Gemini scores higher" },
+              { color: "var(--model-claude)", label: "Claude scores higher" },
+            ]}
+          />
 
           <HorizontalBarChart
             rows={driftRows}
@@ -457,7 +404,7 @@ export function ModelAgreementClient({
         </div>
 
         {/* Prose — verified: 11/12 corrected from spec's 10/12 */}
-        <div className="mx-auto max-w-3xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Gemini scores personas higher than Claude on {geminiHigherCount} of
             the twelve axes. The only exception is Axis 4 (Decision Authority,
@@ -522,14 +469,14 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-3xl mb-8">
+        <div className="mx-auto max-w-2xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Where disagreement concentrates
           </h2>
         </div>
 
         {/* Scoping prose */}
-        <div className="mx-auto max-w-3xl mb-10 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-2xl mb-10 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             The following analysis examines whether the size of Claude-Gemini
             disagreement varies with who the persona is. Before the findings:
@@ -553,14 +500,11 @@ export function ModelAgreementClient({
         </div>
 
         {/* Findings prose — rewritten from data */}
-        <div className="mx-auto max-w-3xl mt-10 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-2xl mt-10 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
-            With that scope in mind:
-          </p>
-          <p>
-            Regional variation is substantial. Western Europe sits at the low
-            end (mean distance 1.11), followed by East Asia (1.26) and North
-            America (1.33). The highest disagreement appears in Oceania/small
+            With that scope in mind: regional variation is substantial. Western
+            Europe sits at the low end (mean distance 1.11), followed by East
+            Asia (1.26) and North America (1.33). The highest disagreement appears in Oceania/small
             states (1.96, though n=5), Diaspora/transnational (1.89), and
             Sub-Saharan Africa (1.83). Eastern Europe and Central Asia (1.79)
             and South/Southeast Asia (1.67) also run well above the overall
@@ -621,10 +565,10 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       <section
         id="section-4"
-        className="mb-16"
+        className="mb-14"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-3xl mb-8">
+        <div className="mx-auto max-w-2xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Individual cases
           </h2>
@@ -666,7 +610,7 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-2xl">
           <h2 className="text-[22px] font-serif font-medium text-text-primary mb-8">
             What this means for the instrument
           </h2>

@@ -362,11 +362,13 @@ export default async function ModelAgreementPage() {
           with who the persona is?).
         </p>
 
-        {/* Section nav — quiet atlas-style jump list */}
+        {/* Section nav — quiet atlas-style jump list.
+            Each item is an inline-block with nowrap so a single link never
+            splits mid-label. Gap-only separation (no · glyph) keeps wrapping
+            clean on narrow viewports — no orphaned dots at line starts. */}
         <nav
           aria-label="Sections on this page"
-          className="mb-14 flex flex-wrap items-baseline gap-x-3 gap-y-2 text-[11px] text-text-tertiary"
-          style={{ lineHeight: 1.6 }}
+          className="mb-14 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-text-tertiary leading-relaxed"
         >
           {[
             { num: "01", label: "Overall", id: "section-1" },
@@ -375,21 +377,15 @@ export default async function ModelAgreementPage() {
             { num: "03", label: "By attribute", id: "section-3" },
             { num: "04", label: "Cases", id: "section-4" },
             { num: "05", label: "Instrument", id: "section-5" },
-          ].map((item, i) => (
-            <span key={item.id} className="flex items-baseline gap-x-3">
-              {i > 0 && (
-                <span aria-hidden="true" className="opacity-50">
-                  ·
-                </span>
-              )}
-              <a
-                href={`#${item.id}`}
-                className="hover:text-text-secondary transition-colors duration-150"
-              >
-                <span className="tabular-nums mr-1.5">{item.num}</span>
-                {item.label}
-              </a>
-            </span>
+          ].map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className="whitespace-nowrap hover:text-text-secondary transition-colors duration-150"
+            >
+              <span className="tabular-nums mr-1.5">{item.num}</span>
+              {item.label}
+            </a>
           ))}
         </nav>
       </div>
