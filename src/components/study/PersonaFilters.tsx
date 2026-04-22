@@ -147,51 +147,13 @@ export function PersonaFilters({
   genderCategories,
   ageRange,
 }: PersonaFiltersProps) {
-  const { filters, setFilter, clearFilter, clearAll, activeCount } =
-    useStudyFilters();
+  const { filters, setFilter, clearFilter } = useStudyFilters();
 
   return (
     <div>
-      {/* Header row: "Filters" + clear-all */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          paddingBottom: "10px",
-          borderBottom: "0.5px solid var(--border-secondary)",
-          marginBottom: "14px",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "12px",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-tertiary)",
-          }}
-        >
-          Filters
-        </span>
-        {activeCount > 0 && (
-          <button
-            onClick={() => clearAll()}
-            style={{
-              fontSize: "11px",
-              color: "var(--stone-600)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-            }}
-          >
-            Clear all ({activeCount})
-          </button>
-        )}
-      </div>
-
-      {/* Name search — standalone at top */}
+      {/* Name search — standalone at top. Page-level filter chip row already
+          surfaces active filters + Clear all, so no panel-level header is
+          needed here. */}
       <div style={fieldStyle}>
         <label style={fieldLabelStyle} htmlFor="filter-q">
           Name

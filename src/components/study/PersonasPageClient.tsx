@@ -468,6 +468,7 @@ function PersonasPageClientInner({
               >
                 {pinned.length} pinned
                 {pinned.length < 2 && " — pin one more to compare"}
+                {pinned.length === 4 && " — maximum reached"}
               </p>
             )}
           </div>
@@ -526,6 +527,10 @@ function PersonasPageClientInner({
             flex-direction: row !important;
             align-items: flex-start;
           }
+        }
+        /* Sidebar breakpoint aligns with the gazetteer's 2-col breakpoint
+           (960px) so there's no intermediate zone with sidebar + 1-col grid. */
+        @media (min-width: 960px) {
           .personas-layout {
             flex-direction: row;
             align-items: flex-start;

@@ -166,7 +166,7 @@ export function PersonaGrid({
       )}
 
       <style>{`
-        @media (min-width: 768px) {
+        @media (min-width: 960px) {
           .persona-gazetteer {
             grid-template-columns: repeat(2, 1fr) !important;
           }
@@ -176,8 +176,29 @@ export function PersonaGrid({
             grid-template-columns: repeat(3, 1fr) !important;
           }
         }
-        .persona-entry:hover .persona-entry-link {
-          color: var(--text-primary);
+        /* Hover: subtle surface tint frames the whole row including the
+           pin area. Transition matches site motion spec (120ms). */
+        .persona-entry {
+          transition: background-color 120ms ease;
+        }
+        .persona-entry:hover {
+          background-color: var(--surface-2);
+        }
+        /* Pin button: hidden by default, revealed on row hover.
+           Touch devices and already-pinned rows override to stay visible. */
+        .persona-entry .persona-pin-slot {
+          opacity: 0;
+          transition: opacity 120ms ease;
+        }
+        .persona-entry:hover .persona-pin-slot,
+        .persona-entry:focus-within .persona-pin-slot,
+        .persona-entry .persona-pin-slot.is-pinned {
+          opacity: 1;
+        }
+        @media (hover: none) {
+          .persona-entry .persona-pin-slot {
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

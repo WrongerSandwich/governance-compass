@@ -57,19 +57,44 @@ export function PersonaCard({
         >
           <span
             style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 500,
-              fontSize: "16px",
-              lineHeight: 1.25,
-              color: "var(--text-primary)",
               flex: "1 1 auto",
               minWidth: 0,
+              display: "flex",
+              alignItems: "baseline",
+              gap: "6px",
               overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
             }}
           >
-            {persona.name}
+            <span
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontWeight: 500,
+                fontSize: "16px",
+                lineHeight: 1.25,
+                color: "var(--text-primary)",
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {persona.name}
+            </span>
+            {persona.n_models === 2 && (
+              <span
+                aria-label="Both models"
+                title="Both models — administered by Claude and Gemini"
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text-tertiary)",
+                  flexShrink: 0,
+                  lineHeight: 1,
+                  userSelect: "none",
+                }}
+              >
+                §
+              </span>
+            )}
           </span>
           <span
             aria-label={cluster.label}
@@ -98,8 +123,10 @@ export function PersonaCard({
         </div>
       </Link>
 
-      {/* Pin button — outside the Link to avoid nested interactive elements */}
+      {/* Pin button — outside the Link to avoid nested interactive elements.
+          Hidden by default via CSS; revealed on row hover or when pinned. */}
       <div
+        className={`persona-pin-slot${isPinned ? " is-pinned" : ""}`}
         style={{
           position: "absolute",
           top: "10px",
