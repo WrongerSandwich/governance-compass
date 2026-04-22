@@ -54,13 +54,15 @@ export function NavBar() {
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/quiz"
-            className={linkClasses("/quiz")}
-            aria-current={pathname.startsWith("/quiz") ? "page" : undefined}
-          >
-            Quiz
-          </Link>
+          {!resultsHref && (
+            <Link
+              href="/quiz"
+              className={linkClasses("/quiz")}
+              aria-current={pathname.startsWith("/quiz") ? "page" : undefined}
+            >
+              Quiz
+            </Link>
+          )}
           {resultsHref && (
             <Link
               href={resultsHref}
