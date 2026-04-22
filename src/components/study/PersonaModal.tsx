@@ -196,8 +196,11 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
           );
         })}
       </div>
-      {/* Labels */}
+      {/* Labels. Inline flex-wrap on desktop; 2-column grid on mobile
+          (≤640px) via CSS. Swatches hidden on mobile — the colored bar
+          above already carries the color → ministry association. */}
       <div
+        className="budget-labels"
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -217,6 +220,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
             }}
           >
             <span
+              className="budget-swatch"
               style={{
                 display: "inline-block",
                 width: "8px",
@@ -235,6 +239,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
           </div>
         ))}
         <div
+          className="budget-total"
           style={{
             fontSize: "11px",
             color: "var(--text-tertiary)",
@@ -265,11 +270,21 @@ function ModalHeader({
 }) {
   const { persona, nearest_archetype, cluster, n_models } = data;
   const regionLabel = REGION_LABELS[persona.region] ?? persona.region;
-  const identityLine = [
+  // Identity line: full form on desktop, region-trimmed on mobile (cluster
+  // badge already surfaces the region, so dropping it here saves vertical
+  // space in the sticky header without losing information).
+  const identityFull = [
     `Age ${persona.age}`,
     persona.occupation,
     persona.location,
     regionLabel,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const identityShort = [
+    `Age ${persona.age}`,
+    persona.occupation,
+    persona.location,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -309,7 +324,8 @@ function ModalHeader({
             lineHeight: 1.4,
           }}
         >
-          {identityLine}
+          <span className="identity-full">{identityFull}</span>
+          <span className="identity-short">{identityShort}</span>
         </p>
 
         {/* Badges row */}
@@ -802,6 +818,7 @@ function SingleModelScoredProfile({
             return (
               <div key={key} style={{ marginBottom: "6px" }}>
                 <div
+                  className="axis-row"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -821,6 +838,7 @@ function SingleModelScoredProfile({
                   </span>
 
                   <span
+                    className="axis-name"
                     style={{
                       fontSize: "12px",
                       color: "var(--text-secondary)",
@@ -1599,6 +1617,26 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
           flex-direction: column;
           align-items: center;
           justify-content: center;
+        }
+        /* Mobile: constrain the radar width and scale its SVG down so
+           axis labels have room before the viewport edge. */
+        @media (max-width: 639px) {
+          .scored-radar {
+            max-width: clamp(240px, 80vw, 300px);
+            margin: 0 auto;
+          }
+          .scored-radar svg {
+            width: 100% !important;
+            height: auto !important;
+          }
+          /* Axis rows: wrap so the score bar gets the full width of the
+             second line when the axis-name column would otherwise crowd it. */
+          .axis-row {
+            flex-wrap: wrap;
+          }
+          .axis-row > .axis-name {
+            flex: 1 1 100% !important;
+          }
         }
         @media (min-width: 640px) {
           .scored-profile-layout {
@@ -2392,7 +2430,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
         </div>
       </div>
 
-      {/* Animation keyframes */}
+      {/* Animation keyframes + mobile modal-shell adaptations */}
       <style>{`
         @keyframes modal-fade-in {
           from { opacity: 0; }
@@ -2406,10 +2444,30 @@ export function PersonaModal({ id }: PersonaModalProps) {
           @keyframes modal-fade-in  { from { opacity: 1; } to { opacity: 1; } }
           @keyframes modal-slide-in { from { opacity: 1; } to { opacity: 1; } }
         }
+        /* Full-screen modal on mobile + responsive identity / budget labels. */
+        .identity-short { display: none; }
         @media (max-width: 640px) {
           .persona-modal-container {
             border-radius: 0 !important;
             max-height: 100vh !important;
+          }
+          .identity-full { display: none; }
+          .identity-short { display: inline; }
+          /* Budget labels: 2-column grid, swatches hidden (bar above
+             already carries color → ministry mapping). */
+          .budget-labels {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 4px 12px !important;
+          }
+          .budget-labels .budget-swatch {
+            display: none !important;
+          }
+          .budget-labels .budget-total {
+            margin-left: 0 !important;
+            grid-column: 1 / -1;
+            padding-top: 4px;
+            border-top: 0.5px solid var(--border-secondary);
           }
         }
       `}</style>
