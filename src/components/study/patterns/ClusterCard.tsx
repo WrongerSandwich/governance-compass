@@ -9,14 +9,22 @@ export interface ClusterCardProps {
   centroidAxisScores: number[];
   clusterData: SyntheticStudyCluster;
   topAxesProse: string[];
+  isLast?: boolean;
   className?: string;
 }
 
+/**
+ * Gazetteer-style cluster entry. Two-column on desktop (radar left, text
+ * right), stacked on mobile. Hairline separator beneath each entry except
+ * the last. No card chrome — the radar anchors the entry visually, and
+ * prose density does the rest.
+ */
 export function ClusterCard({
   clusterId,
   centroidAxisScores,
   clusterData,
   topAxesProse,
+  isLast = false,
   className,
 }: ClusterCardProps) {
   const colorVar = clusterData.colorVar;
@@ -26,129 +34,147 @@ export function ClusterCard({
   return (
     <section
       id={`cluster-${clusterId}`}
+      className={`cluster-entry ${className ?? ""}`}
       style={{
-        border: "1px solid var(--border-secondary)",
-        borderRadius: "6px",
-        background: `color-mix(in oklab, var(${colorVar}) 5%, transparent)`,
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "14px",
+        scrollMarginTop: "72px",
+        paddingTop: "24px",
+        paddingBottom: "24px",
+        borderBottom: isLast ? undefined : "0.5px solid var(--border-secondary)",
       }}
-      className={className}
     >
-      {/* Radar thumbnail */}
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <Radar
-          scores={centroidAxisScores}
-          size={220}
-          colorVar={colorVar}
-        />
-      </div>
-
-      {/* Cluster header */}
-      <div>
-        <p
-          style={{
-            fontSize: "15px",
-            fontFamily: "var(--font-serif)",
-            fontWeight: 500,
-            color: "var(--text-primary)",
-            lineHeight: 1.4,
-            marginBottom: "4px",
-          }}
-        >
-          <span style={{ color: `var(${colorVar})` }}>{clusterData.code}</span>
-          {" — "}
-          {clusterData.label}
-        </p>
-
-        {/* Size + share */}
-        <p
-          style={{
-            fontSize: "12px",
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-tertiary)",
-            marginBottom: "10px",
-          }}
-        >
-          {clusterData.size} personas · {shareFormatted}%
-        </p>
-
-        {/* Nearest archetype */}
-        <div style={{ marginBottom: "10px" }}>
-          <p
-            style={{
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "var(--text-tertiary)",
-              fontWeight: 500,
-              marginBottom: "5px",
-            }}
-          >
-            Nearest archetype
-          </p>
-          <ArchetypeBadgeStudy
-            archetypeId={clusterData.nearestArchetypeId}
-            archetypeName={clusterData.nearestArchetypeName}
-            emergence={clusterData.nearestArchetypeEmergence}
-            matchStrength={matchStrength}
-            clusterId={clusterId}
+      <div
+        className="cluster-entry-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "20px",
+          alignItems: "start",
+        }}
+      >
+        {/* Radar thumbnail */}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Radar
+            scores={centroidAxisScores}
+            size={200}
+            colorVar={colorVar}
           />
         </div>
 
-        {/* Defining axes */}
+        {/* Text column */}
         <div>
           <p
             style={{
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "var(--text-tertiary)",
+              fontSize: "17px",
+              fontFamily: "var(--font-serif)",
               fontWeight: 500,
-              marginBottom: "5px",
+              color: "var(--text-primary)",
+              lineHeight: 1.3,
+              marginBottom: "4px",
             }}
           >
-            Defining axes
+            <span style={{ color: `var(${colorVar})` }}>{clusterData.code}</span>
+            {" — "}
+            {clusterData.label}
           </p>
-          <ul
+
+          {/* Size + share — sans, not mono */}
+          <p
             style={{
-              margin: 0,
-              padding: 0,
-              listStyle: "none",
-              display: "flex",
-              flexDirection: "column",
-              gap: "3px",
+              fontSize: "12px",
+              color: "var(--text-tertiary)",
+              marginBottom: "14px",
             }}
           >
-            {topAxesProse.map((axis, i) => (
-              <li
-                key={i}
-                style={{
-                  fontSize: "12px",
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.5,
-                  paddingLeft: "10px",
-                  position: "relative",
-                }}
-              >
-                <span
+            {clusterData.size} personas · {shareFormatted}%
+          </p>
+
+          {/* Nearest archetype */}
+          <div style={{ marginBottom: "14px" }}>
+            <p
+              style={{
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "var(--text-tertiary)",
+                fontWeight: 500,
+                marginBottom: "5px",
+              }}
+            >
+              Nearest archetype
+            </p>
+            <ArchetypeBadgeStudy
+              archetypeId={clusterData.nearestArchetypeId}
+              archetypeName={clusterData.nearestArchetypeName}
+              emergence={clusterData.nearestArchetypeEmergence}
+              matchStrength={matchStrength}
+              clusterId={clusterId}
+            />
+          </div>
+
+          {/* Defining axes */}
+          <div>
+            <p
+              style={{
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "var(--text-tertiary)",
+                fontWeight: 500,
+                marginBottom: "5px",
+              }}
+            >
+              Defining axes
+            </p>
+            <ul
+              style={{
+                margin: 0,
+                padding: 0,
+                listStyle: "none",
+                display: "flex",
+                flexDirection: "column",
+                gap: "3px",
+              }}
+            >
+              {topAxesProse.map((axis, i) => (
+                <li
+                  key={i}
                   style={{
-                    position: "absolute",
-                    left: 0,
-                    color: "var(--text-tertiary)",
+                    fontSize: "13px",
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.5,
+                    paddingLeft: "12px",
+                    position: "relative",
                   }}
                 >
-                  ·
-                </span>
-                {axis}
-              </li>
-            ))}
-          </ul>
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      color: "var(--text-tertiary)",
+                    }}
+                  >
+                    ·
+                  </span>
+                  {axis}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
+
+      {/* Two-column layout above the md breakpoint. */}
+      <style>{`
+        @media (min-width: 720px) {
+          .cluster-entry-grid {
+            grid-template-columns: 220px 1fr !important;
+            gap: 32px !important;
+          }
+          .cluster-entry-grid > div:first-child {
+            justify-content: flex-start !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }
