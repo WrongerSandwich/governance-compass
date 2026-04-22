@@ -1,5 +1,7 @@
 # Synthetic Study Section — Implementation Plan
 
+> **Status: Shipped** — all 15 phases (Phase 0 through Phase 7) delivered on `feature/synthetic-study` (commits `2708e54..`). Subsequent polish rounds added editorial refinement (atlas-style landing, gazetteer persona index, Patterns reframe, Model Agreement typography + layout normalization, Research nav dropdown, full mobile pass on each page and modal). Keeping this plan for reference.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a top-level Synthetic Study section to governance-compass.org that surfaces the April 2026 dataset (1,002 Gemini-generated personas administered by Claude Sonnet 4.6 and Gemini 2.5 Flash). The section adds four pages — Overview, Personas, Patterns, Model Agreement — under `/study/*`, plus a public JSON download.
