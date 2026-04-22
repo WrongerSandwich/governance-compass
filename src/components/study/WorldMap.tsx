@@ -567,6 +567,17 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           ))}
         </div>
       )}
+
+      {/* Suppress the floating on-map tooltip on mobile — it duplicates the
+          persistent below-map tooltip and positions poorly against touch
+          coords, sometimes clipping off-screen. Desktop keeps it. */}
+      <style>{`
+        @media (max-width: 640px), (hover: none) {
+          .worldmap-tooltip {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
