@@ -42,6 +42,22 @@ export const REGION_LABELS: Record<RegionKey, string> = {
   diaspora_transnational: "Diaspora / Transnational",
 };
 
+// Compact labels used in tight mobile rows (e.g. the region chip row under
+// the map). Full labels above are rendered alongside and hidden via CSS on
+// narrow viewports so markup stays SSR-stable.
+export const SHORT_REGION_LABELS: Record<RegionKey, string> = {
+  western_europe: "W. Europe",
+  eastern_europe_central_asia: "E. Europe & C. Asia",
+  north_america: "N. America",
+  latin_america: "Latin America",
+  middle_east_north_africa: "MENA",
+  sub_saharan_africa: "Sub-Saharan Africa",
+  south_southeast_asia: "S. & SE Asia",
+  east_asia: "East Asia",
+  oceania_small_states: "Oceania",
+  diaspora_transnational: "Transnational",
+};
+
 export type UrbanRural = "urban" | "peri_urban" | "rural";
 
 export type EconomicPosition =

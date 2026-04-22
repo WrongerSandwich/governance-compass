@@ -12,7 +12,7 @@ import { CompareView } from "@/components/study/CompareView";
 import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
 import { usePinnedPersonas } from "@/lib/study/usePinnedPersonas";
-import { REGION_LABELS } from "@/lib/study/types";
+import { REGION_LABELS, SHORT_REGION_LABELS } from "@/lib/study/types";
 import { archetypes } from "@/data/archetypes";
 import type {
   PersonaSlim,
@@ -114,11 +114,9 @@ function FilterChips({
 
   const chips: Array<{ label: string; key: keyof typeof filters }> = [];
 
-  if (filters.region)
-    chips.push({
-      label: `Region: ${REGION_LABELS[filters.region] ?? filters.region}`,
-      key: "region",
-    });
+  // Region is skipped here — the always-visible region chip row already
+  // signals the active region in stone-600 underlined text. Showing a
+  // second "Region: X ×" chip below would be double-signaling.
   if (filters.cluster !== undefined)
     chips.push({ label: `Cluster: C${filters.cluster}`, key: "cluster" });
   if (filters.archetype) {
@@ -271,11 +269,12 @@ function RegionChipRow({
             key={r}
             onClick={() => onRegionSelect(active ? null : r)}
             aria-pressed={active}
+            className="region-chip"
             style={{
               background: "none",
               border: "none",
               cursor: "pointer",
-              padding: 0,
+              padding: "4px 0",
               fontSize: "12px",
               color: active
                 ? "var(--stone-600)"
@@ -285,9 +284,16 @@ function RegionChipRow({
               textDecoration: active ? "underline" : "none",
               textUnderlineOffset: "3px",
               textDecorationColor: "var(--stone-600)",
+              fontFamily: "inherit",
+              position: "relative",
             }}
           >
-            {REGION_LABELS[r] ?? r}
+            <span className="region-chip-full">
+              {REGION_LABELS[r] ?? r}
+            </span>
+            <span className="region-chip-short">
+              {SHORT_REGION_LABELS[r] ?? REGION_LABELS[r] ?? r}
+            </span>
             <span
               aria-hidden="true"
               style={{
@@ -718,6 +724,25 @@ function PersonasPageClientInner({
         }
         .persona-filters-toggle:hover {
           color: var(--text-primary);
+        }
+        /* Region chip row — full labels on desktop, compact labels on
+           mobile. Rendered dual and swapped via CSS to stay SSR-stable.
+           ::before extends the tap area to ~32px without changing layout. */
+        .region-chip-short {
+          display: none;
+        }
+        .region-chip::before {
+          content: "";
+          position: absolute;
+          inset: -6px -4px;
+        }
+        @media (max-width: 767px) {
+          .region-chip-full {
+            display: none;
+          }
+          .region-chip-short {
+            display: inline;
+          }
         }
       `}</style>
     </PersonasProvider>
