@@ -121,11 +121,15 @@ function FilterChips({
     });
   if (filters.cluster !== undefined)
     chips.push({ label: `Cluster: C${filters.cluster}`, key: "cluster" });
-  if (filters.archetype)
+  if (filters.archetype) {
+    const archetypeName =
+      archetypes.find((a) => a.id === filters.archetype)?.name ??
+      filters.archetype;
     chips.push({
-      label: `Archetype: ${filters.archetype.replace(/-/g, " ")}`,
+      label: `Archetype: ${archetypeName}`,
       key: "archetype",
     });
+  }
   if (filters.governance)
     chips.push({ label: `Governance: ${filters.governance}`, key: "governance" });
   if (filters.economic)
@@ -157,9 +161,12 @@ function FilterChips({
       style={{
         display: "flex",
         flexWrap: "wrap",
-        gap: "6px",
-        alignItems: "center",
+        alignItems: "baseline",
+        columnGap: "14px",
+        rowGap: "6px",
         marginBottom: "12px",
+        fontSize: "12px",
+        color: "var(--text-secondary)",
       }}
     >
       {chips.map((chip) => (
@@ -167,17 +174,12 @@ function FilterChips({
           key={chip.key}
           style={{
             display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "12px",
-            padding: "2px 8px",
-            borderRadius: "12px",
-            border: "1px solid var(--border-primary)",
-            backgroundColor: "var(--surface-2)",
-            color: "var(--text-secondary)",
+            alignItems: "baseline",
+            gap: "6px",
+            whiteSpace: "nowrap",
           }}
         >
-          {chip.label}
+          <span>{chip.label}</span>
           <button
             onClick={() => clearFilter(chip.key)}
             aria-label={`Remove ${chip.label} filter`}
@@ -189,9 +191,6 @@ function FilterChips({
               padding: 0,
               lineHeight: 1,
               fontSize: "13px",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
             }}
           >
             ×
@@ -206,8 +205,10 @@ function FilterChips({
           cursor: "pointer",
           fontSize: "12px",
           color: "var(--stone-600)",
-          padding: "2px 6px",
-          fontWeight: 500,
+          padding: 0,
+          textDecoration: "underline",
+          textUnderlineOffset: "3px",
+          textDecorationColor: "var(--border-secondary)",
         }}
       >
         Clear all
@@ -357,7 +358,7 @@ function PersonasPageClientInner({
     <PersonasProvider filteredIds={filteredIds}>
       <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 48px" }}>
         {/* Page header */}
-        <div style={{ padding: "24px 0 16px" }}>
+        <div style={{ padding: "24px 0 20px" }}>
           <p
             style={{
               fontSize: "11px",
@@ -374,40 +375,35 @@ function PersonasPageClientInner({
             style={{
               fontFamily: "var(--font-serif)",
               fontWeight: 500,
-              fontSize: "28px",
-              lineHeight: 1.2,
+              fontSize: "clamp(32px, 5vw, 38px)",
+              lineHeight: 1.15,
               color: "var(--text-primary)",
-              marginBottom: "6px",
+              marginBottom: "8px",
             }}
           >
             Personas
           </h1>
           <p
             style={{
-              fontSize: "14px",
+              fontSize: "15px",
+              fontFamily: "var(--font-serif)",
               color: "var(--text-secondary)",
               lineHeight: 1.5,
             }}
           >
-            {catalog.length.toLocaleString()} synthetic personas across 10
-            regions — click a region to filter, or use the panel below.
+            A gazetteer of the {catalog.length.toLocaleString()} personas
+            Gemini generated for the April 2026 study, faceted by region,
+            governance context, and demographic attributes.
           </p>
         </div>
 
-        {/* Map + Transnational tile: side-by-side on desktop, stacked on mobile */}
+        {/* Map + Transnational tile: side-by-side on desktop, stacked on mobile.
+            No card chrome — the map sits inline against the page. */}
         <div
           className="map-tile-layout"
-          style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "12px" }}
+          style={{ marginBottom: "20px", display: "flex", flexDirection: "column", gap: "12px" }}
         >
-          <div
-            style={{
-              flex: "1 1 0",
-              border: "1px solid var(--border-secondary)",
-              borderRadius: "6px",
-              overflow: "hidden",
-              backgroundColor: "var(--surface-2)",
-            }}
-          >
+          <div style={{ flex: "1 1 0", minWidth: 0 }}>
             <WorldMap
               mode={{
                 type: "interactive",
@@ -458,22 +454,21 @@ function PersonasPageClientInner({
               ageRange={catalogMeta.ageRange}
             />
 
-            {/* Pin count annotation */}
+            {/* Pin count annotation — quiet inline sentence */}
             {pinned.length > 0 && (
-              <div
+              <p
                 style={{
-                  marginTop: "16px",
-                  padding: "8px 10px",
-                  border: "1px solid var(--border-primary)",
-                  borderRadius: "4px",
-                  backgroundColor: "var(--surface-2)",
+                  marginTop: "18px",
+                  paddingTop: "12px",
+                  borderTop: "0.5px solid var(--border-secondary)",
                   fontSize: "12px",
                   color: "var(--text-tertiary)",
+                  lineHeight: 1.5,
                 }}
               >
                 {pinned.length} pinned
                 {pinned.length < 2 && " — pin one more to compare"}
-              </div>
+              </p>
             )}
           </div>
 

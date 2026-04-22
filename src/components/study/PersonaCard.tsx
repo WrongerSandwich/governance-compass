@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { ComparePinButton } from "@/components/study/ComparePinButton";
 import { REGION_LABELS } from "@/lib/study/types";
+import { getCluster } from "@/data/syntheticStudyClusters";
 import type { PersonaSlim, ClusterId } from "@/lib/study/types";
 
 export interface PersonaCardProps {
@@ -22,70 +22,79 @@ export function PersonaCard({
 }: PersonaCardProps) {
   const searchParams = useSearchParams();
 
-  // Build the link URL: preserve current filter params and add persona param
   const params = new URLSearchParams(searchParams.toString());
   params.set("persona", persona.id);
   const href = `/study/personas?${params.toString()}`;
 
-  const identity = [
-    `Age ${persona.age}`,
-    regionLabel(persona.region),
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const cluster = getCluster(persona.cluster as ClusterId);
+  const region = REGION_LABELS[persona.region] ?? persona.region;
 
   return (
-    <div
+    <article
+      className="persona-entry"
       style={{
         position: "relative",
-        border: "1px solid var(--border-primary)",
-        borderRadius: "4px",
-        backgroundColor: "var(--surface-1)",
-        transition: "border-color 120ms ease",
+        borderBottom: "0.5px solid var(--border-secondary)",
       }}
-      className="persona-card"
     >
       <Link
         href={href}
+        className="persona-entry-link"
         style={{
           display: "block",
-          padding: "14px 40px 14px 14px",
+          padding: "12px 40px 12px 0",
           textDecoration: "none",
           color: "inherit",
         }}
       >
-        {/* Name */}
         <div
           style={{
-            fontFamily: "var(--font-serif, Georgia, serif)",
-            fontWeight: 500,
-            fontSize: "1rem",
-            lineHeight: 1.3,
-            color: "var(--text-primary)",
-            marginBottom: "3px",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "10px",
+            minWidth: 0,
           }}
         >
-          {persona.name}
+          <span
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 500,
+              fontSize: "16px",
+              lineHeight: 1.25,
+              color: "var(--text-primary)",
+              flex: "1 1 auto",
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {persona.name}
+          </span>
+          <span
+            aria-label={cluster.label}
+            title={`${cluster.code} — ${cluster.label}`}
+            style={{
+              fontSize: "10px",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              color: `var(${cluster.colorVar})`,
+              fontVariantNumeric: "tabular-nums",
+              flexShrink: 0,
+            }}
+          >
+            {cluster.code}
+          </span>
         </div>
-
-        {/* Identity line */}
         <div
           style={{
-            fontSize: "0.8125rem",
+            fontSize: "13px",
             color: "var(--text-secondary)",
             lineHeight: 1.4,
-            marginBottom: "8px",
+            marginTop: "3px",
           }}
         >
-          {identity}
-        </div>
-
-        {/* Badges */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-          <ClusterBadge
-            clusterId={persona.cluster as ClusterId}
-            href={null}
-          />
+          Age {persona.age} · {region}
         </div>
       </Link>
 
@@ -94,7 +103,7 @@ export function PersonaCard({
         style={{
           position: "absolute",
           top: "10px",
-          right: "10px",
+          right: "0",
         }}
       >
         <ComparePinButton
@@ -105,14 +114,6 @@ export function PersonaCard({
           onToggle={onTogglePin ?? (() => {})}
         />
       </div>
-    </div>
+    </article>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function regionLabel(region: string): string {
-  return (REGION_LABELS as Record<string, string>)[region] ?? region;
 }

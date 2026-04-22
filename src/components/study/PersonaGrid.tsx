@@ -19,11 +19,10 @@ export function PersonaGrid({
   canPin,
   pageSize = 60,
 }: PersonaGridProps) {
-  const { filters, setFilter } = useStudyFilters();
+  const { filters, setFilter, clearAll, activeCount } = useStudyFilters();
 
   const rawPage = filters.page ?? DEFAULT_FILTERS.page;
   const totalPages = Math.max(1, Math.ceil(personas.length / pageSize));
-  // Clamp to valid range without erroring
   const page = rawPage < 1 || rawPage > totalPages ? 1 : rawPage;
 
   const start = (page - 1) * pageSize;
@@ -36,14 +35,32 @@ export function PersonaGrid({
 
   return (
     <div>
-      {/* Grid */}
+      {/* Results count / status line */}
+      {personas.length > 0 && (
+        <p
+          style={{
+            fontSize: "12px",
+            color: "var(--text-tertiary)",
+            marginBottom: "8px",
+            borderTop: "0.5px solid var(--border-secondary)",
+            paddingTop: "6px",
+          }}
+        >
+          {personas.length.toLocaleString()} personas · showing{" "}
+          <span style={{ fontVariantNumeric: "tabular-nums" }}>
+            {start + 1}–{end}
+          </span>
+        </p>
+      )}
+
+      {/* Gazetteer-style index */}
       <div
+        className="persona-gazetteer"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(1, 1fr)",
-          gap: "8px",
+          columnGap: "32px",
         }}
-        className="persona-grid"
       >
         {pagePersonas.map((persona) => (
           <PersonaCard
@@ -62,25 +79,46 @@ export function PersonaGrid({
           style={{
             padding: "3rem 1rem",
             textAlign: "center",
-            color: "var(--text-tertiary)",
-            fontSize: "0.875rem",
+            color: "var(--text-secondary)",
+            fontSize: "14px",
+            lineHeight: 1.6,
           }}
         >
-          No personas match the current filters.
+          <p style={{ marginBottom: "10px" }}>
+            No personas match the current filters.
+          </p>
+          {activeCount > 0 && (
+            <button
+              onClick={() => clearAll()}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--stone-600)",
+                fontSize: "13px",
+                cursor: "pointer",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+                textDecorationColor: "var(--border-secondary)",
+              }}
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Text-only pagination */}
       {totalPages > 1 && (
-        <div
+        <nav
+          aria-label="Pagination"
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "baseline",
             justifyContent: "center",
-            gap: "16px",
-            marginTop: "24px",
-            fontSize: "0.875rem",
-            color: "var(--text-secondary)",
+            gap: "14px",
+            marginTop: "28px",
+            fontSize: "13px",
+            color: "var(--text-tertiary)",
           }}
         >
           <button
@@ -88,64 +126,58 @@ export function PersonaGrid({
             disabled={page <= 1}
             style={{
               background: "none",
-              border: "1px solid var(--border-primary)",
-              borderRadius: "3px",
-              padding: "4px 12px",
+              border: "none",
               cursor: page <= 1 ? "default" : "pointer",
-              color: page <= 1 ? "var(--text-tertiary)" : "var(--text-primary)",
-              fontSize: "0.875rem",
+              color:
+                page <= 1 ? "var(--border-primary)" : "var(--text-secondary)",
+              fontSize: "13px",
+              padding: 0,
             }}
           >
-            Previous
+            ← Previous
           </button>
-
-          <span>
+          <span aria-hidden="true" style={{ opacity: 0.5 }}>
+            ·
+          </span>
+          <span style={{ fontVariantNumeric: "tabular-nums" }}>
             Page {page} of {totalPages}
           </span>
-
+          <span aria-hidden="true" style={{ opacity: 0.5 }}>
+            ·
+          </span>
           <button
             onClick={() => goToPage(page + 1)}
             disabled={page >= totalPages}
             style={{
               background: "none",
-              border: "1px solid var(--border-primary)",
-              borderRadius: "3px",
-              padding: "4px 12px",
+              border: "none",
               cursor: page >= totalPages ? "default" : "pointer",
               color:
-                page >= totalPages ? "var(--text-tertiary)" : "var(--text-primary)",
-              fontSize: "0.875rem",
+                page >= totalPages
+                  ? "var(--border-primary)"
+                  : "var(--text-secondary)",
+              fontSize: "13px",
+              padding: 0,
             }}
           >
-            Next
+            Next →
           </button>
-        </div>
-      )}
-
-      {/* Results count */}
-      {personas.length > 0 && (
-        <div
-          style={{
-            marginTop: "8px",
-            textAlign: "center",
-            fontSize: "0.75rem",
-            color: "var(--text-tertiary)",
-          }}
-        >
-          Showing {start + 1}–{end} of {personas.length} personas
-        </div>
+        </nav>
       )}
 
       <style>{`
         @media (min-width: 768px) {
-          .persona-grid {
+          .persona-gazetteer {
             grid-template-columns: repeat(2, 1fr) !important;
           }
         }
-        @media (min-width: 1024px) {
-          .persona-grid {
+        @media (min-width: 1280px) {
+          .persona-gazetteer {
             grid-template-columns: repeat(3, 1fr) !important;
           }
+        }
+        .persona-entry:hover .persona-entry-link {
+          color: var(--text-primary);
         }
       `}</style>
     </div>
