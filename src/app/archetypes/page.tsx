@@ -152,8 +152,13 @@ export default function ArchetypesPage() {
   return (
     <main className="min-h-screen px-4 py-12">
       <article id="top" className="mx-auto max-w-2xl">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-          Reference
+        <p className="mb-1">
+          <Link
+            href="/references"
+            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
+          >
+            ← Reference
+          </Link>
         </p>
         <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
           Governance archetypes
