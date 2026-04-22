@@ -57,8 +57,11 @@ export function Histogram({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      width={width}
-      height={height}
+      style={{
+        width: "100%",
+        maxWidth: `${width}px`,
+        height: "auto",
+      }}
       className={className}
       role="img"
       aria-label={ariaLabel ?? "Histogram"}

@@ -61,8 +61,11 @@ export function HorizontalBarChart({
   return (
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-      width={totalWidth}
-      height={totalHeight}
+      style={{
+        width: "100%",
+        maxWidth: `${totalWidth}px`,
+        height: "auto",
+      }}
       className={className}
       role="img"
       aria-label={ariaLabel ?? "Horizontal bar chart"}

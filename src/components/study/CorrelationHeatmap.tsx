@@ -44,8 +44,11 @@ export function CorrelationHeatmap({
   return (
     <svg
       viewBox={`0 0 ${svgW} ${svgH}`}
-      width={svgW}
-      height={svgH}
+      style={{
+        width: "100%",
+        maxWidth: `${svgW}px`,
+        height: "auto",
+      }}
       className={className}
       role="img"
       aria-label={ariaLabel ?? "Correlation heatmap"}

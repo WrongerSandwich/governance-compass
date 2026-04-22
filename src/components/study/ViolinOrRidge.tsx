@@ -46,8 +46,11 @@ export function ViolinOrRidge({
   return (
     <svg
       viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-      width={svgWidth}
-      height={svgHeight}
+      style={{
+        width: "100%",
+        maxWidth: `${svgWidth}px`,
+        height: "auto",
+      }}
       className={className}
       role="img"
       aria-label={ariaLabel}

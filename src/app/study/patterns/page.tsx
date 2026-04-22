@@ -673,7 +673,7 @@ export default async function PatternsPage() {
 
         {/* Ridge plot — full width, single stacked series ordered axis 1→12 */}
         <div
-          className="mx-auto overflow-x-auto chart-scroll-wrap"
+          className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <ViolinOrRidge
@@ -729,7 +729,7 @@ export default async function PatternsPage() {
 
         {/* Desktop: full heatmap */}
         <div
-          className="mx-auto overflow-x-auto hidden md:block"
+          className="mx-auto hidden md:block"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <CorrelationHeatmap
@@ -794,7 +794,7 @@ export default async function PatternsPage() {
 
         {/* Overall tension rate per axis — horizontal bar chart */}
         <div
-          className="mx-auto mb-10 overflow-x-auto chart-scroll-wrap"
+          className="mx-auto mb-10"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-2xl mb-4">
@@ -821,7 +821,7 @@ export default async function PatternsPage() {
 
         {/* Tension matrix */}
         <div
-          className="mx-auto overflow-x-auto chart-scroll-wrap"
+          className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-2xl mb-4">
@@ -885,26 +885,13 @@ export default async function PatternsPage() {
       </section>
 
       {/* Mobile refinements. Full+short section-nav labels swap on width;
-          chart containers get a subtle right-edge fade on mobile to cue
-          horizontal swipe when content overflows. */}
+          charts themselves are responsive via SVG viewBox, so no scroll
+          fade hint is needed. */}
       <style>{`
         .section-nav-short { display: none; }
         @media (max-width: 767px) {
           .section-nav-full { display: none; }
           .section-nav-short { display: inline; }
-          .chart-scroll-wrap {
-            position: relative;
-          }
-          .chart-scroll-wrap::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 24px;
-            background: linear-gradient(to right, transparent, var(--surface-1));
-            pointer-events: none;
-          }
         }
       `}</style>
     </main>
