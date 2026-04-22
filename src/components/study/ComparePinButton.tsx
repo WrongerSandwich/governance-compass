@@ -56,7 +56,10 @@ export function ComparePinButton({
         borderRadius: "3px",
         transition: "color 120ms ease",
         opacity: isDisabled ? 0.4 : 1,
+        // 44x44 hit target (WCAG 2.5.5), icon centered.
         padding: "4px",
+        minWidth: "44px",
+        minHeight: "44px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

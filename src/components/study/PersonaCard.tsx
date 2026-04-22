@@ -42,7 +42,7 @@ export function PersonaCard({
         className="persona-entry-link"
         style={{
           display: "block",
-          padding: "12px 40px 12px 0",
+          padding: "12px 48px 12px 0",
           textDecoration: "none",
           color: "inherit",
         }}
@@ -124,12 +124,13 @@ export function PersonaCard({
       </Link>
 
       {/* Pin button — outside the Link to avoid nested interactive elements.
-          Hidden by default via CSS; revealed on row hover or when pinned. */}
+          Hidden by default via CSS; revealed on row hover or when pinned.
+          On touch (no hover), pins render at reduced opacity until tapped. */}
       <div
         className={`persona-pin-slot${isPinned ? " is-pinned" : ""}`}
         style={{
           position: "absolute",
-          top: "10px",
+          top: "0",
           right: "0",
         }}
       >

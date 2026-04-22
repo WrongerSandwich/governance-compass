@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { WorldMap } from "@/components/study/WorldMap";
 import { TransnationalTile } from "@/components/study/TransnationalTile";
@@ -218,6 +218,146 @@ function FilterChips({
 }
 
 // ---------------------------------------------------------------------------
+// Region chip row — text-only button row below the map, always visible.
+// Serves as a tap-friendly companion to the map and a keyboard-accessible
+// alternative for selecting a region filter.
+// ---------------------------------------------------------------------------
+
+interface RegionChipRowProps {
+  regions: RegionKey[];
+  regionCounts: Record<RegionKey, number>;
+  transnationalCount: number;
+  selectedRegion: RegionKey | null;
+  onRegionSelect: (r: RegionKey | null) => void;
+}
+
+function RegionChipRow({
+  regions,
+  regionCounts,
+  transnationalCount,
+  selectedRegion,
+  onRegionSelect,
+}: RegionChipRowProps) {
+  // Ensure diaspora_transnational is present and ordered last
+  const ordered: RegionKey[] = [
+    ...regions.filter((r) => r !== "diaspora_transnational"),
+    "diaspora_transnational" as RegionKey,
+  ];
+
+  return (
+    <nav
+      aria-label="Select a region"
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        columnGap: "16px",
+        rowGap: "4px",
+        alignItems: "baseline",
+        marginTop: "12px",
+        marginBottom: "16px",
+        fontSize: "12px",
+        lineHeight: 1.7,
+        color: "var(--text-secondary)",
+      }}
+    >
+      {ordered.map((r) => {
+        const active = selectedRegion === r;
+        const count =
+          r === "diaspora_transnational"
+            ? transnationalCount
+            : regionCounts[r] ?? 0;
+        return (
+          <button
+            key={r}
+            onClick={() => onRegionSelect(active ? null : r)}
+            aria-pressed={active}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              fontSize: "12px",
+              color: active
+                ? "var(--stone-600)"
+                : "var(--text-secondary)",
+              fontWeight: active ? 500 : 400,
+              whiteSpace: "nowrap",
+              textDecoration: active ? "underline" : "none",
+              textUnderlineOffset: "3px",
+              textDecorationColor: "var(--stone-600)",
+            }}
+          >
+            {REGION_LABELS[r] ?? r}
+            <span
+              aria-hidden="true"
+              style={{
+                marginLeft: "6px",
+                color: "var(--text-tertiary)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {count}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Filter panel collapse — closed on mobile (<960px), expanded on desktop.
+// ---------------------------------------------------------------------------
+
+function FilterPanelCollapse({
+  activeCount,
+  children,
+}: {
+  activeCount: number;
+  children: React.ReactNode;
+}) {
+  // Default open on SSR (desktop-safe); useEffect corrects on mobile.
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 960px)");
+    const sync = () => setOpen(mql.matches);
+    sync();
+    mql.addEventListener("change", sync);
+    return () => mql.removeEventListener("change", sync);
+  }, []);
+
+  return (
+    <div className="persona-filters-wrap">
+      <button
+        type="button"
+        className="persona-filters-toggle"
+        aria-expanded={open}
+        aria-controls="persona-filters-content"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>
+          Filters
+          {activeCount > 0 && (
+            <span style={{ color: "var(--text-tertiary)", marginLeft: "6px" }}>
+              ({activeCount} active)
+            </span>
+          )}
+        </span>
+        <span aria-hidden="true">{open ? "▾" : "▸"}</span>
+      </button>
+      <div
+        id="persona-filters-content"
+        hidden={!open}
+        className="persona-filters-content"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Client component
 // ---------------------------------------------------------------------------
 
@@ -430,6 +570,17 @@ function PersonasPageClientInner({
           </div>
         </div>
 
+        {/* Region chip row — text-only, always visible. Tap-friendly companion
+            to the map and keyboard-accessible alternative to the map's
+            geographic tap targets. */}
+        <RegionChipRow
+          regions={catalogMeta.regions}
+          regionCounts={regionCounts}
+          transnationalCount={transnationalCount}
+          selectedRegion={selectedRegion}
+          onRegionSelect={handleRegionSelect}
+        />
+
         {/* Filter chips */}
         <FilterChips
           filters={filters}
@@ -440,19 +591,21 @@ function PersonasPageClientInner({
 
         {/* Main content: filter panel + grid */}
         <div className="personas-layout">
-          {/* Filter panel */}
+          {/* Filter panel — collapsible on mobile, always-open on desktop */}
           <div className="personas-filters">
-            <PersonaFilters
-              regions={catalogMeta.regions}
-              clusters={catalogMeta.clusters}
-              archetypes={catalogMeta.archetypes}
-              governanceCategories={catalogMeta.governanceCategories}
-              economicCategories={catalogMeta.economicCategories}
-              urbanRuralCategories={catalogMeta.urbanRuralCategories}
-              educationCategories={catalogMeta.educationCategories}
-              genderCategories={catalogMeta.genderCategories}
-              ageRange={catalogMeta.ageRange}
-            />
+            <FilterPanelCollapse activeCount={activeCount}>
+              <PersonaFilters
+                regions={catalogMeta.regions}
+                clusters={catalogMeta.clusters}
+                archetypes={catalogMeta.archetypes}
+                governanceCategories={catalogMeta.governanceCategories}
+                economicCategories={catalogMeta.economicCategories}
+                urbanRuralCategories={catalogMeta.urbanRuralCategories}
+                educationCategories={catalogMeta.educationCategories}
+                genderCategories={catalogMeta.genderCategories}
+                ageRange={catalogMeta.ageRange}
+              />
+            </FilterPanelCollapse>
 
             {/* Pin count annotation — quiet inline sentence */}
             {pinned.length > 0 && (
@@ -540,6 +693,31 @@ function PersonasPageClientInner({
             width: 220px;
             flex-shrink: 0;
           }
+          /* Desktop: the collapse toggle is decorative/redundant; hide it
+             and ensure content is always visible. */
+          .persona-filters-toggle {
+            display: none;
+          }
+        }
+        /* Mobile collapse toggle: ghost button framed by thin rules. */
+        .persona-filters-toggle {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-top: 0.5px solid var(--border-secondary);
+          border-bottom: 0.5px solid var(--border-secondary);
+          background: none;
+          cursor: pointer;
+          font-size: 13px;
+          color: var(--text-primary);
+          text-align: left;
+          font-family: inherit;
+          margin-bottom: 14px;
+        }
+        .persona-filters-toggle:hover {
+          color: var(--text-primary);
         }
       `}</style>
     </PersonasProvider>

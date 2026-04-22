@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { PersonaCard } from "@/components/study/PersonaCard";
 import { useStudyFilters, DEFAULT_FILTERS } from "@/lib/study/filterState";
 import type { PersonaSlim } from "@/lib/study/types";
@@ -29,12 +30,29 @@ export function PersonaGrid({
   const end = Math.min(start + pageSize, personas.length);
   const pagePersonas = personas.slice(start, end);
 
+  // Scroll the grid into view when the page changes, so clicking "Next →"
+  // on mobile doesn't leave the user stranded below the new page.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const prevPageRef = useRef(page);
+  useEffect(() => {
+    if (prevPageRef.current !== page && rootRef.current) {
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      rootRef.current.scrollIntoView({
+        behavior: reduced ? "auto" : "smooth",
+        block: "start",
+      });
+    }
+    prevPageRef.current = page;
+  }, [page]);
+
   function goToPage(p: number) {
     setFilter("page", p);
   }
 
   return (
-    <div>
+    <div ref={rootRef} style={{ scrollMarginTop: "64px" }}>
       {/* Results count / status line */}
       {personas.length > 0 && (
         <p
@@ -195,8 +213,13 @@ export function PersonaGrid({
         .persona-entry .persona-pin-slot.is-pinned {
           opacity: 1;
         }
+        /* Touch devices: no hover state exists, so pins stay visible but
+           muted. Pinned rows promote to full opacity. */
         @media (hover: none) {
           .persona-entry .persona-pin-slot {
+            opacity: 0.4;
+          }
+          .persona-entry .persona-pin-slot.is-pinned {
             opacity: 1;
           }
         }
