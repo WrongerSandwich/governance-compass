@@ -306,18 +306,20 @@ export default async function PatternsPage() {
           which axis pairs covary.
         </p>
 
-        {/* Section nav — quiet atlas-style jump list */}
+        {/* Section nav — quiet atlas-style jump list.
+            Full and short labels rendered as sibling <span>s; CSS swaps
+            them below 768px to keep the nav from wrapping into 4+ rows. */}
         <nav
           aria-label="Sections on this page"
-          className="mb-14 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-text-tertiary leading-relaxed"
+          className="patterns-section-nav mb-14 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-text-tertiary leading-relaxed"
         >
           {[
-            { num: "01", label: "Clusters", id: "section-1" },
-            { num: "02", label: "Archetype distribution", id: "section-2" },
-            { num: "03", label: "Regional & demographic", id: "section-3" },
-            { num: "04", label: "Axis distributions", id: "section-4" },
-            { num: "05", label: "Correlations", id: "section-5" },
-            { num: "06", label: "Tensions", id: "section-6" },
+            { num: "01", label: "Clusters", short: "Clusters", id: "section-1" },
+            { num: "02", label: "Archetype distribution", short: "Archetypes", id: "section-2" },
+            { num: "03", label: "Regional & demographic", short: "Regional", id: "section-3" },
+            { num: "04", label: "Axis distributions", short: "Distributions", id: "section-4" },
+            { num: "05", label: "Correlations", short: "Correlations", id: "section-5" },
+            { num: "06", label: "Tensions", short: "Tensions", id: "section-6" },
           ].map((item) => (
             <a
               key={item.id}
@@ -325,7 +327,8 @@ export default async function PatternsPage() {
               className="whitespace-nowrap hover:text-text-secondary transition-colors duration-150"
             >
               <span className="tabular-nums mr-1.5">{item.num}</span>
-              {item.label}
+              <span className="section-nav-full">{item.label}</span>
+              <span className="section-nav-short">{item.short}</span>
             </a>
           ))}
         </nav>
@@ -664,7 +667,7 @@ export default async function PatternsPage() {
 
         {/* Ridge plot — full width, single stacked series ordered axis 1→12 */}
         <div
-          className="mx-auto overflow-x-auto"
+          className="mx-auto overflow-x-auto chart-scroll-wrap"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <ViolinOrRidge
@@ -785,7 +788,7 @@ export default async function PatternsPage() {
 
         {/* Overall tension rate per axis — horizontal bar chart */}
         <div
-          className="mx-auto mb-10 overflow-x-auto"
+          className="mx-auto mb-10 overflow-x-auto chart-scroll-wrap"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-2xl mb-4">
@@ -812,7 +815,7 @@ export default async function PatternsPage() {
 
         {/* Tension matrix */}
         <div
-          className="mx-auto overflow-x-auto"
+          className="mx-auto overflow-x-auto chart-scroll-wrap"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-2xl mb-4">
@@ -874,6 +877,30 @@ export default async function PatternsPage() {
           </p>
         </div>
       </section>
+
+      {/* Mobile refinements. Full+short section-nav labels swap on width;
+          chart containers get a subtle right-edge fade on mobile to cue
+          horizontal swipe when content overflows. */}
+      <style>{`
+        .section-nav-short { display: none; }
+        @media (max-width: 767px) {
+          .section-nav-full { display: none; }
+          .section-nav-short { display: inline; }
+          .chart-scroll-wrap {
+            position: relative;
+          }
+          .chart-scroll-wrap::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 24px;
+            background: linear-gradient(to right, transparent, var(--surface-1));
+            pointer-events: none;
+          }
+        }
+      `}</style>
     </main>
   );
 }

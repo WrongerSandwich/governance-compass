@@ -26,8 +26,10 @@ export function ArchetypeDistribution({
   const sortedRows = [...rows].sort((a, b) => b.count - a.count);
   const maxCount = Math.max(...sortedRows.map((r) => r.count));
 
+  // Drop the "The" prefix — doesn't add information in a chart label,
+  // and freeing 4-5 characters helps bars breathe at narrow viewports.
   const chartRows: HorizontalBarChartRow[] = sortedRows.map((row) => ({
-    label: row.archetypeName,
+    label: row.archetypeName.replace(/^The\s+/, ""),
     value: row.count,
     color: row.clusterColorVar
       ? `var(${row.clusterColorVar})`
