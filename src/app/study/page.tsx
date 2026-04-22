@@ -64,11 +64,11 @@ export default function StudyOverviewPage() {
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Synthetic Study
         </p>
-        <h1 className="text-[clamp(30px,4.5vw,34px)] font-serif font-medium text-text-primary leading-tight mb-6">
+        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6">
           The Synthetic Study
         </h1>
 
-        <p className="text-[15px] text-text-secondary leading-relaxed mb-10">
+        <p className="text-[15px] text-text-secondary leading-relaxed mb-8">
           In April 2026, we asked a language model to generate biographies for 1,002 fictional
           people, administered the Governance Compass to each via two different models, and
           clustered the results. This section makes that dataset available for browsing,
@@ -76,7 +76,7 @@ export default function StudyOverviewPage() {
         </p>
 
         {/* Key figures — atlas-style frontmatter */}
-        <section aria-label="Study at a glance" className="mb-10">
+        <section aria-label="Study at a glance" className="mb-12">
           <dl
             className="grid items-baseline gap-x-6 gap-y-5 border-t border-b border-border-secondary py-5"
             style={{
@@ -112,10 +112,10 @@ export default function StudyOverviewPage() {
           </p>
         </section>
 
-        <div className="space-y-10 text-[15px] text-text-secondary leading-relaxed">
+        <div className="text-[15px] text-text-secondary leading-relaxed">
           {/* Section: How it was built */}
-          <section>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+          <section className="mb-10">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
               How it was built
             </h2>
             <div className="space-y-4">
@@ -144,8 +144,8 @@ export default function StudyOverviewPage() {
           </section>
 
           {/* Section: What this study can support */}
-          <section>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+          <section className="mb-10">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
               What this study can support
             </h2>
             <div className="space-y-4">
@@ -169,8 +169,8 @@ export default function StudyOverviewPage() {
           </section>
 
           {/* Section: What this study cannot support */}
-          <section>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+          <section className="mb-14">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
               What this study cannot support
             </h2>
             <div className="space-y-4">
@@ -197,7 +197,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: Download and explore */}
           <section>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3">
               Download and explore
             </h2>
             <div className="space-y-4">
