@@ -46,7 +46,7 @@ const DEEP_LINKS = [
     number: "02",
     title: "Patterns",
     description:
-      "Cluster characterization, archetype distribution, regional and demographic aggregates, axis-level distributions, correlations.",
+      "How personas cluster in the 12-axis space, how clusters map to the twelve archetypes, and how axis profiles vary by region and demographic.",
   },
   {
     href: "/study/model-agreement",
@@ -64,7 +64,7 @@ export default function StudyOverviewPage() {
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Synthetic Study
         </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-6">
+        <h1 className="text-[clamp(30px,4.5vw,34px)] font-serif font-medium text-text-primary leading-tight mb-6">
           The Synthetic Study
         </h1>
 
@@ -78,8 +78,12 @@ export default function StudyOverviewPage() {
         {/* Key figures — atlas-style frontmatter */}
         <section aria-label="Study at a glance" className="mb-10">
           <dl
-            className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-5 border-t border-b border-border-secondary py-5"
-            style={{ borderTopWidth: "0.5px", borderBottomWidth: "0.5px" }}
+            className="grid items-baseline gap-x-6 gap-y-5 border-t border-b border-border-secondary py-5"
+            style={{
+              borderTopWidth: "0.5px",
+              borderBottomWidth: "0.5px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
+            }}
           >
             {KEY_FIGURES.map((f) => (
               <div key={f.label} className="flex flex-col">
@@ -96,12 +100,14 @@ export default function StudyOverviewPage() {
             <a
               href="/data/synthetic_study_v1.json"
               download
-              className="hover:text-text-secondary transition-colors duration-150"
+              className="underline underline-offset-4 decoration-dotted decoration-border-secondary hover:text-text-secondary hover:decoration-text-tertiary transition-colors duration-150"
             >
-              Full dataset — {fileSizeLabel} JSON{" "}
-              <span aria-hidden="true">↓</span>
+              <span aria-hidden="true">↓</span> Full dataset — {fileSizeLabel}{" "}
+              JSON
             </a>
-            <span aria-hidden="true" className="mx-2 opacity-50">·</span>
+            <span aria-hidden="true" className="mx-2 text-border-secondary">
+              ·
+            </span>
             <span>version {downloadMeta.version}</span>
           </p>
         </section>
@@ -206,25 +212,24 @@ export default function StudyOverviewPage() {
                 </a>
                 . It contains every persona&apos;s demographic attributes, biographical narrative,
                 raw responses from both administering models where applicable, scored axis profile,
-                cluster assignment, and nearest-archetype mapping.
+                cluster assignment, and nearest-archetype mapping. Three pages go deeper:
               </p>
-              <p>From here, three pages go deeper.</p>
             </div>
 
-            <nav aria-label="Synthetic study sections" className="mt-8">
+            <nav aria-label="Synthetic study sections" className="mt-6">
               <ol className="space-y-7">
                 {DEEP_LINKS.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="group flex items-baseline gap-4"
+                      className="group flex items-baseline gap-5"
                     >
-                      <span className="text-[11px] text-text-tertiary tabular-nums font-medium tracking-[0.08em] shrink-0 pt-[2px]">
+                      <span className="text-[14px] text-text-tertiary tabular-nums font-medium shrink-0">
                         {link.number}
                       </span>
                       <span className="flex-1">
                         <span className="flex items-baseline justify-between gap-3">
-                          <span className="text-[18px] font-serif font-medium text-text-primary group-hover:underline decoration-border-secondary underline-offset-4">
+                          <span className="text-[17px] font-serif font-medium text-text-primary group-hover:underline decoration-border-secondary underline-offset-4">
                             {link.title}
                           </span>
                           <span
