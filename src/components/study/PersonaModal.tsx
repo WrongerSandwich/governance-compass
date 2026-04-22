@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { X, ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { X, Users } from "lucide-react";
 import { Radar, DEFAULT_AXIS_LABELS } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
@@ -100,10 +100,13 @@ function ConfidenceDot({
 }: {
   level: "high" | "moderate" | "low";
 }) {
+  // Warning-family ramp — confidence is advisory, not cluster-affinity.
+  // Previous version used cluster colors which collided semantically with
+  // the ClusterBadge + axis-gradient palettes elsewhere on the page.
   const COLOR = {
-    high: "var(--cluster-3)", // sage — good
-    moderate: "var(--warning)",
-    low: "var(--cluster-4)", // clay-rust — concern
+    high: "var(--stone-600)",
+    moderate: "var(--warning-border)",
+    low: "var(--warning)",
   } as const;
 
   const TITLE = {
@@ -150,6 +153,10 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
     value: budget[key] ?? 0,
   }));
 
+  // Pragmatic reuse of the cluster palette — 7 ministry segments need 7
+  // distinct hues, and the cluster tokens happen to provide a coherent
+  // 6-color set within the warm stone family. stone-400 rounds out the
+  // seventh. Not semantically tied to cluster identity here.
   const COLORS = [
     "var(--cluster-5)",
     "var(--cluster-4)",
@@ -271,7 +278,7 @@ function ModalHeader({
     <div
       style={{
         padding: "20px 24px 16px",
-        borderBottom: "1px solid var(--border-secondary)",
+        borderBottom: "0.5px solid var(--border-secondary)",
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "space-between",
@@ -524,7 +531,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
     <div
       style={{
         padding: "20px 24px",
-        borderBottom: "1px solid var(--border-secondary)",
+        borderBottom: "0.5px solid var(--border-secondary)",
       }}
     >
       <div className="bio-layout">
@@ -628,10 +635,13 @@ const AXIS_KEYS = [
 
 type AxisKey = (typeof AXIS_KEYS)[number];
 
+// Severity escalates within the warning family (mild → moderate → strong).
+// Previous version mixed stone-600 and cluster-4 into severity, which read
+// as "moderate tension is the primary brand state" — not what was intended.
 const SEVERITY_COLORS: Record<string, string> = {
-  mild: "var(--warning)",
-  moderate: "var(--stone-600)",
-  strong: "var(--cluster-4)",
+  mild: "var(--warning-border)",
+  moderate: "var(--warning)",
+  strong: "var(--warning-text)",
 };
 
 /** Inline score bar for a single model score value */
@@ -1064,7 +1074,7 @@ function DualModelScoredProfile({
               display: "flex",
               gap: "6px",
               padding: "0 0 6px 0",
-              borderBottom: "1px solid var(--border-secondary)",
+              borderBottom: "0.5px solid var(--border-secondary)",
               marginBottom: "6px",
             }}
           >
@@ -1556,7 +1566,7 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
     <div
       style={{
         padding: "20px 24px",
-        borderBottom: "1px solid var(--border-secondary)",
+        borderBottom: "0.5px solid var(--border-secondary)",
       }}
     >
       <div
@@ -1864,7 +1874,7 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
     <div
       id="modal-raw-responses"
       style={{
-        borderBottom: "1px solid var(--border-secondary)",
+        borderBottom: "0.5px solid var(--border-secondary)",
       }}
     >
       {/* Toggle button */}
@@ -2020,7 +2030,7 @@ function ModalFooter({ id }: { id: string }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        borderTop: "1px solid var(--border-secondary)",
+        borderTop: "0.5px solid var(--border-secondary)",
       }}
     >
       {/* Share */}
@@ -2039,9 +2049,17 @@ function ModalFooter({ id }: { id: string }) {
         {copied ? "Copied" : "Share this persona"}
       </button>
 
-      {/* Prev / Next */}
+      {/* Prev / Next — text-only, matches the Personas pagination pattern. */}
       {filteredIds.length > 1 && (
-        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            alignItems: "baseline",
+            fontSize: "13px",
+            color: "var(--text-tertiary)",
+          }}
+        >
           <button
             onClick={() =>
               hasPrev && navigateTo(filteredIds[currentIndex - 1])
@@ -2050,25 +2068,24 @@ function ModalFooter({ id }: { id: string }) {
             aria-label="Previous persona"
             style={{
               background: "none",
-              border: "1px solid var(--border-primary)",
-              borderRadius: "3px",
-              padding: "4px 8px",
+              border: "none",
+              padding: 0,
               cursor: hasPrev ? "pointer" : "default",
-              color: hasPrev ? "var(--text-secondary)" : "var(--text-tertiary)",
-              display: "flex",
-              alignItems: "center",
+              color: hasPrev
+                ? "var(--text-secondary)"
+                : "var(--border-primary)",
+              fontSize: "13px",
             }}
           >
-            <ChevronLeft size={14} aria-hidden />
+            ← Previous
           </button>
           {currentIndex >= 0 && (
             <span
+              aria-hidden="true"
               style={{
                 fontSize: "11px",
                 color: "var(--text-tertiary)",
                 fontFamily: "var(--font-mono)",
-                minWidth: "60px",
-                textAlign: "center",
               }}
             >
               {currentIndex + 1} / {filteredIds.length}
@@ -2082,16 +2099,16 @@ function ModalFooter({ id }: { id: string }) {
             aria-label="Next persona"
             style={{
               background: "none",
-              border: "1px solid var(--border-primary)",
-              borderRadius: "3px",
-              padding: "4px 8px",
+              border: "none",
+              padding: 0,
               cursor: hasNext ? "pointer" : "default",
-              color: hasNext ? "var(--text-secondary)" : "var(--text-tertiary)",
-              display: "flex",
-              alignItems: "center",
+              color: hasNext
+                ? "var(--text-secondary)"
+                : "var(--border-primary)",
+              fontSize: "13px",
             }}
           >
-            <ChevronRight size={14} aria-hidden />
+            Next →
           </button>
         </div>
       )}
@@ -2259,6 +2276,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
         }}
       >
         <div
+          className="persona-modal-container"
           style={{
             width: "100%",
             maxWidth: "900px",
