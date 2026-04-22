@@ -40,7 +40,7 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 - `src/app/api/` — API routes (includes `/api/study/persona/[id]` for the synthetic study modal)
 - `docs/system_proposal/` — Authoritative specs: design system, scoring engine, results UI, question bank, synthetic study (under `synthetic_study_spec/`)
 - `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` — Governance compass rebuild plan (shipped)
-- `docs/superpowers/plans/2026-04-20-synthetic-study-section.md` — Synthetic study section plan (shipped)
+- `docs/superpowers/plans/2026-04-20-synthetic-study-section.md` — Synthetic study section plan (shipped); the "Deferred / non-blocking backlog" section at the bottom lists consciously-punted follow-ups
 - `src/app/study/` — Synthetic Study section: four public pages (index, /personas, /patterns, /model-agreement) presenting findings from the 1,002-persona AI-generated respondent dataset
 - `src/components/study/` — All visualization and UI components specific to the Synthetic Study section (WorldMap, CorrelationHeatmap, TensionMatrix, PersonaGrid, PersonaModal, etc.)
 - `src/lib/study/` — Study-specific pure logic: data loaders, filter helpers, match-strength buckets, question lookup, types

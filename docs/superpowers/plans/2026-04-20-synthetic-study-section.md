@@ -308,3 +308,27 @@ Each section corresponds 1:1 with `patterns_page.md`. Implement top-to-bottom; t
 - The "narrative insets" prose throughout Patterns and Model Agreement is spec-supplied. Where the spec says "Note for Claude Code: verify against actual data," **actually verify** — the prose direction must match the computed numbers, otherwise rewrite the affected sentence.
 - Modal URL state must layer cleanly over filter state (`?region=…&persona=…&model=…`) without the modal stomping on filters when closed.
 - All visualizations should respect `prefers-reduced-motion` — drop the radar polygon draw-in, drop the modal fade.
+
+---
+
+## Deferred / non-blocking backlog
+
+Items consciously punted during the build. None block shipping. Listed here so they don't fall out of memory.
+
+### Study-specific
+
+- **Country-level density sub-layer on `WorldMap`.** The map spec described a "faint country-level overlay on top of the region fill, using the same five-step density scale at 40% opacity" for countries with n ≥ 10 personas. Prerequisites are in place: `public/geo/world-110m.json` is committed, `country_aggregates.json` is emitted by the build, and `WorldMap.tsx` has a TODO comment at the insertion point (~line 483). Not wired up — currently the density map shows region-level shading only. Adds atlas-style zoom-in-with-your-eye polish to the Personas page and Patterns Section 3a.
+- **`tension_patterns.json` per-model `by_cluster` data.** The pipeline emits `by_cluster` without a model split, so the `TensionMatrix` on Patterns Section 6 shows the same combined rate in both Claude and Gemini rows for every cluster column (caption discloses this). A pipeline re-run that splits per-model would let the matrix show real Claude-vs-Gemini divergence per cluster × axis.
+- **Archetype ID drift permanent fix.** Currently handled via `scripts/data/archetype-remap.ts` at build time and `src/lib/study/archetypeResolution.ts` at runtime, which remap cluster 0 and cluster 1 from their pre-revision IDs (`pragmatic-centrist`, `radical-egalitarian`) to post-revision (`institutional-moderate`, `popular-egalitarian`). A cleaner long-term fix: re-run the cluster→archetype comparison in the pipeline against post-revision `src/data/archetypes.ts` so `archetype_comparison.json` ships with correct IDs directly, eliminating the remap.
+- **Ambiguous multi-region country audit.** `scripts/data/country-region-mapping.ts` resolves conflicts by warn-and-trust-authored. Mexico (→ north_america per majority) is the one case hand-inspected during the build. Russia, Turkey, and a handful of other multi-region countries would benefit from the same one-pass audit in case the "majority" heuristic misfires for them.
+
+### Project-wide
+
+- **E2E Playwright coverage** for the Synthetic Study section. No E2E tests currently exercise the `/study/*` pages. Worth a minimal smoke suite: land on `/study/personas` → apply a region filter → verify URL + grid sync; open a persona modal; toggle Claude/Gemini in a shared persona; pin two personas and open compare. Should run against `npm run dev` in CI.
+- **CI guard against client-side imports of `data/synthetic_study/*`.** A grep/lint rule that fails CI if any file under `src/app/*` (not `src/app/api/*`) or `src/components/*` statically imports from `data/synthetic_study/`. The slim catalog + API route architecture depends on this boundary; a grep guard locks it in.
+- **Visual-regression screenshots** for WorldMap and the Patterns charts. Catches future dark-mode or responsive regressions that type/unit tests miss. Low priority — all current views have been manually verified.
+
+### How to track these going forward
+
+- The only one surfaced in code as a `TODO` is the country sub-layer (`WorldMap.tsx:483`).
+- The others live here. When picking one up, ideally delete the bullet in the same PR that resolves it.
