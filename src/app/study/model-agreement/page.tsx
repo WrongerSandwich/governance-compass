@@ -347,12 +347,12 @@ export default async function ModelAgreementPage() {
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Synthetic Study
         </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-6">
+        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6">
           Model agreement
         </h1>
 
         {/* Intro — verbatim from spec */}
-        <p className="text-[17px] font-serif text-text-secondary leading-relaxed mb-12">
+        <p className="text-[17px] font-serif text-text-secondary leading-relaxed mb-6">
           150 personas were administered the Governance Compass twice — once by
           Claude Sonnet 4.6 and once by Gemini 2.5 Flash. This page compares the
           two sets of scored profiles. Agreement is measured at the axis level
@@ -361,6 +361,37 @@ export default async function ModelAgreementPage() {
           against persona attributes (does the size of disagreement correlate
           with who the persona is?).
         </p>
+
+        {/* Section nav — quiet atlas-style jump list */}
+        <nav
+          aria-label="Sections on this page"
+          className="mb-14 flex flex-wrap items-baseline gap-x-3 gap-y-2 text-[11px] text-text-tertiary"
+          style={{ lineHeight: 1.6 }}
+        >
+          {[
+            { num: "01", label: "Overall", id: "section-1" },
+            { num: "02a", label: "Per-axis correlation", id: "section-2a" },
+            { num: "02b", label: "Directional drift", id: "section-2b" },
+            { num: "03", label: "By attribute", id: "section-3" },
+            { num: "04", label: "Cases", id: "section-4" },
+            { num: "05", label: "Instrument", id: "section-5" },
+          ].map((item, i) => (
+            <span key={item.id} className="flex items-baseline gap-x-3">
+              {i > 0 && (
+                <span aria-hidden="true" className="opacity-50">
+                  ·
+                </span>
+              )}
+              <a
+                href={`#${item.id}`}
+                className="hover:text-text-secondary transition-colors duration-150"
+              >
+                <span className="tabular-nums mr-1.5">{item.num}</span>
+                {item.label}
+              </a>
+            </span>
+          ))}
+        </nav>
       </div>
 
       {/* ------------------------------------------------------------------ */}

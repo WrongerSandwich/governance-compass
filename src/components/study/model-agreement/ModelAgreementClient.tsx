@@ -65,64 +65,30 @@ function driftColor(diff: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Stat tile
+// Stat — atlas-style, rule-framed (no card chrome)
 // ---------------------------------------------------------------------------
 
-function StatTile({
-  label,
+function StatFigure({
   value,
+  label,
   note,
 }: {
-  label: string;
   value: string;
+  label: string;
   note?: string;
 }) {
   return (
-    <div
-      style={{
-        border: "1px solid var(--border-secondary)",
-        borderRadius: "4px",
-        padding: "20px 24px",
-        flex: "1 1 180px",
-        minWidth: "160px",
-        background: "var(--surface-1)",
-      }}
-    >
-      <p
-        style={{
-          fontSize: "10px",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          color: "var(--text-tertiary)",
-          fontFamily: "var(--font-sans)",
-          margin: "0 0 8px",
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontSize: "42px",
-          fontFamily: "var(--font-serif)",
-          fontWeight: 500,
-          color: "var(--text-primary)",
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
+    <div className="flex flex-col">
+      <div className="text-[32px] font-serif font-medium text-text-primary leading-none tabular-nums">
         {value}
-      </p>
+      </div>
+      <div className="text-[10px] uppercase tracking-[0.08em] text-text-tertiary font-medium mt-2">
+        {label}
+      </div>
       {note && (
-        <p
-          style={{
-            fontSize: "11px",
-            color: "var(--text-tertiary)",
-            fontFamily: "var(--font-mono)",
-            margin: "6px 0 0",
-          }}
-        >
+        <div className="text-[11px] text-text-tertiary mt-1 leading-snug">
           {note}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -187,46 +153,50 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       {/* Section 1 — Overall agreement                                       */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-16">
+      <section
+        id="section-1"
+        className="mb-16"
+        style={{ scrollMarginTop: "72px" }}
+      >
         <div className="mx-auto max-w-3xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Overall agreement
           </h2>
         </div>
 
-        {/* Stat tiles + histogram */}
+        {/* Stat figures + histogram */}
         <div
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          {/* Tiles row */}
+          {/* Atlas-style stat row — rules above and below, no card chrome */}
           <div
+            className="grid items-baseline gap-x-8 gap-y-6 border-t border-b border-border-secondary py-6 mb-10"
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "16px",
-              marginBottom: "32px",
+              borderTopWidth: "0.5px",
+              borderBottomWidth: "0.5px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             }}
           >
-            <StatTile
-              label="Mean Euclidean distance"
+            <StatFigure
               value={mean.toFixed(2)}
+              label="Mean Euclidean distance"
               note="across 150 shared personas"
             />
-            <StatTile
-              label="Median distance"
+            <StatFigure
               value={median.toFixed(2)}
+              label="Median distance"
               note={`90th percentile: ${p90.toFixed(2)}`}
             />
-            <StatTile
-              label="Maximum possible"
+            <StatFigure
               value={`√48 ≈ ${sqrtMax.toFixed(2)}`}
+              label="Maximum possible"
               note={`typical ≈ ${pctOfMax}% of max`}
             />
           </div>
 
-          {/* Histogram — full responsive width via viewBox */}
-          <div style={{ maxWidth: "600px" }}>
+          {/* Histogram — centered within its container to avoid orphaned gutter */}
+          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
             <p
               style={{
                 fontSize: "11px",
@@ -291,7 +261,11 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       {/* Section 2a — Per-axis correlation                                   */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-16">
+      <section
+        id="section-2a"
+        className="mb-16"
+        style={{ scrollMarginTop: "72px" }}
+      >
         <div className="mx-auto max-w-3xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Per-axis correlation
@@ -397,20 +371,23 @@ export function ModelAgreementClient({
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Section 2b — Directional drift (callout)                            */}
+      {/* Section 2b — Directional drift (callout: rule-framed)               */}
       {/* ------------------------------------------------------------------ */}
       <section
-        className="mb-16"
+        id="section-2b"
+        className="mb-16 border-t border-b py-10"
         style={{
-          borderLeft: "3px solid var(--warning-border)",
-          background:
-            "color-mix(in oklab, var(--warning-bg) 40%, transparent)",
-          borderRadius: "0 4px 4px 0",
-          padding: "24px 28px",
-          marginLeft: "-3px",
+          scrollMarginTop: "72px",
+          borderTopColor: "var(--warning-border)",
+          borderBottomColor: "var(--warning-border)",
+          borderTopWidth: "0.5px",
+          borderBottomWidth: "0.5px",
         }}
       >
         <div className="mx-auto max-w-3xl mb-8">
+          <p className="text-[10px] uppercase tracking-[0.1em] text-warning-text font-medium mb-2">
+            Load-bearing finding
+          </p>
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Directional drift
           </h2>
@@ -540,7 +517,11 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       {/* Section 3 — Where disagreement concentrates                         */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-16">
+      <section
+        id="section-3"
+        className="mb-16"
+        style={{ scrollMarginTop: "72px" }}
+      >
         <div className="mx-auto max-w-3xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Where disagreement concentrates
@@ -638,7 +619,11 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       {/* Section 4 — Individual cases                                        */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-16">
+      <section
+        id="section-4"
+        className="mb-16"
+        style={{ scrollMarginTop: "72px" }}
+      >
         <div className="mx-auto max-w-3xl mb-8">
           <h2 className="text-[22px] font-serif font-medium text-text-primary">
             Individual cases
@@ -676,7 +661,11 @@ export function ModelAgreementClient({
       {/* ------------------------------------------------------------------ */}
       {/* Section 5 — What this means for the instrument                      */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-16">
+      <section
+        id="section-5"
+        className="mb-16"
+        style={{ scrollMarginTop: "72px" }}
+      >
         <div className="mx-auto max-w-3xl">
           <h2 className="text-[22px] font-serif font-medium text-text-primary mb-8">
             What this means for the instrument

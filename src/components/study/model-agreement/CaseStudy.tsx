@@ -142,7 +142,7 @@ export function CaseStudy({
         <div>
           <p
             style={{
-              fontSize: "15px",
+              fontSize: "14px",
               fontFamily: "var(--font-serif)",
               fontWeight: 500,
               color: "var(--text-primary)",
@@ -153,9 +153,10 @@ export function CaseStudy({
           </p>
           <p
             style={{
-              fontSize: "11px",
-              fontFamily: "var(--font-mono)",
+              fontSize: "12px",
+              fontFamily: "var(--font-sans)",
               color: "var(--text-tertiary)",
+              letterSpacing: "0.01em",
               margin: "0 0 12px",
             }}
           >
@@ -163,7 +164,7 @@ export function CaseStudy({
           </p>
           <p
             style={{
-              fontSize: "13px",
+              fontSize: "14px",
               fontFamily: "var(--font-serif)",
               color: "var(--text-secondary)",
               lineHeight: 1.65,
@@ -233,7 +234,7 @@ export function CaseStudy({
           </p>
           <p
             style={{
-              fontSize: "13px",
+              fontSize: "14px",
               fontFamily: "var(--font-serif)",
               color: "var(--text-secondary)",
               lineHeight: 1.65,
