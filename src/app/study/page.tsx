@@ -25,21 +25,32 @@ function formatFileSize(bytes: number): string {
 
 const fileSizeLabel = formatFileSize(downloadMeta.fileSizeBytes);
 
+const KEY_FIGURES = [
+  { n: "1,002", label: "Personas" },
+  { n: "1,152", label: "Administrations" },
+  { n: "150", label: "Shared" },
+  { n: "6", label: "Clusters" },
+  { n: "12", label: "Archetypes" },
+];
+
 const DEEP_LINKS = [
   {
     href: "/study/personas",
+    number: "01",
     title: "Personas",
     description:
       "Browse all 1,002 individually, filter by region or attribute, view full profiles.",
   },
   {
     href: "/study/patterns",
+    number: "02",
     title: "Patterns",
     description:
       "Cluster characterization, archetype distribution, regional and demographic aggregates, axis-level distributions, correlations.",
   },
   {
     href: "/study/model-agreement",
+    number: "03",
     title: "Model Agreement",
     description:
       "Where Claude and Gemini converged, where they split, and on which axes the split patterns with persona attributes.",
@@ -49,23 +60,53 @@ const DEEP_LINKS = [
 export default function StudyOverviewPage() {
   return (
     <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-2xl">
+      <article className="mx-auto max-w-xl">
         <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
           Synthetic Study
         </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-8">
+        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-6">
           The Synthetic Study
         </h1>
 
-        <div className="space-y-10 text-sm text-text-secondary leading-relaxed">
-          {/* Intro paragraph */}
-          <p>
-            In April 2026, we asked a language model to generate biographies for 1,002 fictional
-            people, administered the Governance Compass to each via two different models, and
-            clustered the results. This section makes that dataset available for browsing,
-            analysis, and download.
-          </p>
+        <p className="text-[15px] text-text-secondary leading-relaxed mb-10">
+          In April 2026, we asked a language model to generate biographies for 1,002 fictional
+          people, administered the Governance Compass to each via two different models, and
+          clustered the results. This section makes that dataset available for browsing,
+          analysis, and download.
+        </p>
 
+        {/* Key figures — atlas-style frontmatter */}
+        <section aria-label="Study at a glance" className="mb-10">
+          <dl
+            className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-5 border-t border-b border-border-secondary py-5"
+            style={{ borderTopWidth: "0.5px", borderBottomWidth: "0.5px" }}
+          >
+            {KEY_FIGURES.map((f) => (
+              <div key={f.label} className="flex flex-col">
+                <dt className="text-[28px] font-serif font-medium text-text-primary leading-none tabular-nums">
+                  {f.n}
+                </dt>
+                <dd className="text-[10px] uppercase tracking-[0.08em] text-text-tertiary font-medium mt-1.5">
+                  {f.label}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-[12px] text-text-tertiary">
+            <a
+              href="/data/synthetic_study_v1.json"
+              download
+              className="hover:text-text-secondary transition-colors duration-150"
+            >
+              Full dataset — {fileSizeLabel} JSON{" "}
+              <span aria-hidden="true">↓</span>
+            </a>
+            <span aria-hidden="true" className="mx-2 opacity-50">·</span>
+            <span>version {downloadMeta.version}</span>
+          </p>
+        </section>
+
+        <div className="space-y-10 text-[15px] text-text-secondary leading-relaxed">
           {/* Section: How it was built */}
           <section>
             <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
@@ -159,38 +200,49 @@ export default function StudyOverviewPage() {
                 <a
                   href="/data/synthetic_study_v1.json"
                   download
-                  className="font-medium text-text-primary underline underline-offset-2 decoration-border-secondary hover:text-text-secondary transition-colors duration-150"
+                  className="text-text-secondary underline underline-offset-2 decoration-border-secondary hover:text-text-primary transition-colors duration-150"
                 >
-                  Download the dataset ({fileSizeLabel})
+                  download the dataset ({fileSizeLabel})
                 </a>
                 . It contains every persona&apos;s demographic attributes, biographical narrative,
                 raw responses from both administering models where applicable, scored axis profile,
                 cluster assignment, and nearest-archetype mapping.
               </p>
-              <p>From here, three pages go deeper:</p>
+              <p>From here, three pages go deeper.</p>
             </div>
 
-            <div className="mt-6 space-y-3">
-              {DEEP_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="flex items-start justify-between rounded-[8px] border border-border-secondary px-5 py-4 hover:bg-surface-2 transition-colors duration-150 group"
-                >
-                  <div>
-                    <h3 className="text-[17px] font-serif font-medium text-text-primary mb-1">
-                      {link.title}
-                    </h3>
-                    <p className="text-sm text-text-secondary leading-relaxed">
-                      {link.description}
-                    </p>
-                  </div>
-                  <span className="ml-4 mt-1 text-text-tertiary group-hover:text-text-secondary transition-colors duration-150 shrink-0">
-                    &rarr;
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <nav aria-label="Synthetic study sections" className="mt-8">
+              <ol className="space-y-7">
+                {DEEP_LINKS.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="group flex items-baseline gap-4"
+                    >
+                      <span className="text-[11px] text-text-tertiary tabular-nums font-medium tracking-[0.08em] shrink-0 pt-[2px]">
+                        {link.number}
+                      </span>
+                      <span className="flex-1">
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="text-[18px] font-serif font-medium text-text-primary group-hover:underline decoration-border-secondary underline-offset-4">
+                            {link.title}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className="text-text-tertiary group-hover:text-text-secondary transition-colors duration-150 shrink-0"
+                          >
+                            →
+                          </span>
+                        </span>
+                        <span className="block text-[14px] text-text-secondary leading-relaxed mt-1">
+                          {link.description}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </nav>
           </section>
         </div>
       </article>
