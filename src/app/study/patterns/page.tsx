@@ -35,7 +35,7 @@ interface ClusterNarrativesFile {
   clusters: ClusterNarrative[];
 }
 
-interface ClusterCentroidsFile extends Array<ClusterCentroid> {}
+type ClusterCentroidsFile = ClusterCentroid[];
 
 interface AxisHistogramBin {
   min: number;

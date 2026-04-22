@@ -60,12 +60,9 @@ function writeJson(filePath: string, data: unknown): void {
 }
 
 // ---------------------------------------------------------------------------
-// Archetype emergence lookup — derived from src/data/archetypes.ts at build time
+// Archetype name lookup — derived from src/data/archetypes.ts at build time.
+// Emergence tags are supplied by the post-revision remap helper.
 // ---------------------------------------------------------------------------
-
-const ARCHETYPE_EMERGENCE: Record<string, string> = Object.fromEntries(
-  archetypes.map((a) => [a.id, a.emergence])
-);
 
 const ARCHETYPE_NAMES: Record<string, string> = Object.fromEntries(
   archetypes.map((a) => [a.id, a.name])

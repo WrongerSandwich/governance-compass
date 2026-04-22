@@ -4,7 +4,7 @@
  * by WorldMap.tsx.
  */
 declare module "react-simple-maps" {
-  import type { ComponentProps, FC, ReactNode, SVGProps } from "react";
+  import type { FC, ReactNode, SVGProps } from "react";
 
   export interface ComposableMapProps extends SVGProps<SVGSVGElement> {
     projection?: string;

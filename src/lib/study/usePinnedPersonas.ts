@@ -31,18 +31,6 @@ export function usePinnedPersonas(): {
 
   const canPin = pinned.length < 4;
 
-  // Build a new URLSearchParams that preserves all existing params,
-  // then sets (or deletes) the `compare` key.
-  function buildParams(newPinned: string[]): URLSearchParams {
-    const next = new URLSearchParams(searchParams.toString());
-    if (newPinned.length > 0) {
-      next.set("compare", newPinned.join(","));
-    } else {
-      next.delete("compare");
-    }
-    return next;
-  }
-
   const togglePin = useCallback(
     (id: string) => {
       const currentCompare = searchParams.get("compare") ?? "";
