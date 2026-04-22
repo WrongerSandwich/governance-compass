@@ -183,7 +183,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
     (region: RegionKey, e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (mode.type !== "interactive") {
-        // Mobile tap-to-peek on static modes
+        // Static modes: tap-to-peek — local state only
         setMobileTooltip(buildTooltip(region, mode));
         return;
       }
@@ -192,11 +192,28 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
       } else {
         mode.onRegionSelect(region);
       }
-      // Mobile tooltip for interactive mode too
-      setMobileTooltip(buildTooltip(region, mode));
+      // In interactive mode, the mobile tooltip is synced to
+      // mode.selectedRegion by the effect below — don't set it here.
     },
     [mode]
   );
+
+  // Interactive mode: keep the below-map mobile tooltip in sync with the
+  // externally-controlled selectedRegion. Without this, selecting a region
+  // via the chip row (outside the map) would leave a stale tooltip below
+  // and clearing the selection wouldn't hide it. For static modes the
+  // tooltip remains a pure tap-to-peek local state.
+  const activeSelection =
+    mode.type === "interactive" ? mode.selectedRegion : null;
+  useEffect(() => {
+    if (mode.type !== "interactive") return;
+    setMobileTooltip(
+      activeSelection ? buildTooltip(activeSelection, mode) : null
+    );
+    // `mode` is captured at render time; we only want to resync when the
+    // selection itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSelection, mode.type]);
 
   const handleKeyDown = useCallback(
     (region: RegionKey, e: React.KeyboardEvent) => {
