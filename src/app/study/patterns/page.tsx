@@ -394,7 +394,7 @@ export default async function PatternsPage() {
       {/* ------------------------------------------------------------------ */}
       <section
         id="section-2"
-        className="mb-16"
+        className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-2xl mb-8">
@@ -458,11 +458,14 @@ export default async function PatternsPage() {
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          {/* Maps side-by-side on desktop, stacked on mobile */}
+          {/* Maps side-by-side on desktop, stacked on mobile.
+              auto-fit collapses empty tracks so 2 maps fill the row
+              cleanly at wider viewports (auto-fill would leave an
+              empty third track at ≥1040px). */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
               gap: "24px",
             }}
           >
@@ -706,7 +709,7 @@ export default async function PatternsPage() {
       {/* ------------------------------------------------------------------ */}
       <section
         id="section-5"
-        className="mb-16"
+        className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-2xl mb-8">
@@ -824,8 +827,7 @@ export default async function PatternsPage() {
               }}
             >
               Tension rate by axis × cluster. Overall column splits
-              Claude/Gemini; cluster columns show a model-combined rate
-              (same value shown in both rows).
+              Claude/Gemini; cluster columns show a model-combined rate.
             </p>
           </div>
           <TensionMatrix
