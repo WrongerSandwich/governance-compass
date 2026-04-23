@@ -44,9 +44,10 @@ function generateRandomResponses(): QuizResponses {
 const btnClass = "rounded-[6px] border border-border-primary bg-surface-1 px-2.5 py-1 text-[10px] text-text-tertiary hover:text-text-secondary transition-colors duration-150";
 
 export function DevRandomResults() {
-
-  // TODO: re-enable this guard before launch
-  // if (process.env.NODE_ENV === "production") return null;
+  // Hide in production only. NEXT_PUBLIC_VERCEL_ENV is inlined by Next.js at
+  // build time and set to "production" / "preview" / "development" by Vercel.
+  // Local `npm run dev` leaves it undefined — testing UI stays visible.
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "production") return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-1.5">

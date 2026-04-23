@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: [],
     pool: "vmForks",
     teardownTimeout: 5000,
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "scripts/__tests__/**/*.test.ts"],
     watch: false,
     fileParallelism: false,
     server: {

@@ -51,6 +51,36 @@
   /* --- Focus --- */
   --focus-ring: var(--stone-600);
 
+  /* --- Cluster colors (synthetic study section only) --- */
+  --cluster-0: #cdbfb2; /* Stone 300 — central/balanced */
+  --cluster-1: #c1a7a1; /* Clay 400 */
+  --cluster-2: #85735e; /* Stone 600 — brand tone */
+  --cluster-3: #94a488; /* Sage 400 */
+  --cluster-4: #a87060; /* Clay-rust — warmer/saturated Clay */
+  --cluster-5: #6b7d8a; /* Slate 600 */
+
+  /* --- Map tokens (synthetic study section only) --- */
+  --map-no-data: #f1ece6;   /* Faint stone — unmapped countries (keeps the globe visually complete) */
+  --map-density-0: #e6dbce; /* Darker than no-data so Oceania etc. are visibly distinct from non-persona land */
+  --map-density-1: #d9cabb; /* Stone 250 */
+  --map-density-2: #b5a594; /* Stone 400 */
+  --map-density-3: #85735e; /* Stone 600 */
+  --map-density-4: #5a4636; /* Stone 800 */
+  --map-border: #b5a594;    /* Stone 400, used at 0.5px stroke */
+  --map-hover: #5a4636;     /* Stone 800 */
+  --map-accent: #8B6914;    /* Warm gold — glossary-highlight */
+
+  /* --- Axis-gradient tokens (synthetic study section only) --- */
+  --axis-gradient-positive-strong: #8B5E3C; /* warm terracotta/clay — score ≥ 0.3 */
+  --axis-gradient-positive-mild:   #B8836B; /* lighter warm — 0.0 to 0.3 */
+  --axis-gradient-neutral:         #e0d6cc; /* pale stone — near 0 (matches map-density-1) */
+  --axis-gradient-negative-mild:   #8BA3B0; /* light cool — -0.3 to 0 */
+  --axis-gradient-negative-strong: #5B7A8A; /* slate — ≤ -0.3 */
+
+  /* --- Model tones (synthetic study section only) --- */
+  --model-claude: #8c6e58;  /* Stone/Clay blend close to Stone 600 */
+  --model-gemini: #7a8e96;  /* Cooler slate/sage tone */
+
   /* --- Contextual (light mode) --- */
   --contour-opacity: 0.08;
 }
@@ -72,6 +102,36 @@
     --warning-bg:     #451a03;
     --warning-text:   #fbbf24;
     --warning-border: #92400e;
+
+    /* --- Cluster colors (dark mode) --- */
+    --cluster-0: #9d8b78; /* Stone 500 — muted/balanced in dark */
+    --cluster-1: #a88880; /* Clay-dark */
+    --cluster-2: #b5a594; /* Stone 400 — lighter for contrast on dark */
+    --cluster-3: #7a8b6e; /* Sage 600 */
+    --cluster-4: #c07060; /* Clay-rust lifted for dark */
+    --cluster-5: #8096a4; /* Slate lifted */
+
+    /* --- Map tokens (dark mode) --- */
+    --map-no-data: #241c14;   /* Slightly darker than surface-1; unmapped land is faintly present */
+    --map-density-0: #3d2e1f; /* Clearly above background for low-coverage regions (Oceania, etc.) */
+    --map-density-1: #54402c; /* Between old 0 and 1 */
+    --map-density-2: #6e5a48; /* Stone 700 */
+    --map-density-3: #9d8b78; /* Stone 500 */
+    --map-density-4: #cdbfb2; /* Stone 300 */
+    --map-border: #5a4636;    /* Stone 800 */
+    --map-hover: #cdbfb2;     /* Stone 300 */
+    --map-accent: #c49a2e;    /* Warm gold lifted for dark */
+
+    /* --- Axis-gradient tokens (dark mode) --- */
+    --axis-gradient-positive-strong: #b07050; /* clay lifted for dark contrast */
+    --axis-gradient-positive-mild:   #c89882; /* lighter warm lifted */
+    --axis-gradient-neutral:         #3d2e1f; /* Stone-900 (matches map-density-1) */
+    --axis-gradient-negative-mild:   #6a8898; /* cool slate lifted */
+    --axis-gradient-negative-strong: #4a6878; /* deeper slate lifted */
+
+    /* --- Model tones (dark mode) --- */
+    --model-claude: #b09278;  /* Stone/Clay lifted */
+    --model-gemini: #8aa0ac;  /* Slate/Sage lifted */
 
     --contour-opacity: 0.05;
   }

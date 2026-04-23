@@ -23,6 +23,7 @@ npm run dev
   - If the container doesn't exist: `docker run -d --name political-platform-db -e POSTGRES_USER=ppuser -e POSTGRES_PASSWORD=ppdevpass -e POSTGRES_DB=political_platform -p 5433:5432 postgres:16-alpine`
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
+- **Synthetic Study preprocessing:** `npm run build:study` and `npm run build:geo` preprocess synthetic study data — run before dev if `data/synthetic_study/` files changed
 
 ## Testing
 
@@ -36,9 +37,18 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 - `src/lib/` — Pure logic: scoring, scoring-types, comparison, validation, auth, db, design-tokens
 - `src/data/` — Axis, item, ministry, and archetype definitions (edit these to change quiz content)
 - `src/components/` — React components organized by feature (quiz, results, comparison, groups, annotations) plus shared NavBar, ReturningUserLink, SessionProvider
-- `src/app/api/` — API routes
-- `docs/system_proposal/` — Authoritative specs: design system, scoring engine, results UI, question bank
-- `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` — Current implementation plan
+- `src/app/api/` — API routes (includes `/api/study/persona/[id]` for the synthetic study modal)
+- `docs/system_proposal/` — Authoritative specs: design system, scoring engine, results UI, question bank, synthetic study (under `synthetic_study_spec/`)
+- `docs/superpowers/plans/2026-03-27-governance-compass-rebuild.md` — Governance compass rebuild plan (shipped)
+- `docs/superpowers/plans/2026-04-20-synthetic-study-section.md` — Synthetic study section plan (shipped); the "Deferred / non-blocking backlog" section at the bottom lists consciously-punted follow-ups
+- `src/app/study/` — Synthetic Study section: four public pages (index, /personas, /patterns, /model-agreement) presenting findings from the 1,002-persona AI-generated respondent dataset
+- `src/components/study/` — All visualization and UI components specific to the Synthetic Study section (WorldMap, CorrelationHeatmap, TensionMatrix, PersonaGrid, PersonaModal, etc.)
+- `src/lib/study/` — Study-specific pure logic: data loaders, filter helpers, match-strength buckets, question lookup, types
+- `data/synthetic_study/` — Raw pipeline outputs for the synthetic study (personas, scored profiles, cluster labels, model agreement, tension patterns). Do not modify — regenerate upstream.
+- `public/study/derived/` — Build-time preprocessed JSON consumed by the pages (slim catalog, regional/demographic aggregates, axis histograms, correlation matrix, case-study picks). Regenerated via `npm run build:study`.
+- `public/data/synthetic_study_v1.json` — The ~14 MB public download JSON, assembled at build time.
+- `public/geo/` — Natural Earth TopoJSON + derived region-level file used by WorldMap. Regenerated via `npm run build:geo`.
+- `scripts/build-synthetic-study.ts` / `scripts/build-geo.ts` — Build-time preprocessing pipelines with integrity checks.
 
 ## Architecture Notes
 
@@ -46,8 +56,10 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 - Quiz state persists to sessionStorage — users can refresh or leave and resume where they left off. Phase 1 and 2 support skipping questions; the scoring engine treats unanswered items as neutral (0).
 - Quiz completion encodes all 67 responses (36 FC + 24 SC + 7 budget) into a ~32-char base64url string and navigates to `/results?r=<encoded>`. Results are computed client-side — no database write for anonymous users. The codec (v3) is in `src/lib/response-codec.ts`.
 - Database profiles are created on demand via `POST /api/profile/materialize` when users save to account, join a group, or create an annotation. All materialized profiles are linked to authenticated users.
-- The nav bar shows Quiz, Results (conditional on localStorage), Methodology, and Axes links. Account/auth UI is hidden for v1 but the infrastructure exists (sign in/out, save to account via materialize endpoint).
+- The nav bar shows Quiz (or Results, conditional on localStorage — mutually exclusive) plus a "Research" dropdown grouping Methodology, Synthetic Study, and References. Account/auth UI is hidden for v1 but the infrastructure exists (sign in/out, save to account via materialize endpoint). Sub-pages of Research (Reference children at `/axes`, `/questions`, `/archetypes`; study children at `/study/*`) use a linked `← Section` kicker at the top as a breadcrumb back to the section landing.
 - Groups resolve membership by invite code only (no group ID needed to join).
+- **Synthetic Study section** (`/study/*`): four pages consume build-time-preprocessed JSON from `public/study/derived/`. The source data at `data/synthetic_study/` is never imported into a client bundle — the per-persona modal fetches detail from `GET /api/study/persona/[id]` which reads source files server-side with module-scope caching. The build script `scripts/build-synthetic-study.ts` runs on `prebuild`, emits all derived files, assembles the public download, and fails the build on integrity violations. A parallel `scripts/build-geo.ts` produces the region-level TopoJSON from Natural Earth countries + a country-to-region mapping authored in `scripts/data/`.
+- **URL state on `/study/personas`**: every filter (region, cluster, archetype, governance, economic, urban_rural, education, age range, gender, shared-persona status, search, sort, page) lives in the URL. The compare flow uses `?compare=P0001,P0042,...` (pins) and `?compareView=open` (display). Modal deep-links use `?persona=<id>&model=claude|gemini`. Cross-page navigation within `/study/*` preserves filter state via sessionStorage mirror (key: `study:filters`).
 
 ## Design Context
 

@@ -1,0 +1,194 @@
+[
+  {
+    "attribute": "region",
+    "category": "western_europe",
+    "n": 20,
+    "mean_distance": 1.11210639569518
+  },
+  {
+    "attribute": "region",
+    "category": "eastern_europe_central_asia",
+    "n": 17,
+    "mean_distance": 1.7925010230095682
+  },
+  {
+    "attribute": "region",
+    "category": "north_america",
+    "n": 13,
+    "mean_distance": 1.3250549048351155
+  },
+  {
+    "attribute": "region",
+    "category": "latin_america",
+    "n": 17,
+    "mean_distance": 1.4129917973879789
+  },
+  {
+    "attribute": "region",
+    "category": "east_asia",
+    "n": 17,
+    "mean_distance": 1.2559848942840202
+  },
+  {
+    "attribute": "region",
+    "category": "south_southeast_asia",
+    "n": 20,
+    "mean_distance": 1.6664893797618803
+  },
+  {
+    "attribute": "region",
+    "category": "middle_east_north_africa",
+    "n": 17,
+    "mean_distance": 1.411265722659455
+  },
+  {
+    "attribute": "region",
+    "category": "sub_saharan_africa",
+    "n": 16,
+    "mean_distance": 1.8331940799511313
+  },
+  {
+    "attribute": "region",
+    "category": "oceania_small_states",
+    "n": 5,
+    "mean_distance": 1.9607970654589182
+  },
+  {
+    "attribute": "region",
+    "category": "diaspora_transnational",
+    "n": 8,
+    "mean_distance": 1.8912360420830625
+  },
+  {
+    "attribute": "urban_rural",
+    "category": "rural",
+    "n": 40,
+    "mean_distance": 1.3510962389125807
+  },
+  {
+    "attribute": "urban_rural",
+    "category": "urban",
+    "n": 77,
+    "mean_distance": 1.5145254229267147
+  },
+  {
+    "attribute": "urban_rural",
+    "category": "peri_urban",
+    "n": 33,
+    "mean_distance": 1.7041496826700626
+  },
+  {
+    "attribute": "economic_position",
+    "category": "middle_class",
+    "n": 47,
+    "mean_distance": 1.4800166298195339
+  },
+  {
+    "attribute": "economic_position",
+    "category": "working_class",
+    "n": 46,
+    "mean_distance": 1.434441742419909
+  },
+  {
+    "attribute": "economic_position",
+    "category": "struggling",
+    "n": 40,
+    "mean_distance": 1.6795049162210234
+  },
+  {
+    "attribute": "economic_position",
+    "category": "affluent",
+    "n": 13,
+    "mean_distance": 1.6443279926275984
+  },
+  {
+    "attribute": "economic_position",
+    "category": "wealthy",
+    "n": 4,
+    "mean_distance": 0.6994210860346736
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "stable_democracy",
+    "n": 50,
+    "mean_distance": 1.1605104203754306
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "flawed_democracy",
+    "n": 45,
+    "mean_distance": 1.7028899659862424
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "hybrid_regime",
+    "n": 14,
+    "mean_distance": 1.750395559516368
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "authoritarian_state",
+    "n": 23,
+    "mean_distance": 1.5314277604470954
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "conflict_zone",
+    "n": 13,
+    "mean_distance": 1.859216066944182
+  },
+  {
+    "attribute": "governance_experience",
+    "category": "colonial_post_colonial_transition",
+    "n": 5,
+    "mean_distance": 1.6690983936066321
+  },
+  {
+    "attribute": "education",
+    "category": "university",
+    "n": 51,
+    "mean_distance": 1.4162361100199843
+  },
+  {
+    "attribute": "education",
+    "category": "secondary",
+    "n": 49,
+    "mean_distance": 1.5786646666326047
+  },
+  {
+    "attribute": "education",
+    "category": "primary",
+    "n": 31,
+    "mean_distance": 1.4812977990423344
+  },
+  {
+    "attribute": "education",
+    "category": "none",
+    "n": 8,
+    "mean_distance": 1.5680338184816418
+  },
+  {
+    "attribute": "education",
+    "category": "postgraduate",
+    "n": 11,
+    "mean_distance": 1.7138303687081808
+  },
+  {
+    "attribute": "gender",
+    "category": "female",
+    "n": 67,
+    "mean_distance": 1.603316147337183
+  },
+  {
+    "attribute": "gender",
+    "category": "male",
+    "n": 73,
+    "mean_distance": 1.4530288035633028
+  },
+  {
+    "attribute": "gender",
+    "category": "non_binary",
+    "n": 10,
+    "mean_distance": 1.3405962118259942
+  }
+]

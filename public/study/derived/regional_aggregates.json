@@ -1,0 +1,452 @@
+[
+  {
+    "region": "western_europe",
+    "count": 134,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 51
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 34
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 25
+      }
+    ],
+    "dominant_cluster": 2,
+    "dominant_cluster_share": 0.3805970149253731,
+    "mean_axis_scores": [
+      -0.6384794776119401,
+      0.1478164179104478,
+      -0.1649253731343283,
+      0.023972388059701498,
+      -0.49315671641791053,
+      -0.4815652985074628,
+      -0.02313432835820898,
+      0.22985074626865673,
+      0.0421641791044776,
+      0.15174738805970148,
+      -0.5803660447761196,
+      -0.45348358208955236
+    ],
+    "cluster_distribution": {
+      "0": 0.1865671641791045,
+      "1": 0.11194029850746269,
+      "2": 0.3805970149253731,
+      "3": 0.05223880597014925,
+      "4": 0.2537313432835821,
+      "5": 0.014925373134328358
+    }
+  },
+  {
+    "region": "eastern_europe_central_asia",
+    "count": 111,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 41
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 31
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 17
+      }
+    ],
+    "dominant_cluster": 2,
+    "dominant_cluster_share": 0.36936936936936937,
+    "mean_axis_scores": [
+      -0.31900810810810826,
+      0.3893846846846844,
+      0.013063063063063068,
+      0.01125360360360361,
+      -0.18178063063063063,
+      -0.22093513513513519,
+      0.07207207207207206,
+      0.4288288288288287,
+      0.2599099099099099,
+      0.27202837837837845,
+      -0.026597297297297293,
+      -0.2861963963963964
+    ],
+    "cluster_distribution": {
+      "0": 0.27927927927927926,
+      "1": 0.07207207207207207,
+      "2": 0.36936936936936937,
+      "3": 0.04504504504504504,
+      "4": 0.08108108108108109,
+      "5": 0.15315315315315314
+    }
+  },
+  {
+    "region": "north_america",
+    "count": 89,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 32
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 25
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 13
+      }
+    ],
+    "dominant_cluster": 4,
+    "dominant_cluster_share": 0.3595505617977528,
+    "mean_axis_scores": [
+      -0.46601011235955053,
+      0.15463820224719102,
+      -0.4808988764044945,
+      -0.1539157303370786,
+      -0.46551011235955037,
+      -0.46859550561797736,
+      -0.06067415730337082,
+      -0.1455056179775281,
+      -0.13595505617977546,
+      0.2443348314606742,
+      -0.5177286516853934,
+      -0.34656460674157313
+    ],
+    "cluster_distribution": {
+      "0": 0.0898876404494382,
+      "1": 0.14606741573033707,
+      "2": 0.2808988764044944,
+      "3": 0.0898876404494382,
+      "4": 0.3595505617977528,
+      "5": 0.033707865168539325
+    }
+  },
+  {
+    "region": "latin_america",
+    "count": 112,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 32
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 31
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 19
+      }
+    ],
+    "dominant_cluster": 1,
+    "dominant_cluster_share": 0.2857142857142857,
+    "mean_axis_scores": [
+      -0.5977910714285716,
+      0.09576919642857144,
+      -0.3723214285714286,
+      -0.22391071428571438,
+      -0.5814035714285716,
+      -0.4455361607142856,
+      -0.18080357142857137,
+      -0.23348214285714278,
+      -0.28437500000000016,
+      0.19131696428571424,
+      -0.7088375000000001,
+      -0.3820352678571431
+    ],
+    "cluster_distribution": {
+      "0": 0.09821428571428571,
+      "1": 0.2857142857142857,
+      "2": 0.16964285714285715,
+      "3": 0.15178571428571427,
+      "4": 0.2767857142857143,
+      "5": 0.017857142857142856
+    }
+  },
+  {
+    "region": "east_asia",
+    "count": 112,
+    "top_archetypes": [
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 35
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 19
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 18
+      }
+    ],
+    "dominant_cluster": 5,
+    "dominant_cluster_share": 0.3125,
+    "mean_axis_scores": [
+      -0.4704888392857144,
+      0.2404558035714284,
+      0.03705357142857145,
+      0.049329017857142866,
+      -0.07644464285714288,
+      -0.09734776785714286,
+      0.03794642857142859,
+      0.2691964285714286,
+      -0.057589285714285725,
+      0.4121089285714287,
+      -0.26317232142857144,
+      -0.19310312499999988
+    ],
+    "cluster_distribution": {
+      "0": 0.16964285714285715,
+      "1": 0.08035714285714286,
+      "2": 0.14285714285714285,
+      "3": 0.13392857142857142,
+      "4": 0.16071428571428573,
+      "5": 0.3125
+    }
+  },
+  {
+    "region": "south_southeast_asia",
+    "count": 133,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 28
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 24
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 22
+      }
+    ],
+    "dominant_cluster": 1,
+    "dominant_cluster_share": 0.21052631578947367,
+    "mean_axis_scores": [
+      -0.46605187969924833,
+      0.22273496240601487,
+      -0.193984962406015,
+      -0.09102894736842107,
+      -0.2983620300751879,
+      -0.17092218045112775,
+      -0.035714285714285705,
+      -0.017293233082706784,
+      -0.09548872180451137,
+      0.2273319548872181,
+      -0.5679466165413534,
+      -0.30647180451127837
+    ],
+    "cluster_distribution": {
+      "0": 0.18045112781954886,
+      "1": 0.21052631578947367,
+      "2": 0.12781954887218044,
+      "3": 0.16541353383458646,
+      "4": 0.16541353383458646,
+      "5": 0.15037593984962405
+    }
+  },
+  {
+    "region": "middle_east_north_africa",
+    "count": 111,
+    "top_archetypes": [
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 40
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 23
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 19
+      }
+    ],
+    "dominant_cluster": 5,
+    "dominant_cluster_share": 0.36036036036036034,
+    "mean_axis_scores": [
+      -0.4405243243243246,
+      0.4029405405405404,
+      -0.012162162162162147,
+      0.007409459459459462,
+      0.020837837837837853,
+      0.21107072072072072,
+      0.0896396396396397,
+      0.1851351351351351,
+      0.09594594594594592,
+      0.41790855855855863,
+      -0.39084909909909926,
+      -0.23292477477477477
+    ],
+    "cluster_distribution": {
+      "0": 0.06306306306306306,
+      "1": 0.2072072072072072,
+      "2": 0.17117117117117117,
+      "3": 0.09009009009009009,
+      "4": 0.10810810810810811,
+      "5": 0.36036036036036034
+    }
+  },
+  {
+    "region": "sub_saharan_africa",
+    "count": 111,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 36
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 19
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 16
+      }
+    ],
+    "dominant_cluster": 1,
+    "dominant_cluster_share": 0.32432432432432434,
+    "mean_axis_scores": [
+      -0.4937333333333333,
+      0.2483644144144143,
+      -0.23018018018018005,
+      -0.1881572072072073,
+      -0.19663153153153157,
+      -0.19417477477477477,
+      -0.09414414414414413,
+      -0.05180180180180175,
+      -0.23873873873873896,
+      0.2144,
+      -0.4864076576576579,
+      -0.2535279279279279
+    ],
+    "cluster_distribution": {
+      "0": 0.14414414414414414,
+      "1": 0.32432432432432434,
+      "2": 0.13513513513513514,
+      "3": 0.17117117117117117,
+      "4": 0.0990990990990991,
+      "5": 0.12612612612612611
+    }
+  },
+  {
+    "region": "oceania_small_states",
+    "count": 33,
+    "top_archetypes": [
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 11
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 10
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 5
+      }
+    ],
+    "dominant_cluster": 3,
+    "dominant_cluster_share": 0.3333333333333333,
+    "mean_axis_scores": [
+      -0.5194621212121213,
+      -0.37677121212121206,
+      -0.5015151515151516,
+      -0.1713151515151515,
+      -0.534339393939394,
+      -0.2562454545454545,
+      0.20454545454545456,
+      -0.10303030303030303,
+      -0.016666666666666673,
+      -0.08112575757575757,
+      -0.7637590909090912,
+      -0.512728787878788
+    ],
+    "cluster_distribution": {
+      "0": 0.09090909090909091,
+      "1": 0.15151515151515152,
+      "2": 0.12121212121212122,
+      "3": 0.3333333333333333,
+      "4": 0.30303030303030304,
+      "5": 0
+    }
+  },
+  {
+    "region": "diaspora_transnational",
+    "count": 56,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 17
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 17
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 9
+      }
+    ],
+    "dominant_cluster": 0,
+    "dominant_cluster_share": 0.30357142857142855,
+    "mean_axis_scores": [
+      -0.46509375,
+      0.365592857142857,
+      0.06875,
+      0.26435446428571435,
+      -0.19798660714285715,
+      -0.27191428571428583,
+      -0.24910714285714278,
+      -0.3705357142857143,
+      -0.27946428571428583,
+      -0.12559732142857144,
+      -0.2955857142857143,
+      -0.2145142857142858
+    ],
+    "cluster_distribution": {
+      "0": 0.30357142857142855,
+      "1": 0.16071428571428573,
+      "2": 0.05357142857142857,
+      "3": 0.03571428571428571,
+      "4": 0.30357142857142855,
+      "5": 0.14285714285714285
+    }
+  }
+]

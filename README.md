@@ -40,9 +40,13 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 
 ## Project Structure
 
-- `src/app/` — Next.js App Router pages and API routes
-- `src/components/` — React components by feature (quiz, results, comparison, groups, annotations) plus shared NavBar, SessionProvider
+- `src/app/` — Next.js App Router pages and API routes, including the `/study/*` Synthetic Study section
+- `src/components/` — React components by feature (quiz, results, comparison, groups, annotations, study) plus shared NavBar, SessionProvider
 - `src/data/` — Axis, item, ministry, and archetype definitions
-- `src/lib/` — Pure logic: scoring, comparison, validation, auth, db, design tokens
-- `docs/system_proposal/` — Design specs (scoring engine, results UI, question bank, design system)
+- `src/lib/` — Pure logic: scoring, comparison, validation, auth, db, design tokens, study helpers
+- `data/synthetic_study/` — Raw pipeline outputs for the Synthetic Study (personas, scored profiles, cluster labels, etc.)
+- `public/study/derived/` — Build-time preprocessed JSON for the Synthetic Study pages
+- `public/geo/` + `public/data/` — World map TopoJSON and public Synthetic Study download
+- `scripts/` — Build-time preprocessing (`build-synthetic-study.ts`, `build-geo.ts`) run via `npm run build:study` / `npm run build:geo` on `prebuild`
+- `docs/system_proposal/` — Design specs (scoring engine, results UI, question bank, design system, synthetic study)
 - `prisma/` — Database schema and migrations

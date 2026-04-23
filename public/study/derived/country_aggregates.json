@@ -1,0 +1,623 @@
+[
+  {
+    "country_iso": "GBR",
+    "country_name": "United Kingdom",
+    "region": "western_europe",
+    "count": 19,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 7
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 6
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "DEU",
+    "country_name": "Germany",
+    "region": "western_europe",
+    "count": 18,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 9
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "FRA",
+    "country_name": "France",
+    "region": "western_europe",
+    "count": 19,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 6
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 6
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "SWE",
+    "country_name": "Sweden",
+    "region": "western_europe",
+    "count": 10,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 5
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 2
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "ITA",
+    "country_name": "Italy",
+    "region": "western_europe",
+    "count": 12,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 6
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 3
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "MEX",
+    "country_name": "Mexico",
+    "region": "north_america",
+    "count": 35,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 10
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 8
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 8
+      }
+    ]
+  },
+  {
+    "country_iso": "CAN",
+    "country_name": "Canada",
+    "region": "north_america",
+    "count": 33,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 20
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 5
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "country_iso": "USA",
+    "country_name": "United States",
+    "region": "north_america",
+    "count": 43,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 16
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 11
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 7
+      }
+    ]
+  },
+  {
+    "country_iso": "CHN",
+    "country_name": "China",
+    "region": "east_asia",
+    "count": 30,
+    "top_archetypes": [
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 24
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 2
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "JPN",
+    "country_name": "Japan",
+    "region": "east_asia",
+    "count": 22,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 6
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 4
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "country_iso": "KOR",
+    "country_name": "South Korea",
+    "region": "east_asia",
+    "count": 21,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 6
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 5
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "country_iso": "TWN",
+    "country_name": "Taiwan",
+    "region": "east_asia",
+    "count": 16,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 4
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "MNG",
+    "country_name": "Mongolia",
+    "region": "east_asia",
+    "count": 11,
+    "top_archetypes": [
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 5
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 2
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "IND",
+    "country_name": "India",
+    "region": "south_southeast_asia",
+    "count": 19,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 4
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "country_iso": "IDN",
+    "country_name": "Indonesia",
+    "region": "south_southeast_asia",
+    "count": 14,
+    "top_archetypes": [
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 4
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "PHL",
+    "country_name": "Philippines",
+    "region": "south_southeast_asia",
+    "count": 13,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 5
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 4
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "VNM",
+    "country_name": "Vietnam",
+    "region": "south_southeast_asia",
+    "count": 13,
+    "top_archetypes": [
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 7
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 3
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "BGD",
+    "country_name": "Bangladesh",
+    "region": "south_southeast_asia",
+    "count": 12,
+    "top_archetypes": [
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 6
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 2
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "LKA",
+    "country_name": "Sri Lanka",
+    "region": "south_southeast_asia",
+    "count": 12,
+    "top_archetypes": [
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 4
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 3
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "THA",
+    "country_name": "Thailand",
+    "region": "south_southeast_asia",
+    "count": 14,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 4
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 3
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "PAK",
+    "country_name": "Pakistan",
+    "region": "south_southeast_asia",
+    "count": 11,
+    "top_archetypes": [
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 5
+      },
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "country_iso": "EGY",
+    "country_name": "Egypt",
+    "region": "middle_east_north_africa",
+    "count": 12,
+    "top_archetypes": [
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 5
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "LBN",
+    "country_name": "Lebanon",
+    "region": "middle_east_north_africa",
+    "count": 10,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 3
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 2
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "KEN",
+    "country_name": "Kenya",
+    "region": "sub_saharan_africa",
+    "count": 10,
+    "top_archetypes": [
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 4
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "ZAF",
+    "country_name": "South Africa",
+    "region": "sub_saharan_africa",
+    "count": 11,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "radical-egalitarian",
+        "name": "The Radical Egalitarian",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "country_iso": "GHA",
+    "country_name": "Ghana",
+    "region": "sub_saharan_africa",
+    "count": 10,
+    "top_archetypes": [
+      {
+        "id": "institutional-moderate",
+        "name": "The Institutional Moderate",
+        "count": 4
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 3
+      },
+      {
+        "id": "nationalist-populist",
+        "name": "The Nationalist Populist",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "country_iso": "ETH",
+    "country_name": "Ethiopia",
+    "region": "sub_saharan_africa",
+    "count": 10,
+    "top_archetypes": [
+      {
+        "id": "communitarian-steward",
+        "name": "The Communitarian Steward",
+        "count": 3
+      },
+      {
+        "id": "developmental-modernizer",
+        "name": "The Developmental Modernizer",
+        "count": 3
+      },
+      {
+        "id": "popular-egalitarian",
+        "name": "The Popular Egalitarian",
+        "count": 1
+      }
+    ]
+  }
+]
