@@ -121,7 +121,11 @@ function buildTooltip(
     case "static-density": {
       const count = mode.regionCounts[region] ?? 0;
       const tops = mode.topArchetypesByRegion?.[region];
-      const topLine = tops?.length ? `Top 3: ${tops.slice(0, 3).join(", ")}` : "";
+      // Strip "The " — adds no information and makes the line 16+ chars shorter
+      // across three names, keeping the tooltip compact.
+      const topLine = tops?.length
+        ? `Top 3: ${tops.slice(0, 3).map((n) => n.replace(/^The\s+/, "")).join(", ")}`
+        : "";
       return [name, `${count} personas`, topLine].filter(Boolean).join("\n");
     }
     case "static-cluster": {
@@ -629,9 +633,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           line-height: 1.35;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
           max-width: 260px;
-        }
-        .worldmap-tooltip {
-          white-space: nowrap;
         }
         .worldmap-mobile-tooltip {
           margin-top: 8px;
