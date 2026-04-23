@@ -71,6 +71,7 @@ export function HorizontalBarChart({
         width: "100%",
         maxWidth: `${totalWidth}px`,
         height: "auto",
+        margin: "0 auto",
       }}
       className={className}
       role="img"

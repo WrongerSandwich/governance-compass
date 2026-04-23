@@ -47,9 +47,11 @@ export function ViolinOrRidge({
     <svg
       viewBox={`0 0 ${svgWidth} ${svgHeight}`}
       style={{
+        display: "block",
         width: "100%",
         maxWidth: `${svgWidth}px`,
         height: "auto",
+        margin: "0 auto",
       }}
       className={className}
       role="img"

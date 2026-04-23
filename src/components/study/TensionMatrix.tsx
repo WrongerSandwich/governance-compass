@@ -98,9 +98,11 @@ export function TensionMatrix({
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
       style={{
+        display: "block",
         width: "100%",
         maxWidth: `${totalWidth}px`,
         height: "auto",
+        margin: "0 auto",
       }}
       className={className}
       role="img"

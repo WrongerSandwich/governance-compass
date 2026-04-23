@@ -400,10 +400,10 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Chart — aligns to prose column */}
+        {/* Chart — centered within wide shell */}
         <div
           className="mx-auto"
-          style={{ maxWidth: "672px", padding: "0 1rem" }}
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <ArchetypeDistribution rows={distributionRows} />
         </div>
@@ -553,15 +553,15 @@ export default async function PatternsPage() {
         {/* ── 3b — Axis 8 gradient ── */}
         <div
           className="mx-auto mt-12"
-          style={{ maxWidth: "672px", padding: "0 1rem" }}
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mb-4">
+          <div className="mx-auto max-w-2xl mb-4">
             <h3 className="text-[17px] font-serif font-medium text-text-primary">
               Cultural diversity across regions
             </h3>
           </div>
 
-          <div style={{ maxWidth: "600px" }}>
+          <div style={{ maxWidth: "600px", margin: "0 auto" }}>
             <WorldMap
               mode={{
                 type: "static-axis-gradient",
@@ -715,10 +715,10 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Desktop: full heatmap — aligns to prose column */}
+        {/* Desktop: full heatmap — centered within wide shell */}
         <div
           className="mx-auto hidden md:block"
-          style={{ maxWidth: "672px", padding: "0 1rem" }}
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <CorrelationHeatmap
             matrix={correlationMatrix}
@@ -780,12 +780,12 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Overall tension rate per axis — aligns to prose column */}
+        {/* Overall tension rate per axis — centered within wide shell */}
         <div
           className="mx-auto mb-10"
-          style={{ maxWidth: "672px", padding: "0 1rem" }}
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mb-4">
+          <div className="mx-auto max-w-2xl mb-4">
             <p
               style={{
                 fontSize: "11px",
@@ -807,12 +807,12 @@ export default async function PatternsPage() {
           />
         </div>
 
-        {/* Tension matrix — aligns to prose column */}
+        {/* Tension matrix — centered within wide shell */}
         <div
           className="mx-auto"
-          style={{ maxWidth: "672px", padding: "0 1rem" }}
+          style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mb-4">
+          <div className="mx-auto max-w-2xl mb-4">
             <p
               style={{
                 fontSize: "11px",

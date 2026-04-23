@@ -49,6 +49,7 @@ export function CorrelationHeatmap({
         width: "100%",
         maxWidth: `${svgW}px`,
         height: "auto",
+        margin: "0 auto",
       }}
       className={className}
       role="img"
