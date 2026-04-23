@@ -661,17 +661,23 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Ridge plot — full width, single stacked series ordered axis 1→12 */}
+        {/* Ridge plot — full width, single stacked series ordered axis 1→12.
+            minWidth + overflowX:auto keeps axis labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <ViolinOrRidge
-            series={ridgeSeries}
-            range={[-1, 1]}
-            ridgeHeight={52}
-            ariaLabel="Ridge plot of axis score distributions for all 12 axes"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 560 }}>
+              <ViolinOrRidge
+                series={ridgeSeries}
+                range={[-1, 1]}
+                ridgeHeight={52}
+                ariaLabel="Ridge plot of axis score distributions for all 12 axes"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Prose */}

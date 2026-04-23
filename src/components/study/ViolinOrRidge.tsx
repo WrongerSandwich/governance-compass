@@ -15,8 +15,8 @@ export interface ViolinOrRidgeProps {
   className?: string;
 }
 
-const LABEL_WIDTH = 100;
-const PLOT_WIDTH = 240;
+const LABEL_WIDTH = 180;
+const PLOT_WIDTH = 540;
 const OVERLAP = 8; // px of vertical overlap between adjacent ridges
 
 /**
@@ -88,7 +88,7 @@ export function ViolinOrRidge({
               y={svgHeight - 8}
               textAnchor="middle"
               style={{
-                fontSize: "9px",
+                fontSize: "11px",
                 fill: "var(--text-tertiary)",
                 fontFamily: "var(--font-mono)",
               }}
@@ -165,7 +165,7 @@ export function ViolinOrRidge({
                   y={centerY - 4}
                   dominantBaseline="middle"
                   style={{
-                    fontSize: "8px",
+                    fontSize: "10px",
                     fill: fillColor,
                     fontFamily: "var(--font-mono)",
                   }}
@@ -182,7 +182,7 @@ export function ViolinOrRidge({
               textAnchor="end"
               dominantBaseline="middle"
               style={{
-                fontSize: "10px",
+                fontSize: "12px",
                 fill: "var(--text-secondary)",
                 fontFamily: "var(--font-sans)",
               }}
