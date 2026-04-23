@@ -121,7 +121,11 @@ function buildTooltip(
     case "static-density": {
       const count = mode.regionCounts[region] ?? 0;
       const tops = mode.topArchetypesByRegion?.[region];
-      const topLine = tops?.length ? `Top 3: ${tops.slice(0, 3).join(", ")}` : "";
+      // Strip "The " — adds no information and makes the line 16+ chars shorter
+      // across three names, keeping the tooltip compact.
+      const topLine = tops?.length
+        ? `Top 3: ${tops.slice(0, 3).map((n) => n.replace(/^The\s+/, "")).join(", ")}`
+        : "";
       return [name, `${count} personas`, topLine].filter(Boolean).join("\n");
     }
     case "static-cluster": {
@@ -612,8 +616,27 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
 
       {/* Suppress the floating on-map tooltip on mobile — it duplicates the
           persistent below-map tooltip and positions poorly against touch
-          coords, sometimes clipping off-screen. Desktop keeps it. */}
+          coords, sometimes clipping off-screen. Desktop keeps it.
+          Tooltips default to unstyled (inheriting body text color with no
+          background), which renders white-on-map-fill in dark mode and is
+          hard to read against colored map regions — so both tooltips get
+          an explicit stone-900 background + stone-50 text. */}
       <style>{`
+        .worldmap-tooltip,
+        .worldmap-mobile-tooltip {
+          background: var(--stone-900);
+          color: var(--stone-50);
+          padding: 6px 10px;
+          border-radius: 3px;
+          font-family: var(--font-sans);
+          font-size: 12px;
+          line-height: 1.35;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+          max-width: 260px;
+        }
+        .worldmap-mobile-tooltip {
+          margin-top: 8px;
+        }
         @media (max-width: 640px), (hover: none) {
           .worldmap-tooltip {
             display: none !important;

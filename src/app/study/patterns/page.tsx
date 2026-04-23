@@ -458,11 +458,13 @@ export default async function PatternsPage() {
           {/* Maps side-by-side on desktop, stacked on mobile.
               auto-fit collapses empty tracks so 2 maps fill the row
               cleanly at wider viewports (auto-fill would leave an
-              empty third track at ≥1040px). */}
+              empty third track at ≥1040px). min(320px, 100%) lets the
+              column collapse below 320px on narrow phones instead of
+              forcing horizontal page overflow. */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))",
               gap: "24px",
             }}
           >
@@ -659,17 +661,23 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Ridge plot — full width, single stacked series ordered axis 1→12 */}
+        {/* Ridge plot — full width, single stacked series ordered axis 1→12.
+            minWidth + overflowX:auto keeps axis labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <ViolinOrRidge
-            series={ridgeSeries}
-            range={[-1, 1]}
-            ridgeHeight={52}
-            ariaLabel="Ridge plot of axis score distributions for all 12 axes"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 560 }}>
+              <ViolinOrRidge
+                series={ridgeSeries}
+                range={[-1, 1]}
+                ridgeHeight={52}
+                ariaLabel="Ridge plot of axis score distributions for all 12 axes"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Prose */}
@@ -724,7 +732,7 @@ export default async function PatternsPage() {
             matrix={correlationMatrix}
             labels={correlationLabels}
             lowerTriangleOnly={true}
-            cellSize={40}
+            cellSize={56}
             ariaLabel="12×12 correlation heatmap of axis scores"
           />
         </div>
@@ -780,7 +788,9 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Overall tension rate per axis — centered within wide shell */}
+        {/* Overall tension rate per axis — centered within wide shell.
+            minWidth + overflowX:auto keeps labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto mb-10"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
@@ -799,15 +809,22 @@ export default async function PatternsPage() {
               Overall tension rate by axis (Claude / Gemini)
             </p>
           </div>
-          <HorizontalBarChart
-            rows={tensionBarRows}
-            range={[0, 100]}
-            barHeight={14}
-            ariaLabel="Overall tension rate per axis for Claude and Gemini models"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 500 }}>
+              <HorizontalBarChart
+                rows={tensionBarRows}
+                range={[0, 100]}
+                barHeight={14}
+                barAreaWidth={560}
+                ariaLabel="Overall tension rate per axis for Claude and Gemini models"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Tension matrix — centered within wide shell */}
+        {/* Tension matrix — centered within wide shell.
+            minWidth + overflowX:auto keeps axis labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
@@ -827,13 +844,17 @@ export default async function PatternsPage() {
               Claude/Gemini; cluster columns show a model-combined rate.
             </p>
           </div>
-          <TensionMatrix
-            data={tensionMatrixData}
-            axisLabels={tensionAxisLabels}
-            clusterLabels={tensionClusterLabels}
-            cellSize={28}
-            ariaLabel="Tension rates by axis and cluster"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 520 }}>
+              <TensionMatrix
+                data={tensionMatrixData}
+                axisLabels={tensionAxisLabels}
+                clusterLabels={tensionClusterLabels}
+                cellSize={48}
+                ariaLabel="Tension rates by axis and cluster"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Prose */}

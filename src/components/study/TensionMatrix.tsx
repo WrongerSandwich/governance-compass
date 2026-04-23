@@ -19,11 +19,11 @@ export interface TensionMatrixProps {
   className?: string;
 }
 
-const AXIS_LABEL_WIDTH = 90;
+const AXIS_LABEL_WIDTH = 180;
 const MODEL_LABEL_WIDTH = 44;
 const COL_HEADER_HEIGHT = 44;
-const MODEL_ROW_HEIGHT = 20;
-// Axis group: two sub-rows (claude + gemini) + 4px gap between groups
+const MODEL_ROW_HEIGHT = 24;
+// Axis group: two sub-rows (claude + gemini) + 6px gap between groups
 const AXIS_GROUP_HEIGHT = MODEL_ROW_HEIGHT * 2 + 6;
 const AXIS_GAP = 4;
 
@@ -122,7 +122,7 @@ export function TensionMatrix({
             transform={`translate(${x}, ${COL_HEADER_HEIGHT - 4}) rotate(-45)`}
             textAnchor="start"
             style={{
-              fontSize: "9px",
+              fontSize: "11px",
               fill: "var(--text-secondary)",
               fontFamily: "var(--font-sans)",
             }}
@@ -146,7 +146,7 @@ export function TensionMatrix({
               textAnchor="end"
               dominantBaseline="middle"
               style={{
-                fontSize: "10px",
+                fontSize: "12px",
                 fill: "var(--text-primary)",
                 fontFamily: "var(--font-sans)",
               }}
@@ -169,7 +169,7 @@ export function TensionMatrix({
                     textAnchor="end"
                     dominantBaseline="middle"
                     style={{
-                      fontSize: "8px",
+                      fontSize: "10px",
                       fill: modelColor,
                       fontFamily: "var(--font-mono)",
                       fontStyle: "italic",
@@ -211,7 +211,7 @@ export function TensionMatrix({
                             textAnchor="middle"
                             dominantBaseline="middle"
                             style={{
-                              fontSize: "7px",
+                              fontSize: "9px",
                               fill: "var(--surface-1)",
                               fontFamily: "var(--font-mono)",
                               pointerEvents: "none",
@@ -247,20 +247,20 @@ export function TensionMatrix({
       {tooltip && (
         <g style={{ pointerEvents: "none" }}>
           <rect
-            x={Math.min(tooltip.x + 4, totalWidth - 160)}
-            y={Math.max(tooltip.y - 22, 4)}
-            width={156}
-            height={18}
+            x={Math.min(tooltip.x + 4, totalWidth - 244)}
+            y={Math.max(tooltip.y - 26, 4)}
+            width={240}
+            height={22}
             rx={2}
             fill="var(--stone-900)"
             fillOpacity={0.9}
           />
           <text
-            x={Math.min(tooltip.x + 8, totalWidth - 156)}
-            y={Math.max(tooltip.y - 10, 16)}
+            x={Math.min(tooltip.x + 10, totalWidth - 238)}
+            y={Math.max(tooltip.y - 12, 18)}
             dominantBaseline="middle"
             style={{
-              fontSize: "9px",
+              fontSize: "11px",
               fill: "var(--stone-50)",
               fontFamily: "var(--font-mono)",
             }}

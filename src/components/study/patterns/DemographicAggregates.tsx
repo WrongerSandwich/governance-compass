@@ -111,7 +111,7 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
               className="demo-agg-row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "150px 1fr 40px",
+                gridTemplateColumns: "clamp(96px, 28%, 150px) minmax(0, 1fr) 40px",
                 gap: "8px",
                 alignItems: "center",
               }}
@@ -241,11 +241,13 @@ export function DemographicAggregates({
 }: DemographicAggregatesProps) {
   return (
     <div>
-      {/* 2×2 grid on desktop, single column on mobile */}
+      {/* min(420px, 100%) keeps the desktop floor while letting the column
+          collapse to container width on narrow phones — without it, a fixed
+          420px minimum forces horizontal page overflow below ~452px. */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(420px, 100%), 1fr))",
           gap: "32px",
         }}
       >
