@@ -815,7 +815,9 @@ export default async function PatternsPage() {
           />
         </div>
 
-        {/* Tension matrix — centered within wide shell */}
+        {/* Tension matrix — centered within wide shell.
+            minWidth + overflowX:auto keeps axis labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
@@ -835,13 +837,17 @@ export default async function PatternsPage() {
               Claude/Gemini; cluster columns show a model-combined rate.
             </p>
           </div>
-          <TensionMatrix
-            data={tensionMatrixData}
-            axisLabels={tensionAxisLabels}
-            clusterLabels={tensionClusterLabels}
-            cellSize={28}
-            ariaLabel="Tension rates by axis and cluster"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 520 }}>
+              <TensionMatrix
+                data={tensionMatrixData}
+                axisLabels={tensionAxisLabels}
+                clusterLabels={tensionClusterLabels}
+                cellSize={48}
+                ariaLabel="Tension rates by axis and cluster"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Prose */}
