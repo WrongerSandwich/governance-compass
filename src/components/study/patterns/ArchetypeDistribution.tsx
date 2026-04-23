@@ -44,13 +44,14 @@ export function ArchetypeDistribution({
   // by allowing horizontal scroll instead of shrinking labels below ~8px.
   return (
     <div className={className} style={{ overflowX: "auto" }}>
-      <div style={{ minWidth: 360 }}>
+      <div style={{ minWidth: 500 }}>
         <HorizontalBarChart
           rows={chartRows}
           diverging={false}
           range={[0, maxCount]}
           barHeight={26}
           labelWidth={180}
+          barAreaWidth={540}
           ariaLabel="Distribution of 1,002 personas across twelve archetypes, colored by their nearest empirical cluster"
         />
       </div>

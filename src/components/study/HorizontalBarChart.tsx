@@ -20,12 +20,15 @@ export interface HorizontalBarChartProps {
    *  Default 140 works for most charts; increase when row labels are
    *  long (e.g. archetype names like "Authoritarian Traditionalist"). */
   labelWidth?: number;
+  /** Width of the bar-plot area, in SVG units. Default 200 keeps small
+   *  charts compact; increase when the chart has a wide container to
+   *  avoid a smooshed look on desktop. */
+  barAreaWidth?: number;
   ariaLabel?: string;
   className?: string;
 }
 
 const SECONDARY_WIDTH = 44;
-const BAR_AREA_WIDTH = 200;
 const ROW_GAP = 6;
 const PADDING_TOP = 8;
 
@@ -36,10 +39,12 @@ export function HorizontalBarChart({
   barHeight = 24,
   zeroLineColor = "var(--border-secondary)",
   labelWidth = 140,
+  barAreaWidth = 200,
   ariaLabel,
   className,
 }: HorizontalBarChartProps) {
   const LABEL_WIDTH = labelWidth;
+  const BAR_AREA_WIDTH = barAreaWidth;
   // Infer range if not provided
   const inferredRange: [number, number] = range ?? (() => {
     const values = rows.map((r) => r.value);

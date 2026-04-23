@@ -732,7 +732,7 @@ export default async function PatternsPage() {
             matrix={correlationMatrix}
             labels={correlationLabels}
             lowerTriangleOnly={true}
-            cellSize={40}
+            cellSize={56}
             ariaLabel="12×12 correlation heatmap of axis scores"
           />
         </div>
@@ -788,7 +788,9 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Overall tension rate per axis — centered within wide shell */}
+        {/* Overall tension rate per axis — centered within wide shell.
+            minWidth + overflowX:auto keeps labels legible on narrow
+            phones by scrolling horizontally rather than shrinking text. */}
         <div
           className="mx-auto mb-10"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
@@ -807,12 +809,17 @@ export default async function PatternsPage() {
               Overall tension rate by axis (Claude / Gemini)
             </p>
           </div>
-          <HorizontalBarChart
-            rows={tensionBarRows}
-            range={[0, 100]}
-            barHeight={14}
-            ariaLabel="Overall tension rate per axis for Claude and Gemini models"
-          />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 500 }}>
+              <HorizontalBarChart
+                rows={tensionBarRows}
+                range={[0, 100]}
+                barHeight={14}
+                barAreaWidth={560}
+                ariaLabel="Overall tension rate per axis for Claude and Gemini models"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Tension matrix — centered within wide shell.

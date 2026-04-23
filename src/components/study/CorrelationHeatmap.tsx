@@ -10,8 +10,8 @@ export interface CorrelationHeatmapProps {
   className?: string;
 }
 
-const LABEL_PAD = 56; // space for rotated bottom labels and left labels
-const FONT_SIZE = 9;
+const LABEL_PAD = 64; // space for rotated bottom labels and left labels
+const FONT_SIZE = 11;
 
 /**
  * Map a correlation value [-1,1] to one of the 5 axis-gradient CSS vars.
@@ -128,7 +128,7 @@ export function CorrelationHeatmap({
                   textAnchor="middle"
                   dominantBaseline="middle"
                   style={{
-                    fontSize: "8px",
+                    fontSize: "10px",
                     fill: "var(--surface-1)",
                     fontFamily: "var(--font-mono)",
                     pointerEvents: "none",
