@@ -40,16 +40,20 @@ export function ArchetypeDistribution({
     dottedIfZero: row.count === 0,
   }));
 
+  // minWidth + overflowX:auto keeps text legible on very narrow viewports
+  // by allowing horizontal scroll instead of shrinking labels below ~8px.
   return (
     <div className={className} style={{ overflowX: "auto" }}>
-      <HorizontalBarChart
-        rows={chartRows}
-        diverging={false}
-        range={[0, maxCount]}
-        barHeight={26}
-        labelWidth={210}
-        ariaLabel="Distribution of 1,002 personas across twelve archetypes, colored by their nearest empirical cluster"
-      />
+      <div style={{ minWidth: 360 }}>
+        <HorizontalBarChart
+          rows={chartRows}
+          diverging={false}
+          range={[0, maxCount]}
+          barHeight={26}
+          labelWidth={180}
+          ariaLabel="Distribution of 1,002 personas across twelve archetypes, colored by their nearest empirical cluster"
+        />
+      </div>
     </div>
   );
 }

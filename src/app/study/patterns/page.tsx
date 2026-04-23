@@ -458,11 +458,13 @@ export default async function PatternsPage() {
           {/* Maps side-by-side on desktop, stacked on mobile.
               auto-fit collapses empty tracks so 2 maps fill the row
               cleanly at wider viewports (auto-fill would leave an
-              empty third track at ≥1040px). */}
+              empty third track at ≥1040px). min(320px, 100%) lets the
+              column collapse below 320px on narrow phones instead of
+              forcing horizontal page overflow. */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))",
               gap: "24px",
             }}
           >
