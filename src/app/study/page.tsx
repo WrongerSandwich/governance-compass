@@ -112,6 +112,30 @@ export default function StudyOverviewPage() {
               <span>version {downloadMeta.version}</span>
             </span>
           </p>
+          {/* Quiet pointer to child pages — surfaces discoverability without
+              stealing attention from the prose sections below. The full
+              editorial handoff with descriptions still lives at page bottom. */}
+          <p className="mt-1.5 text-[12px] text-text-tertiary">
+            <span className="mr-1.5">Browse:</span>
+            {DEEP_LINKS.map((link, i) => (
+              <span key={link.href}>
+                {i > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="mx-1.5 text-border-secondary"
+                  >
+                    ·
+                  </span>
+                )}
+                <Link
+                  href={link.href}
+                  className="hover:text-text-secondary underline underline-offset-4 decoration-border-secondary hover:decoration-text-tertiary transition-colors duration-150"
+                >
+                  {link.title}
+                </Link>
+              </span>
+            ))}
+          </p>
         </section>
 
         <div className="text-[15px] text-text-secondary leading-relaxed">
