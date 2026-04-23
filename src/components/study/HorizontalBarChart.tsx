@@ -24,11 +24,14 @@ export interface HorizontalBarChartProps {
    *  charts compact; increase when the chart has a wide container to
    *  avoid a smooshed look on desktop. */
   barAreaWidth?: number;
+  /** Width reserved to the right of the bars for the secondary label,
+   *  in SVG units. Default 44 fits short labels like "85%" or "0.42";
+   *  increase for longer labels like "133 personas". */
+  secondaryWidth?: number;
   ariaLabel?: string;
   className?: string;
 }
 
-const SECONDARY_WIDTH = 44;
 const ROW_GAP = 6;
 const PADDING_TOP = 8;
 
@@ -40,11 +43,13 @@ export function HorizontalBarChart({
   zeroLineColor = "var(--border-secondary)",
   labelWidth = 140,
   barAreaWidth = 200,
+  secondaryWidth = 44,
   ariaLabel,
   className,
 }: HorizontalBarChartProps) {
   const LABEL_WIDTH = labelWidth;
   const BAR_AREA_WIDTH = barAreaWidth;
+  const SECONDARY_WIDTH = secondaryWidth;
   // Infer range if not provided
   const inferredRange: [number, number] = range ?? (() => {
     const values = rows.map((r) => r.value);
