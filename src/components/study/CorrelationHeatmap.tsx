@@ -45,6 +45,7 @@ export function CorrelationHeatmap({
     <svg
       viewBox={`0 0 ${svgW} ${svgH}`}
       style={{
+        display: "block",
         width: "100%",
         maxWidth: `${svgW}px`,
         height: "auto",

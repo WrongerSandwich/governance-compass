@@ -245,7 +245,7 @@ export function DemographicAggregates({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
           gap: "32px",
         }}
       >

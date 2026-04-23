@@ -16,6 +16,7 @@ import { TensionMatrix } from "@/components/study/TensionMatrix";
 import type { TensionMatrixDatum } from "@/components/study/TensionMatrix";
 import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
 import type { HorizontalBarChartRow } from "@/components/study/HorizontalBarChart";
+import { SectionNav } from "@/components/study/patterns/SectionNav";
 import { CLUSTERS } from "@/data/syntheticStudyClusters";
 import { archetypes } from "@/data/archetypes";
 import { axes } from "@/data/axes";
@@ -312,32 +313,19 @@ export default async function PatternsPage() {
           which axis pairs covary.
         </p>
 
-        {/* Section nav — quiet atlas-style jump list.
+        {/* Section nav — quiet atlas-style jump list with scroll-spy.
             Full and short labels rendered as sibling <span>s; CSS swaps
             them below 768px to keep the nav from wrapping into 4+ rows. */}
-        <nav
-          aria-label="Sections on this page"
-          className="patterns-section-nav mb-14 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-text-tertiary leading-relaxed"
-        >
-          {[
+        <SectionNav
+          sections={[
             { num: "01", label: "Clusters", short: "Clusters", id: "section-1" },
             { num: "02", label: "Archetype distribution", short: "Archetypes", id: "section-2" },
             { num: "03", label: "Regional & demographic", short: "Regional", id: "section-3" },
             { num: "04", label: "Axis distributions", short: "Distributions", id: "section-4" },
             { num: "05", label: "Correlations", short: "Correlations", id: "section-5" },
             { num: "06", label: "Tensions", short: "Tensions", id: "section-6" },
-          ].map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="whitespace-nowrap hover:text-text-secondary transition-colors duration-150"
-            >
-              <span className="tabular-nums mr-1.5">{item.num}</span>
-              <span className="section-nav-full">{item.label}</span>
-              <span className="section-nav-short">{item.short}</span>
-            </a>
-          ))}
-        </nav>
+          ]}
+        />
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -412,10 +400,10 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Chart — full content width */}
+        {/* Chart — aligns to prose column */}
         <div
           className="mx-auto"
-          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+          style={{ maxWidth: "672px", padding: "0 1rem" }}
         >
           <ArchetypeDistribution rows={distributionRows} />
         </div>
@@ -565,9 +553,9 @@ export default async function PatternsPage() {
         {/* ── 3b — Axis 8 gradient ── */}
         <div
           className="mx-auto mt-12"
-          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+          style={{ maxWidth: "672px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
+          <div className="mb-4">
             <h3 className="text-[17px] font-serif font-medium text-text-primary">
               Cultural diversity across regions
             </h3>
@@ -727,16 +715,16 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Desktop: full heatmap */}
+        {/* Desktop: full heatmap — aligns to prose column */}
         <div
           className="mx-auto hidden md:block"
-          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+          style={{ maxWidth: "672px", padding: "0 1rem" }}
         >
           <CorrelationHeatmap
             matrix={correlationMatrix}
             labels={correlationLabels}
             lowerTriangleOnly={true}
-            cellSize={32}
+            cellSize={40}
             ariaLabel="12×12 correlation heatmap of axis scores"
           />
         </div>
@@ -792,12 +780,12 @@ export default async function PatternsPage() {
           </h2>
         </div>
 
-        {/* Overall tension rate per axis — horizontal bar chart */}
+        {/* Overall tension rate per axis — aligns to prose column */}
         <div
           className="mx-auto mb-10"
-          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+          style={{ maxWidth: "672px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
+          <div className="mb-4">
             <p
               style={{
                 fontSize: "11px",
@@ -819,12 +807,12 @@ export default async function PatternsPage() {
           />
         </div>
 
-        {/* Tension matrix */}
+        {/* Tension matrix — aligns to prose column */}
         <div
           className="mx-auto"
-          style={{ maxWidth: "1120px", padding: "0 1rem" }}
+          style={{ maxWidth: "672px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
+          <div className="mb-4">
             <p
               style={{
                 fontSize: "11px",

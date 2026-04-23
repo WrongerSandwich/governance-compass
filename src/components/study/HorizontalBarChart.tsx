@@ -67,6 +67,7 @@ export function HorizontalBarChart({
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
       style={{
+        display: "block",
         width: "100%",
         maxWidth: `${totalWidth}px`,
         height: "auto",
