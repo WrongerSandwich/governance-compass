@@ -4,6 +4,8 @@ import { QuizProvider } from "@/components/quiz/QuizProvider";
 import { ministries } from "@/data/ministries";
 import { scaledItems } from "@/data/scaled-items";
 
+export const dynamic = "force-dynamic";
+
 export default async function QuizPage() {
   const forcedChoiceItems = await db.forcedChoiceItem.findMany({
     orderBy: [{ axisId: "asc" }, { itemNumber: "asc" }],
