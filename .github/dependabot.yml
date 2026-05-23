@@ -8,6 +8,20 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    ignore:
+      # Major bumps that require migration work — handle separately when ready.
+      - dependency-name: "prisma"          # #15
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"  # #15
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"          # #16
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"      # #17
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"     # #18
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/bcryptjs" # #19
+        update-types: ["version-update:semver-major"]
     groups:
       # Bundle all devDependencies into a single weekly PR to cut review churn.
       dev-dependencies:
