@@ -160,6 +160,27 @@ export default function MethodologyPage() {
               <p>
                 Archetype tradition references throughout the site link to Wikipedia for further reading; they are illustrations of how each orientation has been expressed historically, not endorsements of any particular movement.
               </p>
+              <p>
+                Source code for the site is available on{" "}
+                <a
+                  href="https://github.com/WrongerSandwich/PoliPlatform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-primary hover:text-text-secondary transition-colors duration-150 underline underline-offset-2 decoration-border-secondary"
+                >
+                  GitHub
+                </a>{" "}
+                under the{" "}
+                <a
+                  href="https://polyformproject.org/licenses/noncommercial/1.0.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-primary hover:text-text-secondary transition-colors duration-150 underline underline-offset-2 decoration-border-secondary"
+                >
+                  PolyForm Noncommercial
+                </a>{" "}
+                license — including the scoring engine, archetype definitions, and the build pipeline that produces the synthetic study download.
+              </p>
             </div>
           </section>
         </div>
