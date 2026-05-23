@@ -8,13 +8,13 @@ Supports annotations, one-on-one comparisons, and private group comparisons.
 
 ```bash
 # Start the database (Docker must be running)
-docker start political-platform-db
+docker start governance-compass-db
 
 # If the container doesn't exist (choose your own throwaway local creds):
-docker run -d --name political-platform-db \
+docker run -d --name governance-compass-db \
   -e POSTGRES_USER=<your-local-user> \
   -e POSTGRES_PASSWORD=<your-local-password> \
-  -e POSTGRES_DB=political_platform \
+  -e POSTGRES_DB=governance_compass \
   -p 5433:5432 postgres:16-alpine
 
 # Install dependencies and seed the database

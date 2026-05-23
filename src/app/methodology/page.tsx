@@ -163,7 +163,7 @@ export default function MethodologyPage() {
               <p>
                 Source code for the site is available on{" "}
                 <a
-                  href="https://github.com/WrongerSandwich/PoliPlatform"
+                  href="https://github.com/WrongerSandwich/governance-compass"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-text-primary hover:text-text-secondary transition-colors duration-150 underline underline-offset-2 decoration-border-secondary"

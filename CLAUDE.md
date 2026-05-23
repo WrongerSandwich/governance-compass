@@ -8,7 +8,7 @@ Political self-assessment web app ("The Governance Compass"). Users complete a 3
 
 ```bash
 # Start the database (Docker must be running)
-docker start political-platform-db
+docker start governance-compass-db
 
 # Start the dev server
 npm run dev
@@ -18,7 +18,7 @@ npm run dev
 ## Development
 
 - **Stack:** Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS, Recharts
-- **Database:** PostgreSQL in Docker container `political-platform-db` on port 5433
+- **Database:** PostgreSQL in Docker container `governance-compass-db` on port 5433
   - Local-only throwaway creds — set your own via `.env` (see `.env.example`) and match them when creating the container.
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
