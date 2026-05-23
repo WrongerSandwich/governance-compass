@@ -19,8 +19,7 @@ npm run dev
 
 - **Stack:** Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS, Recharts
 - **Database:** PostgreSQL in Docker container `political-platform-db` on port 5433
-  - User: `ppuser`, Password: `ppdevpass`, DB: `political_platform`
-  - If the container doesn't exist: `docker run -d --name political-platform-db -e POSTGRES_USER=ppuser -e POSTGRES_PASSWORD=ppdevpass -e POSTGRES_DB=political_platform -p 5433:5432 postgres:16-alpine`
+  - Local-only throwaway creds — set your own via `.env` (see `.env.example`) and match them when creating the container.
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
 - **Synthetic Study preprocessing:** `npm run build:study` and `npm run build:geo` preprocess synthetic study data — run before dev if `data/synthetic_study/` files changed
@@ -64,7 +63,7 @@ npm run test:e2e      # E2E tests (playwright, needs dev server running)
 ## Design Context
 
 ### Users
-Politically engaged individuals seeking nuanced understanding of their governance views — not a quick personality quiz, but a serious self-assessment instrument. Users arrive curious and should leave feeling like they understand themselves better. Initial rollout to friends and family, then public. Supports anonymous casual users and registered users who persist and share profiles.
+Politically engaged individuals seeking nuanced understanding of their governance views — not a quick personality quiz, but a serious self-assessment instrument. Users arrive curious and should leave feeling like they understand themselves better. Supports anonymous casual users and registered users who persist and share profiles.
 
 ### Brand Personality
 **Scholarly, precise, warm.** The site feels like a well-made atlas crossed with a policy journal. It draws from three traditions: cartographic surveying (earth tones, contour lines, monospace coordinates), editorial publishing (serif headings, large typographic numbers, layered surfaces), and Swiss modernist data design (strict grids, alternating rows, no decoration without information). Authority comes from stillness and restraint, not from color or animation.
