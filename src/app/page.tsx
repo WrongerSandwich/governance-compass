@@ -77,17 +77,6 @@ export default function Home() {
         </StaggeredList>
 
         {/* "Beyond the assessment" section hidden for v1 */}
-
-        {/* Footer */}
-        <div className="border-t border-border-secondary mt-12 pt-6 text-center">
-          <p className="text-xs text-text-tertiary">
-            <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">Research-informed methodology</Link>
-            {" "}&middot;{" "}
-            <Link href="/references" className="hover:text-text-secondary transition-colors duration-150">References</Link>
-            {" "}&middot;{" "}
-            Privacy-first &middot; No data sold
-          </p>
-        </div>
       </div>
     </main>
   );
