@@ -2,6 +2,10 @@ export function Footer() {
   return (
     <footer className="border-t border-border-secondary px-4 py-5">
       <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-text-tertiary">
+        <span>Privacy-first</span>
+        <span className="opacity-30">&middot;</span>
+        <span>No data sold</span>
+        <span className="opacity-30">&middot;</span>
         <a
           href="https://github.com/WrongerSandwich/governance-compass"
           target="_blank"
@@ -22,8 +26,6 @@ export function Footer() {
             PolyForm Noncommercial
           </a>
         </span>
-        <span className="opacity-30">&middot;</span>
-        <span>Privacy-first &middot; No data sold</span>
       </div>
     </footer>
   );
