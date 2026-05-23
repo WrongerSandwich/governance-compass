@@ -39,6 +39,9 @@ yarn-error.log*
 .superpowers/
 .worktrees/
 
+# claude code
+.claude/
+
 # vercel
 .vercel
 
