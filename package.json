@@ -51,14 +51,14 @@
     "@vitejs/plugin-react": "^6.0.2",
     "csv-parse": "^6.2.1",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.2.7",
     "jsdom": "^29.1.1",
     "prisma": "^6.19.2",
     "tailwindcss": "^4",
     "topojson-server": "^3.0.1",
-    "tsx": "^4.22.3",
+    "tsx": "^4.22.4",
     "typescript": "^5",
-    "vite": "^8.0.14",
-    "vitest": "^4.1.7"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   }
 }
