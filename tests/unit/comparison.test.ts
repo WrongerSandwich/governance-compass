@@ -107,6 +107,26 @@ describe("compareProfiles", () => {
     }
   });
 
+  it("highlights nothing when only one axis is common", () => {
+    // Deliberate: with one axis the "most aligned" and "most divergent" lists
+    // would name it twice. The axis still appears in perAxisDeltas, which is
+    // what the per-axis breakdown renders.
+    const result = compareProfiles([makeScore(1, 0.0)], [makeScore(1, 0.8)]);
+    expect(result.perAxisDeltas).toHaveLength(1);
+    expect(result.closestAxes).toEqual([]);
+    expect(result.furthestAxes).toEqual([]);
+  });
+
+  it("fills both highlight lists once enough axes are common", () => {
+    const scoresA = Array.from({ length: 6 }, (_, i) => makeScore(i + 1, 0));
+    const scoresB = Array.from({ length: 6 }, (_, i) =>
+      makeScore(i + 1, (i + 1) / 10)
+    );
+    const result = compareProfiles(scoresA, scoresB);
+    expect(result.closestAxes).toHaveLength(3);
+    expect(result.furthestAxes).toHaveLength(3);
+  });
+
   it("excludes hidden axes from the highlight lists", () => {
     const scoresA = [makeScore(1, 0.0), makeScore(2, 0.0), makeScore(3, 0.0), makeScore(4, 0.0)];
     const scoresB = [makeScore(1, 0.1), makeScore(2, 1.0), makeScore(3, 0.2), makeScore(4, 0.3)];

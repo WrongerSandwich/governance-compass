@@ -5,7 +5,8 @@ import { getDomainColor600 } from "@/lib/design-tokens";
 import {
   TOTAL_AXES,
   buildAxisNames,
-  buildPaddedScores,
+  buildComparableScores,
+  buildScoreRuns,
   formatScore,
   type AxisScoreEntry,
 } from "@/lib/comparison-radar-data";
@@ -50,14 +51,67 @@ function ringPolygonPoints(radiusFraction: number): string {
   }).join(" ");
 }
 
-function scorePolygonPoints(scores: (number | null)[]): string {
-  return scores
-    .flatMap((score, i) => {
-      if (score === null) return [];
-      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
-      return [`${x},${y}`];
+function runPoints(run: number[], scores: (number | null)[]): string {
+  return run
+    .map((i) => {
+      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(scores[i]!));
+      return `${x},${y}`;
     })
     .join(" ");
+}
+
+/**
+ * One profile's outline. Drawn as a closed polygon only when every axis is
+ * comparable; otherwise as one open polyline per run, so the outline visibly
+ * breaks at an omitted axis instead of cutting a chord across its spoke.
+ */
+function ProfileOutline({
+  runs,
+  scores,
+  closed,
+  fillStyle,
+}: {
+  runs: number[][];
+  scores: (number | null)[];
+  closed: boolean;
+  /** Only a closed outline can carry a fill. */
+  fillStyle?: { fill: string; fillOpacity: number };
+}) {
+  const stroke = {
+    strokeWidth: 1.5,
+    strokeOpacity: 0.55,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (closed) {
+    return (
+      <polygon
+        points={runPoints(runs[0], scores)}
+        fill={fillStyle ? undefined : "none"}
+        fillOpacity={fillStyle?.fillOpacity}
+        style={{
+          stroke: "var(--stone-600)",
+          ...(fillStyle ? { fill: fillStyle.fill } : {}),
+        }}
+        {...stroke}
+      />
+    );
+  }
+
+  return (
+    <>
+      {runs.map((run, ri) => (
+        <polyline
+          key={ri}
+          points={runPoints(run, scores)}
+          fill="none"
+          style={{ stroke: "var(--stone-600)" }}
+          strokeLinecap="round"
+          {...stroke}
+        />
+      ))}
+    </>
+  );
 }
 
 export function ComparisonRadar({
@@ -71,10 +125,13 @@ export function ComparisonRadar({
   const paddedNames = buildAxisNames(axisScoresA, axisScoresB);
   const hiddenNames = paddedNames.filter((_, i) => hidden.has(i + 1));
 
-  const scoresA = buildPaddedScores(axisScoresA, hidden);
-  const scoresB = buildPaddedScores(axisScoresB, hidden);
-  const pointsA = scorePolygonPoints(scoresA);
-  const pointsB = scorePolygonPoints(scoresB);
+  const { scoresA, scoresB } = buildComparableScores(
+    axisScoresA,
+    axisScoresB,
+    hidden
+  );
+  const runs = buildScoreRuns(scoresA);
+  const isComplete = runs.length === 1 && runs[0].length === TOTAL_AXES;
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
 
   return (
@@ -92,7 +149,11 @@ export function ComparisonRadar({
               return (
                 <tr key={i}>
                   <td>{name}</td>
-                  <td colSpan={3}>Hidden by profile owner</td>
+                  <td colSpan={3}>
+                    {hidden.has(i + 1)
+                      ? "Hidden by profile owner"
+                      : "Not scored in both profiles"}
+                  </td>
                 </tr>
               );
             }
@@ -141,25 +202,17 @@ export function ComparisonRadar({
           );
         })}
 
-        {/* Profile B polygon (dashed) */}
-        <polygon
-          points={pointsB}
-          fill="none"
-          style={{ stroke: 'var(--stone-600)' }}
-          strokeWidth={1.5}
-          strokeDasharray="5 3"
-          strokeOpacity={0.55}
-          strokeLinejoin="round"
-        />
+        {/* Profile B outline (dashed) */}
+        <g strokeDasharray="5 3">
+          <ProfileOutline runs={runs} scores={scoresB} closed={isComplete} />
+        </g>
 
-        {/* Profile A polygon (solid) */}
-        <polygon
-          points={pointsA}
-          style={{ fill: 'var(--stone-600)', stroke: 'var(--stone-600)' }}
-          fillOpacity={0.12}
-          strokeOpacity={0.55}
-          strokeWidth={1.5}
-          strokeLinejoin="round"
+        {/* Profile A outline (solid, filled only when unbroken) */}
+        <ProfileOutline
+          runs={runs}
+          scores={scoresA}
+          closed={isComplete}
+          fillStyle={{ fill: "var(--stone-600)", fillOpacity: 0.12 }}
         />
 
         {/* Center dot — render before interactive dots */}
