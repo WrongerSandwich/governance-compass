@@ -2,21 +2,28 @@
 
 import { useState } from "react";
 import { getDomainColor600 } from "@/lib/design-tokens";
-
-interface AxisScoreEntry {
-  axisId: number;
-  name: string;
-  finalScore: number;
-}
+import {
+  TOTAL_AXES,
+  buildAxisNames,
+  buildComparableScores,
+  buildScoreRuns,
+  formatScore,
+  type AxisScoreEntry,
+} from "@/lib/comparison-radar-data";
 
 interface ComparisonRadarProps {
   axisScoresA: AxisScoreEntry[];
   axisScoresB: AxisScoreEntry[];
   labelA: string;
   labelB: string;
+  /**
+   * Axes either owner has hidden. Their scores must already be absent from
+   * axisScoresA/axisScoresB — this prop only tells the chart to draw a gap
+   * instead of treating the missing score as a neutral 0.
+   */
+  hiddenAxisIds?: number[];
 }
 
-const TOTAL_AXES = 12;
 const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
@@ -44,20 +51,67 @@ function ringPolygonPoints(radiusFraction: number): string {
   }).join(" ");
 }
 
-function scorePolygonPoints(scores: number[]): string {
-  return scores
-    .map((score, i) => {
-      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
+function runPoints(run: number[], scores: (number | null)[]): string {
+  return run
+    .map((i) => {
+      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(scores[i]!));
       return `${x},${y}`;
     })
     .join(" ");
 }
 
-function buildPaddedScores(axisScores: AxisScoreEntry[]): number[] {
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = axisScores.find((s) => s.axisId === i + 1);
-    return found?.finalScore ?? 0;
-  });
+/**
+ * One profile's outline. Drawn as a closed polygon only when every axis is
+ * comparable; otherwise as one open polyline per run, so the outline visibly
+ * breaks at an omitted axis instead of cutting a chord across its spoke.
+ */
+function ProfileOutline({
+  runs,
+  scores,
+  closed,
+  fillStyle,
+}: {
+  runs: number[][];
+  scores: (number | null)[];
+  closed: boolean;
+  /** Only a closed outline can carry a fill. */
+  fillStyle?: { fill: string; fillOpacity: number };
+}) {
+  const stroke = {
+    strokeWidth: 1.5,
+    strokeOpacity: 0.55,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (closed) {
+    return (
+      <polygon
+        points={runPoints(runs[0], scores)}
+        fill={fillStyle ? undefined : "none"}
+        fillOpacity={fillStyle?.fillOpacity}
+        style={{
+          stroke: "var(--stone-600)",
+          ...(fillStyle ? { fill: fillStyle.fill } : {}),
+        }}
+        {...stroke}
+      />
+    );
+  }
+
+  return (
+    <>
+      {runs.map((run, ri) => (
+        <polyline
+          key={ri}
+          points={runPoints(run, scores)}
+          fill="none"
+          style={{ stroke: "var(--stone-600)" }}
+          strokeLinecap="round"
+          {...stroke}
+        />
+      ))}
+    </>
+  );
 }
 
 export function ComparisonRadar({
@@ -65,17 +119,19 @@ export function ComparisonRadar({
   axisScoresB,
   labelA,
   labelB,
+  hiddenAxisIds = [],
 }: ComparisonRadarProps) {
-  const allAxes = axisScoresA.length > 0 ? axisScoresA : axisScoresB;
-  const paddedNames = Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = allAxes.find((s) => s.axisId === i + 1);
-    return found?.name ?? `Axis ${i + 1}`;
-  });
+  const hidden = new Set(hiddenAxisIds);
+  const paddedNames = buildAxisNames(axisScoresA, axisScoresB);
+  const hiddenNames = paddedNames.filter((_, i) => hidden.has(i + 1));
 
-  const scoresA = buildPaddedScores(axisScoresA);
-  const scoresB = buildPaddedScores(axisScoresB);
-  const pointsA = scorePolygonPoints(scoresA);
-  const pointsB = scorePolygonPoints(scoresB);
+  const { scoresA, scoresB } = buildComparableScores(
+    axisScoresA,
+    axisScoresB,
+    hidden
+  );
+  const runs = buildScoreRuns(scoresA);
+  const isComplete = runs.length === 1 && runs[0].length === TOTAL_AXES;
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
 
   return (
@@ -86,14 +142,30 @@ export function ComparisonRadar({
           <tr><th>Axis</th><th>{labelA}</th><th>{labelB}</th><th>Difference</th></tr>
         </thead>
         <tbody>
-          {paddedNames.map((name, i) => (
-            <tr key={i}>
-              <td>{name}</td>
-              <td>{scoresA[i] >= 0 ? "+" : ""}{scoresA[i].toFixed(2)}</td>
-              <td>{scoresB[i] >= 0 ? "+" : ""}{scoresB[i].toFixed(2)}</td>
-              <td>{Math.abs(scoresA[i] - scoresB[i]).toFixed(2)}</td>
-            </tr>
-          ))}
+          {paddedNames.map((name, i) => {
+            const sA = scoresA[i];
+            const sB = scoresB[i];
+            if (sA === null || sB === null) {
+              return (
+                <tr key={i}>
+                  <td>{name}</td>
+                  <td colSpan={3}>
+                    {hidden.has(i + 1)
+                      ? "Hidden by profile owner"
+                      : "Not scored in both profiles"}
+                  </td>
+                </tr>
+              );
+            }
+            return (
+              <tr key={i}>
+                <td>{name}</td>
+                <td>{formatScore(sA)}</td>
+                <td>{formatScore(sB)}</td>
+                <td>{Math.abs(sA - sB).toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -130,25 +202,17 @@ export function ComparisonRadar({
           );
         })}
 
-        {/* Profile B polygon (dashed) */}
-        <polygon
-          points={pointsB}
-          fill="none"
-          style={{ stroke: 'var(--stone-600)' }}
-          strokeWidth={1.5}
-          strokeDasharray="5 3"
-          strokeOpacity={0.55}
-          strokeLinejoin="round"
-        />
+        {/* Profile B outline (dashed) */}
+        <g strokeDasharray="5 3">
+          <ProfileOutline runs={runs} scores={scoresB} closed={isComplete} />
+        </g>
 
-        {/* Profile A polygon (solid) */}
-        <polygon
-          points={pointsA}
-          style={{ fill: 'var(--stone-600)', stroke: 'var(--stone-600)' }}
-          fillOpacity={0.12}
-          strokeOpacity={0.55}
-          strokeWidth={1.5}
-          strokeLinejoin="round"
+        {/* Profile A outline (solid, filled only when unbroken) */}
+        <ProfileOutline
+          runs={runs}
+          scores={scoresA}
+          closed={isComplete}
+          fillStyle={{ fill: "var(--stone-600)", fillOpacity: 0.12 }}
         />
 
         {/* Center dot — render before interactive dots */}
@@ -156,8 +220,11 @@ export function ComparisonRadar({
 
         {/* Domain-colored vertex dots — Profile A (solid) + Profile B (ring) + hit targets */}
         {scoresA.map((score, i) => {
+          const scoreB = scoresB[i];
+          // Hidden axes get no mark and no hit target — there is nothing to reveal.
+          if (score === null || scoreB === null) return null;
           const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(score));
-          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoresB[i]));
+          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoreB));
           const isHovered = hoveredAxis === i;
           const onEnter = () => setHoveredAxis(i);
           const onLeave = () => setHoveredAxis(null);
@@ -179,9 +246,9 @@ export function ComparisonRadar({
           const i = hoveredAxis;
           const sA = scoresA[i];
           const sB = scoresB[i];
+          if (sA === null || sB === null) return null;
           const name = paddedNames[i];
-          const fmtScore = (s: number) => (s >= 0 ? "+" : "") + s.toFixed(2);
-          const label = `${labelA}: ${fmtScore(sA)}  |  ${labelB}: ${fmtScore(sB)}`;
+          const label = `${labelA}: ${formatScore(sA)}  |  ${labelB}: ${formatScore(sB)}`;
           const charWidth = 5;
           const textWidth = label.length * charWidth;
           const padH = 8;
@@ -255,8 +322,12 @@ export function ComparisonRadar({
               textAnchor={anchor}
               dominantBaseline="central"
               fontSize={10}
-              fill={getDomainColor600(i + 1)}
-              opacity={0.8}
+              fill={
+                hidden.has(i + 1)
+                  ? "var(--text-tertiary)"
+                  : getDomainColor600(i + 1)
+              }
+              opacity={hidden.has(i + 1) ? 0.45 : 0.8}
             >
               {parts.map((part, pi) => (
                 <tspan key={pi} x={x} dy={pi === 0 ? (parts.length > 1 ? "-0.5em" : "0") : "1.1em"}>
@@ -284,6 +355,14 @@ export function ComparisonRadar({
           {labelB}
         </div>
       </div>
+
+      {hiddenNames.length > 0 && (
+        <p className="text-xs text-text-tertiary mt-3 text-center max-w-md">
+          {hiddenNames.length === 1 ? "One axis is" : `${hiddenNames.length} axes are`}
+          {" hidden by a profile owner and left out of this comparison: "}
+          {hiddenNames.join(", ")}.
+        </p>
+      )}
     </div>
   );
 }
