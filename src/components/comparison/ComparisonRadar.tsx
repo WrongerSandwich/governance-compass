@@ -2,21 +2,27 @@
 
 import { useState } from "react";
 import { getDomainColor600 } from "@/lib/design-tokens";
-
-interface AxisScoreEntry {
-  axisId: number;
-  name: string;
-  finalScore: number;
-}
+import {
+  TOTAL_AXES,
+  buildAxisNames,
+  buildPaddedScores,
+  formatScore,
+  type AxisScoreEntry,
+} from "@/lib/comparison-radar-data";
 
 interface ComparisonRadarProps {
   axisScoresA: AxisScoreEntry[];
   axisScoresB: AxisScoreEntry[];
   labelA: string;
   labelB: string;
+  /**
+   * Axes either owner has hidden. Their scores must already be absent from
+   * axisScoresA/axisScoresB — this prop only tells the chart to draw a gap
+   * instead of treating the missing score as a neutral 0.
+   */
+  hiddenAxisIds?: number[];
 }
 
-const TOTAL_AXES = 12;
 const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
@@ -44,20 +50,14 @@ function ringPolygonPoints(radiusFraction: number): string {
   }).join(" ");
 }
 
-function scorePolygonPoints(scores: number[]): string {
+function scorePolygonPoints(scores: (number | null)[]): string {
   return scores
-    .map((score, i) => {
+    .flatMap((score, i) => {
+      if (score === null) return [];
       const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(score));
-      return `${x},${y}`;
+      return [`${x},${y}`];
     })
     .join(" ");
-}
-
-function buildPaddedScores(axisScores: AxisScoreEntry[]): number[] {
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = axisScores.find((s) => s.axisId === i + 1);
-    return found?.finalScore ?? 0;
-  });
 }
 
 export function ComparisonRadar({
@@ -65,15 +65,14 @@ export function ComparisonRadar({
   axisScoresB,
   labelA,
   labelB,
+  hiddenAxisIds = [],
 }: ComparisonRadarProps) {
-  const allAxes = axisScoresA.length > 0 ? axisScoresA : axisScoresB;
-  const paddedNames = Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = allAxes.find((s) => s.axisId === i + 1);
-    return found?.name ?? `Axis ${i + 1}`;
-  });
+  const hidden = new Set(hiddenAxisIds);
+  const paddedNames = buildAxisNames(axisScoresA, axisScoresB);
+  const hiddenNames = paddedNames.filter((_, i) => hidden.has(i + 1));
 
-  const scoresA = buildPaddedScores(axisScoresA);
-  const scoresB = buildPaddedScores(axisScoresB);
+  const scoresA = buildPaddedScores(axisScoresA, hidden);
+  const scoresB = buildPaddedScores(axisScoresB, hidden);
   const pointsA = scorePolygonPoints(scoresA);
   const pointsB = scorePolygonPoints(scoresB);
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
@@ -86,14 +85,26 @@ export function ComparisonRadar({
           <tr><th>Axis</th><th>{labelA}</th><th>{labelB}</th><th>Difference</th></tr>
         </thead>
         <tbody>
-          {paddedNames.map((name, i) => (
-            <tr key={i}>
-              <td>{name}</td>
-              <td>{scoresA[i] >= 0 ? "+" : ""}{scoresA[i].toFixed(2)}</td>
-              <td>{scoresB[i] >= 0 ? "+" : ""}{scoresB[i].toFixed(2)}</td>
-              <td>{Math.abs(scoresA[i] - scoresB[i]).toFixed(2)}</td>
-            </tr>
-          ))}
+          {paddedNames.map((name, i) => {
+            const sA = scoresA[i];
+            const sB = scoresB[i];
+            if (sA === null || sB === null) {
+              return (
+                <tr key={i}>
+                  <td>{name}</td>
+                  <td colSpan={3}>Hidden by profile owner</td>
+                </tr>
+              );
+            }
+            return (
+              <tr key={i}>
+                <td>{name}</td>
+                <td>{formatScore(sA)}</td>
+                <td>{formatScore(sB)}</td>
+                <td>{Math.abs(sA - sB).toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -156,8 +167,11 @@ export function ComparisonRadar({
 
         {/* Domain-colored vertex dots — Profile A (solid) + Profile B (ring) + hit targets */}
         {scoresA.map((score, i) => {
+          const scoreB = scoresB[i];
+          // Hidden axes get no mark and no hit target — there is nothing to reveal.
+          if (score === null || scoreB === null) return null;
           const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(score));
-          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoresB[i]));
+          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoreB));
           const isHovered = hoveredAxis === i;
           const onEnter = () => setHoveredAxis(i);
           const onLeave = () => setHoveredAxis(null);
@@ -179,9 +193,9 @@ export function ComparisonRadar({
           const i = hoveredAxis;
           const sA = scoresA[i];
           const sB = scoresB[i];
+          if (sA === null || sB === null) return null;
           const name = paddedNames[i];
-          const fmtScore = (s: number) => (s >= 0 ? "+" : "") + s.toFixed(2);
-          const label = `${labelA}: ${fmtScore(sA)}  |  ${labelB}: ${fmtScore(sB)}`;
+          const label = `${labelA}: ${formatScore(sA)}  |  ${labelB}: ${formatScore(sB)}`;
           const charWidth = 5;
           const textWidth = label.length * charWidth;
           const padH = 8;
@@ -255,8 +269,12 @@ export function ComparisonRadar({
               textAnchor={anchor}
               dominantBaseline="central"
               fontSize={10}
-              fill={getDomainColor600(i + 1)}
-              opacity={0.8}
+              fill={
+                hidden.has(i + 1)
+                  ? "var(--text-tertiary)"
+                  : getDomainColor600(i + 1)
+              }
+              opacity={hidden.has(i + 1) ? 0.45 : 0.8}
             >
               {parts.map((part, pi) => (
                 <tspan key={pi} x={x} dy={pi === 0 ? (parts.length > 1 ? "-0.5em" : "0") : "1.1em"}>
@@ -284,6 +302,14 @@ export function ComparisonRadar({
           {labelB}
         </div>
       </div>
+
+      {hiddenNames.length > 0 && (
+        <p className="text-xs text-text-tertiary mt-3 text-center max-w-md">
+          {hiddenNames.length === 1 ? "One axis is" : `${hiddenNames.length} axes are`}
+          {" hidden by a profile owner and left out of this comparison: "}
+          {hiddenNames.join(", ")}.
+        </p>
+      )}
     </div>
   );
 }
