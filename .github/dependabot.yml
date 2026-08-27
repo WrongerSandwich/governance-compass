@@ -20,8 +20,6 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@types/node"     # #18
         update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/bcryptjs" # #19
-        update-types: ["version-update:semver-major"]
     groups:
       # Keep react and react-dom (and their types) on one PR — React requires the
       # runtime and renderer to match exactly, and a split bump drifts them apart.
