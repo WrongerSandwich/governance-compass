@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type {
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { AnnotatedText } from "@/components/AnnotatedText";
 import { getConsequenceText } from "@/data/ministries";
 import { Shield, Heart, TrendingUp, GraduationCap, Leaf, Scale, Globe } from "lucide-react";
@@ -44,12 +47,11 @@ interface BudgetSimulatorProps {
  * without it the budget phase, and therefore the assessment, cannot be
  * completed without a pointing device.
  *
- * `step` reports whether it actually moved the value; the repeat loop ends as
- * soon as it does not. Ending on the step itself matters because reaching the
- * bound also disables the button, and browsers that suppress pointer events on
- * disabled controls never deliver the `pointerup`/`pointerleave` that would
- * otherwise stop the loop — leaving a timer that resumes incrementing on its
- * own once the value became changeable again.
+ * `step` reports whether it actually moved the value, and the repeat loop ends
+ * as soon as it does not. Terminating on the step itself, rather than on a
+ * pointer event, is what keeps a hold from running away: the release can always
+ * land somewhere the button never hears about, and a loop that outlives its
+ * gesture resumes stepping the moment the value becomes changeable again.
  */
 function useStepper(step: () => boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -58,17 +60,34 @@ function useStepper(step: () => boolean) {
   const stepRef = useRef(step);
   stepRef.current = step;
 
-  const stop = useCallback(() => {
+  // A named function expression so the listener it detaches is itself — the
+  // same instance `useCallback` hands back on every render.
+  const stop = useCallback(function stopHold() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    window.removeEventListener("pointerup", stopHold);
+    window.removeEventListener("pointercancel", stopHold);
+    window.removeEventListener("blur", stopHold);
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    // Only a primary-button press is an activation. A right- or middle-press
+    // produces no `click` and, once the context menu takes the pointer, often
+    // no `pointerup` either — it would hold the repeat all the way to the bound.
+    if (event.button !== 0 || !event.isPrimary) return;
+
     stop();
     startTimeRef.current = Date.now();
     repeatedRef.current = false;
+
+    // The button's own pointer handlers miss releases that land elsewhere —
+    // outside the window, or after an alt-tab. Watch for those too.
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    window.addEventListener("blur", stop);
+
     function tick() {
       if (!stepRef.current()) {
         stop();
@@ -176,6 +195,23 @@ interface MinistrySliderProps {
   onAllocate: (ministryId: number, amount: number) => void;
 }
 
+const STEPPER_BASE =
+  "flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary " +
+  "bg-surface-1 text-text-secondary transition-colors duration-150 focus:outline-none " +
+  "focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+
+/**
+ * Bounds are marked with `aria-disabled` rather than `disabled`: a disabled
+ * control drops out of the tab order, and disabling the one the user just
+ * pressed throws their focus to the top of the page — which is exactly what
+ * happens when the last point is allocated and every "+" reaches its bound at
+ * once. The step callbacks already no-op past a bound, so a stray activation
+ * changes nothing.
+ */
+function stepperClass(atBound: boolean) {
+  return `${STEPPER_BASE} ${atBound ? "cursor-not-allowed opacity-50" : "hover:bg-surface-2"}`;
+}
+
 function MinistrySlider({
   ministry,
   value,
@@ -225,8 +261,8 @@ function MinistrySlider({
           onPointerUp={dec.stop}
           onPointerLeave={dec.stop}
           onPointerCancel={dec.stop}
-          disabled={atMin}
-          className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-disabled={atMin}
+          className={stepperClass(atMin)}
         >
           <span className="text-lg leading-none">&minus;</span>
         </button>
@@ -260,8 +296,8 @@ function MinistrySlider({
           onPointerUp={inc.stop}
           onPointerLeave={inc.stop}
           onPointerCancel={inc.stop}
-          disabled={atMax}
-          className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-disabled={atMax}
+          className={stepperClass(atMax)}
         >
           <span className="text-lg leading-none">+</span>
         </button>

@@ -84,12 +84,25 @@ function keyboardClick(button: HTMLButtonElement) {
   });
 }
 
-function pointerTap(button: HTMLButtonElement) {
+/** A press with the primary button, as a real tap or hold begins. */
+function press(button: HTMLButtonElement, init: PointerEventInit = {}) {
   act(() => {
-    button.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    button.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0, isPrimary: true, ...init }),
+    );
+  });
+}
+
+function release(button: HTMLButtonElement) {
+  act(() => {
     button.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
     button.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
   });
+}
+
+function pointerTap(button: HTMLButtonElement) {
+  press(button);
+  release(button);
 }
 
 /**
@@ -143,18 +156,13 @@ describe("BudgetSimulator steppers", () => {
     mount(flat(), onAllocate);
 
     const button = stepper("Increase");
-    act(() => {
-      button.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-    });
+    press(button);
     advance(HOLD_DELAY_MS + 250);
 
     const duringHold = onAllocate.mock.calls.length;
     expect(duringHold).toBeGreaterThan(1);
 
-    act(() => {
-      button.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
-      button.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
-    });
+    release(button);
     expect(onAllocate).toHaveBeenCalledTimes(duringHold);
   });
 
@@ -165,13 +173,11 @@ describe("BudgetSimulator steppers", () => {
     // Hold "+" until the budget runs dry. The button is disabled at that point,
     // and browsers that suppress pointer events on disabled controls never
     // deliver pointerup — so the loop has to end itself.
-    act(() => {
-      stepper("Increase").dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-    });
+    press(stepper("Increase"));
     advance(HOLD_DELAY_MS + 1000);
 
     expect(onAllocate.mock.calls.map(([, amount]) => amount)).toEqual([2, 3]);
-    expect(stepper("Increase").disabled).toBe(true);
+    expect(stepper("Increase").getAttribute("aria-disabled")).toBe("true");
 
     // Freeing a point must not resurrect the hold on the first ministry.
     onAllocate.mockClear();
@@ -180,6 +186,58 @@ describe("BudgetSimulator steppers", () => {
 
     expect(onAllocate).toHaveBeenCalledTimes(1);
     expect(onAllocate.mock.calls[0][0]).toBe(ministries[1].id);
+  });
+
+  it("ignores a non-primary press instead of holding on it", () => {
+    const onAllocate = vi.fn();
+    mount(flat(), onAllocate);
+
+    // A right-press opens the context menu, which swallows the release — if it
+    // started the hold, nothing would stop it before the bound.
+    press(stepper("Increase"), { button: 2 });
+    advance(HOLD_DELAY_MS + 1000);
+
+    expect(onAllocate).not.toHaveBeenCalled();
+  });
+
+  it("ends a hold when the release lands outside the button", () => {
+    const onAllocate = vi.fn();
+    mount(flat(), onAllocate);
+
+    press(stepper("Increase"));
+    advance(HOLD_DELAY_MS + 100);
+    const duringHold = onAllocate.mock.calls.length;
+    expect(duringHold).toBeGreaterThan(0);
+
+    // Released over another element, or after an alt-tab: the button's own
+    // pointerup never fires, so the window-level listener has to catch it.
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+    });
+    advance(1000);
+
+    expect(onAllocate).toHaveBeenCalledTimes(duringHold);
+  });
+
+  it("keeps a stepper focusable at its bound so focus is not thrown away", () => {
+    const onAllocate = vi.fn();
+    mount(withRemaining(1), onAllocate);
+
+    const button = stepper("Increase");
+    button.focus();
+    keyboardClick(button);
+
+    // The last point is spent, so every "+" is at its bound. The button the
+    // user just pressed must still hold focus and stay reachable by Tab.
+    const bounded = stepper("Increase");
+    expect(bounded.getAttribute("aria-disabled")).toBe("true");
+    expect(bounded.hasAttribute("disabled")).toBe(false);
+    expect(document.activeElement).toBe(bounded);
+
+    // And activating it again is simply inert.
+    onAllocate.mockClear();
+    keyboardClick(bounded);
+    expect(onAllocate).not.toHaveBeenCalled();
   });
 
   it("scales the track fill against the real maximum", () => {
