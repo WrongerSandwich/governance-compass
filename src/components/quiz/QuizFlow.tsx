@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuiz } from "./QuizProvider";
+import { isResumablePhase } from "@/lib/quiz-state";
 import { ForcedChoiceCard } from "./ForcedChoiceCard";
 import { ScaledQuestionCard } from "./ScaledQuestionCard";
 import { BudgetSimulator } from "./BudgetSimulator";
@@ -65,6 +66,35 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
   return out;
 }
 
+// ---------- recovery ----------
+
+/**
+ * Shown when saved state points at a question that no longer exists — a
+ * tampered payload, or a session saved before the question bank changed.
+ * Better a deliberate reset than a crash mid-render.
+ */
+function UnrecoverableState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="mx-auto max-w-[640px] py-12 text-center">
+      <GovernanceCompassMark size={36} className="mx-auto mb-4" />
+      <h1 className="text-[22px] font-serif font-medium text-text-primary mb-2">
+        We lost your place
+      </h1>
+      <p className="text-sm text-text-secondary mb-8 leading-relaxed">
+        Your saved progress doesn&apos;t match the current assessment, so we can&apos;t pick
+        it back up. Starting over takes about 16 minutes.
+      </p>
+      <button
+        type="button"
+        onClick={onReset}
+        className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+      >
+        Start over
+      </button>
+    </div>
+  );
+}
+
 // ---------- component ----------
 
 export function QuizFlow({
@@ -74,6 +104,7 @@ export function QuizFlow({
 }: QuizFlowProps) {
   const { state, dispatch } = useQuiz();
   const router = useRouter();
+  const [finalizeError, setFinalizeError] = useState(false);
 
   const shuffledFC = useMemo(
     () => seededShuffle(forcedChoiceItems, Math.floor(state.randomSeed * 2147483647)),
@@ -113,20 +144,33 @@ export function QuizFlow({
   );
 
   const handleBudgetFinalize = useCallback(() => {
-    dispatch({ type: "START_COMPUTING" });
-
     const responses: QuizResponses = {
       forcedChoice: state.forcedChoiceResponses,
       scaled: state.scaledResponses,
       budget: state.budgetAllocations,
     };
 
-    const encoded = encodeResponses(responses);
-    localStorage.setItem("lastResults", encoded);
+    // Encode before leaving the budget screen: if this throws, the user keeps a
+    // working Finalize button instead of being stranded on the spinner.
+    let encoded: string;
+    try {
+      encoded = encodeResponses(responses);
+    } catch (err) {
+      console.error("Failed to encode quiz responses", err);
+      setFinalizeError(true);
+      return;
+    }
 
-    // Clear quiz state from sessionStorage
-    sessionStorage.removeItem("governance-compass-quiz-state");
+    setFinalizeError(false);
+    dispatch({ type: "START_COMPUTING" });
 
+    try {
+      localStorage.setItem("lastResults", encoded);
+    } catch {
+      // Storage full or unavailable — the results link is in the URL either way
+    }
+
+    // The provider clears the saved quiz state once the phase goes terminal.
     dispatch({ type: "COMPLETE" });
     // Artificial delay per spec (1.5-2s) before redirect
     setTimeout(() => {
@@ -160,7 +204,8 @@ export function QuizFlow({
 
   // ---------- resume detection ----------
 
-  const hasProgress = state.phase !== "intro" && state.phase !== "computing" && state.phase !== "done";
+  // Terminal phases are never resumable, so they can't reach the resume screen.
+  const hasProgress = state.phase !== "intro" && isResumablePhase(state.phase);
   const answeredCount = Object.keys(state.forcedChoiceResponses).length + Object.keys(state.scaledResponses).length;
   // Only show resume screen if we mounted with saved progress (not intro).
   // Fresh starts begin at "intro" so this initializes to true, skipping resume.
@@ -245,6 +290,7 @@ export function QuizFlow({
   // Phase 1: Forced-choice dilemmas
   if (state.phase === "phase1") {
     const item = shuffledFC[state.currentQuestionIndex];
+    if (!item) return <UnrecoverableState onReset={() => dispatch({ type: "RESET" })} />;
     const isFirst = state.currentQuestionIndex === 0;
     const hasResponse = item.id in state.forcedChoiceResponses;
 
@@ -335,6 +381,7 @@ export function QuizFlow({
   // Phase 2: Scaled questions
   if (state.phase === "phase2") {
     const item = shuffledSC[state.currentQuestionIndex];
+    if (!item) return <UnrecoverableState onReset={() => dispatch({ type: "RESET" })} />;
     const isFirst = state.currentQuestionIndex === 0;
     const hasResponse = item.id in state.scaledResponses;
 
@@ -421,6 +468,15 @@ export function QuizFlow({
     return (
       <div className="mx-auto max-w-2xl py-8">
         <ProgressBar currentPhase={3} currentIndex={0} totalInPhase={1} />
+
+        {finalizeError && (
+          <p
+            role="alert"
+            className="mb-4 rounded-[8px] bg-warning-bg px-4 py-3 text-[13px] text-warning-text"
+          >
+            Something went wrong finalizing your budget. Your answers are still here — please try again.
+          </p>
+        )}
 
         <BudgetSimulator
           ministries={ministries}

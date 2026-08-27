@@ -1,23 +1,17 @@
 "use client";
 
 import { createContext, useContext, useEffect, useReducer, type ReactNode } from "react";
+import {
+  STORAGE_KEY,
+  createFreshQuizState,
+  isResumablePhase,
+  parseSavedQuizState,
+  type QuizState,
+} from "@/lib/quiz-state";
 
-export interface QuizState {
-  phase:
-    | "intro"
-    | "phase1"
-    | "transition1"
-    | "phase2"
-    | "transition2"
-    | "phase3"
-    | "computing"
-    | "done";
-  forcedChoiceResponses: Record<string, "A" | "B">;
-  scaledResponses: Record<string, 1 | 2 | 3 | 4 | 5>;
-  budgetAllocations: Record<number, number>; // ministryId -> amount
-  currentQuestionIndex: number; // within current phase
-  randomSeed: number; // for consistent randomization
-}
+// QuizState has always been part of this module's surface; the storage contract
+// itself now lives in @/lib/quiz-state.
+export type { QuizPhase, QuizState } from "@/lib/quiz-state";
 
 export type QuizAction =
   | { type: "START_QUIZ" }
@@ -79,58 +73,26 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
     case "COMPLETE":
       return { ...state, phase: "done" };
     case "RESET":
-      sessionStorage.removeItem(STORAGE_KEY);
-      return {
-        phase: "intro",
-        forcedChoiceResponses: {},
-        scaledResponses: {},
-        budgetAllocations: createInitialBudget(),
-        currentQuestionIndex: 0,
-        randomSeed: Math.random(),
-      };
+      // Storage is the persistence effect's business, not the reducer's.
+      return createFreshQuizState();
     default:
       return state;
   }
 }
 
-// Initialize budgetAllocations with all 7 ministries at minimum (1 each).
-// 7 points committed, 43 to distribute. Total: 50.
-const STORAGE_KEY = "governance-compass-quiz-state";
-
-function createInitialBudget(): Record<number, number> {
-  const allocations: Record<number, number> = {};
-  for (let i = 1; i <= 7; i++) {
-    allocations[i] = 1;
-  }
-  return allocations;
-}
-
 function createInitialState(): QuizState {
   if (typeof window !== "undefined") {
     try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Invalidate stale budget state from old quiz versions
-        const budgetKeys = Object.keys(parsed.budgetAllocations || {});
-        if (budgetKeys.length !== 7 || budgetKeys.some((k) => Number(k) > 7)) {
-          sessionStorage.removeItem(STORAGE_KEY);
-        } else {
-          return parsed;
-        }
-      }
+      // Anything stale, tampered with, or left over from an older quiz version
+      // is discarded rather than restored into a half-valid render.
+      const restored = parseSavedQuizState(sessionStorage.getItem(STORAGE_KEY));
+      if (restored) return restored;
+      sessionStorage.removeItem(STORAGE_KEY);
     } catch {
-      // Ignore parse errors or missing storage
+      // Storage unavailable (private mode, blocked cookies) — start fresh
     }
   }
-  return {
-    phase: "intro",
-    forcedChoiceResponses: {},
-    scaledResponses: {},
-    budgetAllocations: createInitialBudget(),
-    currentQuestionIndex: 0,
-    randomSeed: Math.random(),
-  };
+  return createFreshQuizState();
 }
 
 interface QuizContextValue {
@@ -149,9 +111,17 @@ export function useQuiz() {
 export function QuizProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(quizReducer, undefined, createInitialState);
 
+  // Single owner of the saved-state lifecycle. Terminal phases ("computing",
+  // "done") are cleared instead of written: the responses are already on their
+  // way to /results, and a saved "done" state would strand the next visit to
+  // /quiz on the computing spinner.
   useEffect(() => {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (isResumablePhase(state.phase)) {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
     } catch {
       // Storage full or unavailable
     }
