@@ -141,6 +141,25 @@ describe("QuizProvider persistence", () => {
     expect(quiz.result.state.budgetAllocations).toEqual(createInitialBudget());
   });
 
+  it("discards a seed that would shuffle the question bank into holes", () => {
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        phase: "phase1",
+        forcedChoiceResponses: {},
+        scaledResponses: {},
+        budgetAllocations: createInitialBudget(),
+        currentQuestionIndex: 0,
+        randomSeed: -0.5,
+      })
+    );
+
+    const quiz = mountQuiz();
+
+    expect(quiz.result.state.randomSeed).toBeGreaterThanOrEqual(0);
+    expect(quiz.result.state.randomSeed).toBeLessThan(1);
+  });
+
   it("RESET clears responses and leaves a fresh state in storage", () => {
     const quiz = mountQuiz();
 

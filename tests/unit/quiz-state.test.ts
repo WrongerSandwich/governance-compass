@@ -111,6 +111,21 @@ describe("isValidSavedQuizState", () => {
     ).toBe(false);
   });
 
+  it("rejects budget amounts outside the encodable range", () => {
+    // encodeResponses throws outside [1, 25]; restoring such a budget would
+    // leave Finalize permanently failing.
+    for (const amount of [0, 26, 12.5]) {
+      expect(
+        isValidSavedQuizState(
+          validState({ budgetAllocations: { ...createInitialBudget(), 3: amount } })
+        )
+      ).toBe(false);
+    }
+    expect(
+      isValidSavedQuizState(validState({ budgetAllocations: { ...createInitialBudget(), 3: 25 } }))
+    ).toBe(true);
+  });
+
   it("rejects non-numeric or negative budget amounts", () => {
     expect(
       isValidSavedQuizState(
@@ -135,6 +150,15 @@ describe("isValidSavedQuizState", () => {
   it("rejects a missing or non-finite random seed", () => {
     expect(isValidSavedQuizState(validState({ randomSeed: NaN }))).toBe(false);
     expect(isValidSavedQuizState(validState({ randomSeed: undefined as never }))).toBe(false);
+  });
+
+  it("rejects a seed outside Math.random()'s range", () => {
+    // A negative seed makes seededShuffle index with a negative modulus, which
+    // leaves undefined holes in the shuffled question list.
+    expect(isValidSavedQuizState(validState({ randomSeed: -0.5 }))).toBe(false);
+    expect(isValidSavedQuizState(validState({ randomSeed: 1 }))).toBe(false);
+    expect(isValidSavedQuizState(validState({ randomSeed: 1.5 }))).toBe(false);
+    expect(isValidSavedQuizState(validState({ randomSeed: 0 }))).toBe(true);
   });
 });
 

@@ -12,6 +12,14 @@ export const STORAGE_KEY = "governance-compass-quiz-state";
 export const MINISTRY_COUNT = 7;
 
 /**
+ * Per-ministry allocation bounds. BudgetSimulator enforces these in the UI and
+ * encodeResponses throws outside them, so a restored budget that breaks the
+ * range would leave the user on a Finalize button that can only fail.
+ */
+export const MIN_ALLOCATION = 1;
+export const MAX_ALLOCATION = 25;
+
+/**
  * Sanity ceiling on a restored question index. The provider cannot know how
  * many items a phase holds, so this only rejects obviously bogus payloads;
  * QuizFlow still guards the actual lookup.
@@ -55,11 +63,11 @@ export function isResumablePhase(phase: unknown): phase is QuizPhase {
   return RESUMABLE_PHASES.includes(phase as QuizPhase);
 }
 
-/** Budget starts with every ministry at the minimum of 1: 7 committed, 43 to spend. */
+/** Budget starts with every ministry at the minimum: 7 points committed, 43 to spend. */
 export function createInitialBudget(): Record<number, number> {
   const allocations: Record<number, number> = {};
   for (let i = 1; i <= MINISTRY_COUNT; i++) {
-    allocations[i] = 1;
+    allocations[i] = MIN_ALLOCATION;
   }
   return allocations;
 }
@@ -87,7 +95,7 @@ function isValidBudget(value: unknown): value is Record<number, number> {
     const id = Number(key);
     if (!Number.isInteger(id) || id < 1 || id > MINISTRY_COUNT) return false;
     const amount = value[key];
-    return typeof amount === "number" && Number.isFinite(amount) && amount >= 0;
+    return Number.isInteger(amount) && (amount as number) >= MIN_ALLOCATION && (amount as number) <= MAX_ALLOCATION;
   });
 }
 
@@ -123,7 +131,11 @@ export function isValidSavedQuizState(value: unknown): value is QuizState {
   ) {
     return false;
   }
-  if (typeof value.randomSeed !== "number" || !Number.isFinite(value.randomSeed)) return false;
+  // Must be in Math.random()'s range: a negative seed makes seededShuffle index
+  // with a negative modulus and leaves holes in the question list.
+  if (typeof value.randomSeed !== "number" || !(value.randomSeed >= 0) || value.randomSeed >= 1) {
+    return false;
+  }
   return true;
 }
 
