@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { AnnotatedText } from "@/components/AnnotatedText";
 import { getConsequenceText } from "@/data/ministries";
 import { Shield, Heart, TrendingUp, GraduationCap, Leaf, Scale, Globe } from "lucide-react";
@@ -21,6 +22,12 @@ const TOTAL_BUDGET = 50;
 const MIN_ALLOCATION = 1;
 const MAX_ALLOCATION = 25;
 
+// Hold-to-repeat pacing for the stepper buttons.
+const HOLD_DELAY_MS = 200;
+const HOLD_INTERVAL_MS = 100;
+const HOLD_FAST_INTERVAL_MS = 50;
+const HOLD_ACCELERATE_AFTER_MS = 500;
+
 interface BudgetSimulatorProps {
   ministries: MinistryData[];
   allocations: Record<number, number>;
@@ -29,13 +36,27 @@ interface BudgetSimulatorProps {
 }
 
 /**
- * Hold-to-repeat hook for stepper buttons.
+ * Stepper-button behaviour: one step per `click`, plus hold-to-repeat while a
+ * pointer stays down.
+ *
+ * Stepping hangs off `click` rather than `pointerdown` so that keyboard
+ * activation (Enter/Space, which fires `click` and never `pointerdown`) works —
+ * without it the budget phase, and therefore the assessment, cannot be
+ * completed without a pointing device.
+ *
+ * `step` reports whether it actually moved the value; the repeat loop ends as
+ * soon as it does not. Ending on the step itself matters because reaching the
+ * bound also disables the button, and browsers that suppress pointer events on
+ * disabled controls never deliver the `pointerup`/`pointerleave` that would
+ * otherwise stop the loop — leaving a timer that resumes incrementing on its
+ * own once the value became changeable again.
  */
-function useHoldRepeat(callback: () => void) {
+function useStepper(step: () => boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef(0);
-  const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  const repeatedRef = useRef(false);
+  const stepRef = useRef(step);
+  stepRef.current = step;
 
   const stop = useCallback(() => {
     if (timerRef.current) {
@@ -45,19 +66,36 @@ function useHoldRepeat(callback: () => void) {
   }, []);
 
   const start = useCallback(() => {
+    stop();
     startTimeRef.current = Date.now();
-    callbackRef.current();
+    repeatedRef.current = false;
     function tick() {
-      callbackRef.current();
+      if (!stepRef.current()) {
+        stop();
+        return;
+      }
+      repeatedRef.current = true;
       const elapsed = Date.now() - startTimeRef.current;
-      const interval = elapsed > 500 ? 50 : 100;
-      timerRef.current = setTimeout(tick, interval);
+      timerRef.current = setTimeout(
+        tick,
+        elapsed > HOLD_ACCELERATE_AFTER_MS ? HOLD_FAST_INTERVAL_MS : HOLD_INTERVAL_MS,
+      );
     }
-    timerRef.current = setTimeout(tick, 200);
+    timerRef.current = setTimeout(tick, HOLD_DELAY_MS);
+  }, [stop]);
+
+  /**
+   * A pointer hold still ends with a `click`; swallow that one so holding does
+   * not tack an extra step onto the repeats. `detail === 0` marks a keyboard
+   * activation, which never goes through the hold path and so always steps.
+   */
+  const click = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0 && repeatedRef.current) return;
+    stepRef.current();
   }, []);
 
   useEffect(() => stop, [stop]);
-  return { start, stop };
+  return { start, stop, click };
 }
 
 export function BudgetSimulator({
@@ -151,15 +189,19 @@ function MinistrySlider({
   const atMax = value >= MAX_ALLOCATION || remaining <= 0;
 
   const handleDecrement = useCallback(() => {
-    if (value > MIN_ALLOCATION) onAllocate(ministry.id, value - 1);
+    if (value <= MIN_ALLOCATION) return false;
+    onAllocate(ministry.id, value - 1);
+    return true;
   }, [ministry.id, value, onAllocate]);
 
   const handleIncrement = useCallback(() => {
-    if (value < MAX_ALLOCATION && remaining > 0) onAllocate(ministry.id, value + 1);
+    if (value >= MAX_ALLOCATION || remaining <= 0) return false;
+    onAllocate(ministry.id, value + 1);
+    return true;
   }, [ministry.id, value, remaining, onAllocate]);
 
-  const dec = useHoldRepeat(handleDecrement);
-  const inc = useHoldRepeat(handleIncrement);
+  const dec = useStepper(handleDecrement);
+  const inc = useStepper(handleIncrement);
 
   return (
     <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-4">
@@ -178,9 +220,11 @@ function MinistrySlider({
         <button
           type="button"
           aria-label={`Decrease ${ministry.name} allocation`}
-          onPointerDown={atMin ? undefined : dec.start}
+          onClick={dec.click}
+          onPointerDown={dec.start}
           onPointerUp={dec.stop}
           onPointerLeave={dec.stop}
+          onPointerCancel={dec.stop}
           disabled={atMin}
           className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -196,7 +240,7 @@ function MinistrySlider({
             <div
               className="h-full rounded-[3px] transition-all duration-100"
               style={{
-                width: `${Math.min(100, ((value - MIN_ALLOCATION) / (15 - MIN_ALLOCATION)) * 100)}%`,
+                width: `${Math.min(100, ((value - MIN_ALLOCATION) / (MAX_ALLOCATION - MIN_ALLOCATION)) * 100)}%`,
                 backgroundColor: 'var(--stone-600)',
                 opacity: 0.5,
               }}
@@ -211,9 +255,11 @@ function MinistrySlider({
         <button
           type="button"
           aria-label={`Increase ${ministry.name} allocation`}
-          onPointerDown={atMax ? undefined : inc.start}
+          onClick={inc.click}
+          onPointerDown={inc.start}
           onPointerUp={inc.stop}
           onPointerLeave={inc.stop}
+          onPointerCancel={inc.stop}
           disabled={atMax}
           className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
