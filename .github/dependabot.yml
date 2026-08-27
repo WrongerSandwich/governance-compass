@@ -23,7 +23,22 @@ updates:
       - dependency-name: "@types/bcryptjs" # #19
         update-types: ["version-update:semver-major"]
     groups:
-      # Bundle all devDependencies into a single weekly PR to cut review churn.
+      # Keep react and react-dom (and their types) on one PR — React requires the
+      # runtime and renderer to match exactly, and a split bump drifts them apart.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # Same for the Next.js packages, whose versions are published in lockstep.
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "eslint-config-next"
+      # Bundle the remaining devDependencies into a single weekly PR to cut
+      # review churn. Listed last: a dependency joins the first group it matches.
       dev-dependencies:
         dependency-type: "development"
 
