@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 /**
@@ -21,13 +21,19 @@ export function usePinnedPersonas(): {
   const searchParams = useSearchParams();
 
   const compareParam = searchParams.get("compare") ?? "";
-  const pinned = compareParam
-    ? compareParam
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .slice(0, 4)
-    : [];
+  // Memoised so it is referentially stable across renders — isPinned closes
+  // over it, and a fresh array every render would defeat that useCallback.
+  const pinned = useMemo(
+    () =>
+      compareParam
+        ? compareParam
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 4)
+        : [],
+    [compareParam]
+  );
 
   const canPin = pinned.length < 4;
 

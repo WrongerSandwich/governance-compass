@@ -84,6 +84,9 @@ function CopyLinkButton() {
   );
 }
 
+// Rendered nowhere yet: the account UI is hidden for v1 while the
+// materialize infrastructure it drives stays in place. See CLAUDE.md.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SaveToAccountButton({ encoded }: { encoded: string }) {
   const { data: session } = useSession();
   const [status, setStatus] = useState<
@@ -200,7 +203,6 @@ export function ResultsView({
   axisData,
   compass,
   archetype,
-  profileId,
   encoded,
 }: ResultsViewProps) {
   const domainKeys: DomainKey[] = ["economic", "power", "society", "world"];

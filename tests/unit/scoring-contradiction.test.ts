@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { detectContradiction } from "@/lib/scoring";
-import { TENSION_THRESHOLDS, STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
+import { STATED_FC_WEIGHT, STATED_SC_WEIGHT } from "@/lib/scoring-types";
 
 // Helper: compute stated score the same way the implementation does.
 function stated(fc: number, sc: number): number {

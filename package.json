@@ -9,7 +9,8 @@
     "build:geo": "tsx scripts/build-geo.ts",
     "build:study": "tsx scripts/build-synthetic-study.ts",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings=10",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -33,9 +34,6 @@
     "topojson-client": "^3.1.0",
     "zod": "^4.3.6"
   },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
-  },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
@@ -49,6 +47,7 @@
     "@types/topojson-server": "^3.0.4",
     "@vitejs/plugin-react": "^6.0.2",
     "csv-parse": "^6.2.1",
+    "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "jsdom": "^29.1.1",

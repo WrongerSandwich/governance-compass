@@ -153,13 +153,11 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
 
 function PersonaPanel({
   data,
-  panelId,
   headingId,
   onUnpin,
   onViewFull,
 }: {
   data: PersonaDetailResponse;
-  panelId: string;
   headingId: string;
   onUnpin: () => void;
   onViewFull: () => void;
@@ -615,7 +613,6 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
             {pinnedIds.map((id) => {
               const entry = dataMap.get(id);
               const headingId = `compare-panel-heading-${id}`;
-              const panelId = `compare-panel-${id}`;
 
               if (!entry || entry === "loading") {
                 return <PanelSkeleton key={id} id={id} />;
@@ -628,7 +625,6 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
                 <PersonaPanel
                   key={id}
                   data={entry}
-                  panelId={panelId}
                   headingId={headingId}
                   onUnpin={() => onUnpin(id)}
                   onViewFull={() => handleViewFull(id)}

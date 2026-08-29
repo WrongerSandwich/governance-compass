@@ -1654,7 +1654,7 @@ function ResponsesContent({
 }: {
   admin: PersonaDetailResponse["administrations"][number];
 }) {
-  const { fc, sc, budget } = admin.raw_responses;
+  const { fc, sc } = admin.raw_responses;
 
   const CHOICE_LABELS_LIKERT: Record<number, string> = {
     1: "Strongly agree (pole A)",

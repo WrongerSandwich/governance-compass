@@ -235,7 +235,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
     [mode]
   );
 
-  // Build aria-description for the whole map
+  // Accessible name for the whole map
   const ariaDescription = (() => {
     if (mode.type === "interactive" || mode.type === "static-density") {
       const total = Object.values(mode.regionCounts).reduce(
@@ -278,8 +278,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           width={820}
           height={410}
           role="img"
-          aria-label="World map"
-          aria-description={ariaDescription}
+          aria-label={ariaDescription}
           style={{ width: "100%", height: "auto" }}
         >
           <defs>

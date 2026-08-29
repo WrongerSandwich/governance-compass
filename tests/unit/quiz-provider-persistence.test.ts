@@ -6,7 +6,7 @@
  * saved-state lifecycle, and terminal phases are never written back.
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { act, createElement } from "react";
+import { act, createElement, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { QuizProvider, useQuiz } from "@/components/quiz/QuizProvider";
 import { STORAGE_KEY, createInitialBudget, type QuizState } from "@/lib/quiz-state";
@@ -26,7 +26,13 @@ type Quiz = ReturnType<typeof useQuiz>;
 function mountQuiz() {
   let captured: Quiz | null = null;
   function Probe() {
-    captured = useQuiz();
+    const quiz = useQuiz();
+    // Publish from an effect rather than during render: writing to the
+    // enclosing scope mid-render is an impurity the React Compiler rejects.
+    // act() flushes effects, so the value is current once mounting returns.
+    useEffect(() => {
+      captured = quiz;
+    });
     return null;
   }
 
