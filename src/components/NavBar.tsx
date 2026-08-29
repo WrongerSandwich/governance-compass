@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { GovernanceCompassMark } from "./GovernanceCompassMark";
@@ -20,7 +19,6 @@ function matchesAny(pathname: string, paths: string[]): boolean {
 }
 
 export function NavBar() {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
   const [resultsHref, setResultsHref] = useState<string | null>(null);
 

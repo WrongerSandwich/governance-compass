@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     rules: {
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/refs": "warn",
+      // A leading underscore marks an argument that is deliberately unused but
+      // must stay in the signature — e.g. detectContradiction's axis id, whose
+      // irrelevance is itself under test.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
   // Override default ignores of eslint-config-next.

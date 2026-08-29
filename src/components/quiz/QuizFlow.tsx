@@ -210,7 +210,7 @@ export function QuizFlow({
   // Only show resume screen if we mounted with saved progress (not intro).
   // Fresh starts begin at "intro" so this initializes to true, skipping resume.
   const [resumeAcknowledged, setResumeAcknowledged] = useState(() => state.phase === "intro");
-  const [glossaryHintSeen, setGlossaryHintSeen] = useState(() => {
+  const [glossaryHintSeen] = useState(() => {
     if (typeof window === "undefined") return true;
     return !!sessionStorage.getItem("glossary-hint-seen");
   });
