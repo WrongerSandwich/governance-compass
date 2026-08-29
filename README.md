@@ -9,7 +9,7 @@ Supports annotations, one-on-one comparisons, and private group comparisons.
 ```bash
 # Create local configuration, then start PostgreSQL (Docker must be running)
 cp .env.example .env
-docker compose up -d postgres
+docker compose up -d --wait postgres
 
 # Install dependencies and seed the database
 npm install

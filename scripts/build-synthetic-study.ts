@@ -70,9 +70,25 @@ const DATASET_GENERATED_AT = "2026-04-21T13:12:07.586Z";
 const DATASET_FINGERPRINT =
   "95710e4e5d9df6d52780c9013137a904d573f4769cb24e1c7da166b54641392c";
 
+// Named explicitly rather than read from the directory: a stray .DS_Store
+// would otherwise report itself as a data change, and a subdirectory would
+// throw EISDIR. Keep sorted — the order is part of the digest.
+const DATASET_FILES = [
+  "archetype_comparison.json",
+  "claude_responses.json",
+  "cluster_centroids.json",
+  "cluster_labels.csv",
+  "cluster_narratives.json",
+  "gemini_responses.json",
+  "model_agreement.json",
+  "personas.json",
+  "scored_profiles.json",
+  "tension_patterns.json",
+] as const;
+
 function datasetFingerprint(): string {
   const hash = crypto.createHash("sha256");
-  for (const name of fs.readdirSync(DATA_DIR).sort()) {
+  for (const name of DATASET_FILES) {
     hash.update(name);
     hash.update(fs.readFileSync(src(name)));
   }

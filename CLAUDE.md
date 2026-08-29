@@ -8,7 +8,7 @@ Political self-assessment web app ("The Governance Compass"). Users complete a 3
 
 ```bash
 # Start the database (Docker must be running)
-docker compose up -d postgres
+docker compose up -d --wait postgres
 
 # Start the dev server
 npm run dev
@@ -18,7 +18,7 @@ npm run dev
 ## Development
 
 - **Stack:** Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS, Recharts
-- **Database:** PostgreSQL on port 5433, defined in `compose.yaml` (`docker compose up -d postgres`). A pre-compose setup may still have a standalone `governance-compass-db` container bound to the same port — remove it (`docker rm -f governance-compass-db`) before bringing compose up.
+- **Database:** PostgreSQL on port 5433, defined in `compose.yaml` (`docker compose up -d --wait postgres`). A pre-compose setup may still have a standalone `governance-compass-db` container bound to the same port — remove it (`docker rm -f governance-compass-db`) before bringing compose up.
   - Local-only throwaway creds. Config lives in `.env`, not `.env.local`: `prisma.config.ts` loads `dotenv/config`, which reads `.env` only, while Next.js reads both. The `.env.example` defaults match `compose.yaml`; change both together.
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
 - **Prisma:** After schema changes, run `npx prisma migrate dev --name <description>`
