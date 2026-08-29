@@ -8,6 +8,7 @@
  * violation or normalization failure.
  */
 
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { parse as parseCsv } from "csv-parse/sync";
@@ -53,6 +54,29 @@ function src(name: string) {
 }
 function out(name: string) {
   return path.join(DERIVED_DIR, name);
+}
+
+// ---------------------------------------------------------------------------
+// Dataset release identity
+// ---------------------------------------------------------------------------
+
+// `generated_at` labels the checked-in dataset release, not the moment someone
+// happened to rebuild it, so repeated builds stay byte-for-byte identical.
+// DATASET_FINGERPRINT digests every file in data/synthetic_study/: regenerating
+// the data upstream without bumping the release constants fails the build
+// instead of shipping a stale label.
+const DATASET_VERSION = "1.0";
+const DATASET_GENERATED_AT = "2026-04-21T13:12:07.586Z";
+const DATASET_FINGERPRINT =
+  "95710e4e5d9df6d52780c9013137a904d573f4769cb24e1c7da166b54641392c";
+
+function datasetFingerprint(): string {
+  const hash = crypto.createHash("sha256");
+  for (const name of fs.readdirSync(DATA_DIR).sort()) {
+    hash.update(name);
+    hash.update(fs.readFileSync(src(name)));
+  }
+  return hash.digest("hex");
 }
 
 function writeJson(filePath: string, data: unknown): void {
@@ -228,6 +252,16 @@ function main() {
   // --------------------------------------------------------------------------
   console.log("Running integrity checks...");
   const errors: string[] = [];
+
+  const fingerprint = datasetFingerprint();
+  if (fingerprint !== DATASET_FINGERPRINT) {
+    errors.push(
+      `data/synthetic_study/ fingerprint is ${fingerprint}, expected ` +
+        `${DATASET_FINGERPRINT}. The source data changed: bump ` +
+        `DATASET_VERSION and DATASET_GENERATED_AT, then update ` +
+        `DATASET_FINGERPRINT to the new value.`
+    );
+  }
 
   if (personas.length !== 1002) {
     errors.push(`personas.json count: expected 1002, got ${personas.length}`);
@@ -840,10 +874,8 @@ function main() {
 
   const downloadJson = {
     metadata: {
-      version: "1.0",
-      // This identifies the checked-in dataset release, not the time a developer
-      // happened to rebuild it. Keep builds byte-for-byte reproducible.
-      generated_at: "2026-04-21T13:12:07.586Z",
+      version: DATASET_VERSION,
+      generated_at: DATASET_GENERATED_AT,
       n_personas: 1002,
       n_administrations: 1152,
       n_shared: 150,
@@ -878,7 +910,7 @@ function main() {
   // --------------------------------------------------------------------------
   writeJson(out("download_meta.json"), {
     fileSizeBytes,
-    version: "1.0",
+    version: DATASET_VERSION,
     path: "/data/synthetic_study_v1.json",
   });
 

@@ -8,7 +8,7 @@ Supports annotations, one-on-one comparisons, and private group comparisons.
 
 ```bash
 # Create local configuration, then start PostgreSQL (Docker must be running)
-cp .env.example .env.local
+cp .env.example .env
 docker compose up -d postgres
 
 # Install dependencies and seed the database
@@ -20,6 +20,12 @@ npx prisma db seed
 npm run dev
 # Open http://localhost:3000
 ```
+
+Use `.env` rather than `.env.local`: the Prisma CLI loads its configuration
+through `dotenv/config` in `prisma.config.ts`, which reads `.env` only. Next.js
+reads both, so a single `.env` keeps the app and `migrate`/`seed` pointed at the
+same database. The defaults in `.env.example` match `compose.yaml`; if you
+change the credentials or port, change them in both.
 
 ## Stack
 
