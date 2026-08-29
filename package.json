@@ -9,7 +9,7 @@
     "build:geo": "tsx scripts/build-geo.ts",
     "build:study": "tsx scripts/build-synthetic-study.ts",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings=8",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
