@@ -841,7 +841,9 @@ function main() {
   const downloadJson = {
     metadata: {
       version: "1.0",
-      generated_at: new Date().toISOString(),
+      // This identifies the checked-in dataset release, not the time a developer
+      // happened to rebuild it. Keep builds byte-for-byte reproducible.
+      generated_at: "2026-04-21T13:12:07.586Z",
       n_personas: 1002,
       n_administrations: 1152,
       n_shared: 150,
