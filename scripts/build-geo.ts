@@ -191,7 +191,7 @@ const NUMERIC_TO_ALPHA3: Record<string, string> = {
   "887": "YEM",
   "894": "ZMB",
   // numeric IDs that are sometimes strings without leading zeros
-  "10": "ATA",  // Antarctica — intentionally unmapped
+  "010": "ATA", // Antarctica — intentionally unmapped
 };
 
 // Geographic regions we care about (excludes diaspora_transnational)
@@ -255,7 +255,7 @@ const EXPECTED_UNMAPPED = new Set([
 interface CountryGeometry {
   type: string;
   id: string | number;
-  properties: { name: string };
+  properties: { name: string; iso_a3?: string };
   arcs: unknown;
 }
 
@@ -299,6 +299,11 @@ function main() {
       return;
     }
 
+    // Preserve the alpha-3 identifier in the country topology consumed by
+    // WorldMap. Natural Earth's source only includes numeric ISO ids, while
+    // the study aggregates use alpha-3 identifiers.
+    geom.properties = { ...geom.properties, iso_a3: alpha3 };
+
     const region = COUNTRY_REGION_MAP[alpha3];
 
     if (!region) {
@@ -319,6 +324,8 @@ function main() {
     unmapped.forEach((c) => console.error("  " + c));
     process.exit(1);
   }
+
+  fs.writeFileSync(inputPath, JSON.stringify(topo));
 
   // Build region features by merging country geometries. The 9 persona
   // regions are emitted in the configured order; "unmapped" is emitted
