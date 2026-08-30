@@ -1,0 +1,48 @@
+name: Dependabot auto-merge
+
+# Arms GitHub's auto-merge on the low-risk slice of Dependabot PRs so they land
+# on their own once CI is green, instead of accumulating.
+#
+# Auto-merge only *arms* the PR. Branch protection still gates the actual merge
+# on Lint, Unit tests, Build, E2E tests, and Vercel all passing — a red PR sits
+# there untouched, exactly as before. Catching those is dependabot-watch.yml's
+# job, not this one.
+#
+# Deliberately excluded, because these have needed code changes alongside them:
+# production dependencies, any major bump, and the `next` / `react` groups. A
+# single `next` bump has arrived carrying both a new lint rule and a raised Node
+# floor, and neither was visible from the version number.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Arm auto-merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        # Pinned to a SHA rather than a major tag like the rest of our
+        # workflows: this is the only job in the repo holding write scope on
+        # pull requests, so it gets the stricter pin. Dependabot keeps the
+        # pin current and annotates the version in the trailing comment.
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Arm auto-merge
+        # `update-type` reports the *highest* semver bump in the PR, so a
+        # grouped update carrying a single major is excluded as a whole.
+        if: >-
+          steps.meta.outputs.package-ecosystem == 'github_actions' ||
+          (steps.meta.outputs.dependency-group == 'dev-dependencies' &&
+           steps.meta.outputs.update-type != 'version-update:semver-major')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

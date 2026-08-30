@@ -1,0 +1,115 @@
+name: Dependabot watch
+
+# Auto-merge only handles the PRs that go green. The failure mode this repo
+# actually hit was the opposite: PRs that went red (or hit a conflict) and then
+# sat unnoticed for weeks while more piled up behind them.
+#
+# Once a week this sweeps for Dependabot PRs older than 7 days and maintains a
+# single tracking issue — updated when there are stragglers, closed when there
+# aren't. One issue, never a stream of duplicates.
+
+on:
+  schedule:
+    # Mondays 14:00 UTC, a few hours after Dependabot's own weekly run.
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+env:
+  TRACKING_LABEL: dependabot-watch
+  TRACKING_TITLE: Dependabot PRs need attention
+
+jobs:
+  watch:
+    name: Sweep stalled PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find PRs older than 7 days
+        id: scan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cutoff=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 \
+            --author 'app/dependabot' \
+            --json number,title,url,createdAt,mergeStateStatus,statusCheckRollup \
+          | jq -r --arg cutoff "$cutoff" '
+              map(select(.createdAt < $cutoff))
+              | map(. + {
+                  failing: [
+                    .statusCheckRollup[]?
+                    | select((.conclusion // .state) as $c
+                             | $c == "FAILURE" or $c == "ERROR"
+                               or $c == "TIMED_OUT" or $c == "CANCELLED")
+                    | (.name // .context)
+                  ]
+                })
+              | map(
+                  "- [#\(.number)](\(.url)) — \(.title)\n"
+                  + "  - merge state: `\(.mergeStateStatus)`"
+                  + (if (.failing | length) > 0
+                     then "\n  - failing: " + (.failing | join(", "))
+                     else "" end)
+                )
+              | .[]
+            ' > stalled.md
+
+          if [ -s stalled.md ]; then
+            echo "stalled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stalled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Locate existing tracking issue
+        id: tracking
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --label "$TRACKING_LABEL" --limit 1 --json number --jq '.[0].number // empty')
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update tracking issue
+        if: steps.scan.outputs.stalled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXISTING: ${{ steps.tracking.outputs.number }}
+        run: |
+          set -euo pipefail
+          {
+            echo "These Dependabot PRs have been open for more than 7 days:"
+            echo
+            cat stalled.md
+            echo
+            echo "Anything listed here needs a look — auto-merge has already"
+            echo "passed on it, either because CI is red, the branch conflicts,"
+            echo "or it falls outside the auto-merge allowlist."
+            echo
+            echo "_Maintained by \`.github/workflows/dependabot-watch.yml\`._"
+          } > issue.md
+
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "$TRACKING_TITLE" \
+              --label "$TRACKING_LABEL" \
+              --body-file issue.md
+          fi
+
+      - name: Close tracking issue when clear
+        if: steps.scan.outputs.stalled == 'false' && steps.tracking.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXISTING: ${{ steps.tracking.outputs.number }}
+        run: |
+          set -euo pipefail
+          gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" \
+            --comment "No Dependabot PRs older than 7 days remain. Closing."

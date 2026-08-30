@@ -8,6 +8,13 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    # Let a release sit before we open a PR on it. Dev-dependency patch/minor
+    # bumps now auto-merge once CI is green, so this soak time is the main
+    # guard against a freshly-compromised release landing unreviewed.
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 5
+      semver-major-days: 7
     ignore:
       # Major bumps that require migration work — handle separately when ready.
       - dependency-name: "prisma"          # #15
@@ -49,3 +56,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    # These auto-merge at every semver level, so they get a soak period too.
+    # The github-actions ecosystem supports only the flat `default-days`.
+    cooldown:
+      default-days: 5
