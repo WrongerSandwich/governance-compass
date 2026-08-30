@@ -7,25 +7,25 @@ Supports annotations, one-on-one comparisons, and private group comparisons.
 ## Quick Start
 
 ```bash
-# Start the database (Docker must be running)
-docker start governance-compass-db
-
-# If the container doesn't exist (choose your own throwaway local creds):
-docker run -d --name governance-compass-db \
-  -e POSTGRES_USER=<your-local-user> \
-  -e POSTGRES_PASSWORD=<your-local-password> \
-  -e POSTGRES_DB=governance_compass \
-  -p 5433:5432 postgres:16-alpine
+# Create local configuration, then start PostgreSQL (Docker must be running)
+cp .env.example .env
+docker compose up -d --wait postgres
 
 # Install dependencies and seed the database
 npm install
-npx prisma migrate dev
+npx prisma migrate deploy
 npx prisma db seed
 
 # Start the dev server
 npm run dev
 # Open http://localhost:3000
 ```
+
+Use `.env` rather than `.env.local`: the Prisma CLI loads its configuration
+through `dotenv/config` in `prisma.config.ts`, which reads `.env` only. Next.js
+reads both, so a single `.env` keeps the app and `migrate`/`seed` pointed at the
+same database. The defaults in `.env.example` match `compose.yaml`; if you
+change the credentials or port, change them in both.
 
 ## Stack
 
@@ -35,8 +35,18 @@ Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind C
 
 ```bash
 npm test              # Unit tests (vitest)
-npm run test:e2e      # E2E tests (playwright, needs dev server running)
+npm run typecheck     # TypeScript
+npx playwright install chromium # One-time browser installation
+npm run test:e2e      # E2E tests (starts the dev server automatically)
 ```
+
+The E2E suite needs the migrated and seeded PostgreSQL database described in
+Quick Start. Playwright's `webServer` configuration starts the application.
+
+Google sign-in additionally requires real `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` values. Credentials sign-in and non-authenticated flows
+do not require Google OAuth credentials. Generate a non-placeholder
+`NEXTAUTH_SECRET` before using the app outside local development.
 
 ## Data sources
 

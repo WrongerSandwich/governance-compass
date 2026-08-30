@@ -9,6 +9,7 @@ import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import { FadeInSection } from "@/components/FadeInSection";
+import { saveLastResults } from "@/lib/last-results";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -84,6 +85,9 @@ function CopyLinkButton() {
   );
 }
 
+// Rendered nowhere yet: the account UI is hidden for v1 while the
+// materialize infrastructure it drives stays in place. See CLAUDE.md.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SaveToAccountButton({ encoded }: { encoded: string }) {
   const { data: session } = useSession();
   const [status, setStatus] = useState<
@@ -101,7 +105,7 @@ function SaveToAccountButton({ encoded }: { encoded: string }) {
     });
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem("lastResults", `id:${data.profileId}`);
+      saveLastResults(`id:${data.profileId}`);
       setStatus("saved");
       // Full reload so the server page fetches the materialized profile
       window.location.href = `/results/${data.profileId}`;
@@ -200,7 +204,6 @@ export function ResultsView({
   axisData,
   compass,
   archetype,
-  profileId,
   encoded,
 }: ResultsViewProps) {
   const domainKeys: DomainKey[] = ["economic", "power", "society", "world"];

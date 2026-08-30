@@ -47,7 +47,6 @@ const SC_ITEM_IDS = [
   "sc-11-2", "sc-11-3",
   "sc-12-1", "sc-12-3",
 ];
-const SC_ITEM_COUNT = SC_ITEM_IDS.length; // 24
 
 // ---------------------------------------------------------------------------
 // BitWriter / BitReader

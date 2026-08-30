@@ -21,13 +21,6 @@ interface DisagreementByAttributeProps {
   overallMean: number;
 }
 
-/** Format a category key into a readable label */
-function formatCategory(raw: string): string {
-  return raw
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 export function DisagreementByAttribute({
   panels,
   overallMean,

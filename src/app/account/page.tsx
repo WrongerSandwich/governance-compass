@@ -4,6 +4,12 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  hasUnsavedResults,
+  lastResultsProfileId,
+  saveLastResults,
+  useLastResults,
+} from "@/lib/last-results";
 
 interface AxisVisibility {
   axisId: number;
@@ -24,11 +30,17 @@ export default function AccountPage() {
   const router = useRouter();
   const [axes, setAxes] = useState<AxisVisibility[]>([]);
   const [groups, setGroups] = useState<GroupInfo[]>([]);
-  const [profileId, setProfileId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState("");
   const [joinCode, setJoinCode] = useState("");
-  const [hasUnsavedResults, setHasUnsavedResults] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
+
+  // The stored value answers both "which profile?" and "is there anything
+  // left to save?", so both are derived rather than mirrored into state.
+  const lastResults = useLastResults();
+  const [fetchedProfileId, setFetchedProfileId] = useState<string | null>(null);
+  // The account record wins over the local pointer when both exist.
+  const profileId = fetchedProfileId ?? lastResultsProfileId(lastResults);
+  const unsavedResults = hasUnsavedResults(lastResults);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -39,41 +51,29 @@ export default function AccountPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const stored = localStorage.getItem("lastResults");
-    if (stored?.startsWith("id:")) {
-      setProfileId(stored.slice(3));
-    }
-
     fetch("/api/account/data")
       .then((r) => r.json())
       .then((data) => {
         setAxes(data.axisVisibility || []);
         setGroups(data.groups || []);
-        if (data.profileId) setProfileId(data.profileId);
+        if (data.profileId) setFetchedProfileId(data.profileId);
       })
       .catch(() => {});
   }, [session]);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("lastResults");
-    setHasUnsavedResults(!!stored && !stored.startsWith("id:"));
-  }, []);
-
   const handleSaveResults = async () => {
-    const stored = localStorage.getItem("lastResults");
-    if (!stored || stored.startsWith("id:")) return;
+    if (!unsavedResults || !lastResults) return;
 
     const res = await fetch("/api/profile/materialize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ encoded: stored }),
+      body: JSON.stringify({ encoded: lastResults }),
     });
     if (res.ok) {
       const data = await res.json();
-      setProfileId(data.profileId);
-      localStorage.setItem("lastResults", `id:${data.profileId}`);
+      setFetchedProfileId(data.profileId);
+      saveLastResults(`id:${data.profileId}`);
       setSaveStatus("Results saved to your account.");
-      setHasUnsavedResults(false);
     } else {
       setSaveStatus("Failed to save results. Please try again.");
     }
@@ -158,7 +158,7 @@ export default function AccountPage() {
                 You haven&apos;t saved any results to your account yet. Complete the
                 assessment and save your results to access them here.
               </p>
-              {hasUnsavedResults && (
+              {unsavedResults && (
                 <button
                   onClick={handleSaveResults}
                   className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"

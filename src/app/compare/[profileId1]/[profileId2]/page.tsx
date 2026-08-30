@@ -70,17 +70,22 @@ export default async function ComparePage({
   const labelA = profileA.user?.name || "Profile A";
   const labelB = profileB.user?.name || "Profile B";
 
-  // Build radar data: enrich with axis names
-  const axisScoresA = profileA.axisScores.map((as) => ({
-    axisId: as.axisId,
-    name: as.axis.name,
-    finalScore: as.finalScore,
-  }));
-  const axisScoresB = profileB.axisScores.map((as) => ({
-    axisId: as.axisId,
-    name: as.axis.name,
-    finalScore: as.finalScore,
-  }));
+  // Build radar data: enrich with axis names. Hidden axes are dropped here, not
+  // in the chart — these props are serialized to the client, so a hidden score
+  // that reaches the component has already leaked.
+  const toRadarEntries = (
+    scores: typeof profileA.axisScores
+  ) =>
+    scores
+      .filter((as) => !hiddenAxisIds.has(as.axisId))
+      .map((as) => ({
+        axisId: as.axisId,
+        name: as.axis.name,
+        finalScore: as.finalScore,
+      }));
+
+  const axisScoresA = toRadarEntries(profileA.axisScores);
+  const axisScoresB = toRadarEntries(profileB.axisScores);
 
   return (
     <main className="min-h-screen px-4 py-8">
@@ -99,6 +104,7 @@ export default async function ComparePage({
             axisScoresB={axisScoresB}
             labelA={labelA}
             labelB={labelB}
+            hiddenAxisIds={[...hiddenAxisIds]}
           />
         </div>
 

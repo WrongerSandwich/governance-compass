@@ -7,6 +7,7 @@ import { computeFullResults } from "@/lib/scoring";
 import { axes } from "@/data/axes";
 import { archetypes } from "@/data/archetypes";
 import { ResultsView } from "@/components/results/ResultsView";
+import { saveLastResults } from "@/lib/last-results";
 
 function EncodedResults() {
   const searchParams = useSearchParams();
@@ -23,7 +24,7 @@ function EncodedResults() {
   // Store encoded string in localStorage for the nav Results link
   useEffect(() => {
     if (encoded) {
-      localStorage.setItem("lastResults", encoded);
+      saveLastResults(encoded);
     }
   }, [encoded]);
 

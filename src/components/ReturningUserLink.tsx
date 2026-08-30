@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
+import { lastResultsHref, useLastResults } from "@/lib/last-results";
 
 interface ReturningUserLinkProps {
   label?: ReactNode;
@@ -21,17 +22,7 @@ export function ReturningUserLink({
   as: Wrapper = "p",
   prefix,
 }: ReturningUserLinkProps = {}) {
-  const [resultsHref, setResultsHref] = useState<string | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("lastResults");
-    if (!stored) return;
-    if (stored.startsWith("id:")) {
-      setResultsHref(`/results/${stored.slice(3)}`);
-    } else {
-      setResultsHref(`/results?r=${stored}`);
-    }
-  }, []);
+  const resultsHref = lastResultsHref(useLastResults());
 
   if (!resultsHref) return null;
 
