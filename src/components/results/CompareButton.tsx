@@ -1,18 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useStorageValue } from "@/lib/client-storage";
 
 export function CompareButton({ profileId }: { profileId: string }) {
   const router = useRouter();
-  const [myProfileId, setMyProfileId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("profileId");
-    if (stored && stored !== profileId) {
-      setMyProfileId(stored);
-    }
-  }, [profileId]);
+  const stored = useStorageValue("local", "profileId");
+  const myProfileId = stored && stored !== profileId ? stored : null;
 
   if (!myProfileId) return null;
 

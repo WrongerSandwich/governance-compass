@@ -2172,12 +2172,10 @@ export function PersonaModal({ id }: PersonaModalProps) {
     triggerRef.current = document.activeElement;
   }, []);
 
-  // Fetch persona data on mount / id change
+  // Fetch persona data on mount. The modal is keyed on the persona id at its
+  // call site, so a different persona mounts a fresh component already in the
+  // loading state — no reset pass needed here.
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setData(null);
-
     let cancelled = false;
 
     fetch(`/api/study/persona/${id}`)

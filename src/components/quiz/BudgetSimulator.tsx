@@ -127,11 +127,24 @@ export function BudgetSimulator({
   const remaining = TOTAL_BUDGET - allocated;
   const canFinalize = remaining === 0;
 
-  // Track whether user has interacted (for suppressing initial state warnings)
-  const [hasInteracted, setHasInteracted] = useState(false);
-  useEffect(() => {
-    if (allocated > ministries.length * MIN_ALLOCATION) setHasInteracted(true);
-  }, [allocated, ministries.length]);
+  // Consequence text stays hidden until the user has moved something, so the
+  // opening screen isn't a wall of warnings about allocations they didn't
+  // choose. Two ways to have moved something: a resumed session mounts with
+  // points already spent (QuizProvider restores budgetAllocations from
+  // sessionStorage), or an allocation happens while we're on screen. The
+  // latch reads the total once at mount for the first and follows the
+  // allocate event after that — the event is the more honest signal, since a
+  // reallocation that leaves the total unchanged is still an interaction.
+  const [hasInteracted, setHasInteracted] = useState(
+    () => allocated > ministries.length * MIN_ALLOCATION
+  );
+  const handleAllocate = useCallback(
+    (ministryId: number, amount: number) => {
+      setHasInteracted(true);
+      onAllocate(ministryId, amount);
+    },
+    [onAllocate]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,7 +178,7 @@ export function BudgetSimulator({
             value={allocations[ministry.id] ?? MIN_ALLOCATION}
             remaining={remaining}
             hasInteracted={hasInteracted}
-            onAllocate={onAllocate}
+            onAllocate={handleAllocate}
           />
         ))}
       </div>
