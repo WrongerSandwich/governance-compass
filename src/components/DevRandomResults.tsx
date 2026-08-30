@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { encodeResponses } from "@/lib/response-codec";
 import { scaledItems } from "@/data/scaled-items";
 import type { QuizResponses } from "@/lib/scoring-types";
@@ -44,6 +45,8 @@ function generateRandomResponses(): QuizResponses {
 const btnClass = "rounded-[6px] border border-border-primary bg-surface-1 px-2.5 py-1 text-[10px] text-text-tertiary hover:text-text-secondary transition-colors duration-150";
 
 export function DevRandomResults() {
+  const router = useRouter();
+
   // Hide in production only. NEXT_PUBLIC_VERCEL_ENV is inlined by Next.js at
   // build time and set to "production" / "preview" / "development" by Vercel.
   // Local `npm run dev` leaves it undefined — testing UI stays visible.
@@ -59,7 +62,7 @@ export function DevRandomResults() {
           type="button"
           onClick={() => {
             const encoded = encodeResponses(generateRandomResponses());
-            window.location.href = `/results?r=${encoded}`;
+            router.push(`/results?r=${encoded}`);
           }}
           className={btnClass}
         >
@@ -70,7 +73,7 @@ export function DevRandomResults() {
           onClick={() => {
             const a = encodeResponses(generateRandomResponses());
             const b = encodeResponses(generateRandomResponses());
-            window.location.href = `/compare?a=${a}&b=${b}`;
+            router.push(`/compare?a=${a}&b=${b}`);
           }}
           className={btnClass}
         >

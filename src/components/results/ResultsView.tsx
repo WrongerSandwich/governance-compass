@@ -90,6 +90,7 @@ function CopyLinkButton() {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SaveToAccountButton({ encoded }: { encoded: string }) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [status, setStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
@@ -107,8 +108,8 @@ function SaveToAccountButton({ encoded }: { encoded: string }) {
       const data = await res.json();
       saveLastResults(`id:${data.profileId}`);
       setStatus("saved");
-      // Full reload so the server page fetches the materialized profile
-      window.location.href = `/results/${data.profileId}`;
+      // The server page fetches the materialized profile on navigation
+      router.push(`/results/${data.profileId}`);
     } else {
       setStatus("error");
     }
