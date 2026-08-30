@@ -4,13 +4,31 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+// `prisma generate` never opens a connection, but this config is evaluated for
+// every Prisma command — so requiring DATABASE_URL unconditionally would break
+// the `postinstall` hook on a fresh clone. Hand generate an unusable
+// placeholder (`.invalid` is reserved by RFC 2606 and can never resolve) and
+// let every command that does connect fail fast on a missing variable, rather
+// than silently falling back to whatever is listening on the default local
+// port.
+const GENERATE_ONLY_PLACEHOLDER =
+  "postgresql://unset:unset@prisma-generate.invalid:5432/unset";
+
+function datasourceUrl(): string {
+  if (!process.env.DATABASE_URL && process.argv.includes("generate")) {
+    return GENERATE_ONLY_PLACEHOLDER;
+  }
+  return env("DATABASE_URL");
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
   },
   engine: "classic",
   datasource: {
-    url: env("DATABASE_URL"),
+    url: datasourceUrl(),
   },
 });

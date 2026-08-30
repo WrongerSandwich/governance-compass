@@ -153,13 +153,11 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
 
 function PersonaPanel({
   data,
-  panelId,
   headingId,
   onUnpin,
   onViewFull,
 }: {
   data: PersonaDetailResponse;
-  panelId: string;
   headingId: string;
   onUnpin: () => void;
   onViewFull: () => void;
@@ -457,16 +455,9 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
 
   const backdropRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all pinned personas
+  // Fetch all pinned personas. Ids absent from the map render as skeletons,
+  // so there is nothing to seed before the requests go out.
   useEffect(() => {
-    setDataMap((prev) => {
-      const next = new Map(prev);
-      for (const id of pinnedIds) {
-        if (!next.has(id)) next.set(id, "loading");
-      }
-      return next;
-    });
-
     for (const id of pinnedIds) {
       fetch(`/api/study/persona/${id}`)
         .then((r) => {
@@ -615,7 +606,6 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
             {pinnedIds.map((id) => {
               const entry = dataMap.get(id);
               const headingId = `compare-panel-heading-${id}`;
-              const panelId = `compare-panel-${id}`;
 
               if (!entry || entry === "loading") {
                 return <PanelSkeleton key={id} id={id} />;
@@ -628,7 +618,6 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
                 <PersonaPanel
                   key={id}
                   data={entry}
-                  panelId={panelId}
                   headingId={headingId}
                   onUnpin={() => onUnpin(id)}
                   onViewFull={() => handleViewFull(id)}

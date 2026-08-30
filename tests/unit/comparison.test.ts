@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { compareProfiles, type ComparisonResult } from "@/lib/comparison";
+import { compareProfiles } from "@/lib/comparison";
 
 const makeScore = (axisId: number, finalScore: number) => ({
   axisId,
@@ -74,12 +74,66 @@ describe("compareProfiles", () => {
     expect(result.perAxisDeltas[0].axisId).toBe(1);
   });
 
-  it("returns 100% alignment for empty common axes", () => {
+  it("reports no alignment score when no axes are common", () => {
     const scoresA = [makeScore(1, 0.5)];
     const scoresB = [makeScore(2, 0.5)];
     const result = compareProfiles(scoresA, scoresB);
-    expect(result.alignmentScore).toBe(100);
+    // "No data to compare" must not read as perfect alignment.
+    expect(result.alignmentScore).toBeNull();
     expect(result.perAxisDeltas).toHaveLength(0);
+    expect(result.closestAxes).toHaveLength(0);
+    expect(result.furthestAxes).toHaveLength(0);
+  });
+
+  it("reports no alignment score when every common axis is hidden", () => {
+    const scoresA = [makeScore(1, 0.5), makeScore(2, -0.5)];
+    const scoresB = [makeScore(1, 0.5), makeScore(2, -0.5)];
+    const result = compareProfiles(scoresA, scoresB, new Set([1, 2]));
+    expect(result.alignmentScore).toBeNull();
+    expect(result.perAxisDeltas).toHaveLength(0);
+  });
+
+  it("never lists the same axis as both most aligned and most divergent", () => {
+    for (let n = 1; n <= 12; n++) {
+      const scoresA = Array.from({ length: n }, (_, i) => makeScore(i + 1, 0));
+      const scoresB = Array.from({ length: n }, (_, i) =>
+        makeScore(i + 1, (i + 1) / 12)
+      );
+      const result = compareProfiles(scoresA, scoresB);
+      const closest = new Set(result.closestAxes.map((d) => d.axisId));
+      const overlap = result.furthestAxes.filter((d) => closest.has(d.axisId));
+      expect(overlap, `n=${n}`).toEqual([]);
+      expect(result.closestAxes.length, `n=${n}`).toBe(Math.min(3, Math.floor(n / 2)));
+    }
+  });
+
+  it("highlights nothing when only one axis is common", () => {
+    // Deliberate: with one axis the "most aligned" and "most divergent" lists
+    // would name it twice. The axis still appears in perAxisDeltas, which is
+    // what the per-axis breakdown renders.
+    const result = compareProfiles([makeScore(1, 0.0)], [makeScore(1, 0.8)]);
+    expect(result.perAxisDeltas).toHaveLength(1);
+    expect(result.closestAxes).toEqual([]);
+    expect(result.furthestAxes).toEqual([]);
+  });
+
+  it("fills both highlight lists once enough axes are common", () => {
+    const scoresA = Array.from({ length: 6 }, (_, i) => makeScore(i + 1, 0));
+    const scoresB = Array.from({ length: 6 }, (_, i) =>
+      makeScore(i + 1, (i + 1) / 10)
+    );
+    const result = compareProfiles(scoresA, scoresB);
+    expect(result.closestAxes).toHaveLength(3);
+    expect(result.furthestAxes).toHaveLength(3);
+  });
+
+  it("excludes hidden axes from the highlight lists", () => {
+    const scoresA = [makeScore(1, 0.0), makeScore(2, 0.0), makeScore(3, 0.0), makeScore(4, 0.0)];
+    const scoresB = [makeScore(1, 0.1), makeScore(2, 1.0), makeScore(3, 0.2), makeScore(4, 0.3)];
+    const result = compareProfiles(scoresA, scoresB, new Set([2]));
+    const mentioned = [...result.closestAxes, ...result.furthestAxes].map((d) => d.axisId);
+    expect(mentioned).not.toContain(2);
+    expect(result.perAxisDeltas.map((d) => d.axisId)).not.toContain(2);
   });
 
   it("clamps alignment score to [0, 100]", () => {

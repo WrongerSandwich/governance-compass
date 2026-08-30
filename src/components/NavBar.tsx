@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { GovernanceCompassMark } from "./GovernanceCompassMark";
+import { lastResultsHref, useLastResults } from "@/lib/last-results";
 
 const RESEARCH_PATHS = [
   "/methodology",
@@ -20,21 +20,10 @@ function matchesAny(pathname: string, paths: string[]): boolean {
 }
 
 export function NavBar() {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
-  const [resultsHref, setResultsHref] = useState<string | null>(null);
-
-  // Re-check localStorage on every navigation (covers post-quiz redirect)
-  useEffect(() => {
-    const stored = localStorage.getItem("lastResults");
-    if (!stored) {
-      setResultsHref(null);
-    } else if (stored.startsWith("id:")) {
-      setResultsHref(`/results/${stored.slice(3)}`);
-    } else {
-      setResultsHref(`/results?r=${stored}`);
-    }
-  }, [pathname]);
+  // Subscribed rather than re-read per navigation: the post-quiz write goes
+  // through `saveLastResults`, which notifies this reader directly.
+  const resultsHref = lastResultsHref(useLastResults());
 
   function linkClasses(href: string, alsoActive?: string[]): string {
     const isActive =
@@ -82,7 +71,9 @@ export function NavBar() {
               Results
             </Link>
           )}
-          <ResearchMenu pathname={pathname} />
+          {/* Keyed on the path so navigating remounts the menu closed —
+              cheaper to reason about than an effect that closes it. */}
+          <ResearchMenu key={pathname} pathname={pathname} />
           {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>
       </div>
@@ -122,11 +113,6 @@ function ResearchMenu({ pathname }: { pathname: string }) {
       document.removeEventListener("keydown", handleKey);
     };
   }, [open]);
-
-  // Close when navigation changes
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const base = "py-2 text-sm transition-colors duration-150 flex items-baseline gap-1";
   const activeClasses = isActive

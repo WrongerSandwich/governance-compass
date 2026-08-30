@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { AnnotatedText } from "@/components/AnnotatedText";
 import { getConsequenceText } from "@/data/ministries";
 import { Shield, Heart, TrendingUp, GraduationCap, Leaf, Scale, Globe } from "lucide-react";
@@ -21,6 +25,12 @@ const TOTAL_BUDGET = 50;
 const MIN_ALLOCATION = 1;
 const MAX_ALLOCATION = 25;
 
+// Hold-to-repeat pacing for the stepper buttons.
+const HOLD_DELAY_MS = 200;
+const HOLD_INTERVAL_MS = 100;
+const HOLD_FAST_INTERVAL_MS = 50;
+const HOLD_ACCELERATE_AFTER_MS = 500;
+
 interface BudgetSimulatorProps {
   ministries: MinistryData[];
   allocations: Record<number, number>;
@@ -29,35 +39,82 @@ interface BudgetSimulatorProps {
 }
 
 /**
- * Hold-to-repeat hook for stepper buttons.
+ * Stepper-button behaviour: one step per `click`, plus hold-to-repeat while a
+ * pointer stays down.
+ *
+ * Stepping hangs off `click` rather than `pointerdown` so that keyboard
+ * activation (Enter/Space, which fires `click` and never `pointerdown`) works —
+ * without it the budget phase, and therefore the assessment, cannot be
+ * completed without a pointing device.
+ *
+ * `step` reports whether it actually moved the value, and the repeat loop ends
+ * as soon as it does not. Terminating on the step itself, rather than on a
+ * pointer event, is what keeps a hold from running away: the release can always
+ * land somewhere the button never hears about, and a loop that outlives its
+ * gesture resumes stepping the moment the value becomes changeable again.
  */
-function useHoldRepeat(callback: () => void) {
+function useStepper(step: () => boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef(0);
-  const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  const repeatedRef = useRef(false);
+  const stepRef = useRef(step);
+  stepRef.current = step;
 
-  const stop = useCallback(() => {
+  // A named function expression so the listener it detaches is itself — the
+  // same instance `useCallback` hands back on every render.
+  const stop = useCallback(function stopHold() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    window.removeEventListener("pointerup", stopHold);
+    window.removeEventListener("pointercancel", stopHold);
+    window.removeEventListener("blur", stopHold);
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    // Only a primary-button press is an activation. A right- or middle-press
+    // produces no `click` and, once the context menu takes the pointer, often
+    // no `pointerup` either — it would hold the repeat all the way to the bound.
+    if (event.button !== 0 || !event.isPrimary) return;
+
+    stop();
     startTimeRef.current = Date.now();
-    callbackRef.current();
+    repeatedRef.current = false;
+
+    // The button's own pointer handlers miss releases that land elsewhere —
+    // outside the window, or after an alt-tab. Watch for those too.
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    window.addEventListener("blur", stop);
+
     function tick() {
-      callbackRef.current();
+      if (!stepRef.current()) {
+        stop();
+        return;
+      }
+      repeatedRef.current = true;
       const elapsed = Date.now() - startTimeRef.current;
-      const interval = elapsed > 500 ? 50 : 100;
-      timerRef.current = setTimeout(tick, interval);
+      timerRef.current = setTimeout(
+        tick,
+        elapsed > HOLD_ACCELERATE_AFTER_MS ? HOLD_FAST_INTERVAL_MS : HOLD_INTERVAL_MS,
+      );
     }
-    timerRef.current = setTimeout(tick, 200);
+    timerRef.current = setTimeout(tick, HOLD_DELAY_MS);
+  }, [stop]);
+
+  /**
+   * A pointer hold still ends with a `click`; swallow that one so holding does
+   * not tack an extra step onto the repeats. `detail === 0` marks a keyboard
+   * activation, which never goes through the hold path and so always steps.
+   */
+  const click = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0 && repeatedRef.current) return;
+    stepRef.current();
   }, []);
 
   useEffect(() => stop, [stop]);
-  return { start, stop };
+  return { start, stop, click };
 }
 
 export function BudgetSimulator({
@@ -70,11 +127,24 @@ export function BudgetSimulator({
   const remaining = TOTAL_BUDGET - allocated;
   const canFinalize = remaining === 0;
 
-  // Track whether user has interacted (for suppressing initial state warnings)
-  const [hasInteracted, setHasInteracted] = useState(false);
-  useEffect(() => {
-    if (allocated > ministries.length * MIN_ALLOCATION) setHasInteracted(true);
-  }, [allocated, ministries.length]);
+  // Consequence text stays hidden until the user has moved something, so the
+  // opening screen isn't a wall of warnings about allocations they didn't
+  // choose. Two ways to have moved something: a resumed session mounts with
+  // points already spent (QuizProvider restores budgetAllocations from
+  // sessionStorage), or an allocation happens while we're on screen. The
+  // latch reads the total once at mount for the first and follows the
+  // allocate event after that — the event is the more honest signal, since a
+  // reallocation that leaves the total unchanged is still an interaction.
+  const [hasInteracted, setHasInteracted] = useState(
+    () => allocated > ministries.length * MIN_ALLOCATION
+  );
+  const handleAllocate = useCallback(
+    (ministryId: number, amount: number) => {
+      setHasInteracted(true);
+      onAllocate(ministryId, amount);
+    },
+    [onAllocate]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,7 +178,7 @@ export function BudgetSimulator({
             value={allocations[ministry.id] ?? MIN_ALLOCATION}
             remaining={remaining}
             hasInteracted={hasInteracted}
-            onAllocate={onAllocate}
+            onAllocate={handleAllocate}
           />
         ))}
       </div>
@@ -138,6 +208,23 @@ interface MinistrySliderProps {
   onAllocate: (ministryId: number, amount: number) => void;
 }
 
+const STEPPER_BASE =
+  "flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary " +
+  "bg-surface-1 text-text-secondary transition-colors duration-150 focus:outline-none " +
+  "focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+
+/**
+ * Bounds are marked with `aria-disabled` rather than `disabled`: a disabled
+ * control drops out of the tab order, and disabling the one the user just
+ * pressed throws their focus to the top of the page — which is exactly what
+ * happens when the last point is allocated and every "+" reaches its bound at
+ * once. The step callbacks already no-op past a bound, so a stray activation
+ * changes nothing.
+ */
+function stepperClass(atBound: boolean) {
+  return `${STEPPER_BASE} ${atBound ? "cursor-not-allowed opacity-50" : "hover:bg-surface-2"}`;
+}
+
 function MinistrySlider({
   ministry,
   value,
@@ -151,15 +238,19 @@ function MinistrySlider({
   const atMax = value >= MAX_ALLOCATION || remaining <= 0;
 
   const handleDecrement = useCallback(() => {
-    if (value > MIN_ALLOCATION) onAllocate(ministry.id, value - 1);
+    if (value <= MIN_ALLOCATION) return false;
+    onAllocate(ministry.id, value - 1);
+    return true;
   }, [ministry.id, value, onAllocate]);
 
   const handleIncrement = useCallback(() => {
-    if (value < MAX_ALLOCATION && remaining > 0) onAllocate(ministry.id, value + 1);
+    if (value >= MAX_ALLOCATION || remaining <= 0) return false;
+    onAllocate(ministry.id, value + 1);
+    return true;
   }, [ministry.id, value, remaining, onAllocate]);
 
-  const dec = useHoldRepeat(handleDecrement);
-  const inc = useHoldRepeat(handleIncrement);
+  const dec = useStepper(handleDecrement);
+  const inc = useStepper(handleIncrement);
 
   return (
     <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-4">
@@ -178,11 +269,13 @@ function MinistrySlider({
         <button
           type="button"
           aria-label={`Decrease ${ministry.name} allocation`}
-          onPointerDown={atMin ? undefined : dec.start}
+          onClick={dec.click}
+          onPointerDown={dec.start}
           onPointerUp={dec.stop}
           onPointerLeave={dec.stop}
-          disabled={atMin}
-          className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+          onPointerCancel={dec.stop}
+          aria-disabled={atMin}
+          className={stepperClass(atMin)}
         >
           <span className="text-lg leading-none">&minus;</span>
         </button>
@@ -196,7 +289,7 @@ function MinistrySlider({
             <div
               className="h-full rounded-[3px] transition-all duration-100"
               style={{
-                width: `${Math.min(100, ((value - MIN_ALLOCATION) / (15 - MIN_ALLOCATION)) * 100)}%`,
+                width: `${Math.min(100, ((value - MIN_ALLOCATION) / (MAX_ALLOCATION - MIN_ALLOCATION)) * 100)}%`,
                 backgroundColor: 'var(--stone-600)',
                 opacity: 0.5,
               }}
@@ -211,11 +304,13 @@ function MinistrySlider({
         <button
           type="button"
           aria-label={`Increase ${ministry.name} allocation`}
-          onPointerDown={atMax ? undefined : inc.start}
+          onClick={inc.click}
+          onPointerDown={inc.start}
           onPointerUp={inc.stop}
           onPointerLeave={inc.stop}
-          disabled={atMax}
-          className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary bg-surface-1 text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+          onPointerCancel={inc.stop}
+          aria-disabled={atMax}
+          className={stepperClass(atMax)}
         >
           <span className="text-lg leading-none">+</span>
         </button>

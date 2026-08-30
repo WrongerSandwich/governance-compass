@@ -43,6 +43,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run typecheck
       - run: npm test
 
   build:
@@ -56,3 +57,51 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: governance_compass
+          POSTGRES_PASSWORD: governance_compass
+          POSTGRES_DB: governance_compass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U governance_compass"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      # Overrides the workflow-level dummy: this job talks to the service
+      # container above. compose.yaml maps the same database to 5433 locally;
+      # nothing else is on 5432 here, so bind it directly.
+      DATABASE_URL: postgresql://governance_compass:governance_compass@localhost:5432/governance_compass
+      # `next start` behind no proxy fails Auth.js host verification, so
+      # /api/auth/session 500s and floods the log. Vercel sets this for us in
+      # production; CI has to say it out loud.
+      AUTH_TRUST_HOST: "true"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
+      - run: npx playwright install --with-deps chromium
+      # Playwright's webServer serves this build with `next start` when CI is
+      # set. Building here rather than inside the webServer keeps a compile
+      # failure attributable to its own step.
+      - run: npm run build
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

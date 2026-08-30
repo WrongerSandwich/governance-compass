@@ -326,6 +326,7 @@ Items consciously punted during the build. None block shipping. Listed here so t
 
 - **E2E Playwright coverage** for the Synthetic Study section. No E2E tests currently exercise the `/study/*` pages. Worth a minimal smoke suite: land on `/study/personas` → apply a region filter → verify URL + grid sync; open a persona modal; toggle Claude/Gemini in a shared persona; pin two personas and open compare. Should run against `npm run dev` in CI.
 - **CI guard against client-side imports of `data/synthetic_study/*`.** A grep/lint rule that fails CI if any file under `src/app/*` (not `src/app/api/*`) or `src/components/*` statically imports from `data/synthetic_study/`. The slim catalog + API route architecture depends on this boundary; a grep guard locks it in.
+- **Mocked Google OAuth integration test.** Sign-in via Google cannot be exercised without developer-owned credentials, and nothing under `tests/` covers the flow. Deliberately deferred: the account/auth UI is hidden for v1, so the flow is not reachable by users. Worth revisiting only when auth is unhidden — at which point a mocked provider (rather than real credentials) is the way in.
 - **Visual-regression screenshots** for WorldMap and the Patterns charts. Catches future dark-mode or responsive regressions that type/unit tests miss. Low priority — all current views have been manually verified.
 
 ### How to track these going forward
