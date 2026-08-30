@@ -5,14 +5,8 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Downgrade two react-hooks rules introduced in newer versions to warnings.
-  // The codebase has several legitimate localStorage-read-in-effect sites and
-  // a ref pattern in BudgetSimulator that these rules flag overzealously.
-  // Tracked for a proper useSyncExternalStore refactor as a separate task.
   {
     rules: {
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/refs": "warn",
       // A leading underscore marks an argument that is deliberately unused but
       // must stay in the signature — e.g. detectContradiction's axis id, whose
       // irrelevance is itself under test.

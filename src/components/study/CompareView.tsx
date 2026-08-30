@@ -455,16 +455,9 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
 
   const backdropRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all pinned personas
+  // Fetch all pinned personas. Ids absent from the map render as skeletons,
+  // so there is nothing to seed before the requests go out.
   useEffect(() => {
-    setDataMap((prev) => {
-      const next = new Map(prev);
-      for (const id of pinnedIds) {
-        if (!next.has(id)) next.set(id, "loading");
-      }
-      return next;
-    });
-
     for (const id of pinnedIds) {
       fetch(`/api/study/persona/${id}`)
         .then((r) => {

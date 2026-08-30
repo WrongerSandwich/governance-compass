@@ -127,11 +127,19 @@ export function BudgetSimulator({
   const remaining = TOTAL_BUDGET - allocated;
   const canFinalize = remaining === 0;
 
-  // Track whether user has interacted (for suppressing initial state warnings)
+  // Consequence text stays hidden until the user has moved something, so the
+  // opening screen isn't a wall of warnings about allocations they didn't
+  // choose. Latched off the allocation event itself rather than off the
+  // running total: a reallocation that leaves the total unchanged is still an
+  // interaction, and the steppers already no-op at their bounds.
   const [hasInteracted, setHasInteracted] = useState(false);
-  useEffect(() => {
-    if (allocated > ministries.length * MIN_ALLOCATION) setHasInteracted(true);
-  }, [allocated, ministries.length]);
+  const handleAllocate = useCallback(
+    (ministryId: number, amount: number) => {
+      setHasInteracted(true);
+      onAllocate(ministryId, amount);
+    },
+    [onAllocate]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,7 +173,7 @@ export function BudgetSimulator({
             value={allocations[ministry.id] ?? MIN_ALLOCATION}
             remaining={remaining}
             hasInteracted={hasInteracted}
-            onAllocate={onAllocate}
+            onAllocate={handleAllocate}
           />
         ))}
       </div>

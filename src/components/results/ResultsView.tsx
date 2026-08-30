@@ -9,6 +9,7 @@ import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import { FadeInSection } from "@/components/FadeInSection";
+import { saveLastResults } from "@/lib/last-results";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -104,7 +105,7 @@ function SaveToAccountButton({ encoded }: { encoded: string }) {
     });
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem("lastResults", `id:${data.profileId}`);
+      saveLastResults(`id:${data.profileId}`);
       setStatus("saved");
       // Full reload so the server page fetches the materialized profile
       window.location.href = `/results/${data.profileId}`;

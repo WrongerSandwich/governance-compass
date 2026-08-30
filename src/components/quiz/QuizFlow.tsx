@@ -13,6 +13,7 @@ import { GovernanceCompassMark } from "../GovernanceCompassMark";
 import { ComputingMessages } from "./ComputingMessages";
 import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
+import { saveLastResults } from "@/lib/last-results";
 
 // ---------- data types coming from the server component ----------
 
@@ -164,11 +165,9 @@ export function QuizFlow({
     setFinalizeError(false);
     dispatch({ type: "START_COMPUTING" });
 
-    try {
-      localStorage.setItem("lastResults", encoded);
-    } catch {
-      // Storage full or unavailable — the results link is in the URL either way
-    }
+    // Storage full or unavailable is swallowed inside saveLastResults — the
+    // results link is in the URL either way.
+    saveLastResults(encoded);
 
     // The provider clears the saved quiz state once the phase goes terminal.
     dispatch({ type: "COMPLETE" });
