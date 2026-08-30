@@ -255,3 +255,30 @@ describe("BudgetSimulator steppers", () => {
     expect(fills[1]).toBe("100%");
   });
 });
+
+/**
+ * Consequence lines stay hidden on a fresh budget screen so the opening view
+ * isn't a wall of warnings about allocations nobody chose. A resumed session
+ * is not a fresh screen: QuizProvider restores budgetAllocations from
+ * sessionStorage, so phase 3 can mount with points already spent.
+ */
+describe("consequence text visibility", () => {
+  const consequenceLines = () =>
+    container.querySelectorAll("p.italic").length;
+
+  it("hides consequence lines on a fresh budget screen", () => {
+    mount(flat(), () => {});
+    expect(consequenceLines()).toBe(0);
+  });
+
+  it("shows them after the first stepper press", () => {
+    mount(flat(), () => {});
+    keyboardClick(stepper("Increase"));
+    expect(consequenceLines()).toBe(ministries.length);
+  });
+
+  it("shows them on mount when a resumed session has points already spent", () => {
+    mount(withRemaining(10), () => {});
+    expect(consequenceLines()).toBe(ministries.length);
+  });
+});

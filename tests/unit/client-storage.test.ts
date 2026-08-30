@@ -63,7 +63,7 @@ function mount(element: React.ReactElement) {
 }
 
 describe("useStorageValue", () => {
-  it("has the stored value on the first client render, with no null pass", () => {
+  it("supplies the value during render rather than after an effect", () => {
     localStorage.setItem(LAST_RESULTS_KEY, "AbC123");
 
     mount(createElement(ResultsLink));
@@ -71,8 +71,13 @@ describe("useStorageValue", () => {
     expect(container.querySelector("a")?.getAttribute("href")).toBe(
       "/results?r=AbC123"
     );
-    // The read-in-an-effect version this replaced rendered twice: once empty,
-    // once with the link. Anything above 1 means the cascade came back.
+    // Measured on a client-only mount, which is not how these components
+    // reach a browser — they hydrate, and there the deliberately-null
+    // getServerSnapshot costs a second pass either way (see the hydration
+    // test below). So this is not a claim about renders saved in the app.
+    // What it pins is the mechanism: the store hands the value to the first
+    // render, where the read-in-an-effect version it replaced needs two
+    // (measured: that version scores 2 here).
     expect(renderCount).toBe(1);
   });
 
