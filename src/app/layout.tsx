@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 import { NavBar } from "@/components/NavBar";
@@ -8,10 +8,22 @@ import { DevRandomResults } from "@/components/DevRandomResults";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal", "italic"],
+// Self-hosted from src/app/fonts/ rather than next/font/google so the build
+// never reaches the network. Latin subset only, variable across the 400-500
+// range the design system uses.
+const sourceSerif = localFont({
+  src: [
+    {
+      path: "./fonts/SourceSerif4-latin-variable.woff2",
+      weight: "400 500",
+      style: "normal",
+    },
+    {
+      path: "./fonts/SourceSerif4-latin-variable-italic.woff2",
+      weight: "400 500",
+      style: "italic",
+    },
+  ],
   display: "swap",
   variable: "--font-source-serif",
 });

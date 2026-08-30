@@ -208,7 +208,7 @@ export function detectContradiction(
   fcScore: number,
   scScore: number,
   bgScore: number | null,
-  axisId: number
+  _axisId: number
 ): TensionInfo {
   if (bgScore === null) {
     return { detected: false, magnitude: 0, level: "none", direction: null };
