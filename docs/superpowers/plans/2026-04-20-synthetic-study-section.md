@@ -317,7 +317,6 @@ Items consciously punted during the build. None block shipping. Listed here so t
 
 ### Study-specific
 
-- **Country-level density sub-layer on `WorldMap`.** The map spec described a "faint country-level overlay on top of the region fill, using the same five-step density scale at 40% opacity" for countries with n ≥ 10 personas. Prerequisites are in place: `public/geo/world-110m.json` is committed, `country_aggregates.json` is emitted by the build, and `WorldMap.tsx` has a TODO comment at the insertion point (~line 483). Not wired up — currently the density map shows region-level shading only. Adds atlas-style zoom-in-with-your-eye polish to the Personas page and Patterns Section 3a.
 - **`tension_patterns.json` per-model `by_cluster` data.** The pipeline emits `by_cluster` without a model split, so the `TensionMatrix` on Patterns Section 6 shows the same combined rate in both Claude and Gemini rows for every cluster column (caption discloses this). A pipeline re-run that splits per-model would let the matrix show real Claude-vs-Gemini divergence per cluster × axis.
 - **Archetype ID drift permanent fix.** Currently handled via `scripts/data/archetype-remap.ts` at build time and `src/lib/study/archetypeResolution.ts` at runtime, which remap cluster 0 and cluster 1 from their pre-revision IDs (`pragmatic-centrist`, `radical-egalitarian`) to post-revision (`institutional-moderate`, `popular-egalitarian`). A cleaner long-term fix: re-run the cluster→archetype comparison in the pipeline against post-revision `src/data/archetypes.ts` so `archetype_comparison.json` ships with correct IDs directly, eliminating the remap.
 - **Ambiguous multi-region country audit.** `scripts/data/country-region-mapping.ts` resolves conflicts by warn-and-trust-authored. Mexico (→ north_america per majority) is the one case hand-inspected during the build. Russia, Turkey, and a handful of other multi-region countries would benefit from the same one-pass audit in case the "majority" heuristic misfires for them.
@@ -331,5 +330,4 @@ Items consciously punted during the build. None block shipping. Listed here so t
 
 ### How to track these going forward
 
-- The only one surfaced in code as a `TODO` is the country sub-layer (`WorldMap.tsx:483`).
-- The others live here. When picking one up, ideally delete the bullet in the same PR that resolves it.
+- These items live here. When picking one up, ideally delete the bullet in the same PR that resolves it.

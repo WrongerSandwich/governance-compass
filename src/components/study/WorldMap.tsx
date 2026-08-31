@@ -3,6 +3,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import type { ClusterId, CountryAggregate, RegionKey } from "@/lib/study/types";
+import {
+  COUNTRY_DENSITY_THRESHOLD,
+  countryDensityFill,
+} from "@/lib/study/map-density";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -255,6 +259,15 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
 
   // Hatch pattern id
   const hatchId = "map-hatch";
+  const countryAggregates =
+    mode.type === "interactive" || mode.type === "static-density"
+      ? mode.countryAggregates
+      : undefined;
+  const countriesByIso = new Map(
+    countryAggregates
+      ?.filter((country) => country.count >= COUNTRY_DENSITY_THRESHOLD)
+      .map((country) => [country.country_iso, country]) ?? []
+  );
 
   return (
     <div className={`worldmap-wrapper ${className}`}>
@@ -521,15 +534,84 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
             }
           </Geographies>
 
-          {/*
-           * TODO (Phase 4b/5): Country-level shading (optional sub-layer)
-           * Spec ref: "Country-level shading (optional sub-layer)" in the WorldMap spec.
-           * Prerequisites already in place: `public/geo/world-110m.json` (country polygons)
-           * and `CountryAggregate[]` passed via `mode.countryAggregates`.
-           * When wired in, render a second <Geographies> pass over world-110m.json,
-           * shading each country by its aggregate score within the region color scheme.
-           * Only active in "static-density" and "interactive" modes.
-           */}
+          {countriesByIso.size > 0 && (
+            <Geographies geography="/geo/world-110m.json">
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const country = countriesByIso.get(
+                    String(geo.properties?.iso_a3 ?? "")
+                  );
+                  if (!country) return null;
+
+                  const isDimmed =
+                    mode.type === "interactive" &&
+                    mode.selectedRegion !== null &&
+                    mode.selectedRegion !== country.region;
+                  const content = `${country.country_name}\n${country.count} personas`;
+
+                  return (
+                    <Geography
+                      key={`country-${geo.rsmKey}`}
+                      geography={geo}
+                      className="worldmap-country-overlay"
+                      tabIndex={-1}
+                      aria-hidden
+                      style={{
+                        default: {
+                          fill: countryDensityFill(country.count),
+                          stroke: "var(--map-border)",
+                          strokeWidth: 0.35,
+                          outline: "none",
+                          opacity: isDimmed ? 0.16 : 0.4,
+                        },
+                        hover: {
+                          fill: countryDensityFill(country.count),
+                          stroke: "var(--map-accent)",
+                          strokeWidth: 0.75,
+                          outline: "none",
+                          opacity: isDimmed ? 0.16 : 0.65,
+                          cursor:
+                            mode.type === "interactive" ? "pointer" : "default",
+                        },
+                        pressed: {
+                          fill: countryDensityFill(country.count),
+                          stroke: "var(--map-accent)",
+                          strokeWidth: 0.75,
+                          outline: "none",
+                          opacity: isDimmed ? 0.16 : 0.65,
+                        },
+                      }}
+                      onMouseEnter={(e: React.MouseEvent) =>
+                        setTooltip({
+                          x: e.clientX,
+                          y: e.clientY,
+                          content,
+                        })
+                      }
+                      onMouseMove={(e: React.MouseEvent) =>
+                        setTooltip({
+                          x: e.clientX,
+                          y: e.clientY,
+                          content,
+                        })
+                      }
+                      onMouseLeave={handleMouseLeave}
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (mode.type === "interactive") {
+                          mode.onRegionSelect(
+                            mode.selectedRegion === country.region
+                              ? null
+                              : country.region
+                          );
+                        }
+                      }}
+                    />
+                  );
+                })
+              }
+            </Geographies>
+          )}
 
           {/* Selected region outline overlay */}
           {mode.type === "interactive" && mode.selectedRegion && (
@@ -618,6 +700,11 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           hard to read against colored map regions — so both tooltips get
           an explicit stone-900 background + stone-50 text. */}
       <style>{`
+        @media (hover: none), (pointer: coarse) {
+          .worldmap-country-overlay {
+            pointer-events: none;
+          }
+        }
         .worldmap-tooltip,
         .worldmap-mobile-tooltip {
           background: var(--stone-900);

@@ -25,6 +25,7 @@ import type {
   ClusterNarrative,
   RegionalAggregate,
   DemographicAggregate,
+  CountryAggregate,
 } from "@/lib/study/types";
 import type { ClusterId, RegionKey } from "@/lib/study/types";
 
@@ -119,6 +120,7 @@ export default async function PatternsPage() {
     axisHistogramsRaw,
     axisCorrelationsRaw,
     tensionPatternsRaw,
+    countryAggregatesRaw,
   ] = await Promise.all([
     fs.readFile(path.join(dataDir, "cluster_centroids.json"), "utf8"),
     fs.readFile(path.join(dataDir, "cluster_narratives.json"), "utf8"),
@@ -127,6 +129,7 @@ export default async function PatternsPage() {
     fs.readFile(path.join(derivedDir, "axis_histograms.json"), "utf8"),
     fs.readFile(path.join(derivedDir, "axis_correlations.json"), "utf8"),
     fs.readFile(path.join(dataDir, "tension_patterns.json"), "utf8"),
+    fs.readFile(path.join(derivedDir, "country_aggregates.json"), "utf8"),
   ]);
 
   const centroids: ClusterCentroidsFile = JSON.parse(centroidsRaw);
@@ -137,6 +140,7 @@ export default async function PatternsPage() {
   const axisHistograms: AxisHistogram[] = JSON.parse(axisHistogramsRaw);
   const axisCorrelations: CorrelationFile = JSON.parse(axisCorrelationsRaw);
   const tensionPatterns: TensionPatternsFile = JSON.parse(tensionPatternsRaw);
+  const countryAggregates: CountryAggregate[] = JSON.parse(countryAggregatesRaw);
 
   // Build a map from cluster id → centroid axis scores
   const centroidMap = new Map<number, number[]>(
@@ -475,6 +479,7 @@ export default async function PatternsPage() {
                   type: "static-density",
                   regionCounts,
                   topArchetypesByRegion,
+                  countryAggregates,
                 }}
               />
               <TransnationalTile
