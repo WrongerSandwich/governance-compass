@@ -45,7 +45,7 @@
     "@types/react-dom": "^19",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-server": "^3.0.4",
-    "@vitejs/plugin-react": "^6.1.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "csv-parse": "^7.0.2",
     "dotenv": "^17.4.2",
     "eslint": "^9",
