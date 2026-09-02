@@ -691,6 +691,13 @@ function ScoreBar({
   );
 }
 
+/**
+ * Shown when a tension arrives without a generated narrative — e.g. a response
+ * cached by a deploy that predates server-side tension descriptions. Expanding
+ * a badge must always produce visible text, never a silent no-op.
+ */
+const NO_TENSION_DESCRIPTION = "No description available for this tension.";
+
 /** Tension badge button for a single tension entry */
 function TensionBadge({
   tension,
@@ -699,7 +706,7 @@ function TensionBadge({
   onToggle,
   modelLabel,
 }: {
-  tension: { axis: number; severity: string; description?: string };
+  tension: { axis: number; severity: string; magnitude?: number; description?: string };
   axisNum: number;
   isExpanded: boolean;
   onToggle: () => void;
@@ -882,14 +889,17 @@ function SingleModelScoredProfile({
                   )}
                 </div>
 
-                {isExpanded && tension?.description && (
+                {isExpanded && tension && (
                   <div
                     style={{
                       marginLeft: "24px",
                       marginTop: "2px",
                       marginBottom: "4px",
                       fontSize: "12px",
-                      color: "var(--text-secondary)",
+                      color: tension.description
+                        ? "var(--text-secondary)"
+                        : "var(--text-tertiary)",
+                      fontStyle: tension.description ? "normal" : "italic",
                       lineHeight: 1.5,
                       padding: "6px 10px",
                       backgroundColor: "var(--surface-2)",
@@ -897,21 +907,7 @@ function SingleModelScoredProfile({
                       borderLeft: `2px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
                     }}
                   >
-                    {tension.description}
-                  </div>
-                )}
-                {isExpanded && !tension?.description && (
-                  <div
-                    style={{
-                      marginLeft: "24px",
-                      marginTop: "2px",
-                      marginBottom: "4px",
-                      fontSize: "12px",
-                      color: "var(--text-tertiary)",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    No description available for this tension.
+                    {tension.description ?? NO_TENSION_DESCRIPTION}
                   </div>
                 )}
               </div>
@@ -1450,7 +1446,7 @@ function DualModelScoredProfile({
                 </div>
 
                 {/* Expanded tension details — Claude */}
-                {cExpanded && cTension?.description && (
+                {cExpanded && cTension && (
                   <div
                     style={{
                       marginLeft: "24px",
@@ -1475,12 +1471,12 @@ function DualModelScoredProfile({
                     >
                       Claude:
                     </span>
-                    {cTension.description}
+                    {cTension.description ?? NO_TENSION_DESCRIPTION}
                   </div>
                 )}
 
                 {/* Expanded tension details — Gemini */}
-                {gExpanded && gTension?.description && (
+                {gExpanded && gTension && (
                   <div
                     style={{
                       marginLeft: "24px",
@@ -1505,7 +1501,7 @@ function DualModelScoredProfile({
                     >
                       Gemini:
                     </span>
-                    {gTension.description}
+                    {gTension.description ?? NO_TENSION_DESCRIPTION}
                   </div>
                 )}
               </div>
