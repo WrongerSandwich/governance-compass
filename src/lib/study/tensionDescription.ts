@@ -85,7 +85,12 @@ export function describeTension({
       : `Forced-choice and scaled answers lean ${statedPole} (${fmt(stated)})`;
 
   if (statedPole !== null && statedPole === budgetPole) {
-    return `${statedClause}; budget allocation leans the same way but far harder (${fmt(budget)}). ${verdict}`;
+    // Same pole, so the gap is one of conviction rather than direction — and it
+    // runs both ways: the budget can outrun the stated answers or fall short of
+    // them. A magnitude over the 0.51 flag threshold rules out a tie.
+    const strength =
+      Math.abs(budget) > Math.abs(stated) ? "far more strongly" : "far more weakly";
+    return `${statedClause}; budget allocation leans the same way ${strength} (${fmt(budget)}). ${verdict}`;
   }
 
   const budgetClause =

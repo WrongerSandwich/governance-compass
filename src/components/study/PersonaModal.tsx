@@ -907,7 +907,7 @@ function SingleModelScoredProfile({
                       borderLeft: `2px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
                     }}
                   >
-                    {tension.description ?? NO_TENSION_DESCRIPTION}
+                    {tension.description || NO_TENSION_DESCRIPTION}
                   </div>
                 )}
               </div>
@@ -1471,7 +1471,7 @@ function DualModelScoredProfile({
                     >
                       Claude:
                     </span>
-                    {cTension.description ?? NO_TENSION_DESCRIPTION}
+                    {cTension.description || NO_TENSION_DESCRIPTION}
                   </div>
                 )}
 
@@ -1501,7 +1501,7 @@ function DualModelScoredProfile({
                     >
                       Gemini:
                     </span>
-                    {gTension.description ?? NO_TENSION_DESCRIPTION}
+                    {gTension.description || NO_TENSION_DESCRIPTION}
                   </div>
                 )}
               </div>

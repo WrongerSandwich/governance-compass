@@ -48,7 +48,22 @@ describe("describeTension", () => {
 
     expect(description).toContain("growth imperative");
     expect(description).not.toContain("ecological limits");
+    expect(description).toContain("far more strongly");
     expect(description.toLowerCase()).toContain("mild tension");
+  });
+
+  it("does not claim a stronger budget when the budget is the weaker signal", () => {
+    // P0013 / claude / axis 12: stated -0.70, budget -0.12 — same pole, but the
+    // budget falls short of the stated answers rather than outrunning them.
+    const description = describeTension({
+      axis: 12,
+      level: "mild",
+      magnitude: 0.58,
+      modality: { fc: -1, sc: -0.25, budget: -0.12 },
+    });
+
+    expect(description).toContain("far more weakly");
+    expect(description).not.toContain("far more strongly");
   });
 
   it("calls out a midpoint stated score rather than inventing a lean", () => {
