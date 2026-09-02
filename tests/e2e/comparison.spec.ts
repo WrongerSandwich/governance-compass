@@ -1,10 +1,10 @@
-import { test, expect, type Browser, type BrowserContext } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { test, expect } from "@playwright/test";
 import { axes } from "@/data/axes";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
+import { materialize, signUp } from "./helpers";
 
 /**
  * The comparison page needs two profiles in the database, and profiles are only
@@ -16,8 +16,6 @@ import type { QuizResponses } from "@/lib/scoring-types";
  * Every run leaves its users and profiles behind. CI starts from a fresh
  * database; locally they accumulate harmlessly under distinct e2e-* emails.
  */
-
-const PASSWORD = "e2e-test-password";
 
 /** Every FC answer on one pole, every scale pinned to one end. */
 function buildResponses(
@@ -40,41 +38,6 @@ function buildResponses(
 // with it stacked on ministry 7. Both budgets spend the full 50 points.
 const POLE_A = encodeResponses(buildResponses("A", 1, [25, 4, 4, 4, 4, 4, 5]));
 const POLE_B = encodeResponses(buildResponses("B", 5, [5, 4, 4, 4, 4, 4, 25]));
-
-/** Registers a new user through the signup form and returns their session. */
-async function signUp(
-  browser: Browser,
-  label: string
-): Promise<{ context: BrowserContext; name: string }> {
-  const suffix = randomUUID().slice(0, 8);
-  const name = `E2E ${label} ${suffix}`;
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  await page.goto("/auth/signup");
-  await page.getByLabel("Name (optional)").fill(name);
-  await page.getByLabel("Email").fill(`e2e-${label}-${suffix}@example.test`);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Create account" }).click();
-  // Signup signs the new user in and hands off to /account.
-  await page.waitForURL("**/account");
-  await page.close();
-
-  return { context, name };
-}
-
-/** Materializes a profile for the context's signed-in user. */
-async function materialize(
-  context: BrowserContext,
-  encoded: string
-): Promise<string> {
-  const response = await context.request.post("/api/profile/materialize", {
-    data: { encoded },
-  });
-  expect(response.status(), await response.text()).toBe(201);
-  const { profileId } = await response.json();
-  return profileId as string;
-}
 
 test.describe("Comparison", () => {
   test("shows the alignment score and per-axis breakdown for two profiles", async ({
