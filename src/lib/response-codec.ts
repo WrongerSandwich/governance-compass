@@ -1,5 +1,5 @@
 /**
- * Response Codec — packs 82 quiz response values into a compact, URL-safe string.
+ * Response Codec — packs 67 quiz response values into a compact, URL-safe string.
  *
  * Layout v3 (187 bits = 24 bytes → ~32 chars base64url):
  *   - 1 byte version prefix (0x03)
@@ -11,8 +11,10 @@
  * Budget allocations are encoded in ministry ID order (1–7).
  *
  * Design notes:
- * - Budget 5-bit range supports values 1–32. The UI constrains to 1–25
- *   (50 total, 7 ministries, 1 minimum).
+ * - Budget 5-bit range supports values 1–32, but only 1–25 is in contract
+ *   (50 total, 7 ministries, 1 minimum). Both directions enforce that range
+ *   and the 50-point total, so a hand-edited `?r=` URL claiming impossible
+ *   allocations hits the results error UI instead of rendering as fact.
  * - FC bit pattern 0b11 and SC bit patterns 6–7 are unused by the encoder.
  *   On decode they are treated as skips. This is intentional — these patterns
  *   can only appear in hand-crafted or corrupted URLs, and treating them as
@@ -31,6 +33,35 @@ const FC_ITEMS_PER_AXIS = 3;
 const MINISTRY_COUNT = 7;
 const BUDGET_OFFSET = 1; // min allocation is 1, so offset by -1
 const BUDGET_BITS = 5; // 5 bits = 0-31, range 1-25 maps to 0-24
+const BUDGET_MIN = 1;
+const BUDGET_MAX = 25;
+const BUDGET_TOTAL = 50; // points the simulator hands out across all ministries
+
+/** Exact payload size: version byte + 36×2 + 24×3 + 7×5 bits, rounded up. */
+const PAYLOAD_BYTES = Math.ceil(
+  (8 + AXIS_COUNT * FC_ITEMS_PER_AXIS * 2 + 24 * 3 + MINISTRY_COUNT * BUDGET_BITS) / 8
+);
+
+/**
+ * Rejects allocations the budget simulator could never produce. Shared by both
+ * directions so anything `encodeResponses` emits `decodeResponses` accepts.
+ */
+function assertBudgetInContract(budget: Record<number, number>, source: "encodable" | "decoded"): void {
+  let total = 0;
+  for (let m = 1; m <= MINISTRY_COUNT; m++) {
+    const val = budget[m];
+    if (val < BUDGET_MIN || val > BUDGET_MAX) {
+      const range = source === "encodable" ? "encodable range" : "range";
+      throw new Error(
+        `Budget value ${val} for ministry ${m} is out of ${range} [${BUDGET_MIN}, ${BUDGET_MAX}]`
+      );
+    }
+    total += val;
+  }
+  if (total > BUDGET_TOTAL) {
+    throw new Error(`Budget allocations total ${total}, above the ${BUDGET_TOTAL}-point budget`);
+  }
+}
 
 // SC item IDs in canonical encoding order (2 per axis after reduction)
 const SC_ITEM_IDS = [
@@ -169,12 +200,13 @@ export function encodeResponses(responses: QuizResponses): string {
   }
 
   // 7 budget allocations (5 bits each)
+  const budget: Record<number, number> = {};
   for (let m = 1; m <= MINISTRY_COUNT; m++) {
-    const val = responses.budget[m] ?? 1;
-    if (val < 1 || val > 25) {
-      throw new Error(`Budget value ${val} for ministry ${m} is out of encodable range [1, 25]`);
-    }
-    writer.writeBits(val - BUDGET_OFFSET, BUDGET_BITS);
+    budget[m] = responses.budget[m] ?? BUDGET_MIN;
+  }
+  assertBudgetInContract(budget, "encodable");
+  for (let m = 1; m <= MINISTRY_COUNT; m++) {
+    writer.writeBits(budget[m] - BUDGET_OFFSET, BUDGET_BITS);
   }
 
   return bytesToBase64url(writer.toBytes());
@@ -194,6 +226,9 @@ export function decodeResponses(encoded: string): QuizResponses {
   }
 
   const bytes = base64urlToBytes(encoded);
+  if (bytes.length !== PAYLOAD_BYTES) {
+    throw new Error(`Invalid payload length: ${bytes.length} bytes. Expected ${PAYLOAD_BYTES}`);
+  }
   const reader = new BitReader(bytes);
 
   // Version byte
@@ -225,12 +260,15 @@ export function decodeResponses(encoded: string): QuizResponses {
     }
   }
 
-  // 7 budget allocations
+  // 7 budget allocations. Unlike the FC/SC fields, an out-of-contract budget
+  // cannot degrade to a skip — a bogus allocation would silently skew bgScore —
+  // so it is rejected outright.
   const budget: Record<number, number> = {};
   for (let m = 1; m <= MINISTRY_COUNT; m++) {
     const bits = reader.readBits(BUDGET_BITS);
     budget[m] = bits + BUDGET_OFFSET;
   }
+  assertBudgetInContract(budget, "decoded");
 
   return { forcedChoice, scaled, budget };
 }

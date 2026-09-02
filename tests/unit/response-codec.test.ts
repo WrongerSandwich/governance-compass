@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { encodeResponses, decodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
+import {
+  base64urlToBytes,
+  bytesToBase64url,
+  setRawBudgetBits,
+} from "../helpers/codec-bits";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -180,27 +185,47 @@ describe("response-codec", () => {
 
     expect(() => decodeResponses(corrupted)).toThrow(/version/i);
   });
+
+  it("rejects a decoded budget value above the encodable maximum", () => {
+    // Raw 5-bit field 25 decodes to allocation 26 — a value encodeResponses
+    // refuses to produce, so it can only come from a hand-edited URL.
+    const encoded = encodeResponses(buildCompleteResponses());
+    const tampered = setRawBudgetBits(encoded, 1, 25);
+
+    expect(() => decodeResponses(tampered)).toThrow(/out of range/i);
+  });
+
+  it("rejects decoded allocations totalling more than the budget", () => {
+    // Every ministry at the per-value maximum passes the range check but
+    // spends 175 of the 50 available points.
+    let tampered = encodeResponses(buildCompleteResponses());
+    for (let m = 1; m <= 7; m++) tampered = setRawBudgetBits(tampered, m, 24);
+
+    expect(() => decodeResponses(tampered)).toThrow(/total/i);
+  });
+
+  it("rejects allocations totalling more than the budget on encode", () => {
+    const responses = buildCompleteResponses();
+    for (let m = 1; m <= 7; m++) responses.budget[m] = 25; // 175 points
+
+    expect(() => encodeResponses(responses)).toThrow(/total/i);
+  });
+
+  it("rejects trailing bytes past the end of the payload", () => {
+    const encoded = encodeResponses(buildCompleteResponses());
+    const raw = base64urlToBytes(encoded);
+    const padded = new Uint8Array(raw.length + 1);
+    padded.set(raw);
+
+    expect(() => decodeResponses(bytesToBase64url(padded))).toThrow(/length/i);
+  });
+
+  it("rejects payloads truncated below the full layout", () => {
+    const encoded = encodeResponses(buildCompleteResponses());
+    const raw = base64urlToBytes(encoded);
+
+    expect(() => decodeResponses(bytesToBase64url(raw.slice(0, raw.length - 1)))).toThrow(
+      /length/i
+    );
+  });
 });
-
-// ---------------------------------------------------------------------------
-// Utility for the version byte test
-// ---------------------------------------------------------------------------
-
-function base64urlToBytes(str: string): Uint8Array {
-  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-function bytesToBase64url(bytes: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { MAX_PROFILES_PER_USER } from "@/lib/profile-limits";
 import { decodeResponses } from "@/lib/response-codec";
 import { computeFullResults } from "@/lib/scoring";
+import { toProfileRows } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -27,6 +29,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Defence in depth: the decoder already enforces the quiz contract, but
+  // nothing in Postgres does, and a bad row here skews persisted scores for
+  // good. Rejecting beats storing something no quiz run could produce.
+  let rows;
+  try {
+    rows = toProfileRows(responses);
+  } catch {
+    return NextResponse.json({ error: "Responses failed validation" }, { status: 400 });
+  }
+
+  const existingProfiles = await db.userProfile.count({
+    where: { userId: session.user.id },
+  });
+  if (existingProfiles >= MAX_PROFILES_PER_USER) {
+    return NextResponse.json(
+      { error: `Profile limit reached (${MAX_PROFILES_PER_USER} per account)` },
+      { status: 429 }
+    );
+  }
+
   const results = computeFullResults(responses);
 
   const profile = await db.$transaction(async (tx) => {
@@ -35,36 +57,22 @@ export async function POST(request: NextRequest) {
     });
 
     // FC responses
-    const fcEntries = Object.entries(responses.forcedChoice);
-    if (fcEntries.length > 0) {
+    if (rows.forcedChoice.length > 0) {
       await tx.forcedChoiceResponse.createMany({
-        data: fcEntries.map(([itemId, selectedPole]) => ({
-          profileId: newProfile.id,
-          itemId,
-          selectedPole,
-        })),
+        data: rows.forcedChoice.map((row) => ({ profileId: newProfile.id, ...row })),
       });
     }
 
     // SC responses
-    const scEntries = Object.entries(responses.scaled);
-    if (scEntries.length > 0) {
+    if (rows.scaled.length > 0) {
       await tx.scaledResponse.createMany({
-        data: scEntries.map(([itemId, value]) => ({
-          profileId: newProfile.id,
-          itemId,
-          value,
-        })),
+        data: rows.scaled.map((row) => ({ profileId: newProfile.id, ...row })),
       });
     }
 
     // Budget allocations
     await tx.budgetAllocation.createMany({
-      data: Object.entries(responses.budget).map(([ministryId, amount]) => ({
-        profileId: newProfile.id,
-        ministryId: Number(ministryId),
-        amount,
-      })),
+      data: rows.budget.map((row) => ({ profileId: newProfile.id, ...row })),
     });
 
     // Axis scores
