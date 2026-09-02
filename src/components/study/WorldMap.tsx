@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import type { ClusterId, CountryAggregate, RegionKey } from "@/lib/study/types";
 import {
   COUNTRY_DENSITY_THRESHOLD,
   countryDensityFill,
 } from "@/lib/study/map-density";
+import { useEscapeKey } from "@/lib/study/useEscapeKey";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,18 +156,15 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
   // derives its below-map tooltip from the selection instead — see below.
   const [peekTooltip, setPeekTooltip] = useState<string | null>(null);
 
-  // Escape key clears selection in interactive mode
-  useEffect(() => {
-    if (mode.type !== "interactive") return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        mode.onRegionSelect(null);
-        setTooltip(null);
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [mode]);
+  // Escape clears the selection in interactive mode — but only while the map
+  // is the topmost layer, so dismissing a modal above it does not silently
+  // throw away the region the user selected.
+  const onRegionSelect =
+    mode.type === "interactive" ? mode.onRegionSelect : null;
+  useEscapeKey(() => {
+    onRegionSelect?.(null);
+    setTooltip(null);
+  }, onRegionSelect !== null);
 
   const handleMouseEnter = useCallback(
     (region: RegionKey, e: React.MouseEvent) => {

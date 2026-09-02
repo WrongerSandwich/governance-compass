@@ -12,7 +12,10 @@ import { CompareFloatingButton } from "@/components/study/CompareFloatingButton"
 import { CompareView } from "@/components/study/CompareView";
 import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
-import { usePinnedPersonas } from "@/lib/study/usePinnedPersonas";
+import {
+  usePinnedPersonas,
+  MIN_COMPARE_PINS,
+} from "@/lib/study/usePinnedPersonas";
 import { REGION_LABELS, SHORT_REGION_LABELS } from "@/lib/study/types";
 import { archetypes } from "@/data/archetypes";
 import type {
@@ -403,16 +406,6 @@ function PersonasPageClientInner({
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }, [router, pathname, searchParams]);
 
-  const unpinPersona = useCallback((id: string) => {
-    togglePin(id);
-    // If only 1 left after unpin, close the compare view
-    if (pinned.length <= 2) {
-      const next = new URLSearchParams(searchParams.toString());
-      next.delete("compareView");
-      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-    }
-  }, [togglePin, pinned.length, router, pathname, searchParams]);
-
   // Derive catalog metadata for filter options
   const catalogMeta = useMemo(() => {
     const regions = [...new Set(catalog.map((p) => p.region))].sort();
@@ -658,11 +651,11 @@ function PersonasPageClientInner({
       />
 
       {/* Compare view (compareView=open in URL) */}
-      {compareView === "open" && pinned.length >= 2 && (
+      {compareView === "open" && pinned.length >= MIN_COMPARE_PINS && (
         <CompareView
           pinnedIds={pinned}
           onClose={closeCompareView}
-          onUnpin={unpinPersona}
+          onUnpin={togglePin}
         />
       )}
 

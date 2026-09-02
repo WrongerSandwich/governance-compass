@@ -7,6 +7,7 @@ import { Radar } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
+import { useEscapeKey } from "@/lib/study/useEscapeKey";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 
@@ -475,14 +476,8 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinnedIds.join(",")]);
 
-  // Escape key closes
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  // Escape closes — only when no persona modal is stacked above this view
+  useEscapeKey(onClose);
 
   // Prevent body scroll while open
   useEffect(() => {

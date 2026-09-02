@@ -15,6 +15,8 @@ import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
 import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
+import { personaNeighbors } from "@/lib/study/personaNavigation";
+import { useEscapeKey } from "@/lib/study/useEscapeKey";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 
@@ -2030,9 +2032,13 @@ function ModalFooter({ id }: { id: string }) {
   const { filteredIds } = usePersonasContext();
   const [copied, setCopied] = useState(false);
 
-  const currentIndex = filteredIds.indexOf(id);
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < filteredIds.length - 1;
+  const {
+    index: currentIndex,
+    prev: prevId,
+    next: nextId,
+  } = personaNeighbors(filteredIds, id);
+  const hasPrev = prevId !== null;
+  const hasNext = nextId !== null;
 
   const navigateTo = useCallback(
     (newId: string) => {
@@ -2091,9 +2097,7 @@ function ModalFooter({ id }: { id: string }) {
           }}
         >
           <button
-            onClick={() =>
-              hasPrev && navigateTo(filteredIds[currentIndex - 1])
-            }
+            onClick={() => prevId && navigateTo(prevId)}
             disabled={!hasPrev}
             aria-label="Previous persona"
             style={{
@@ -2122,9 +2126,7 @@ function ModalFooter({ id }: { id: string }) {
             </span>
           )}
           <button
-            onClick={() =>
-              hasNext && navigateTo(filteredIds[currentIndex + 1])
-            }
+            onClick={() => nextId && navigateTo(nextId)}
             disabled={!hasNext}
             aria-label="Next persona"
             style={{
@@ -2227,13 +2229,13 @@ export function PersonaModal({ id }: PersonaModalProps) {
     }
   }, [router, pathname, searchParams]);
 
-  // Keyboard: Escape to close + focus trap
+  // Escape closes. Routed through the shared stack so the press is not also
+  // delivered to the compare view or the map underneath this modal.
+  useEscapeKey(handleClose);
+
+  // Keyboard: focus trap
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-        return;
-      }
       if (e.key === "Tab" && dialogRef.current) {
         // Trap focus within modal
         const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
