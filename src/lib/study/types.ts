@@ -398,6 +398,12 @@ export interface PersonaDetailResponse {
     tensions: Array<{
       axis: number;
       severity: "mild" | "moderate" | "strong";
+      /** Contradiction magnitude the severity was bucketed from (0.0-2.0). */
+      magnitude: number;
+      /**
+       * Generated narrative for the tension. Optional so a response cached by
+       * an older deploy still type-checks; consumers must keep a fallback.
+       */
       description?: string;
     }>;
     confidence: Record<string, "high" | "moderate" | "low">;

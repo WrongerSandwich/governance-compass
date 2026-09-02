@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { parse as parseCsv } from "csv-parse/sync";
+import { createAsyncCache } from "@/lib/async-cache";
 import { bucketMatchStrength } from "@/lib/study/matchStrength";
+import { describeTension } from "@/lib/study/tensionDescription";
 import { postRevisionArchetypeForCluster } from "@/lib/study/archetypeResolution";
 import type {
   PersonaRecord,
@@ -66,9 +68,6 @@ interface DataCache {
   geminiById: Map<string, ResponseRecord>;
   clusterCentroidById: Map<number, readonly number[]>;
 }
-
-let cache: DataCache | null = null;
-let cachePromise: Promise<DataCache> | null = null;
 
 const DATA_DIR = path.join(process.cwd(), "data", "synthetic_study");
 const DERIVED_DIR = path.join(process.cwd(), "public", "study", "derived");
@@ -157,12 +156,7 @@ async function loadData(): Promise<DataCache> {
   };
 }
 
-async function getData(): Promise<DataCache> {
-  if (cache) return cache;
-  if (!cachePromise) cachePromise = loadData();
-  cache = await cachePromise;
-  return cache;
-}
+const getData = createAsyncCache(loadData);
 
 // ---------------------------------------------------------------------------
 // Route handler
@@ -263,11 +257,30 @@ export async function GET(
         modality_scores[key] = entry;
       }
 
-      // Normalize tensions
-      const tensions = profile.tensions.map((t) => ({
-        axis: t.axis,
-        severity: t.level as "mild" | "moderate" | "strong",
-      }));
+      // Modality keys are "<axisNumber>_<slug>"; tensions reference the number.
+      const modalityByAxis = new Map<number, { fc?: number; sc?: number; budget?: number }>();
+      for (const [key, val] of Object.entries(modality_scores)) {
+        const axisNumber = parseInt(key.split("_")[0], 10);
+        if (Number.isFinite(axisNumber)) modalityByAxis.set(axisNumber, val);
+      }
+
+      // Normalize tensions. The pipeline stores only {axis, magnitude, level},
+      // so the modal's expandable narrative is generated here from the same
+      // modality scores rather than left undefined.
+      const tensions = profile.tensions.map((t) => {
+        const severity = t.level as "mild" | "moderate" | "strong";
+        return {
+          axis: t.axis,
+          severity,
+          magnitude: t.magnitude,
+          description: describeTension({
+            axis: t.axis,
+            level: severity,
+            magnitude: t.magnitude,
+            modality: modalityByAxis.get(t.axis) ?? {},
+          }),
+        };
+      });
 
       return {
         model,
@@ -305,7 +318,9 @@ export async function GET(
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Never echo the raw message: a failed readFile carries the absolute
+    // server path, which describes the deployment layout to any caller.
+    console.error(`[study/persona] failed to build response for ${id}:`, err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
