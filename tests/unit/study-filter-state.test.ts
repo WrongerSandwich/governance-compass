@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  applyFilterChange,
   filtersFromSearchParams,
   filtersToSearchParams,
   DEFAULT_FILTERS,
@@ -174,5 +175,72 @@ describe("DEFAULT_FILTERS", () => {
     expect(DEFAULT_FILTERS.shared).toBe("all");
     expect(DEFAULT_FILTERS.sort).toBe("name");
     expect(DEFAULT_FILTERS.page).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyFilterChange
+// ---------------------------------------------------------------------------
+
+// A filter change has to be a delta against the *live* query string, not
+// against the snapshot the component last rendered with. The debounced name
+// search commits up to 300 ms after the keystroke that queued it, so a
+// dropdown chosen in that window is already in the URL but not yet in the
+// render snapshot — rebuilding from the snapshot would drop it.
+
+describe("applyFilterChange", () => {
+  it("sets a filter on an empty query string", () => {
+    const result = applyFilterChange("", "q", "sofia");
+    const params = new URLSearchParams(result);
+    expect(params.get("q")).toBe("sofia");
+  });
+
+  it("preserves filters already in the live URL", () => {
+    const result = applyFilterChange("?urban_rural=rural&cluster=3", "q", "so");
+    const params = new URLSearchParams(result);
+    expect(params.get("q")).toBe("so");
+    expect(params.get("urban_rural")).toBe("rural");
+    expect(params.get("cluster")).toBe("3");
+  });
+
+  it("overwrites the same key rather than appending", () => {
+    const result = applyFilterChange("?q=sof", "q", "sofia");
+    expect(new URLSearchParams(result).getAll("q")).toEqual(["sofia"]);
+  });
+
+  it("clears a filter when the value is undefined", () => {
+    const result = applyFilterChange("?q=sofia&cluster=3", "q", undefined);
+    const params = new URLSearchParams(result);
+    expect(params.has("q")).toBe(false);
+    expect(params.get("cluster")).toBe("3");
+  });
+
+  it("resets the page for any filter other than page itself", () => {
+    const result = applyFilterChange("?page=7", "q", "sofia");
+    expect(new URLSearchParams(result).get("page")).toBe("1");
+  });
+
+  it("keeps the requested page when the change is the page", () => {
+    const result = applyFilterChange("?q=sofia&page=1", "page", 4);
+    expect(new URLSearchParams(result).get("page")).toBe("4");
+  });
+
+  it("preserves modal and compare params it does not own", () => {
+    const result = applyFilterChange(
+      "?compare=P0001,P0042&compareView=open&persona=P0007&model=claude",
+      "q",
+      "sofia"
+    );
+    const params = new URLSearchParams(result);
+    expect(params.get("compare")).toBe("P0001,P0042");
+    expect(params.get("compareView")).toBe("open");
+    expect(params.get("persona")).toBe("P0007");
+    expect(params.get("model")).toBe("claude");
+    expect(params.get("q")).toBe("sofia");
+  });
+
+  it("drops unrecognized params it does not own", () => {
+    const result = applyFilterChange("?bogus=1", "q", "sofia");
+    expect(new URLSearchParams(result).has("bogus")).toBe(false);
   });
 });

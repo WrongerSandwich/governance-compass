@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { STUDY_SESSION_KEY } from "@/app/study/layout";
 import type { RegionKey, ClusterId, UrbanRural } from "@/lib/study/types";
@@ -122,6 +122,39 @@ export function filtersToSearchParams(filters: StudyFilters): URLSearchParams {
   return params;
 }
 
+/**
+ * Apply one filter change to a live query string and return the new one.
+ *
+ * The delta is taken against the query string as it stands at commit time, not
+ * against the `filters` object the component rendered with: the debounced text
+ * inputs commit up to 300 ms after the keystroke that queued them, and a
+ * dropdown chosen inside that window is not in the render snapshot yet.
+ * Rebuilding from the snapshot would silently drop it. Params this hook does
+ * not own (the modal and compare state) are carried across untouched, for the
+ * same reason. See `liveSearch` for what "as it stands" resolves to.
+ *
+ * Pure so the merge rules are testable without a router.
+ */
+export function applyFilterChange<K extends keyof StudyFilters>(
+  currentSearch: string,
+  key: K,
+  value: StudyFilters[K] | undefined
+): string {
+  const current = new URLSearchParams(currentSearch);
+  const updated = filtersFromSearchParams(current);
+
+  if (value === undefined) delete updated[key];
+  else updated[key] = value;
+  // Any filter change other than paging returns to the first page
+  if (key !== "page") updated.page = 1;
+
+  const next = filtersToSearchParams(updated);
+  current.forEach((v, k) => {
+    if (IGNORED_PARAMS.has(k)) next.set(k, v);
+  });
+  return next.toString();
+}
+
 // Count filters that differ from the default (for the "Clear all" badge)
 function countActiveFilters(filters: StudyFilters): number {
   let count = 0;
@@ -224,18 +257,36 @@ export function useStudyFilters(): {
     }
   }, [searchParams, pathname]);
 
+  // The query string a handler should build its change on top of.
+  //
+  // `searchParams` is a render snapshot, and the App Router only updates the
+  // address bar once a navigation commits, so both trail an in-flight one.
+  // Between the two sits the URL we last asked for: while a navigation is
+  // still in flight that intent is the freshest thing there is, and the
+  // debounced text inputs commit up to 300 ms after the keystroke that queued
+  // them — long enough for a dropdown chosen in between to be lost otherwise.
+  const requestedSearchRef = useRef<string | null>(null);
+  const searchKey = searchParams.toString();
+
+  useEffect(() => {
+    // A new snapshot means what we asked for has either landed or been
+    // superseded (Back/forward, a link), so stop preferring it.
+    requestedSearchRef.current = null;
+  }, [searchKey]);
+
+  const liveSearch = useCallback(() => {
+    if (requestedSearchRef.current !== null) return requestedSearchRef.current;
+    return typeof window !== "undefined" ? window.location.search : searchKey;
+  }, [searchKey]);
+
   const navigate = useCallback(
-    (newParams: URLSearchParams, history: HistoryMode = "push") => {
-      // Preserve modal params from current URL
-      const merged = new URLSearchParams(newParams);
-      searchParams.forEach((value, key) => {
-        if (IGNORED_PARAMS.has(key)) merged.set(key, value);
-      });
-      const url = `${pathname}?${merged.toString()}`;
+    (search: string, history: HistoryMode = "push") => {
+      requestedSearchRef.current = search;
+      const url = `${pathname}?${search}`;
       if (history === "replace") router.replace(url, { scroll: false });
       else router.push(url, { scroll: false });
     },
-    [router, pathname, searchParams]
+    [router, pathname]
   );
 
   const setFilter = useCallback(
@@ -244,32 +295,26 @@ export function useStudyFilters(): {
       value: StudyFilters[K],
       options?: SetFilterOptions
     ) => {
-      const updated = { ...filters, [key]: value };
-      // Reset page to 1 when changing any filter other than page itself
-      if (key !== "page") updated.page = 1;
-      navigate(filtersToSearchParams(updated), options?.history);
+      navigate(applyFilterChange(liveSearch(), key, value), options?.history);
     },
-    [filters, navigate]
+    [navigate, liveSearch]
   );
 
   const clearFilter = useCallback(
     (key: keyof StudyFilters, options?: SetFilterOptions) => {
-      const updated = { ...filters };
-      delete updated[key];
-      if (key !== "page") updated.page = 1;
-      navigate(filtersToSearchParams(updated), options?.history);
+      navigate(applyFilterChange(liveSearch(), key, undefined), options?.history);
     },
-    [filters, navigate]
+    [navigate, liveSearch]
   );
 
   const clearAll = useCallback(() => {
     // Preserve modal params
     const preserved = new URLSearchParams();
-    searchParams.forEach((value, key) => {
+    new URLSearchParams(liveSearch()).forEach((value, key) => {
       if (IGNORED_PARAMS.has(key)) preserved.set(key, value);
     });
-    router.push(`${pathname}?${preserved.toString()}`, { scroll: false });
-  }, [router, pathname, searchParams]);
+    navigate(preserved.toString());
+  }, [navigate, liveSearch]);
 
   return { filters, setFilter, clearFilter, clearAll, activeCount };
 }

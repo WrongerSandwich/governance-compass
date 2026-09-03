@@ -56,4 +56,28 @@ test.describe("study persona filters", () => {
     // Debounced and committed with `replace`: five characters, no new entries.
     expect(await page.evaluate(() => history.length)).toBe(before);
   });
+
+  test("a dropdown chosen while a search is still settling survives the commit", async ({
+    page,
+  }) => {
+    await page.goto("/study/personas");
+    const search = page.getByLabel("Name", { exact: true });
+    await expect(search).toBeVisible();
+
+    // Type, then pick a dropdown well inside the 300 ms debounce window. The
+    // queued commit has to apply itself to the URL as it stands then — not to
+    // the render snapshot from the keystroke — or it drops the dropdown.
+    await search.pressSequentially("so", { delay: 20 });
+    // Exact: once the filter lands, its chip adds a "Remove Setting: Rural
+    // filter" button that also answers to the "Setting" accessible name.
+    const setting = page.getByLabel("Setting", { exact: true });
+    await setting.selectOption("rural");
+
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("q"))
+      .toBe("so");
+    expect(new URL(page.url()).searchParams.get("urban_rural")).toBe("rural");
+    await expect(setting).toHaveValue("rural");
+    await expect(page.getByText("Setting: Rural")).toBeVisible();
+  });
 });
