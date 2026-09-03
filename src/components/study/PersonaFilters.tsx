@@ -1,7 +1,17 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { useCallback } from "react";
 import { useStudyFilters } from "@/lib/study/filterState";
+import { useDebouncedFilterInput } from "@/lib/study/useDebouncedFilterInput";
+import {
+  ECONOMIC_LABELS,
+  EDUCATION_LABELS,
+  GENDER_LABELS,
+  GOVERNANCE_LABELS,
+  URBAN_RURAL_LABELS,
+  labelFor,
+} from "@/lib/study/labels";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { RegionKey, ClusterId, UrbanRural } from "@/lib/study/types";
 
@@ -24,39 +34,6 @@ const CLUSTER_LABELS: Record<ClusterId, string> = {
   3: "C3 — Distributed governance",
   4: "C4 — Collective provision",
   5: "C5 — Centralized governance",
-};
-
-const EDUCATION_LABELS: Record<string, string> = {
-  primary: "Primary",
-  secondary: "Secondary",
-  vocational: "Vocational",
-  university: "University",
-  postgraduate: "Postgraduate",
-};
-
-const ECONOMIC_LABELS: Record<string, string> = {
-  affluent: "Affluent",
-  upper_middle_class: "Upper middle class",
-  middle_class: "Middle class",
-  working_class: "Working class",
-  struggling: "Struggling",
-  impoverished: "Impoverished",
-};
-
-const URBAN_RURAL_LABELS: Record<UrbanRural, string> = {
-  urban: "Urban",
-  peri_urban: "Peri-urban",
-  rural: "Rural",
-};
-
-const GOVERNANCE_LABELS: Record<string, string> = {
-  stable_democracy: "Stable democracy",
-  transitional_democracy: "Transitional democracy",
-  hybrid_regime: "Hybrid regime",
-  authoritarian: "Authoritarian",
-  conflict_affected: "Conflict-affected",
-  colonial_or_occupied: "Colonial / occupied",
-  stateless_or_displaced: "Stateless / displaced",
 };
 
 // ---------------------------------------------------------------------------
@@ -149,6 +126,47 @@ export function PersonaFilters({
 }: PersonaFiltersProps) {
   const { filters, setFilter, clearFilter } = useStudyFilters();
 
+  // The three free-text inputs are buffered locally and committed once typing
+  // settles, with `replace` so a search never costs a history entry per
+  // keystroke. Every other control below is a discrete choice and pushes.
+  const commitQuery = useCallback(
+    (value: string) => {
+      if (value) setFilter("q", value, { history: "replace" });
+      else clearFilter("q", { history: "replace" });
+    },
+    [setFilter, clearFilter]
+  );
+  const [queryDraft, onQueryChange] = useDebouncedFilterInput(
+    filters.q ?? "",
+    commitQuery
+  );
+
+  const commitAgeMin = useCallback(
+    (value: string) => {
+      const n = parseInt(value, 10);
+      if (Number.isFinite(n)) setFilter("age_min", n, { history: "replace" });
+      else clearFilter("age_min", { history: "replace" });
+    },
+    [setFilter, clearFilter]
+  );
+  const [ageMinDraft, onAgeMinChange] = useDebouncedFilterInput(
+    filters.age_min !== undefined ? String(filters.age_min) : "",
+    commitAgeMin
+  );
+
+  const commitAgeMax = useCallback(
+    (value: string) => {
+      const n = parseInt(value, 10);
+      if (Number.isFinite(n)) setFilter("age_max", n, { history: "replace" });
+      else clearFilter("age_max", { history: "replace" });
+    },
+    [setFilter, clearFilter]
+  );
+  const [ageMaxDraft, onAgeMaxChange] = useDebouncedFilterInput(
+    filters.age_max !== undefined ? String(filters.age_max) : "",
+    commitAgeMax
+  );
+
   return (
     <div>
       {/* Name search — standalone at top. Page-level filter chip row already
@@ -162,12 +180,8 @@ export function PersonaFilters({
           id="filter-q"
           type="search"
           placeholder="Search by name…"
-          value={filters.q ?? ""}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v) setFilter("q", v);
-            else clearFilter("q");
-          }}
+          value={queryDraft}
+          onChange={(e) => onQueryChange(e.target.value)}
           style={inputStyle}
         />
       </div>
@@ -219,7 +233,7 @@ export function PersonaFilters({
               <option value="">All</option>
               {urbanRuralCategories.map((u) => (
                 <option key={u} value={u}>
-                  {URBAN_RURAL_LABELS[u] ?? u}
+                  {labelFor(URBAN_RURAL_LABELS, u)}
                 </option>
               ))}
             </select>
@@ -302,7 +316,7 @@ export function PersonaFilters({
               <option value="">All</option>
               {governanceCategories.map((g) => (
                 <option key={g} value={g}>
-                  {GOVERNANCE_LABELS[g] ?? g}
+                  {labelFor(GOVERNANCE_LABELS, g)}
                 </option>
               ))}
             </select>
@@ -345,14 +359,8 @@ export function PersonaFilters({
               placeholder={String(ageRange[0])}
               min={ageRange[0]}
               max={ageRange[1]}
-              value={
-                filters.age_min !== undefined ? String(filters.age_min) : ""
-              }
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v) setFilter("age_min", parseInt(v, 10));
-                else clearFilter("age_min");
-              }}
+              value={ageMinDraft}
+              onChange={(e) => onAgeMinChange(e.target.value)}
               style={{ ...inputStyle, width: "72px" }}
             />
             <span
@@ -366,14 +374,8 @@ export function PersonaFilters({
               placeholder={String(ageRange[1])}
               min={ageRange[0]}
               max={ageRange[1]}
-              value={
-                filters.age_max !== undefined ? String(filters.age_max) : ""
-              }
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v) setFilter("age_max", parseInt(v, 10));
-                else clearFilter("age_max");
-              }}
+              value={ageMaxDraft}
+              onChange={(e) => onAgeMaxChange(e.target.value)}
               style={{ ...inputStyle, width: "72px" }}
             />
           </div>
@@ -397,7 +399,7 @@ export function PersonaFilters({
               <option value="">All</option>
               {genderCategories.map((g) => (
                 <option key={g} value={g}>
-                  {g.charAt(0).toUpperCase() + g.slice(1).replace("_", " ")}
+                  {labelFor(GENDER_LABELS, g)}
                 </option>
               ))}
             </select>
@@ -422,7 +424,7 @@ export function PersonaFilters({
               <option value="">All</option>
               {educationCategories.map((e) => (
                 <option key={e} value={e}>
-                  {EDUCATION_LABELS[e] ?? e}
+                  {labelFor(EDUCATION_LABELS, e)}
                 </option>
               ))}
             </select>
@@ -447,7 +449,7 @@ export function PersonaFilters({
               <option value="">All</option>
               {economicCategories.map((e) => (
                 <option key={e} value={e}>
-                  {ECONOMIC_LABELS[e] ?? e}
+                  {labelFor(ECONOMIC_LABELS, e)}
                 </option>
               ))}
             </select>

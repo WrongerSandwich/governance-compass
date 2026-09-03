@@ -16,6 +16,14 @@ import {
   usePinnedPersonas,
   MIN_COMPARE_PINS,
 } from "@/lib/study/usePinnedPersonas";
+import {
+  ECONOMIC_LABELS,
+  EDUCATION_LABELS,
+  GENDER_LABELS,
+  GOVERNANCE_LABELS,
+  URBAN_RURAL_LABELS,
+  labelFor,
+} from "@/lib/study/labels";
 import { REGION_LABELS, SHORT_REGION_LABELS } from "@/lib/study/types";
 import { archetypes } from "@/data/archetypes";
 import type {
@@ -133,15 +141,30 @@ function FilterChips({
     });
   }
   if (filters.governance)
-    chips.push({ label: `Governance: ${filters.governance}`, key: "governance" });
+    chips.push({
+      label: `Governance: ${labelFor(GOVERNANCE_LABELS, filters.governance)}`,
+      key: "governance",
+    });
   if (filters.economic)
-    chips.push({ label: `Economic: ${filters.economic}`, key: "economic" });
+    chips.push({
+      label: `Economic: ${labelFor(ECONOMIC_LABELS, filters.economic)}`,
+      key: "economic",
+    });
   if (filters.urban_rural)
-    chips.push({ label: `Setting: ${filters.urban_rural}`, key: "urban_rural" });
+    chips.push({
+      label: `Setting: ${labelFor(URBAN_RURAL_LABELS, filters.urban_rural)}`,
+      key: "urban_rural",
+    });
   if (filters.education)
-    chips.push({ label: `Education: ${filters.education}`, key: "education" });
+    chips.push({
+      label: `Education: ${labelFor(EDUCATION_LABELS, filters.education)}`,
+      key: "education",
+    });
   if (filters.gender)
-    chips.push({ label: `Gender: ${filters.gender}`, key: "gender" });
+    chips.push({
+      label: `Gender: ${labelFor(GENDER_LABELS, filters.gender)}`,
+      key: "gender",
+    });
   if (filters.age_min !== undefined || filters.age_max !== undefined) {
     const lo = filters.age_min ?? "any";
     const hi = filters.age_max ?? "any";

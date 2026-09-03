@@ -147,10 +147,25 @@ function countActiveFilters(filters: StudyFilters): number {
 // Hook
 // ---------------------------------------------------------------------------
 
+/**
+ * How a filter change enters browser history. Keystroke-granular changes
+ * (the name search, the age inputs) use "replace" so Back does not have to
+ * walk one entry per character; discrete choices use "push".
+ */
+export type HistoryMode = "push" | "replace";
+
+export interface SetFilterOptions {
+  history?: HistoryMode;
+}
+
 export function useStudyFilters(): {
   filters: StudyFilters;
-  setFilter: <K extends keyof StudyFilters>(key: K, value: StudyFilters[K]) => void;
-  clearFilter: (key: keyof StudyFilters) => void;
+  setFilter: <K extends keyof StudyFilters>(
+    key: K,
+    value: StudyFilters[K],
+    options?: SetFilterOptions
+  ) => void;
+  clearFilter: (key: keyof StudyFilters, options?: SetFilterOptions) => void;
   clearAll: () => void;
   activeCount: number;
 } {
@@ -180,7 +195,10 @@ export function useStudyFilters(): {
           let hasSaved = false;
           savedParams.forEach(() => { hasSaved = true; });
           if (hasSaved) {
-            router.push(`${pathname}?${savedParams.toString()}`, { scroll: false });
+            // `replace`, not `push`: the restore is not a navigation the user
+            // made, and pushing it means Back returns to the bare URL, which
+            // immediately restores again.
+            router.replace(`${pathname}?${savedParams.toString()}`, { scroll: false });
           }
         }
       } catch {
@@ -206,36 +224,42 @@ export function useStudyFilters(): {
     }
   }, [searchParams, pathname]);
 
-  const pushParams = useCallback(
-    (newParams: URLSearchParams) => {
+  const navigate = useCallback(
+    (newParams: URLSearchParams, history: HistoryMode = "push") => {
       // Preserve modal params from current URL
       const merged = new URLSearchParams(newParams);
       searchParams.forEach((value, key) => {
         if (IGNORED_PARAMS.has(key)) merged.set(key, value);
       });
-      router.push(`${pathname}?${merged.toString()}`, { scroll: false });
+      const url = `${pathname}?${merged.toString()}`;
+      if (history === "replace") router.replace(url, { scroll: false });
+      else router.push(url, { scroll: false });
     },
     [router, pathname, searchParams]
   );
 
   const setFilter = useCallback(
-    <K extends keyof StudyFilters>(key: K, value: StudyFilters[K]) => {
+    <K extends keyof StudyFilters>(
+      key: K,
+      value: StudyFilters[K],
+      options?: SetFilterOptions
+    ) => {
       const updated = { ...filters, [key]: value };
       // Reset page to 1 when changing any filter other than page itself
       if (key !== "page") updated.page = 1;
-      pushParams(filtersToSearchParams(updated));
+      navigate(filtersToSearchParams(updated), options?.history);
     },
-    [filters, pushParams]
+    [filters, navigate]
   );
 
   const clearFilter = useCallback(
-    (key: keyof StudyFilters) => {
+    (key: keyof StudyFilters, options?: SetFilterOptions) => {
       const updated = { ...filters };
       delete updated[key];
       if (key !== "page") updated.page = 1;
-      pushParams(filtersToSearchParams(updated));
+      navigate(filtersToSearchParams(updated), options?.history);
     },
-    [filters, pushParams]
+    [filters, navigate]
   );
 
   const clearAll = useCallback(() => {
