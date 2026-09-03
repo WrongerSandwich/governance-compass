@@ -60,31 +60,33 @@ export const SHORT_REGION_LABELS: Record<RegionKey, string> = {
 
 export type UrbanRural = "urban" | "peri_urban" | "rural";
 
+// The category vocabularies below mirror the persona generation pipeline
+// exactly (verified against data/synthetic_study/personas.json). Display
+// labels live in study/labels.ts, keyed by these unions so the two cannot
+// drift apart silently.
 export type EconomicPosition =
+  | "wealthy"
   | "affluent"
-  | "upper_middle_class"
   | "middle_class"
   | "working_class"
-  | "struggling"
-  | "impoverished";
+  | "struggling";
 
 export type GovernanceExperience =
   | "stable_democracy"
-  | "transitional_democracy"
+  | "flawed_democracy"
   | "hybrid_regime"
-  | "authoritarian"
-  | "conflict_affected"
-  | "colonial_or_occupied"
-  | "stateless_or_displaced";
+  | "authoritarian_state"
+  | "conflict_zone"
+  | "colonial_post_colonial_transition";
 
 export type EducationLevel =
+  | "none"
   | "primary"
   | "secondary"
-  | "vocational"
   | "university"
   | "postgraduate";
 
-export type Gender = "male" | "female" | "non_binary" | "other";
+export type Gender = "male" | "female" | "non_binary";
 
 export type AxisScoreKey =
   | "1_economic_model"

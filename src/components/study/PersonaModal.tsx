@@ -17,45 +17,21 @@ import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
 import { personaNeighbors } from "@/lib/study/personaNavigation";
 import { useEscapeKey } from "@/lib/study/useEscapeKey";
+import {
+  ECONOMIC_LABELS,
+  EDUCATION_LABELS,
+  GENDER_LABELS,
+  GOVERNANCE_LABELS,
+  URBAN_RURAL_LABELS,
+  humanizeKey,
+  labelFor,
+} from "@/lib/study/labels";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function humanizeKey(key: string): string {
-  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function formatGender(gender: string): string {
-  if (gender === "non_binary") return "Non-binary";
-  return gender.charAt(0).toUpperCase() + gender.slice(1);
-}
-
-function formatUrbanRural(val: string): string {
-  if (val === "peri_urban") return "Peri-urban";
-  return val.charAt(0).toUpperCase() + val.slice(1);
-}
-
-const ECONOMIC_LABELS: Record<string, string> = {
-  affluent: "Affluent",
-  upper_middle_class: "Upper middle class",
-  middle_class: "Middle class",
-  working_class: "Working class",
-  struggling: "Struggling",
-  impoverished: "Impoverished",
-};
-
-const GOVERNANCE_LABELS: Record<string, string> = {
-  stable_democracy: "Stable democracy",
-  transitional_democracy: "Transitional democracy",
-  hybrid_regime: "Hybrid regime",
-  authoritarian: "Authoritarian",
-  conflict_affected: "Conflict-affected",
-  colonial_or_occupied: "Colonial / occupied",
-  stateless_or_displaced: "Stateless / displaced",
-};
 
 const SC_CHOICE_LABELS: Record<number, string> = {
   1: "Strongly pole A",
@@ -422,11 +398,10 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
-              ["Setting", formatUrbanRural(persona.urban_rural)],
+              ["Setting", labelFor(URBAN_RURAL_LABELS, persona.urban_rural)],
               [
                 "Economic position",
-                ECONOMIC_LABELS[persona.economic_position] ??
-                  humanizeKey(persona.economic_position),
+                labelFor(ECONOMIC_LABELS, persona.economic_position),
               ],
               ["Economic detail", persona.economic_detail || "—"],
               ["Family", persona.family || "—"],
@@ -469,9 +444,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
-              ["Education", humanizeKey(persona.education)],
+              ["Education", labelFor(EDUCATION_LABELS, persona.education)],
               ["Occupation", persona.occupation || "—"],
-              ["Gender", formatGender(persona.gender)],
+              ["Gender", labelFor(GENDER_LABELS, persona.gender)],
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
@@ -511,8 +486,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
           style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "3px" }}
         >
           <strong style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-            {GOVERNANCE_LABELS[persona.governance_experience] ??
-              humanizeKey(persona.governance_experience)}
+            {labelFor(GOVERNANCE_LABELS, persona.governance_experience)}
           </strong>
         </div>
         {persona.governance_detail && (
