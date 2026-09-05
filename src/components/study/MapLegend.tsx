@@ -23,9 +23,15 @@ export type MapLegendProps =
       variant: "axis-gradient";
       lowLabel: string;
       highLabel: string;
+      /** Lowest/highest mapped value, printed at the gradient endpoints. */
       min: number;
       max: number;
     };
+
+/** Signed two-decimal value, printed the way axis scores read elsewhere. */
+function formatSigned(value: number): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+}
 
 // ---------------------------------------------------------------------------
 // Axis-gradient fills (same as WorldMap)
@@ -186,7 +192,9 @@ export function MapLegend(props: MapLegendProps) {
   // axis-gradient — laid out as two stacked rows so endpoint labels never
   // orphan on narrow viewports: swatches on top, labels beneath with
   // justify-between. Prevents "Cohesion →" wrapping to its own line on mobile.
-  const { lowLabel, highLabel } = props;
+  const { lowLabel, highLabel, min, max } = props;
+  const lowValue = formatSigned(min);
+  const highValue = formatSigned(max);
   const endpointLabelStyle: React.CSSProperties = {
     fontSize: "var(--text-xs, 10px)",
     fontFamily: "var(--font-mono)",
@@ -195,7 +203,7 @@ export function MapLegend(props: MapLegendProps) {
   };
   return (
     <div
-      aria-label={`Axis gradient legend: ${lowLabel} to ${highLabel}`}
+      aria-label={`Axis gradient legend: ${lowLabel} (${lowValue}) to ${highLabel} (${highValue})`}
       role="img"
       style={{
         display: "flex",
@@ -227,8 +235,12 @@ export function MapLegend(props: MapLegendProps) {
           alignItems: "baseline",
         }}
       >
-        <span style={endpointLabelStyle}>← {lowLabel}</span>
-        <span style={endpointLabelStyle}>{highLabel} →</span>
+        <span style={endpointLabelStyle}>
+          ← {lowLabel} {lowValue}
+        </span>
+        <span style={endpointLabelStyle}>
+          {highValue} {highLabel} →
+        </span>
       </div>
     </div>
   );

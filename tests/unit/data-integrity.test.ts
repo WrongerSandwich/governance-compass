@@ -5,6 +5,7 @@ import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { ministries, ministryAxisMappings } from "@/data/ministries";
 import { archetypes } from "@/data/archetypes";
+import { CLUSTERS } from "@/data/syntheticStudyClusters";
 
 describe("data integrity", () => {
   it("has exactly 12 axes numbered 1-12", () => {
@@ -59,6 +60,23 @@ describe("data integrity", () => {
         expect(score).toBeGreaterThanOrEqual(-1.0);
         expect(score).toBeLessThanOrEqual(1.0);
       }
+    }
+  });
+
+  // syntheticStudyClusters.ts copies each cluster's nearest archetype name and
+  // emergence tag out of archetypes.ts. Nothing enforced that at build time, so
+  // C4 shipped "empirical" against an archetype tagged "refined" — the patterns
+  // page rendered "Emerged from data" for a prototype that was refined, not
+  // discovered.
+  it("cluster nearest-archetype references match archetypes.ts", () => {
+    const byId = new Map(archetypes.map((a) => [a.id, a]));
+    for (const cluster of CLUSTERS) {
+      const archetype = byId.get(cluster.nearestArchetypeId);
+      expect(archetype, `${cluster.code} -> ${cluster.nearestArchetypeId}`).toBeDefined();
+      expect(cluster.nearestArchetypeName, cluster.code).toBe(archetype!.name);
+      expect(cluster.nearestArchetypeEmergence, cluster.code).toBe(
+        archetype!.emergence
+      );
     }
   });
 });

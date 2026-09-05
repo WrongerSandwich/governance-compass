@@ -15,9 +15,14 @@ import { parse as parseCsv } from "csv-parse/sync";
 import { normalizeLocation } from "./data/country-name-normalization";
 import { archetypes } from "../src/data/archetypes";
 import {
+  getRegionForIso3,
   verifyCountryRegionMapping,
 } from "./data/country-region-mapping";
 import { postRevisionArchetypeForCluster } from "./data/archetype-remap";
+import {
+  isAxisScoreOutOfBounds,
+  findMissingClusterRows,
+} from "./lib/integrity";
 import {
   computeEuclideanDistance,
   computeHistogram,
@@ -303,7 +308,7 @@ function main() {
   for (const row of clusterRows) {
     const vec = axisVecFromRow(row);
     for (const v of vec) {
-      if (v < -1.0 - 1e-9 || v > 1.0 + 1e-9) {
+      if (isAxisScoreOutOfBounds(v)) {
         axisViolations++;
       }
     }
@@ -315,7 +320,7 @@ function main() {
   for (const p of profiles) {
     for (const k of AXIS_KEYS) {
       const v = p.axis_scores[k];
-      if (v < -1.0 - 1e-9 || v > 1.0 + 1e-9) {
+      if (isAxisScoreOutOfBounds(v)) {
         errors.push(`axis ${k} out of bounds for ${p.persona_id} (${p.model}): ${v}`);
       }
     }
@@ -327,6 +332,20 @@ function main() {
     if (isNaN(c) || c < 0 || c > 5) {
       errors.push(`invalid cluster for ${row.persona_id}: "${row.cluster}"`);
     }
+  }
+
+  // Persona ↔ cluster-row completeness — every persona needs a cluster row,
+  // otherwise the personas_slim build below dies on a bare TypeError.
+  const personasWithoutClusterRow = findMissingClusterRows(
+    personas.map((p) => p.id),
+    clusterRows.map((r) => r.persona_id)
+  );
+  if (personasWithoutClusterRow.length > 0) {
+    errors.push(
+      `${personasWithoutClusterRow.length} persona(s) missing from ` +
+        `cluster_labels.csv: ${personasWithoutClusterRow.slice(0, 10).join(", ")}` +
+        (personasWithoutClusterRow.length > 10 ? ", ..." : "")
+    );
   }
 
   // Archetype mapping completeness — every cluster 0..5 must have a nearest
@@ -397,7 +416,12 @@ function main() {
   console.log("Building personas_slim.json...");
 
   const personasSlim = personas.map((persona) => {
-    const row = clusterRowById.get(persona.id)!;
+    const row = clusterRowById.get(persona.id);
+    if (!row) {
+      // Unreachable: the completeness check above exits first. Kept so a future
+      // reordering surfaces the cause instead of a bare TypeError.
+      throw new Error(`No cluster_labels row for persona ${persona.id}`);
+    }
     const cluster = parseInt(row.cluster, 10) as ClusterId;
     const archetypeMatch = postRevisionArchetypeForCluster(cluster, centroidFor(cluster));
     return {
@@ -503,7 +527,6 @@ function main() {
   type CountryAccum = {
     country_iso: string;
     country_name: string;
-    region: RegionKey;
     count: number;
     archetype_counts: Map<string, number>;
   };
@@ -516,7 +539,6 @@ function main() {
       countryAccum.set(iso, {
         country_iso: iso,
         country_name: personaCountryNameMap.get(slim.id) ?? iso,
-        region: slim.region,
         count: 0,
         archetype_counts: new Map(),
       });
@@ -532,10 +554,22 @@ function main() {
   const countryAggregates: CountryAggregate[] = [];
   for (const acc of countryAccum.values()) {
     if (acc.count < 10) continue;
+    // Geography, not demography: a country's region comes from the authored
+    // ISO3 mapping. Deriving it from its personas' regions let a diaspora
+    // persona (authored region ≠ their country's region) relabel the country,
+    // and could stamp it diaspora_transnational, which WorldMap then treats as
+    // a selectable place.
+    const region = getRegionForIso3(acc.country_iso);
+    if (!region) {
+      throw new Error(
+        `No region mapping for ${acc.country_iso} — add it to ` +
+          `scripts/data/country-region-mapping.ts`
+      );
+    }
     countryAggregates.push({
       country_iso: acc.country_iso,
       country_name: acc.country_name,
-      region: acc.region,
+      region,
       count: acc.count,
       top_archetypes: topN(
         [...acc.archetype_counts.entries()].map(([id, count]) => ({
@@ -947,7 +981,7 @@ function main() {
   }
 
   const outOfBoundsAxis = personasSlim.filter((s) =>
-    s.averaged_axis_scores.some((v) => v < -1.0 - 1e-9 || v > 1.0 + 1e-9)
+    s.averaged_axis_scores.some(isAxisScoreOutOfBounds)
   );
   if (outOfBoundsAxis.length > 0) {
     outputErrors.push(`${outOfBoundsAxis.length} personas have out-of-bounds averaged axis scores`);

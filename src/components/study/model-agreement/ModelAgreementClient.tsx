@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  countWord,
+  joinWithAnd,
+  driftPole,
+  negativeDriftPole,
+  describeTopDrifts,
+  selectTiedAxis,
+} from "@/lib/study/modelAgreementProse";
 import { Histogram } from "@/components/study/Histogram";
 import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
 import type { HorizontalBarChartRow } from "@/components/study/HorizontalBarChart";
@@ -160,12 +168,30 @@ export function ModelAgreementClient({
       a.mean_diff_gemini_minus_claude.toFixed(3),
   }));
 
+  // Axes grouped by agreement strength — the prose below counts these lists
+  // rather than restating a count that a dataset regen would falsify.
+  const strongAxes = [...perAxis]
+    .filter((a) => a.pearson_r >= 0.8)
+    .sort((a, b) => b.pearson_r - a.pearson_r);
+  const weakAxes = [...perAxis]
+    .filter((a) => a.pearson_r < 0.7)
+    .sort((a, b) => a.pearson_r - b.pearson_r);
+
   // Count how many axes Gemini > Claude
   const geminiHigherCount = perAxis.filter(
     (a) => a.mean_diff_gemini_minus_claude > 0
   ).length;
 
-  // Top 3 largest positive drifts
+  // Axes where Claude scores higher, and any axis close enough to call tied
+  const geminiLowerAxes = [...perAxis]
+    .filter((a) => a.mean_diff_gemini_minus_claude < 0)
+    .sort(
+      (a, b) =>
+        a.mean_diff_gemini_minus_claude - b.mean_diff_gemini_minus_claude
+    );
+  const tiedAxis = selectTiedAxis(perAxis);
+
+  // Largest positive drifts — up to three, however many the data supports
   const top3 = [...perAxis]
     .filter((a) => a.mean_diff_gemini_minus_claude > 0)
     .sort(
@@ -173,6 +199,16 @@ export function ModelAgreementClient({
         b.mean_diff_gemini_minus_claude - a.mean_diff_gemini_minus_claude
     )
     .slice(0, 3);
+  const topDriftsSentence = describeTopDrifts(top3);
+
+  // The interpretive sentence below restates the poles named in the two lists
+  // above, so it reads them from the same source rather than asserting its own.
+  const geminiPoles = joinWithAnd([
+    ...new Set(top3.map((a) => driftPole(a.axis))),
+  ]);
+  const claudePoles = joinWithAnd([
+    ...new Set(geminiLowerAxes.map((a) => negativeDriftPole(a.axis))),
+  ]);
 
   const sqrtMax = Math.sqrt(48);
   const pctOfMax = Math.round((mean / sqrtMax) * 100);
@@ -325,33 +361,38 @@ export function ModelAgreementClient({
         {/* Prose — verified against data */}
         <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
-            Agreement varies substantially by axis. Four axes reach Pearson r
-            above 0.80:{" "}
-            {perAxis
-              .filter((a) => a.pearson_r >= 0.8)
-              .sort((a, b) => b.pearson_r - a.pearson_r)
-              .map(
-                (a) =>
-                  `Axis ${a.axis} (${a.axisName}, r=${a.pearson_r.toFixed(2)})`
-              )
-              .join(", ")}
-            . On these, the models converge on where a persona sits even if they
-            don&apos;t agree on the exact score.
+            Agreement varies substantially by axis.{" "}
+            {strongAxes.length > 0 && (
+              <>
+                {countWord(strongAxes.length)}{" "}
+                {strongAxes.length === 1 ? "axis reaches" : "axes reach"} Pearson
+                r above 0.80:{" "}
+                {joinWithAnd(
+                  strongAxes.map(
+                    (a) =>
+                      `Axis ${a.axis} (${a.axisName}, r=${a.pearson_r.toFixed(2)})`
+                  )
+                )}
+                . On these, the models converge on where a persona sits even if
+                they don&apos;t agree on the exact score.
+              </>
+            )}
           </p>
-          <p>
-            Five axes fall below r=0.70:{" "}
-            {perAxis
-              .filter((a) => a.pearson_r < 0.7)
-              .sort((a, b) => a.pearson_r - b.pearson_r)
-              .map(
-                (a) =>
-                  `Axis ${a.axis} (${a.axisName}, r=${a.pearson_r.toFixed(2)})`
-              )
-              .join(", ")}
-            . On these, model identity contributes meaningfully to the scored
-            output — two administrations of the same persona can land noticeably
-            differently.
-          </p>
+          {weakAxes.length > 0 && (
+            <p>
+              {countWord(weakAxes.length)}{" "}
+              {weakAxes.length === 1 ? "axis falls" : "axes fall"} below r=0.70:{" "}
+              {joinWithAnd(
+                weakAxes.map(
+                  (a) =>
+                    `Axis ${a.axis} (${a.axisName}, r=${a.pearson_r.toFixed(2)})`
+                )
+              )}
+              . On these, model identity contributes meaningfully to the scored
+              output — two administrations of the same persona can land
+              noticeably differently.
+            </p>
+          )}
         </div>
       </section>
 
@@ -407,45 +448,42 @@ export function ModelAgreementClient({
         <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Gemini scores personas higher than Claude on {geminiHigherCount} of
-            the twelve axes. The only exception is Axis 4 (Decision Authority,
-            where Gemini scores{" "}
-            {Math.abs(
-              perAxis.find((a) => a.axis === 4)
-                ?.mean_diff_gemini_minus_claude ?? 0
-            ).toFixed(2)}{" "}
-            lower). Axis 2 (Environmental Policy) is essentially tied at +
-            {perAxis
-              .find((a) => a.axis === 2)
-              ?.mean_diff_gemini_minus_claude.toFixed(3)}
-            .
+            the twelve axes.
+            {geminiLowerAxes.length > 0 && (
+              <>
+                {" "}
+                The{" "}
+                {geminiLowerAxes.length === 1
+                  ? "only exception is"
+                  : "exceptions are"}{" "}
+                {joinWithAnd(
+                  geminiLowerAxes.map(
+                    (a) =>
+                      `Axis ${a.axis} (${a.axisName}, where Gemini scores ` +
+                      `${Math.abs(a.mean_diff_gemini_minus_claude).toFixed(2)} lower)`
+                  )
+                )}
+                .
+              </>
+            )}
+            {tiedAxis && (
+              <>
+                {" "}
+                Axis {tiedAxis.axis} ({tiedAxis.axisName}) is essentially tied at{" "}
+                {tiedAxis.mean_diff_gemini_minus_claude >= 0 ? "+" : ""}
+                {tiedAxis.mean_diff_gemini_minus_claude.toFixed(3)}.
+              </>
+            )}
           </p>
           <p>
-            The three largest drifts are Axis {top3[0].axis} ({top3[0].axisName}
-            , Gemini +{top3[0].mean_diff_gemini_minus_claude.toFixed(2)} toward{" "}
-            {top3[0].axis === 7
-              ? "continuity/tradition"
-              : top3[0].axis === 10
-              ? "sovereignty"
-              : "alternative legitimacy"}
-            ), Axis {top3[1].axis} ({top3[1].axisName}, +
-            {top3[1].mean_diff_gemini_minus_claude.toFixed(2)} toward{" "}
-            {top3[1].axis === 10
-              ? "sovereignty"
-              : top3[1].axis === 7
-              ? "continuity/tradition"
-              : "alternative legitimacy"}
-            ), and Axis {top3[2].axis} ({top3[2].axisName}, +
-            {top3[2].mean_diff_gemini_minus_claude.toFixed(2)} toward{" "}
-            {top3[2].axis === 6
-              ? "alternative legitimacy"
-              : top3[2].axis === 9
-              ? "essentialism"
-              : "higher scores"}
-            ). Taken together, this is a coherent pattern rather than scattered
-            noise: for a given persona, Gemini reads toward tradition,
-            sovereignty, and alternative legitimacy sources more strongly than
-            Claude does, while Claude reads slightly more toward institutional
-            authority than Gemini.
+            {topDriftsSentence && <>{topDriftsSentence} </>}
+            Taken together, this is a coherent pattern rather than scattered
+            noise: for a given persona, Gemini reads toward {geminiPoles} more
+            strongly than Claude does
+            {claudePoles && (
+              <>, while Claude reads slightly more toward {claudePoles} than Gemini</>
+            )}
+            .
           </p>
           <p>
             This shapes how the rest of this page — and the rest of the

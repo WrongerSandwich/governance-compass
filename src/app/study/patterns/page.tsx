@@ -28,6 +28,8 @@ import type {
   CountryAggregate,
 } from "@/lib/study/types";
 import type { ClusterId, RegionKey } from "@/lib/study/types";
+import { REGION_LABELS } from "@/lib/study/types";
+import { joinWithAnd } from "@/lib/study/modelAgreementProse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -184,6 +186,22 @@ export default async function PatternsPage() {
   const meanAxis8ByRegion = Object.fromEntries(
     regionalAggregates.map((r) => [r.region, r.mean_axis_scores[7]])
   ) as Partial<Record<RegionKey, number>>;
+
+  // Legend endpoints and the prose beneath them both follow the data rather
+  // than being restated by hand, so a dataset regen can't leave the two
+  // describing different numbers on the same screen.
+  const axis8ByRegionSorted = regionalAggregates
+    .map((r) => ({ region: r.region, mean: r.mean_axis_scores[7] }))
+    .sort((a, b) => b.mean - a.mean);
+  const axis8Values = axis8ByRegionSorted.map((r) => r.mean);
+  const axis8Max = axis8Values.length > 0 ? axis8Values[0] : 0;
+  const axis8Min =
+    axis8Values.length > 0 ? axis8Values[axis8Values.length - 1] : 0;
+  const axis8Cohesion = axis8ByRegionSorted[0];
+  const axis8Pluralism = axis8ByRegionSorted[axis8ByRegionSorted.length - 1];
+  const axis8Runners = axis8ByRegionSorted
+    .slice(1, 4)
+    .map((r) => REGION_LABELS[r.region]);
 
   // Diaspora count
   const diasporaRegion = regionalAggregates.find(
@@ -592,8 +610,8 @@ export default async function PatternsPage() {
               variant="axis-gradient"
               lowLabel="Pluralism"
               highLabel="Cohesion"
-              min={-0.37}
-              max={0.43}
+              min={axis8Min}
+              max={axis8Max}
             />
           </div>
         </div>
@@ -602,14 +620,31 @@ export default async function PatternsPage() {
         <div className="mx-auto max-w-2xl mt-6 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Cultural Diversity (Axis 8, pluralism ↔ cohesion) shows the widest
-            regional range of any axis: 0.80 from endpoint to endpoint. Eastern
-            Europe and Central Asia lean strongest toward cohesion (+0.43),
-            followed by East Asia, Western Europe, and MENA. The Americas and
-            Oceania lean toward pluralism, with the diaspora category at the
-            pluralism extreme (−0.37). The pattern is coherent with the broader
-            literature on immigrant-receiving vs. nation-state-consolidation
-            contexts, but we note the caveat: these are Gemini&apos;s personas,
-            not survey respondents.
+            regional range of any axis: {(axis8Max - axis8Min).toFixed(2)} from
+            endpoint to endpoint.
+            {axis8Cohesion && (
+              <>
+                {" "}
+                {REGION_LABELS[axis8Cohesion.region]} leans strongest toward
+                cohesion (+{axis8Cohesion.mean.toFixed(2)})
+                {axis8Runners.length > 0 && (
+                  <>, followed by {joinWithAnd(axis8Runners)}</>
+                )}
+                .
+              </>
+            )}
+            {axis8Pluralism && (
+              <>
+                {" "}
+                The remaining regions lean toward pluralism, with{" "}
+                {REGION_LABELS[axis8Pluralism.region]} at the pluralism extreme
+                ({axis8Pluralism.mean.toFixed(2)}).
+              </>
+            )}{" "}
+            The pattern is coherent with the broader literature on
+            immigrant-receiving vs. nation-state-consolidation contexts, but we
+            note the caveat: these are Gemini&apos;s personas, not survey
+            respondents.
           </p>
         </div>
 
