@@ -185,6 +185,14 @@ export default async function PatternsPage() {
     regionalAggregates.map((r) => [r.region, r.mean_axis_scores[7]])
   ) as Partial<Record<RegionKey, number>>;
 
+  // Legend endpoints follow the data rather than being restated by hand, so a
+  // dataset regen can't leave the printed range describing the old numbers.
+  const axis8Values = Object.values(meanAxis8ByRegion).filter(
+    (v): v is number => typeof v === "number"
+  );
+  const axis8Min = axis8Values.length > 0 ? Math.min(...axis8Values) : 0;
+  const axis8Max = axis8Values.length > 0 ? Math.max(...axis8Values) : 0;
+
   // Diaspora count
   const diasporaRegion = regionalAggregates.find(
     (r) => r.region === "diaspora_transnational"
@@ -592,8 +600,8 @@ export default async function PatternsPage() {
               variant="axis-gradient"
               lowLabel="Pluralism"
               highLabel="Cohesion"
-              min={-0.37}
-              max={0.43}
+              min={axis8Min}
+              max={axis8Max}
             />
           </div>
         </div>

@@ -113,7 +113,7 @@ export const CLUSTERS: readonly SyntheticStudyCluster[] = [
     ],
     nearestArchetypeId: "radical-egalitarian",
     nearestArchetypeName: "The Radical Egalitarian",
-    nearestArchetypeEmergence: "empirical",
+    nearestArchetypeEmergence: "refined",
     matchDistance: 0.7841,
   },
   {
