@@ -37,22 +37,3 @@ export function findMissingClusterRows(
   const present = new Set(clusterRowPersonaIds);
   return personaIds.filter((id) => !present.has(id));
 }
-
-/**
- * The most frequent key in a count map. Ties break on the key's string form so
- * the result does not depend on iteration (i.e. insertion) order.
- */
-export function pluralityKey<K>(counts: ReadonlyMap<K, number>): K | undefined {
-  let best: K | undefined;
-  let bestCount = -Infinity;
-  for (const [key, count] of counts) {
-    if (
-      count > bestCount ||
-      (count === bestCount && best !== undefined && String(key) < String(best))
-    ) {
-      best = key;
-      bestCount = count;
-    }
-  }
-  return best;
-}

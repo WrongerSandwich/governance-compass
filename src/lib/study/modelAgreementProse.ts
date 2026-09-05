@@ -58,6 +58,40 @@ export function driftPole(axis: number): string {
   return DRIFT_POLE_BY_AXIS[axis] ?? "higher scores";
 }
 
+/** The mirror of {@link DRIFT_POLE_BY_AXIS}, for axes Claude scores higher. */
+const NEGATIVE_DRIFT_POLE_BY_AXIS: Record<number, string> = {
+  4: "institutional authority",
+};
+
+export function negativeDriftPole(axis: number): string {
+  return NEGATIVE_DRIFT_POLE_BY_AXIS[axis] ?? "lower scores";
+}
+
+/** Below this, a drift is small enough that the page calls the axis tied. */
+const TIED_DRIFT_THRESHOLD = 0.01;
+
+/**
+ * The axis to describe as "essentially tied", or null if none qualifies.
+ *
+ * Claude-higher axes are excluded: the prose already names those as exceptions,
+ * and calling one of them tied a sentence later contradicts that.
+ */
+export function selectTiedAxis(
+  entries: readonly DriftEntry[]
+): DriftEntry | null {
+  const candidate = entries
+    .filter((e) => e.mean_diff_gemini_minus_claude >= 0)
+    .sort(
+      (a, b) =>
+        Math.abs(a.mean_diff_gemini_minus_claude) -
+        Math.abs(b.mean_diff_gemini_minus_claude)
+    )[0];
+  if (!candidate) return null;
+  return Math.abs(candidate.mean_diff_gemini_minus_claude) < TIED_DRIFT_THRESHOLD
+    ? candidate
+    : null;
+}
+
 function signed(value: number): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
 }

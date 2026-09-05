@@ -15,13 +15,13 @@ import { parse as parseCsv } from "csv-parse/sync";
 import { normalizeLocation } from "./data/country-name-normalization";
 import { archetypes } from "../src/data/archetypes";
 import {
+  getRegionForIso3,
   verifyCountryRegionMapping,
 } from "./data/country-region-mapping";
 import { postRevisionArchetypeForCluster } from "./data/archetype-remap";
 import {
   isAxisScoreOutOfBounds,
   findMissingClusterRows,
-  pluralityKey,
 } from "./lib/integrity";
 import {
   computeEuclideanDistance,
@@ -527,12 +527,6 @@ function main() {
   type CountryAccum = {
     country_iso: string;
     country_name: string;
-    /**
-     * Region is tallied rather than stamped from the first persona seen: a
-     * diaspora persona (authored region ≠ their country's region) would
-     * otherwise mislabel the whole country.
-     */
-    region_counts: Map<RegionKey, number>;
     count: number;
     archetype_counts: Map<string, number>;
   };
@@ -545,14 +539,12 @@ function main() {
       countryAccum.set(iso, {
         country_iso: iso,
         country_name: personaCountryNameMap.get(slim.id) ?? iso,
-        region_counts: new Map(),
         count: 0,
         archetype_counts: new Map(),
       });
     }
     const acc = countryAccum.get(iso)!;
     acc.count++;
-    acc.region_counts.set(slim.region, (acc.region_counts.get(slim.region) ?? 0) + 1);
     acc.archetype_counts.set(
       slim.nearest_archetype_id,
       (acc.archetype_counts.get(slim.nearest_archetype_id) ?? 0) + 1
@@ -562,9 +554,17 @@ function main() {
   const countryAggregates: CountryAggregate[] = [];
   for (const acc of countryAccum.values()) {
     if (acc.count < 10) continue;
-    const region = pluralityKey(acc.region_counts);
+    // Geography, not demography: a country's region comes from the authored
+    // ISO3 mapping. Deriving it from its personas' regions let a diaspora
+    // persona (authored region ≠ their country's region) relabel the country,
+    // and could stamp it diaspora_transnational, which WorldMap then treats as
+    // a selectable place.
+    const region = getRegionForIso3(acc.country_iso);
     if (!region) {
-      throw new Error(`No region recorded for country ${acc.country_iso}`);
+      throw new Error(
+        `No region mapping for ${acc.country_iso} — add it to ` +
+          `scripts/data/country-region-mapping.ts`
+      );
     }
     countryAggregates.push({
       country_iso: acc.country_iso,

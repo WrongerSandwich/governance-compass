@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   isAxisScoreOutOfBounds,
   findMissingClusterRows,
-  pluralityKey,
 } from "../lib/integrity";
+import { COUNTRY_REGION_MAP, getRegionForIso3 } from "../data/country-region-mapping";
 
 describe("isAxisScoreOutOfBounds", () => {
   it("accepts scores inside [-1, 1]", () => {
@@ -58,32 +58,18 @@ describe("findMissingClusterRows", () => {
   });
 });
 
-describe("pluralityKey", () => {
-  it("returns the key with the highest count", () => {
-    expect(
-      pluralityKey(
-        new Map([
-          ["europe", 3],
-          ["africa", 7],
-        ])
-      )
-    ).toBe("africa");
+describe("country region mapping", () => {
+  // Country aggregates take their region from this map rather than from the
+  // personas' authored regions, so a diaspora persona cannot relabel a country.
+  // diaspora_transnational is not a place, so it must never appear here.
+  it("never maps a country to the non-geographic diaspora bucket", () => {
+    for (const [iso3, region] of Object.entries(COUNTRY_REGION_MAP)) {
+      expect(region, iso3).not.toBe("diaspora_transnational");
+    }
   });
 
-  it("breaks ties deterministically by key order, not insertion order", () => {
-    const seenEuropeFirst = new Map([
-      ["europe", 4],
-      ["africa", 4],
-    ]);
-    const seenAfricaFirst = new Map([
-      ["africa", 4],
-      ["europe", 4],
-    ]);
-    expect(pluralityKey(seenEuropeFirst)).toBe(pluralityKey(seenAfricaFirst));
-    expect(pluralityKey(seenEuropeFirst)).toBe("africa");
-  });
-
-  it("returns undefined for an empty map", () => {
-    expect(pluralityKey(new Map<string, number>())).toBeUndefined();
+  it("resolves a known country and rejects an unknown one", () => {
+    expect(getRegionForIso3("USA")).toBe("north_america");
+    expect(getRegionForIso3("ZZZ")).toBeNull();
   });
 });

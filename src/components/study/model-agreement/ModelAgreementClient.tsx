@@ -3,7 +3,10 @@
 import {
   countWord,
   joinWithAnd,
+  driftPole,
+  negativeDriftPole,
   describeTopDrifts,
+  selectTiedAxis,
 } from "@/lib/study/modelAgreementProse";
 import { Histogram } from "@/components/study/Histogram";
 import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
@@ -186,15 +189,7 @@ export function ModelAgreementClient({
       (a, b) =>
         a.mean_diff_gemini_minus_claude - b.mean_diff_gemini_minus_claude
     );
-  const smallestDrift = [...perAxis].sort(
-    (a, b) =>
-      Math.abs(a.mean_diff_gemini_minus_claude) -
-      Math.abs(b.mean_diff_gemini_minus_claude)
-  )[0];
-  const tiedAxis =
-    smallestDrift && Math.abs(smallestDrift.mean_diff_gemini_minus_claude) < 0.01
-      ? smallestDrift
-      : null;
+  const tiedAxis = selectTiedAxis(perAxis);
 
   // Largest positive drifts — up to three, however many the data supports
   const top3 = [...perAxis]
@@ -205,6 +200,15 @@ export function ModelAgreementClient({
     )
     .slice(0, 3);
   const topDriftsSentence = describeTopDrifts(top3);
+
+  // The interpretive sentence below restates the poles named in the two lists
+  // above, so it reads them from the same source rather than asserting its own.
+  const geminiPoles = joinWithAnd([
+    ...new Set(top3.map((a) => driftPole(a.axis))),
+  ]);
+  const claudePoles = joinWithAnd([
+    ...new Set(geminiLowerAxes.map((a) => negativeDriftPole(a.axis))),
+  ]);
 
   const sqrtMax = Math.sqrt(48);
   const pctOfMax = Math.round((mean / sqrtMax) * 100);
@@ -474,10 +478,12 @@ export function ModelAgreementClient({
           <p>
             {topDriftsSentence && <>{topDriftsSentence} </>}
             Taken together, this is a coherent pattern rather than scattered
-            noise: for a given persona, Gemini reads toward tradition,
-            sovereignty, and alternative legitimacy sources more strongly than
-            Claude does, while Claude reads slightly more toward institutional
-            authority than Gemini.
+            noise: for a given persona, Gemini reads toward {geminiPoles} more
+            strongly than Claude does
+            {claudePoles && (
+              <>, while Claude reads slightly more toward {claudePoles} than Gemini</>
+            )}
+            .
           </p>
           <p>
             This shapes how the rest of this page — and the rest of the
