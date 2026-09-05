@@ -7,7 +7,6 @@ import { computeFullResults } from "@/lib/scoring";
 import { axes } from "@/data/axes";
 import { archetypes } from "@/data/archetypes";
 import { ResultsView } from "@/components/results/ResultsView";
-import { saveLastResults } from "@/lib/last-results";
 
 function EncodedResults() {
   const searchParams = useSearchParams();
@@ -21,12 +20,11 @@ function EncodedResults() {
     }
   }, [encoded, router]);
 
-  // Store encoded string in localStorage for the nav Results link
-  useEffect(() => {
-    if (encoded) {
-      saveLastResults(encoded);
-    }
-  }, [encoded]);
+  // Deliberately no `saveLastResults(encoded)` here. `lastResults` means "the
+  // results this browser produced", and it is written once, by
+  // `handleBudgetFinalize` in QuizFlow. Persisting every `?r=` visited made
+  // opening a friend's shared link repoint the nav "Results" link and
+  // `ReturningUserLink` at their profile, with no way back to your own. See #58.
 
   // Decode and score — memoized so it only recomputes when the param changes
   const result = useMemo(() => {
