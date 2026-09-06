@@ -6,6 +6,7 @@ import type {
   RegionalAggregate,
   CountryAggregate,
 } from "@/lib/study/types";
+import { toCatalogEntry } from "@/lib/study/persona-catalog";
 
 // This is a server component that loads all catalog data server-side and
 // passes it as props to the client component. Avoids client-side data
@@ -26,7 +27,9 @@ export default async function PersonasPage() {
     fs.readFile(path.join(DERIVED_DIR, "country_aggregates.json"), "utf-8"),
   ]);
 
-  const catalog = JSON.parse(catalogRaw) as PersonaSlim[];
+  // Projected before it crosses the server/client boundary — the unused
+  // fields would otherwise be serialized into the RSC payload 1,002 times.
+  const catalog = (JSON.parse(catalogRaw) as PersonaSlim[]).map(toCatalogEntry);
   const regionalAggregates = JSON.parse(regionalRaw) as RegionalAggregate[];
   const countryAggregates = JSON.parse(countryRaw) as CountryAggregate[];
 

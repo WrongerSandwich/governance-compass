@@ -46,7 +46,7 @@ npm run test:e2e      # E2E tests (playwright, starts the dev server itself)
 - `src/lib/study/` — Study-specific pure logic: data loaders, filter helpers, match-strength buckets, question lookup, types
 - `data/synthetic_study/` — Raw pipeline outputs for the synthetic study (personas, scored profiles, cluster labels, model agreement, tension patterns). Do not modify — regenerate upstream.
 - `public/study/derived/` — Build-time preprocessed JSON consumed by the pages (slim catalog, regional/demographic aggregates, axis histograms, correlation matrix, case-study picks). Regenerated via `npm run build:study`.
-- `public/data/synthetic_study_v1.json` — The ~14 MB public download JSON, assembled at build time.
+- `public/data/synthetic_study_v1.json` — The ~6 MB public download JSON, assembled at build time. Derived JSON (here and under `public/study/derived/`) is written minified; `/study` reads the exact byte count from `download_meta.json`.
 - `public/geo/` — Natural Earth TopoJSON + derived region-level file used by WorldMap. Regenerated via `npm run build:geo`.
 - `scripts/build-synthetic-study.ts` / `scripts/build-geo.ts` — Build-time preprocessing pipelines with integrity checks.
 

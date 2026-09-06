@@ -5,10 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { ComparePinButton } from "@/components/study/ComparePinButton";
 import { REGION_LABELS } from "@/lib/study/types";
 import { getCluster } from "@/data/syntheticStudyClusters";
-import type { PersonaSlim, ClusterId } from "@/lib/study/types";
+import type { PersonaCatalogEntry, ClusterId } from "@/lib/study/types";
 
 export interface PersonaCardProps {
-  persona: PersonaSlim;
+  persona: PersonaCatalogEntry;
   isPinned?: boolean;
   canPin?: boolean;
   onTogglePin?: (id: string) => void;

@@ -27,7 +27,7 @@ import {
 import { REGION_LABELS, SHORT_REGION_LABELS } from "@/lib/study/types";
 import { archetypes } from "@/data/archetypes";
 import type {
-  PersonaSlim,
+  PersonaCatalogEntry,
   RegionalAggregate,
   CountryAggregate,
   RegionKey,
@@ -40,9 +40,9 @@ import type {
 // ---------------------------------------------------------------------------
 
 function applyFilters(
-  catalog: PersonaSlim[],
+  catalog: PersonaCatalogEntry[],
   filters: ReturnType<typeof useStudyFilters>["filters"]
-): PersonaSlim[] {
+): PersonaCatalogEntry[] {
   let result = catalog;
 
   if (filters.region) {
@@ -395,7 +395,7 @@ function FilterPanelCollapse({
 // ---------------------------------------------------------------------------
 
 export interface PersonasPageClientProps {
-  catalog: PersonaSlim[];
+  catalog: PersonaCatalogEntry[];
   regionalAggregates: RegionalAggregate[];
   countryAggregates: CountryAggregate[];
 }

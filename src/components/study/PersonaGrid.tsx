@@ -3,10 +3,10 @@
 import { useEffect, useRef } from "react";
 import { PersonaCard } from "@/components/study/PersonaCard";
 import { useStudyFilters, DEFAULT_FILTERS } from "@/lib/study/filterState";
-import type { PersonaSlim } from "@/lib/study/types";
+import type { PersonaCatalogEntry } from "@/lib/study/types";
 
 export interface PersonaGridProps {
-  personas: PersonaSlim[]; // full filtered list
+  personas: PersonaCatalogEntry[]; // full filtered list
   pinned: string[];
   onTogglePin: (id: string) => void;
   canPin: boolean;
