@@ -1,17 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextRequest } from "next/server";
 
-const findFirst = vi.fn();
+const findUnique = vi.fn();
 const create = vi.fn();
 
 vi.mock("@/lib/db", () => ({
-  db: { user: { findFirst: (args: unknown) => findFirst(args), create: (args: unknown) => create(args) } },
+  db: {
+    user: {
+      findUnique: (args: unknown) => findUnique(args),
+      create: (args: unknown) => create(args),
+    },
+  },
 }));
 
 vi.mock("bcryptjs", () => ({
   default: { hash: async (password: string) => `hashed:${password}` },
 }));
 
+// See tests/unit/user-lookup.test.ts: `pool: "vmForks"` shares a module
+// registry per worker, so reset before importing modules that close over the
+// `@/lib/db` mock registered above.
+vi.resetModules();
 const { POST } = await import("@/app/api/auth/signup/route");
 
 function post(body: unknown) {
@@ -25,7 +34,7 @@ function postRaw(json: () => Promise<unknown>) {
 const VALID = { email: "Foo@Example.com", password: "correct horse", name: "Foo" };
 
 beforeEach(() => {
-  findFirst.mockReset().mockResolvedValue(null);
+  findUnique.mockReset().mockResolvedValue(null);
   create.mockReset().mockResolvedValue({ id: "u1" });
 });
 
@@ -40,7 +49,7 @@ describe("POST /api/auth/signup", () => {
   });
 
   it("rejects an address that already exists in different casing", async () => {
-    findFirst.mockResolvedValue({ id: "existing", email: "foo@example.com" });
+    findUnique.mockResolvedValue({ id: "existing", email: "foo@example.com" });
 
     const res = await post(VALID);
 

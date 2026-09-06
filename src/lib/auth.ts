@@ -1,12 +1,11 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { db } from "./db";
+import { normalizingPrismaAdapter } from "./auth-adapter";
 import { authorizeCredentials } from "./credentials";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
+  adapter: normalizingPrismaAdapter(),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/auth/signin",

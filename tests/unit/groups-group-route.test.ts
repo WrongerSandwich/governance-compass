@@ -86,17 +86,38 @@ describe("PATCH /api/groups/[groupId]", () => {
 });
 
 describe("DELETE /api/groups/[groupId]", () => {
-  function del() {
-    return DELETE({} as unknown as NextRequest, { params });
+  function del(query = "") {
+    return DELETE(
+      { url: `http://localhost/api/groups/${GROUP_ID}${query}` } as unknown as NextRequest,
+      { params }
+    );
   }
 
-  it("dissolves the group when the creator calls it", async () => {
+  it("dissolves the group when the creator asks for it explicitly", async () => {
+    sessionUserId.current = CREATOR;
+
+    const res = await del("?dissolve=true");
+
+    expect(res.status).toBe(200);
+    expect(deleteGroup).toHaveBeenCalledWith({ where: { id: GROUP_ID } });
+    expect(deleteMember).not.toHaveBeenCalled();
+  });
+
+  it("does not dissolve the group on a plain leave by the creator", async () => {
     sessionUserId.current = CREATOR;
 
     const res = await del();
 
-    expect(res.status).toBe(200);
-    expect(deleteGroup).toHaveBeenCalledWith({ where: { id: GROUP_ID } });
+    expect(res.status).toBe(400);
+    expect(deleteGroup).not.toHaveBeenCalled();
+    expect(deleteMember).not.toHaveBeenCalled();
+  });
+
+  it("refuses to dissolve a group the caller did not create", async () => {
+    const res = await del("?dissolve=true");
+
+    expect(res.status).toBe(403);
+    expect(deleteGroup).not.toHaveBeenCalled();
     expect(deleteMember).not.toHaveBeenCalled();
   });
 
@@ -123,7 +144,7 @@ describe("DELETE /api/groups/[groupId]", () => {
   it("still reports 404 for a group that does not exist", async () => {
     findUniqueGroup.mockResolvedValue(null);
 
-    const res = await del();
+    const res = await del("?dissolve=true");
 
     expect(res.status).toBe(404);
     expect(deleteGroup).not.toHaveBeenCalled();

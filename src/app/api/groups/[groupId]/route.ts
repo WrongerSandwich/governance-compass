@@ -71,18 +71,24 @@ export async function PATCH(
 }
 
 /**
- * Leave the group — or, for the creator, dissolve it. A creator has no way to
- * hand the group off, so without the dissolve path the group, its invite code,
- * and every member's scores would outlive any interest in them.
+ * Leave the group — or, with `?dissolve=true`, delete it outright.
+ *
+ * The creator cannot leave, and without a dissolve path the group, its invite
+ * code, and every member's scores would outlive any interest in them. But
+ * dissolving is not what a "Leave" button means, so it takes an explicit flag:
+ * a client that only ever sends a plain DELETE cannot destroy a group by
+ * accident just because the caller happens to be its creator.
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const dissolve = new URL(request.url).searchParams.get("dissolve") === "true";
 
   const { groupId } = await params;
 
@@ -91,10 +97,25 @@ export async function DELETE(
     return NextResponse.json({ error: "Group not found" }, { status: 404 });
   }
 
-  if (group.creatorId === session.user.id) {
+  const isCreator = group.creatorId === session.user.id;
+
+  if (dissolve) {
+    if (!isCreator) {
+      return NextResponse.json(
+        { error: "Only the group creator can dissolve the group" },
+        { status: 403 }
+      );
+    }
     // Memberships cascade with the group; nothing else references it.
     await db.group.delete({ where: { id: groupId } });
     return NextResponse.json({ success: true, deleted: true });
+  }
+
+  if (isCreator) {
+    return NextResponse.json(
+      { error: "Creator cannot leave. Dissolve the group with ?dissolve=true." },
+      { status: 400 }
+    );
   }
 
   try {
