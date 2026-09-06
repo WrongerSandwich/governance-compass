@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import React, { useCallback, useMemo, useState } from "react";
+import { ComposableMap, Geography, useMapContext } from "react-simple-maps";
+import type { GeoItem } from "react-simple-maps";
 import type { ClusterId, CountryAggregate, RegionKey } from "@/lib/study/types";
 import {
   COUNTRY_DENSITY_THRESHOLD,
   countryDensityFill,
 } from "@/lib/study/map-density";
 import { useEscapeKey } from "@/lib/study/useEscapeKey";
+import { useMapFeatures } from "@/lib/study/map-geographies";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,6 +47,43 @@ export type WorldMapMode =
 export interface WorldMapProps {
   mode: WorldMapMode;
   className?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Cached geography layer
+// ---------------------------------------------------------------------------
+
+interface CachedGeographiesProps {
+  url: string;
+  children: (props: { geographies: GeoItem[] }) => React.ReactNode;
+}
+
+/**
+ * Drop-in replacement for `<Geographies geography={url}>` backed by the shared
+ * TopoJSON cache in `@/lib/study/map-geographies`.
+ *
+ * The library's own `<Geographies>` re-fetches and re-parses its file on every
+ * mount, so the three layers below — and the three maps on the patterns page —
+ * each paid for the 715 KB region file separately, and re-paid it every time
+ * the selected-region outline mounted. See that module for why handing
+ * `<Geographies>` a pre-parsed object is not a workable alternative.
+ */
+function CachedGeographies({ url, children }: CachedGeographiesProps) {
+  const { path } = useMapContext();
+  const features = useMapFeatures(url);
+
+  const geographies = useMemo<GeoItem[]>(
+    () =>
+      features.map((geo, index) => ({
+        ...geo,
+        rsmKey: `geo-${index}`,
+        svgPath: path(geo),
+      })),
+    [features, path]
+  );
+
+  if (geographies.length === 0) return null;
+  return <g className="rsm-geographies">{children({ geographies })}</g>;
 }
 
 // ---------------------------------------------------------------------------
@@ -309,7 +348,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
             </pattern>
           </defs>
 
-          <Geographies geography="/geo/world-regions-110m.json">
+          <CachedGeographies url="/geo/world-regions-110m.json">
             {({ geographies }) =>
               geographies.map((geo) => {
                 const regionRaw = geo.properties?.region as
@@ -443,7 +482,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         geography={geo}
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
-                        aria-selected={isInteractive ? isSelected : undefined}
+                        aria-pressed={isInteractive ? isSelected : undefined}
                         role={isInteractive ? "button" : undefined}
                         style={{
                           default: {
@@ -490,7 +529,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                     geography={geo}
                     tabIndex={isInteractive ? 0 : -1}
                     aria-label={ariaLabel}
-                    aria-selected={isInteractive ? isSelected : undefined}
+                    aria-pressed={isInteractive ? isSelected : undefined}
                     role={isInteractive ? "button" : undefined}
                     style={{
                       default: {
@@ -530,10 +569,10 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                 );
               })
             }
-          </Geographies>
+          </CachedGeographies>
 
           {countriesByIso.size > 0 && (
-            <Geographies geography="/geo/world-110m.json">
+            <CachedGeographies url="/geo/world-110m.json">
               {({ geographies }) =>
                 geographies.map((geo) => {
                   const country = countriesByIso.get(
@@ -608,16 +647,19 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   );
                 })
               }
-            </Geographies>
+            </CachedGeographies>
           )}
 
-          {/* Selected region outline overlay */}
-          {mode.type === "interactive" && mode.selectedRegion && (
-            <Geographies geography="/geo/world-regions-110m.json">
+          {/* Selected region outline overlay. Kept mounted across selection
+              changes: remounting it would re-project every feature and, before
+              the shared cache, re-fetch the whole region file. */}
+          {mode.type === "interactive" && (
+            <CachedGeographies url="/geo/world-regions-110m.json">
               {({ geographies }) =>
                 geographies
                   .filter(
                     (geo) =>
+                      mode.selectedRegion !== null &&
                       geo.properties?.region === mode.selectedRegion
                   )
                   .map((geo) => (
@@ -650,7 +692,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                     />
                   ))
               }
-            </Geographies>
+            </CachedGeographies>
           )}
         </ComposableMap>
 

@@ -265,6 +265,24 @@ interface RegionFeature {
   geometry: ReturnType<typeof merge>;
 }
 
+/**
+ * Round every ordinate to COORDINATE_PRECISION decimal places, in place of the
+ * full float precision `topojson-client`'s merge emits. Four decimals is about
+ * 11 m at the equator — far below one pixel at the scale these outlines are
+ * drawn — and cuts the region file by roughly 80%.
+ */
+const COORDINATE_PRECISION = 4;
+
+type CoordinateTree = number | CoordinateTree[];
+
+function roundCoordinates<T extends CoordinateTree>(coordinates: T): T {
+  if (typeof coordinates === "number") {
+    const factor = 10 ** COORDINATE_PRECISION;
+    return (Math.round(coordinates * factor) / factor) as T;
+  }
+  return coordinates.map((c) => roundCoordinates(c)) as T;
+}
+
 function main() {
   const inputPath = path.join(process.cwd(), "public/geo/world-110m.json");
   const outputPath = path.join(process.cwd(), "public/geo/world-regions-110m.json");
@@ -366,18 +384,26 @@ function main() {
     regionFeatures.unshift(u);
   }
 
-  // Write as a TopoJSON-like structure with objects.regions
-  // Actually: write as a GeoJSON FeatureCollection (react-simple-maps accepts both)
-  // We'll wrap it to match the expected format with objects.regions.geometries
-  // react-simple-maps accepts a URL to either TopoJSON or GeoJSON
-
-  // Write as GeoJSON FeatureCollection — simpler and react-simple-maps accepts it
+  // Write as a GeoJSON FeatureCollection — the study's map loader accepts
+  // either that or a TopoJSON topology, and a collection is simpler here
+  // because the regions are already dissolved and share no arcs.
+  //
+  // Coordinates are rounded and the file is minified: `merge()` returns
+  // full float precision (~17 significant digits per ordinate), which is
+  // meaningless for 110m-resolution outlines drawn into an 820px-wide SVG
+  // and made this the single largest asset on the study pages.
   const output = {
     type: "FeatureCollection",
-    features: regionFeatures,
+    features: regionFeatures.map((f) => ({
+      ...f,
+      geometry: {
+        ...f.geometry,
+        coordinates: roundCoordinates(f.geometry.coordinates),
+      },
+    })),
   };
 
-  fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
+  fs.writeFileSync(outputPath, JSON.stringify(output));
   console.log(`\nWrote ${regionFeatures.length} region features to ${outputPath}`);
   console.log(`File size: ${(fs.statSync(outputPath).size / 1024).toFixed(1)} KB`);
 }

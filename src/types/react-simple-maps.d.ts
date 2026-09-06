@@ -1,7 +1,10 @@
 /**
- * Minimal type declarations for react-simple-maps@3
- * The package does not ship TypeScript types; these cover the API surface used
- * by WorldMap.tsx.
+ * Local type declarations for react-simple-maps.
+ *
+ * The installed version ships its own types, but they model a different style
+ * API than WorldMap uses; these declarations cover the surface WorldMap
+ * actually calls. See issue on the `style={{ default, hover, pressed }}` props
+ * before replacing them wholesale.
  */
 declare module "react-simple-maps" {
   import type { FC, ReactNode, SVGProps } from "react";
@@ -81,6 +84,14 @@ declare module "react-simple-maps" {
     parseGeographies?: (geographies: unknown[]) => unknown[];
   }): { geographies: GeoItem[]; loading: boolean; error: unknown };
 
-  export function useMapContext(): unknown;
+  export interface MapContextValue {
+    width: number;
+    height: number;
+    projection: (coordinates: [number, number]) => [number, number] | null;
+    /** Projects a GeoJSON geometry/feature into an SVG path string. */
+    path: (geography: unknown) => string | null;
+  }
+
+  export function useMapContext(): MapContextValue;
   export function useZoomPan(): unknown;
 }

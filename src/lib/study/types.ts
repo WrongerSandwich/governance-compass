@@ -302,7 +302,6 @@ export type PersonaSlim = {
   name: string;
   region: RegionKey;
   country_iso: string;
-  location: string;
   age: number;
   gender: Gender;
   education: EducationLevel;
@@ -314,6 +313,15 @@ export type PersonaSlim = {
   averaged_axis_scores: number[];
   nearest_archetype_id: string;
 };
+
+/**
+ * The slice of `PersonaSlim` the /study/personas catalog UI renders, filters
+ * and sorts on. See `toCatalogEntry` for why the rest is stripped server-side.
+ */
+export type PersonaCatalogEntry = Omit<
+  PersonaSlim,
+  "country_iso" | "averaged_axis_scores"
+>;
 
 export type RegionalAggregate = {
   region: RegionKey;

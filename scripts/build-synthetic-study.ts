@@ -100,8 +100,14 @@ function datasetFingerprint(): string {
   return hash.digest("hex");
 }
 
+/**
+ * Derived JSON is written minified. Nothing here is read by hand — the study
+ * pages fetch it and the public download is parsed, not browsed — and
+ * pretty-printing roughly doubled every one of these files, including the
+ * 644 KB persona catalog that ships in the /study/personas payload.
+ */
 function writeJson(filePath: string, data: unknown): void {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n", "utf8");
+  fs.writeFileSync(filePath, JSON.stringify(data) + "\n", "utf8");
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +435,6 @@ function main() {
       name: persona.name,
       region: persona.region,
       country_iso: personaIsoMap.get(persona.id)!,
-      location: persona.location,
       age: persona.age,
       gender: persona.gender,
       education: persona.education,
