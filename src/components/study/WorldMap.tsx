@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import { ComposableMap, Geography, useMapContext } from "react-simple-maps";
-import type { GeoItem } from "react-simple-maps";
+import { geoNaturalEarth1 } from "d3-geo";
 import type { ClusterId, CountryAggregate, RegionKey } from "@/lib/study/types";
 import {
   COUNTRY_DENSITY_THRESHOLD,
@@ -49,13 +49,110 @@ export interface WorldMapProps {
   className?: string;
 }
 
+const MAP_WIDTH = 820;
+const MAP_HEIGHT = 410;
+
+// react-simple-maps' `ProjectionName` union omits geoNaturalEarth1 even though
+// d3-geo exports it and the string form worked at runtime. Building the
+// projection here types cleanly and, as a module constant, keeps the map
+// context's `path` identity stable across renders. The translate matches what
+// the string form applied.
+const NATURAL_EARTH = geoNaturalEarth1().translate([
+  MAP_WIDTH / 2,
+  MAP_HEIGHT / 2,
+]);
+
 // ---------------------------------------------------------------------------
 // Cached geography layer
 // ---------------------------------------------------------------------------
 
+/**
+ * The projected feature shape `<Geography>` consumes. Derived from the
+ * component rather than imported by name: the package exports both a
+ * `Geography` component and a `Geography` interface, and the value export
+ * shadows the type.
+ */
+type PreparedGeography = React.ComponentProps<typeof Geography>["geography"];
+
+/** Per-interaction-state styles, as react-simple-maps v3 accepted them. */
+interface GeographyStateStyle {
+  default?: React.CSSProperties;
+  hover?: React.CSSProperties;
+  pressed?: React.CSSProperties;
+}
+
+type StyledGeographyProps = Omit<
+  React.ComponentProps<typeof Geography>,
+  "style"
+> & { style?: GeographyStateStyle };
+
+/**
+ * `<Geography>` with the per-state `style` prop restored.
+ *
+ * react-simple-maps v5 no longer resolves `style={{ default, hover, pressed }}`
+ * — it spreads `style` straight onto the `<path>`, so those keys were set as
+ * CSS properties literally named `default`/`hover`/`pressed`, all ignored, and
+ * every region here fell back to the SVG default black fill. A stale local
+ * `react-simple-maps.d.ts` modelled the v3 prop shape, which kept `tsc` quiet
+ * about it. See #110.
+ */
+function StyledGeography({
+  style,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseDown,
+  onMouseUp,
+  onFocus,
+  onBlur,
+  ...rest
+}: StyledGeographyProps) {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+
+  // v3 semantics: one state object wins outright; they are not merged.
+  const resolved = pressed
+    ? style?.pressed
+    : hovered
+      ? style?.hover
+      : style?.default;
+
+  return (
+    <Geography
+      {...rest}
+      style={resolved}
+      onMouseEnter={(event) => {
+        setHovered(true);
+        onMouseEnter?.(event);
+      }}
+      onMouseLeave={(event) => {
+        setHovered(false);
+        setPressed(false);
+        onMouseLeave?.(event);
+      }}
+      onMouseDown={(event) => {
+        setPressed(true);
+        onMouseDown?.(event);
+      }}
+      onMouseUp={(event) => {
+        setPressed(false);
+        onMouseUp?.(event);
+      }}
+      onFocus={(event) => {
+        setHovered(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setHovered(false);
+        setPressed(false);
+        onBlur?.(event);
+      }}
+    />
+  );
+}
+
 interface CachedGeographiesProps {
   url: string;
-  children: (props: { geographies: GeoItem[] }) => React.ReactNode;
+  children: (props: { geographies: PreparedGeography[] }) => React.ReactNode;
 }
 
 /**
@@ -72,7 +169,7 @@ function CachedGeographies({ url, children }: CachedGeographiesProps) {
   const { path } = useMapContext();
   const features = useMapFeatures(url);
 
-  const geographies = useMemo<GeoItem[]>(
+  const geographies = useMemo<PreparedGeography[]>(
     () =>
       features.map((geo, index) => ({
         ...geo,
@@ -321,9 +418,9 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
         }}
       >
         <ComposableMap
-          projection="geoNaturalEarth1"
-          width={820}
-          height={410}
+          projection={NATURAL_EARTH}
+          width={MAP_WIDTH}
+          height={MAP_HEIGHT}
           role="img"
           aria-label={ariaDescription}
           style={{ width: "100%", height: "auto" }}
@@ -363,7 +460,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                 // is itself a data point.
                 if (regionRaw === "unmapped") {
                   return (
-                    <Geography
+                    <StyledGeography
                       key={geo.rsmKey}
                       geography={geo}
                       tabIndex={-1}
@@ -450,7 +547,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   return (
                     <React.Fragment key={geo.rsmKey}>
                       {/* Base layer: cluster color at 60% opacity */}
-                      <Geography
+                      <StyledGeography
                         geography={geo}
                         tabIndex={-1}
                         aria-hidden
@@ -478,7 +575,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         }}
                       />
                       {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
-                      <Geography
+                      <StyledGeography
                         geography={geo}
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
@@ -524,7 +621,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                 }
 
                 return (
-                  <Geography
+                  <StyledGeography
                     key={geo.rsmKey}
                     geography={geo}
                     tabIndex={isInteractive ? 0 : -1}
@@ -587,7 +684,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   const content = `${country.country_name}\n${country.count} personas`;
 
                   return (
-                    <Geography
+                    <StyledGeography
                       key={`country-${geo.rsmKey}`}
                       geography={geo}
                       className="worldmap-country-overlay"
@@ -663,7 +760,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       geo.properties?.region === mode.selectedRegion
                   )
                   .map((geo) => (
-                    <Geography
+                    <StyledGeography
                       key={`selected-${geo.rsmKey}`}
                       geography={geo}
                       tabIndex={-1}
