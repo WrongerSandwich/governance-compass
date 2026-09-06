@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { readJsonBody } from "@/lib/api-errors";
 import { createGroupSchema } from "@/lib/validation";
 import crypto from "crypto";
 
@@ -21,8 +22,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const parsed = createGroupSchema.safeParse(body);
+  const body = await readJsonBody(request);
+  if (!body.ok) return body.response;
+
+  const parsed = createGroupSchema.safeParse(body.data);
 
   if (!parsed.success) {
     return NextResponse.json(

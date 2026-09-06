@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { readJsonBody } from "@/lib/api-errors";
 import { annotationSchema } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
@@ -9,8 +10,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const parsed = annotationSchema.safeParse(body);
+  const body = await readJsonBody(request);
+  if (!body.ok) return body.response;
+
+  const parsed = annotationSchema.safeParse(body.data);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -38,19 +41,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Upsert annotation (one per user per axis score)
-  const existing = await db.annotation.findFirst({
-    where: { axisScoreId, userId: session.user.id },
-  });
+  // One note per user per axis score is a schema constraint, so the upsert is
+  // the invariant — concurrent POSTs collapse onto the same row instead of
+  // leaving a duplicate the axis page would keep rendering. The prior read is
+  // only there to distinguish "created" from "updated" in the status.
+  const where = { axisScoreId_userId: { axisScoreId, userId: session.user.id } };
+  const existing = await db.annotation.findUnique({ where, select: { id: true } });
 
-  const annotation = existing
-    ? await db.annotation.update({
-        where: { id: existing.id },
-        data: { text },
-      })
-    : await db.annotation.create({
-        data: { axisScoreId, userId: session.user.id, text },
-      });
+  const annotation = await db.annotation.upsert({
+    where,
+    update: { text },
+    create: { axisScoreId, userId: session.user.id, text },
+  });
 
   return NextResponse.json(annotation, { status: existing ? 200 : 201 });
 }
