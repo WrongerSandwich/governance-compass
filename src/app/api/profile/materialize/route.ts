@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { readJsonBody } from "@/lib/api-errors";
 import { MAX_PROFILES_PER_USER } from "@/lib/profile-limits";
 import { decodeResponses } from "@/lib/response-codec";
 import { computeFullResults } from "@/lib/scoring";
@@ -12,8 +13,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const encoded = body.encoded;
+  const body = await readJsonBody(request);
+  if (!body.ok) return body.response;
+
+  const encoded = (body.data as { encoded?: unknown } | null)?.encoded;
 
   if (typeof encoded !== "string" || !encoded) {
     return NextResponse.json({ error: "Missing encoded responses" }, { status: 400 });

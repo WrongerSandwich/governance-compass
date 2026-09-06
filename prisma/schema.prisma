@@ -236,6 +236,10 @@ model Annotation {
   text        String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // One note per user per axis score. Without this the API's read-then-write
+  // left duplicates behind, and the axis detail page renders every row.
+  @@unique([axisScoreId, userId])
 }
 
 model AxisVisibility {
