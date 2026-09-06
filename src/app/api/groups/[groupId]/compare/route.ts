@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { groupMemberHandle, memberHandleKey } from "@/lib/group-privacy";
 
 export async function GET(
   _request: NextRequest,
@@ -56,22 +57,29 @@ export async function GET(
     hiddenByUser.get(v.userId)!.add(v.axisId);
   }
 
-  const members = group.members.map((m) => {
-    const profile = m.user.profiles[0];
-    const hidden = hiddenByUser.get(m.userId) || new Set<number>();
-    return {
-      userId: m.userId,
-      name: group.showNames ? m.user.name : null,
-      scores:
-        profile?.axisScores
-          .filter((as) => !hidden.has(as.axisId))
-          .map((as) => ({
-            axisId: as.axisId,
-            axisName: as.axis.name,
-            score: as.finalScore,
-          })) || [],
-    };
-  });
+  // Rows are keyed by an opaque per-group handle rather than the userId, which
+  // is stable everywhere and would otherwise de-anonymize members across groups.
+  const handleKey = memberHandleKey();
+  const members = group.members
+    .map((m) => {
+      const profile = m.user.profiles[0];
+      const hidden = hiddenByUser.get(m.userId) || new Set<number>();
+      return {
+        id: groupMemberHandle(handleKey, group.id, m.userId),
+        isSelf: m.userId === session.user!.id,
+        name: group.showNames ? m.user.name : null,
+        scores:
+          profile?.axisScores
+            .filter((as) => !hidden.has(as.axisId))
+            .map((as) => ({
+              axisId: as.axisId,
+              axisName: as.axis.name,
+              score: as.finalScore,
+            })) || [],
+      };
+    })
+    // Join order would still single out the creator as the first row.
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   // Calculate per-axis stats
   const axes = await db.axis.findMany({ orderBy: { order: "asc" } });
@@ -108,7 +116,7 @@ export async function GET(
       name: group.name,
       inviteCode: group.inviteCode,
       showNames: group.showNames,
-      creatorId: group.creatorId,
+      isCreator: group.creatorId === session.user.id,
     },
     members,
     axisStats,
