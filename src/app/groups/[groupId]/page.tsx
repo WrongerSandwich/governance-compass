@@ -23,10 +23,12 @@ interface GroupData {
     name: string;
     inviteCode: string;
     showNames: boolean;
-    creatorId: string;
+    isCreator: boolean;
   };
   members: {
-    userId: string;
+    /** Opaque per-group handle; see src/lib/group-privacy.ts. */
+    id: string;
+    isSelf: boolean;
     name: string | null;
     scores: { axisId: number; score: number }[];
   }[];
