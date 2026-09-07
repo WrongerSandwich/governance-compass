@@ -69,6 +69,7 @@ export function ForcedChoiceCard({
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
         <div
+          data-choice-card
           onClick={() => onSelect(firstPole)}
           className={cardClasses(firstPole)}
         >
@@ -91,6 +92,7 @@ export function ForcedChoiceCard({
         </div>
 
         <div
+          data-choice-card
           onClick={() => onSelect(secondPole)}
           className={cardClasses(secondPole)}
         >
