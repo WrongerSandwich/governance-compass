@@ -56,6 +56,7 @@ describe("matchArchetype — return shape", () => {
     expect(typeof result.secondaryId).toBe("string");
     expect(typeof result.secondaryMatchPct).toBe("number");
     expect(typeof result.isBlended).toBe("boolean");
+    expect(typeof result.isDistinctive).toBe("boolean");
   });
 });
 
@@ -236,6 +237,25 @@ describe("matchArchetype — low match threshold (unusual profile)", () => {
     // Social-democrat exact prototype → 100%
     const result = matchArchetype(SOCIAL_DEMOCRAT_PROTOTYPE);
     expect(result.primaryMatchPct).toBeGreaterThanOrEqual(LOW_MATCH_THRESHOLD_PCT);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Distinctive-profile detection
+// ---------------------------------------------------------------------------
+
+describe("matchArchetype — distinctive profile detection", () => {
+  it("marks a high-variance profile with no close archetype as distinctive", () => {
+    const alternating = Array.from(
+      { length: 12 },
+      (_, index) => (index % 2 === 0 ? 1.0 : -1.0)
+    );
+
+    expect(matchArchetype(alternating).isDistinctive).toBe(true);
+  });
+
+  it("does not mark a low-variance profile as distinctive", () => {
+    expect(matchArchetype(new Array(12).fill(0)).isDistinctive).toBe(false);
   });
 });
 

@@ -133,7 +133,7 @@ describe("bucketMatchStrength", () => {
     expect(bucketMatchStrength(10.0)).toBe("weak");
   });
 
-  it("returns weak for negative distance", () => {
+  it("returns strong for negative distance", () => {
     // negative distance is outside spec but the function should not throw
     expect(bucketMatchStrength(-0.5)).toBe("strong");
   });
