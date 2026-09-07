@@ -33,14 +33,6 @@ import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SC_CHOICE_LABELS: Record<number, string> = {
-  1: "Strongly pole A",
-  2: "Moderate pole A",
-  3: "Neutral",
-  4: "Moderate pole B",
-  5: "Strongly pole B",
-};
-
 /** Extract axis number from the axis_scores key "1_economic_model" → 1 */
 function axisKeyToNumber(key: string): number {
   return parseInt(key.split("_")[0], 10);
@@ -1730,7 +1722,6 @@ function ResponsesContent({
               const q = getQuestion(r.item);
               const choiceLabel =
                 CHOICE_LABELS_LIKERT[r.choice as number] ??
-                SC_CHOICE_LABELS[r.choice as number] ??
                 String(r.choice);
               return (
                 <div
@@ -1820,9 +1811,6 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
   const activeModel: "claude" | "gemini" =
     modelParam === "gemini" ? "gemini" : "claude";
 
-  // Ref to the scrollable content container for scroll-position preservation
-  const contentRef = useRef<HTMLDivElement>(null);
-
   // Resolve active administration
   const admin = isDual
     ? (data.administrations.find((a) => a.model === activeModel) ??
@@ -1832,11 +1820,9 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
 
   if (!admin) return null;
 
-  // Toggle active model tab: preserve scroll, update URL
+  // Toggle active model tab and update URL.
   const handleTabSwitch = (model: "claude" | "gemini") => {
     if (model === activeModel) return;
-    // Capture scroll offset before state change
-    const scrollTop = contentRef.current?.scrollTop ?? 0;
 
     const params = new URLSearchParams(searchParams.toString());
     if (model === "claude") {
@@ -1845,13 +1831,6 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
       params.set("model", model);
     }
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-
-    // Restore scroll after render — use a microtask so the DOM has updated
-    requestAnimationFrame(() => {
-      if (contentRef.current) {
-        contentRef.current.scrollTop = scrollTop;
-      }
-    });
   };
 
   // Keyboard navigation for tablist
@@ -1912,7 +1891,7 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
       </button>
 
       {open && (
-        <div ref={contentRef} style={{ padding: "0 24px 20px" }}>
+        <div style={{ padding: "0 24px 20px" }}>
           {/* Dual-model tab toggle */}
           {isDual && (
             <div
