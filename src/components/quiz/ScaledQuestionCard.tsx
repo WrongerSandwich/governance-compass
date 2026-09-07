@@ -48,6 +48,7 @@ export function ScaledQuestionCard({
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       const num = parseInt(e.key);
       if (num >= 1 && num <= 5) {
         onSelect(num as 1 | 2 | 3 | 4 | 5);

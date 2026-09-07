@@ -12,22 +12,20 @@ const POINTS_TO_SPEND = 43;
 /**
  * Walks one phase of question cards.
  *
- * Both card types render their options as `aria-pressed` buttons, and the
- * scaled card renders two responsive copies of its option group — hence the
- * visibility filter, which keeps the click off the hidden variant. Advancing is
- * explicit: there is no auto-advance timer, and the forward button relabels
- * itself on the final item.
+ * Forced-choice cards use a visible clickable container so glossary controls
+ * can remain valid interactive descendants; scales still use responsive
+ * `aria-pressed` buttons. Advancing is explicit: there is no auto-advance
+ * timer, and the forward button relabels itself on the final item.
  */
 async function answerQuestionPhase(page: Page, total: number) {
   for (let index = 0; index < total; index++) {
     // The sr-only live region is the authoritative position marker.
     await expect(page.getByText(`Question ${index + 1} of ${total}`)).toBeAttached();
 
-    await page
-      .locator("button[aria-pressed]")
-      .filter({ visible: true })
-      .first()
-      .click();
+    const choiceCard = page.locator("[data-choice-card]").filter({ visible: true });
+    const scaleOption = page.locator("button[aria-pressed]").filter({ visible: true });
+    const choice = (await choiceCard.count()) > 0 ? choiceCard.first() : scaleOption.first();
+    await choice.click();
 
     const isLast = index === total - 1;
     await page
