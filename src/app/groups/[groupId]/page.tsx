@@ -1,54 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { GroupScoreBar } from "@/components/groups/GroupScoreBar";
 import { GroupHeatMap } from "@/components/groups/GroupHeatMap";
 import { GroupRadar } from "@/components/groups/GroupRadar";
-
-interface AxisStat {
-  axisId: number;
-  axisName: string;
-  poleALabel: string;
-  poleBLabel: string;
-  domain: string;
-  average: number | null;
-  spread: number;
-  memberScores: number[];
-}
-
-interface GroupData {
-  group: {
-    id: string;
-    name: string;
-    inviteCode: string;
-    showNames: boolean;
-    isCreator: boolean;
-  };
-  members: {
-    /** Opaque per-group handle; see src/lib/group-privacy.ts. */
-    id: string;
-    isSelf: boolean;
-    name: string | null;
-    scores: { axisId: number; score: number }[];
-  }[];
-  axisStats: AxisStat[];
-}
+import { useGroupComparison } from "@/lib/useGroupComparison";
 
 export default function GroupPage() {
   const params = useParams<{ groupId: string }>();
-  const [data, setData] = useState<GroupData | null>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch(`/api/groups/${params.groupId}/compare`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load group");
-        return res.json();
-      })
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, [params.groupId]);
+  const { data, error } = useGroupComparison(params.groupId);
 
   if (error) {
     return (

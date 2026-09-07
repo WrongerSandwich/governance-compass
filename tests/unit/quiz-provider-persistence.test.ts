@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { act, createElement, useEffect } from "react";
 import { createRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { QuizProvider, useQuiz } from "@/components/quiz/QuizProvider";
 import { STORAGE_KEY, createInitialBudget, type QuizState } from "@/lib/quiz-state";
 
@@ -65,6 +66,14 @@ beforeEach(() => {
 });
 
 describe("QuizProvider persistence", () => {
+  it("withholds quiz content from the server render until browser storage is restored", () => {
+    const markup = renderToString(
+      createElement(QuizProvider, null, createElement("p", null, "Quiz content"))
+    );
+
+    expect(markup).toBe("");
+  });
+
   it("saves in-progress state so a refresh can resume", () => {
     const quiz = mountQuiz();
 

@@ -26,7 +26,8 @@ export type QuizAction =
   | { type: "START_PHASE3" }
   | { type: "START_COMPUTING" }
   | { type: "COMPLETE" }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  | { type: "RESTORE"; state: QuizState };
 
 function quizReducer(state: QuizState, action: QuizAction): QuizState {
   switch (action.type) {
@@ -75,24 +76,11 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
     case "RESET":
       // Storage is the persistence effect's business, not the reducer's.
       return createFreshQuizState();
+    case "RESTORE":
+      return action.state;
     default:
       return state;
   }
-}
-
-function createInitialState(): QuizState {
-  if (typeof window !== "undefined") {
-    try {
-      // Anything stale, tampered with, or left over from an older quiz version
-      // is discarded rather than restored into a half-valid render.
-      const restored = parseSavedQuizState(sessionStorage.getItem(STORAGE_KEY));
-      if (restored) return restored;
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // Storage unavailable (private mode, blocked cookies) — start fresh
-    }
-  }
-  return createFreshQuizState();
 }
 
 interface QuizContextValue {
@@ -109,13 +97,31 @@ export function useQuiz() {
 }
 
 export function QuizProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(quizReducer, undefined, createInitialState);
+  // The initial tree must be identical on the server and browser. Session
+  // storage is restored after hydration, before children are allowed to render.
+  // A negative seed is invalid saved state and is never shown to children.
+  const [state, dispatch] = useReducer(quizReducer, createFreshQuizState(-1));
+
+  useEffect(() => {
+    let restoredState = createFreshQuizState();
+    try {
+      // Anything stale, tampered with, or left over from an older quiz version
+      // is discarded rather than restored into a half-valid render.
+      const restored = parseSavedQuizState(sessionStorage.getItem(STORAGE_KEY));
+      if (restored) restoredState = restored;
+      else sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage unavailable (private mode, blocked cookies) — start fresh.
+    }
+    dispatch({ type: "RESTORE", state: restoredState });
+  }, []);
 
   // Single owner of the saved-state lifecycle. Terminal phases ("computing",
   // "done") are cleared instead of written: the responses are already on their
   // way to /results, and a saved "done" state would strand the next visit to
   // /quiz on the computing spinner.
   useEffect(() => {
+    if (state.randomSeed < 0) return;
     try {
       if (isResumablePhase(state.phase)) {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -129,7 +135,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
 
   return (
     <QuizContext.Provider value={{ state, dispatch }}>
-      {children}
+      {state.randomSeed >= 0 ? children : null}
     </QuizContext.Provider>
   );
 }

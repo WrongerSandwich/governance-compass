@@ -49,7 +49,7 @@ export function ForcedChoiceCard({
     const hasSelection = selectedPole !== undefined;
 
     const base =
-      "rounded-[12px] p-6 border-2 cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+      "rounded-[12px] p-6 border-2 cursor-pointer transition-colors duration-150 focus-within:outline-none focus-within:outline-2 focus-within:outline-stone-600 focus-within:outline-offset-2";
 
     if (isSelected) {
       return `${base} border-stone-600 bg-surface-1`;
@@ -68,33 +68,49 @@ export function ForcedChoiceCard({
           : "Select the position closer to your own view"}
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        <button
-          type="button"
-          aria-pressed={selectedPole === firstPole}
+        <div
           onClick={() => onSelect(firstPole)}
           className={cardClasses(firstPole)}
         >
+          <button
+            type="button"
+            aria-pressed={selectedPole === firstPole}
+            aria-label={`Select ${firstHeadline}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect(firstPole);
+            }}
+            className="sr-only"
+          />
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
             <AnnotatedText text={firstHeadline} />
           </p>
           <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
             <AnnotatedText text={firstBody} />
           </p>
-        </button>
+        </div>
 
-        <button
-          type="button"
-          aria-pressed={selectedPole === secondPole}
+        <div
           onClick={() => onSelect(secondPole)}
           className={cardClasses(secondPole)}
         >
+          <button
+            type="button"
+            aria-pressed={selectedPole === secondPole}
+            aria-label={`Select ${secondHeadline}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect(secondPole);
+            }}
+            className="sr-only"
+          />
           <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
             <AnnotatedText text={secondHeadline} />
           </p>
           <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
             <AnnotatedText text={secondBody} />
           </p>
-        </button>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { decodeResponses } from "@/lib/response-codec";
 import { computeFullResults } from "@/lib/scoring";
@@ -57,6 +57,10 @@ function CompareResults() {
   const encodedA = searchParams.get("a");
   const encodedB = searchParams.get("b");
 
+  useEffect(() => {
+    if (!encodedA || !encodedB) router.replace("/");
+  }, [encodedA, encodedB, router]);
+
   const data = useMemo(() => {
     if (!encodedA || !encodedB) return null;
 
@@ -98,7 +102,6 @@ function CompareResults() {
   }, [encodedA, encodedB]);
 
   if (!encodedA || !encodedB) {
-    router.replace("/");
     return null;
   }
 

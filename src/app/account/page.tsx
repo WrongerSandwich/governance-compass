@@ -33,6 +33,9 @@ export default function AccountPage() {
   const [newGroupName, setNewGroupName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const [visibilityError, setVisibilityError] = useState("");
+  const [groupActionError, setGroupActionError] = useState("");
+  const [pendingVisibilityAxes, setPendingVisibilityAxes] = useState<Set<number>>(new Set());
 
   // The stored value answers both "which profile?" and "is there anything
   // left to save?", so both are derived rather than mirrored into state.
@@ -64,55 +67,85 @@ export default function AccountPage() {
   const handleSaveResults = async () => {
     if (!unsavedResults || !lastResults) return;
 
-    const res = await fetch("/api/profile/materialize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ encoded: lastResults }),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/profile/materialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ encoded: lastResults }),
+      });
+      if (!res.ok) throw new Error("Result materialization failed");
       const data = await res.json();
       setFetchedProfileId(data.profileId);
       saveLastResults(`id:${data.profileId}`);
       setSaveStatus("Results saved to your account.");
-    } else {
+    } catch {
       setSaveStatus("Failed to save results. Please try again.");
     }
   };
 
   const toggleVisibility = async (axisId: number, hidden: boolean) => {
-    await fetch("/api/account/visibility", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ axisId, hidden }),
-    });
+    const previousHidden = axes.find((axis) => axis.axisId === axisId)?.hidden;
     setAxes((prev) =>
       prev.map((a) => (a.axisId === axisId ? { ...a, hidden } : a))
     );
+    setPendingVisibilityAxes((pending) => new Set(pending).add(axisId));
+    setVisibilityError("");
+    try {
+      const response = await fetch("/api/account/visibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ axisId, hidden }),
+      });
+      if (!response.ok) throw new Error("Visibility update failed");
+    } catch {
+      setAxes((prev) =>
+        prev.map((axis) =>
+          axis.axisId === axisId && previousHidden !== undefined
+            ? { ...axis, hidden: previousHidden }
+            : axis
+        )
+      );
+      setVisibilityError("Could not update axis visibility. Please try again.");
+    } finally {
+      setPendingVisibilityAxes((pending) => {
+        const next = new Set(pending);
+        next.delete(axisId);
+        return next;
+      });
+    }
   };
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
-    const res = await fetch("/api/groups", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newGroupName }),
-    });
-    if (res.ok) {
+    setGroupActionError("");
+    try {
+      const res = await fetch("/api/groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newGroupName }),
+      });
+      if (!res.ok) throw new Error("Group creation failed");
       setNewGroupName("");
       window.location.reload();
+    } catch {
+      setGroupActionError("Could not create group. Please try again.");
     }
   };
 
   const handleJoinGroup = async () => {
     if (!joinCode.trim()) return;
-    const res = await fetch("/api/groups/join", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inviteCode: joinCode.trim() }),
-    });
-    if (res.ok) {
+    setGroupActionError("");
+    try {
+      const res = await fetch("/api/groups/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+      });
+      if (!res.ok) throw new Error("Group join failed");
       setJoinCode("");
       window.location.reload();
+    } catch {
+      setGroupActionError("Could not join group. Check the invite code and try again.");
     }
   };
 
@@ -198,6 +231,7 @@ export default function AccountPage() {
                       <input
                         type="checkbox"
                         checked={!a.hidden}
+                        disabled={pendingVisibilityAxes.has(a.axisId)}
                         onChange={() => toggleVisibility(a.axisId, !a.hidden)}
                         className="rounded border-border-primary text-stone-600 focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
                       />
@@ -207,6 +241,11 @@ export default function AccountPage() {
               </div>
             ))}
           </div>
+          {visibilityError && (
+            <p role="alert" className="mt-3 text-sm text-red-600">
+              {visibilityError}
+            </p>
+          )}
         </section>
 
         {/* Groups */}
@@ -274,6 +313,11 @@ export default function AccountPage() {
               </button>
             </div>
           </div>
+          {groupActionError && (
+            <p role="alert" className="mt-3 text-sm text-red-600">
+              {groupActionError}
+            </p>
+          )}
         </section>
       </div>
     </main>

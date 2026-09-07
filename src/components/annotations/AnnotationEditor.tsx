@@ -14,18 +14,26 @@ export function AnnotationEditor({
   const [text, setText] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
-    await fetch("/api/annotations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ axisScoreId, text }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveError("");
+    try {
+      const response = await fetch("/api/annotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ axisScoreId, text }),
+      });
+      if (!response.ok) throw new Error("Annotation save failed");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setSaveError("Could not save your note. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const textareaId = `annotation-${axisScoreId}`;
@@ -55,6 +63,11 @@ export function AnnotationEditor({
         <span aria-live="polite" className="text-sm text-stone-600">
           {saved ? "Saved" : ""}
         </span>
+        {saveError && (
+          <span role="alert" className="text-sm text-red-600">
+            {saveError}
+          </span>
+        )}
       </div>
     </div>
   );
