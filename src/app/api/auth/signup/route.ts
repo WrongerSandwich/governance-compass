@@ -4,11 +4,17 @@ import { db } from "@/lib/db";
 import { UNIQUE_VIOLATION, prismaErrorCode, readJsonBody } from "@/lib/api-errors";
 import { findUserByEmail, normalizeEmail } from "@/lib/user-lookup";
 import { signupSchema } from "@/lib/validation";
+import { createRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+
+const signupLimiter = createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1_000 });
 
 const emailTaken = () =>
   NextResponse.json({ error: "Email already registered" }, { status: 409 });
 
 export async function POST(request: NextRequest) {
+  const limit = signupLimiter.check(getClientIp(request));
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
+
   const body = await readJsonBody(request);
   if (!body.ok) return body.response;
 

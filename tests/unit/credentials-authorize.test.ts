@@ -7,9 +7,9 @@ vi.mock("@/lib/user-lookup", () => ({
   normalizeEmail: (email: string) => email.trim().toLowerCase(),
 }));
 
-vi.mock("bcryptjs", () => ({
-  default: { compare: async (password: string, hash: string) => hash === `hashed:${password}` },
-}));
+const compare = vi.fn(async (password: string, hash: string) => hash === `hashed:${password}`);
+
+vi.mock("bcryptjs", () => ({ default: { compare } }));
 
 const { authorizeCredentials } = await import("@/lib/credentials");
 
@@ -22,6 +22,7 @@ const USER = {
 
 beforeEach(() => {
   findUserByEmail.mockReset().mockResolvedValue(USER);
+  compare.mockClear();
 });
 
 describe("authorizeCredentials", () => {
@@ -47,6 +48,7 @@ describe("authorizeCredentials", () => {
     await expect(
       authorizeCredentials({ email: "nobody@example.com", password: "correct horse" })
     ).resolves.toBeNull();
+    expect(compare).toHaveBeenCalledWith("correct horse", expect.any(String));
   });
 
   it("rejects an OAuth-only account that has no password", async () => {
@@ -55,6 +57,7 @@ describe("authorizeCredentials", () => {
     await expect(
       authorizeCredentials({ email: "foo@example.com", password: "correct horse" })
     ).resolves.toBeNull();
+    expect(compare).toHaveBeenCalledWith("correct horse", expect.any(String));
   });
 
   it("rejects missing credentials without touching the database", async () => {

@@ -23,8 +23,8 @@ vi.mock("bcryptjs", () => ({
 vi.resetModules();
 const { POST } = await import("@/app/api/auth/signup/route");
 
-function post(body: unknown) {
-  return POST({ json: async () => body } as unknown as NextRequest);
+function post(body: unknown, ip?: string) {
+  return POST({ json: async () => body, headers: new Headers(ip ? { "x-forwarded-for": ip } : {}) } as unknown as NextRequest);
 }
 
 function postRaw(json: () => Promise<unknown>) {
@@ -87,5 +87,17 @@ describe("POST /api/auth/signup", () => {
 
     expect(res.status).toBe(400);
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("throttles repeated signup attempts from one address", async () => {
+    const ip = "203.0.113.55";
+
+    for (let count = 0; count < 10; count += 1) {
+      expect((await post(VALID, ip)).status).toBe(201);
+    }
+
+    const res = await post(VALID, ip);
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe("900");
   });
 });

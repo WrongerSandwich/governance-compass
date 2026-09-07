@@ -49,11 +49,17 @@ export const createGroupSchema = z.object({
 });
 
 export const joinGroupSchema = z.object({
-  inviteCode: z.string().min(1),
+  inviteCode: z.string().min(9).max(9).regex(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/),
 });
 
 export const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().max(254).email(),
+  password: z
+    .string()
+    .min(8)
+    .max(72)
+    .refine((value) => new TextEncoder().encode(value).length <= 72, {
+      message: "Password must be at most 72 bytes",
+    }),
   name: z.string().min(1).max(100).optional(),
 });

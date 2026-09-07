@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { ZodError } from "zod";
-import { toProfileRows } from "@/lib/validation";
+import { joinGroupSchema, signupSchema, toProfileRows } from "@/lib/validation";
 import type { QuizResponses } from "@/lib/scoring-types";
 
 function buildResponses(overrides: Partial<QuizResponses> = {}): QuizResponses {
@@ -57,5 +57,26 @@ describe("toProfileRows", () => {
     responses.forcedChoice["fc-1-1"] = "C" as "A" | "B";
 
     expect(() => toProfileRows(responses)).toThrow(ZodError);
+  });
+});
+
+describe("public-account input limits", () => {
+  it("rejects an email address longer than the RFC mailbox maximum", () => {
+    expect(
+      signupSchema.safeParse({
+        email: `${"a".repeat(243)}@example.com`,
+        password: "correct horse",
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects a password longer than bcrypt can process without truncation", () => {
+    expect(
+      signupSchema.safeParse({ email: "foo@example.com", password: "a".repeat(73) }).success
+    ).toBe(false);
+  });
+
+  it("rejects an invite code longer than the generated code format", () => {
+    expect(joinGroupSchema.safeParse({ inviteCode: "ABCDEFGHJK" }).success).toBe(false);
   });
 });
