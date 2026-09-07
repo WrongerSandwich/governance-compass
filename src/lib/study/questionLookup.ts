@@ -12,13 +12,9 @@ export interface QuestionItem {
 
 // Build a flat registry on module init, keyed by item id.
 const registry = new Map<string, QuestionItem>();
-const byAxis = new Map<number, QuestionItem[]>();
 
 function register(item: QuestionItem) {
   registry.set(item.id, item);
-  const existing = byAxis.get(item.axis) ?? [];
-  existing.push(item);
-  byAxis.set(item.axis, existing);
 }
 
 // Register forced-choice items
@@ -51,8 +47,4 @@ for (const sc of scaledItems) {
 
 export function getQuestion(id: string): QuestionItem | null {
   return registry.get(id) ?? null;
-}
-
-export function getQuestionsForAxis(axis: number): QuestionItem[] {
-  return byAxis.get(axis) ?? [];
 }

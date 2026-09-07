@@ -13,7 +13,6 @@
 export {
   computeDistance,
   postRevisionArchetypeForCluster,
-  LEGACY_ARCHETYPE_ID_MAP,
 } from "../../src/lib/study/archetypeResolution";
 
 export type { PostRevisionArchetypeMatch } from "../../src/lib/study/archetypeResolution";

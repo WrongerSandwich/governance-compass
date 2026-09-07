@@ -234,15 +234,3 @@ export function normalizeLocation(raw: string): NormalizedCountry | null {
   console.warn(`[country-normalization] Could not normalize location: "${raw}"`);
   return null;
 }
-
-export function normalizeLocationBatch(
-  locations: string[]
-): Map<string, NormalizedCountry | null> {
-  const result = new Map<string, NormalizedCountry | null>();
-  for (const loc of locations) {
-    if (!result.has(loc)) {
-      result.set(loc, normalizeLocation(loc));
-    }
-  }
-  return result;
-}
