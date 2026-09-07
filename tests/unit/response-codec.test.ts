@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { encodeResponses, decodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
+import { scaledItems } from "@/data/scaled-items";
 import {
   base64urlToBytes,
   bytesToBase64url,
@@ -11,15 +12,7 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-// The 24 SC item IDs that exist after the reduction (2 per axis)
-const SC_ITEM_IDS = [
-  "sc-1-1", "sc-1-3", "sc-2-1", "sc-2-2", "sc-3-1", "sc-3-3",
-  "sc-4-1", "sc-4-2", "sc-5-1", "sc-5-2", "sc-6-1", "sc-6-3",
-  "sc-7-1", "sc-7-2", "sc-8-1", "sc-8-2", "sc-9-1", "sc-9-2",
-  "sc-10-1", "sc-10-2", "sc-11-2", "sc-11-3", "sc-12-1", "sc-12-3",
-];
-
-/** Build a complete response set with all 36 FC, 24 SC, and 10 budget items. */
+/** Build a complete response set with all 36 FC, every SC catalog item, and 7 budget items. */
 function buildCompleteResponses(): QuizResponses {
   const forcedChoice: Record<string, "A" | "B"> = {};
   const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {};
@@ -31,9 +24,8 @@ function buildCompleteResponses(): QuizResponses {
     }
   }
 
-  for (const id of SC_ITEM_IDS) {
-    const itemNum = parseInt(id.split("-")[2]);
-    scaled[id] = ((itemNum % 5) + 1) as 1 | 2 | 3 | 4 | 5;
+  for (const item of scaledItems) {
+    scaled[item.id] = ((item.itemNumber % 5) + 1) as 1 | 2 | 3 | 4 | 5;
   }
 
   for (let m = 1; m <= 7; m++) {
@@ -49,7 +41,7 @@ function buildCompleteResponses(): QuizResponses {
 // ---------------------------------------------------------------------------
 
 describe("response-codec", () => {
-  it("roundtrips a complete response set", () => {
+  it("roundtrips a complete response set using every scaled catalog item", () => {
     const original = buildCompleteResponses();
     const encoded = encodeResponses(original);
     const decoded = decodeResponses(encoded);

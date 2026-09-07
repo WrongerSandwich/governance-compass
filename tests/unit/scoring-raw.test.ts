@@ -6,6 +6,18 @@ import {
   computeAllPerModalityScores,
 } from "@/lib/scoring";
 import { BUDGET_MEAN, BUDGET_SIGMOID_K } from "@/lib/scoring-types";
+import { scaledItems } from "@/data/scaled-items";
+
+function scaledResponsesForAxis(
+  axisId: number,
+  value: 1 | 2 | 3 | 4 | 5
+): Record<string, 1 | 2 | 3 | 4 | 5> {
+  return Object.fromEntries(
+    scaledItems
+      .filter((item) => item.axisId === axisId)
+      .map((item) => [item.id, value])
+  );
+}
 
 // ---------------------------------------------------------------------------
 // FC scoring
@@ -59,40 +71,44 @@ describe("scoreForcedChoiceAxis", () => {
 // ---------------------------------------------------------------------------
 
 describe("scoreScaledAxis", () => {
-  it("maps value 1 → -2 and returns -1.0 when all three are 1", () => {
-    // mean of [-2,-2,-2] / 2 = -2/2 = -1.0
-    const responses = { "sc-1-1": 1, "sc-1-2": 1, "sc-1-3": 1 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+  it("maps value 1 → -2 and returns -1.0 when every real item is 1", () => {
+    // mean of [-2,-2] / 2 = -2/2 = -1.0
+    const responses = scaledResponsesForAxis(1, 1);
     expect(scoreScaledAxis(responses, 1)).toBeCloseTo(-1.0);
   });
 
-  it("maps value 5 → +2 and returns +1.0 when all three are 5", () => {
-    const responses = { "sc-1-1": 5, "sc-1-2": 5, "sc-1-3": 5 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+  it("maps value 5 → +2 and returns +1.0 when every real item is 5", () => {
+    const responses = scaledResponsesForAxis(1, 5);
     expect(scoreScaledAxis(responses, 1)).toBeCloseTo(1.0);
   });
 
-  it("maps value 3 → 0 and returns 0.0 when all are 3", () => {
-    const responses = { "sc-1-1": 3, "sc-1-2": 3, "sc-1-3": 3 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+  it("maps value 3 → 0 and returns 0.0 when every real item is 3", () => {
+    const responses = scaledResponsesForAxis(1, 3);
     expect(scoreScaledAxis(responses, 1)).toBeCloseTo(0.0);
   });
 
   it("maps value 2 → -1 and value 4 → +1 correctly", () => {
-    // all 2: mean of [-1,-1,-1] / 2 = -0.5
-    const responses2 = { "sc-2-1": 2, "sc-2-2": 2, "sc-2-3": 2 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+    // all 2: mean of [-1,-1] / 2 = -0.5
+    const responses2 = scaledResponsesForAxis(2, 2);
     expect(scoreScaledAxis(responses2, 2)).toBeCloseTo(-0.5);
 
-    // all 4: mean of [+1,+1,+1] / 2 = +0.5
-    const responses4 = { "sc-2-1": 4, "sc-2-2": 4, "sc-2-3": 4 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+    // all 4: mean of [+1,+1] / 2 = +0.5
+    const responses4 = scaledResponsesForAxis(2, 4);
     expect(scoreScaledAxis(responses4, 2)).toBeCloseTo(0.5);
   });
 
   it("handles mixed values correctly", () => {
-    // sc-3-1=1(-2), sc-3-2=3(0), sc-3-3=5(+2) → mean = 0/3 = 0 → /2 = 0
-    const responses = { "sc-3-1": 1, "sc-3-2": 3, "sc-3-3": 5 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+    const items = scaledItems.filter((item) => item.axisId === 3);
+    // Real axis-3 items receive 1 (-2) and 5 (+2), so their mean is 0.
+    const responses = Object.fromEntries([
+      [items[0].id, 1],
+      [items[1].id, 5],
+    ]) as Record<string, 1 | 2 | 3 | 4 | 5>;
     expect(scoreScaledAxis(responses, 3)).toBeCloseTo(0.0);
   });
 
   it("handles axis 12 all value 1", () => {
-    const responses = { "sc-12-1": 1, "sc-12-2": 1, "sc-12-3": 1 } as Record<string, 1 | 2 | 3 | 4 | 5>;
+    const responses = scaledResponsesForAxis(12, 1);
     expect(scoreScaledAxis(responses, 12)).toBeCloseTo(-1.0);
   });
 

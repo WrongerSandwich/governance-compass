@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { computeFullResults } from "@/lib/scoring";
 import type { QuizResponses } from "@/lib/scoring-types";
+import { scaledItems } from "@/data/scaled-items";
 
 // ---------------------------------------------------------------------------
 // Synthetic full response set
@@ -24,22 +25,14 @@ const forcedChoice: Record<string, "A" | "B"> = {
   "fc-12-1": "B", "fc-12-2": "A", "fc-12-3": "B",
 };
 
-// 36 SC responses (sc-{axis}-{1|2|3} for axes 1–12).
-// Using values 1–5 with variety across axes.
-const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = {
-  "sc-1-1": 2, "sc-1-2": 2, "sc-1-3": 3,
-  "sc-2-1": 4, "sc-2-2": 4, "sc-2-3": 5,
-  "sc-3-1": 1, "sc-3-2": 2, "sc-3-3": 2,
-  "sc-4-1": 5, "sc-4-2": 4, "sc-4-3": 3,
-  "sc-5-1": 2, "sc-5-2": 3, "sc-5-3": 2,
-  "sc-6-1": 3, "sc-6-2": 4, "sc-6-3": 4,
-  "sc-7-1": 1, "sc-7-2": 2, "sc-7-3": 1,
-  "sc-8-1": 3, "sc-8-2": 3, "sc-8-3": 4,
-  "sc-9-1": 5, "sc-9-2": 4, "sc-9-3": 5,
-  "sc-10-1": 2, "sc-10-2": 3, "sc-10-3": 2,
-  "sc-11-1": 4, "sc-11-2": 4, "sc-11-3": 3,
-  "sc-12-1": 2, "sc-12-2": 3, "sc-12-3": 2,
-};
+// Every response is keyed from the source-of-truth item catalog, so an item
+// reduction or ID rename cannot quietly leave this integration fixture stale.
+const scaled: Record<string, 1 | 2 | 3 | 4 | 5> = Object.fromEntries(
+  scaledItems.map((item) => [
+    item.id,
+    (((item.axisId + item.itemNumber) % 5) + 1) as 1 | 2 | 3 | 4 | 5,
+  ])
+);
 
 // 7 budget allocations (ministry IDs 1–7, each ≥ BUDGET_MINIMUM=1, total = 50).
 // Using varied allocations around the 50/7 ≈ 7.14 mean to produce non-zero bg scores.
@@ -226,10 +219,8 @@ describe("computeFullResults — integration", () => {
     }
 
     const neutralSC: Record<string, 1 | 2 | 3 | 4 | 5> = {};
-    for (let axis = 1; axis <= 12; axis++) {
-      for (let item = 1; item <= 3; item++) {
-        neutralSC[`sc-${axis}-${item}`] = 3; // midpoint → sc = 0
-      }
+    for (const item of scaledItems) {
+      neutralSC[item.id] = 3; // midpoint → sc = 0
     }
 
     // Equal allocation budget → all deviations = 0 → bg = tanh(0) ≈ 0
