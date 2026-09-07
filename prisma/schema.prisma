@@ -126,7 +126,7 @@ model ScaledItem {
 }
 
 model Ministry {
-  id                   Int                   @id // 1-10
+  id                   Int                   @id // 1-7
   name                 String
   description          String
   belowBaselineWarning String
@@ -184,7 +184,7 @@ model BudgetAllocation {
   profile    UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   ministryId Int
   ministry   Ministry    @relation(fields: [ministryId], references: [id])
-  amount     Int         // 5-95, must sum to 100 across all 10
+  amount     Int         // 1-25, must sum to 50 across all 7
 
   @@unique([profileId, ministryId])
 }

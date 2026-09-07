@@ -183,7 +183,7 @@ export function BudgetSimulator({
         ))}
       </div>
 
-      {/* Confirm button — one of two filled buttons */}
+      {/* Confirm button — a primary assessment action */}
       <div className="sticky bottom-0 z-10 -mx-4 border-t border-border-secondary bg-surface-1 px-4 py-4 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
         <button
           type="button"
