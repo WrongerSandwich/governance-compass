@@ -29,7 +29,7 @@ change the credentials or port, change them in both.
 
 ## Stack
 
-Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS, Recharts
+Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS
 
 ## Testing
 

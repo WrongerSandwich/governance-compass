@@ -17,7 +17,7 @@ npm run dev
 
 ## Development
 
-- **Stack:** Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS, Recharts
+- **Stack:** Next.js 16 (App Router), TypeScript, PostgreSQL, Prisma, NextAuth v5, Tailwind CSS
 - **Database:** PostgreSQL on port 5433, defined in `compose.yaml` (`docker compose up -d --wait postgres`). A pre-compose setup may still have a standalone `governance-compass-db` container bound to the same port — remove it (`docker rm -f governance-compass-db`) before bringing compose up.
   - Local-only throwaway creds. Config lives in `.env`, not `.env.local`: `prisma.config.ts` loads `dotenv/config`, which reads `.env` only, while Next.js reads both. The `.env.example` defaults match `compose.yaml`; change both together.
 - **Seed data:** `npx prisma db seed` (12 axes, 60 questions — 36 forced-choice + 24 scaled — plus 7 ministries and 12 archetypes)
@@ -80,7 +80,7 @@ Politically engaged individuals seeking nuanced understanding of their governanc
 - **Anti-references:** BuzzFeed-style quizzes (no gamification, no share-bait), political party sites (no partisan color, no persuasion design), social media platforms (no feeds, no engagement metrics, no notification patterns).
 - **Theme:** Light and dark mode, both using the same Stone accent. Dark mode inverts surfaces while preserving the cartographic warmth.
 - **Typography is the primary design tool.** Serif/sans/mono contrast creates the journal feel. Two weights only (400, 500). Sentence case everywhere except 11px structural labels.
-- **Only two filled buttons on the entire site** ("Begin assessment" and "Finalize budget"). Everything else is ghost/outlined. This restraint is deliberate.
+- **Filled buttons are reserved for primary assessment actions** (beginning or resuming the assessment and confirming the budget). Everything else is ghost/outlined. This restraint is deliberate.
 
 ### Design Principles
 1. **Every element earns its place.** Nothing decorative unless it carries data or establishes hierarchy. The only exception: subtle topographic contour lines on the compass plot, which serve as a thematic signature.
