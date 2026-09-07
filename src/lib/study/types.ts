@@ -15,18 +15,6 @@ export type RegionKey =
   | "oceania_small_states"
   | "diaspora_transnational";
 
-export type RegionHumanLabel =
-  | "Western Europe"
-  | "Eastern Europe & Central Asia"
-  | "North America"
-  | "Latin America"
-  | "Middle East & N. Africa"
-  | "Sub-Saharan Africa"
-  | "South & SE Asia"
-  | "East Asia"
-  | "Oceania"
-  | "Diaspora / Transnational";
-
 // Authoritative source for human-readable region labels
 // Used by modal, badges, filter UI, and any component needing region display text.
 export const REGION_LABELS: Record<RegionKey, string> = {

@@ -112,10 +112,12 @@ export function scoreBudgetAxis(
  * Stage 3 — Fuse fc, sc, and optional bg scores for a single axis using
  * the axis-specific weight profile.
  *
- * When bg is null and the profile has bg > 0 (the axis has a budget mapping
- * but no budget response was produced), the fc and sc weights are renormalised
- * so they sum to 1.0.  When bg is null and profile.bg == 0 (no budget mapping
- * for this axis), fc and sc weights already sum to 1.0 and are used as-is.
+ * When bg is null and the profile has bg > 0, the fc and sc weights are
+ * renormalised so they sum to 1.0. This defensive fallback is not reachable
+ * through the current quiz pipeline: mapped ministries default to
+ * `BUDGET_MEAN` in `scoreBudgetAxis`, while unmapped axes have bg = 0 in
+ * their weight profile. When bg is null and profile.bg == 0, fc and sc
+ * weights already sum to 1.0 and are used as-is.
  *
  * Returns a weighted sum in [-1.0, +1.0].
  */

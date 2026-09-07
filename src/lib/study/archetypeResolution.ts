@@ -71,15 +71,3 @@ export function postRevisionArchetypeForCluster(
     distance,
   };
 }
-
-/**
- * Legacy ID remapping for any consumer that needs a raw ID→ID translation.
- * Only covers IDs that actually appeared in pipeline output as nearest-archetype
- * for a cluster but were subsequently replaced in the post-revision catalog.
- *
- * `civic-institutionalist` is intentionally absent — it was never a cluster's
- * nearest match in the pipeline output and has no direct post-revision counterpart.
- */
-export const LEGACY_ARCHETYPE_ID_MAP: Readonly<Record<string, string>> = {
-  "pragmatic-centrist": "institutional-moderate",
-} as const;
