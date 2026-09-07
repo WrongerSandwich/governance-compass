@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { CompassPlot } from "./CompassPlot";
 import { ArchetypeCard } from "./ArchetypeCard";
@@ -9,7 +8,6 @@ import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
 import { FadeInSection } from "@/components/FadeInSection";
-import { saveLastResults } from "@/lib/last-results";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -82,62 +80,6 @@ function CopyLinkButton() {
     >
       {copied ? "Copied!" : "Copy link"}
     </button>
-  );
-}
-
-// Rendered nowhere yet: the account UI is hidden for v1 while the
-// materialize infrastructure it drives stays in place. See CLAUDE.md.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function SaveToAccountButton({ encoded }: { encoded: string }) {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [status, setStatus] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-
-  if (!session?.user) return null;
-
-  const handleSave = async () => {
-    setStatus("saving");
-    const res = await fetch("/api/profile/materialize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ encoded }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      saveLastResults(`id:${data.profileId}`);
-      setStatus("saved");
-      // The server page fetches the materialized profile on navigation
-      router.push(`/results/${data.profileId}`);
-    } else {
-      setStatus("error");
-    }
-  };
-
-  if (status === "saved") {
-    return (
-      <p className="text-xs text-text-tertiary">
-        Results saved to your account.
-      </p>
-    );
-  }
-
-  return (
-    <span>
-      <button
-        onClick={handleSave}
-        disabled={status === "saving"}
-        className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 disabled:opacity-50"
-      >
-        {status === "saving" ? "Saving..." : "Save to account"}
-      </button>
-      {status === "error" && (
-        <span className="text-xs ml-2 text-warning-text">
-          Failed to save. Please try again.
-        </span>
-      )}
-    </span>
   );
 }
 
