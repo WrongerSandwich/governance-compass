@@ -29,15 +29,19 @@ describe("createRateLimiter", () => {
 });
 
 describe("getClientIp", () => {
-  it("uses the first address forwarded by the trusted proxy", () => {
+  it("uses Vercel's protected client-IP header", () => {
     const request = new Request("https://example.com/api/auth/signup", {
-      headers: { "x-forwarded-for": "203.0.113.5, 10.0.0.1" },
+      headers: { "x-vercel-forwarded-for": "203.0.113.5" },
     });
 
     expect(getClientIp(request)).toBe("203.0.113.5");
   });
 
-  it("falls back to a shared key when no client address is available", () => {
-    expect(getClientIp(new Request("https://example.com/api/auth/signup"))).toBe("unknown");
+  it("does not trust a client-supplied forwarding header", () => {
+    const request = new Request("https://example.com/api/auth/signup", {
+      headers: { "x-forwarded-for": "203.0.113.5", "x-real-ip": "203.0.113.6" },
+    });
+
+    expect(getClientIp(request)).toBe("unknown");
   });
 });

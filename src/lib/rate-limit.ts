@@ -21,10 +21,21 @@ export type RateLimitResult =
  */
 export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimitOptions) {
   const windows = new Map<string, Window>();
+  let nextPruneAt = 0;
+
+  function pruneExpired(timestamp: number) {
+    if (timestamp < nextPruneAt) return;
+
+    for (const [identifier, window] of windows) {
+      if (timestamp >= window.resetAt) windows.delete(identifier);
+    }
+    nextPruneAt = timestamp + windowMs;
+  }
 
   return {
     check(identifier: string): RateLimitResult {
       const timestamp = now();
+      pruneExpired(timestamp);
       const current = windows.get(identifier);
 
       if (!current || timestamp >= current.resetAt) {
@@ -46,13 +57,9 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
 }
 
 export function getClientIp(request: Request): string {
-  const forwarded = request.headers?.get("x-forwarded-for");
-  if (forwarded) {
-    const client = forwarded.split(",", 1)[0]?.trim();
-    if (client) return client;
-  }
-
-  return request.headers?.get("x-real-ip")?.trim() || "unknown";
+  // This application deploys on Vercel, which sets this header itself and
+  // prevents the client from selecting an arbitrary rate-limit key.
+  return request.headers?.get("x-vercel-forwarded-for")?.trim() || "unknown";
 }
 
 export function rateLimitResponse(retryAfterSeconds: number) {

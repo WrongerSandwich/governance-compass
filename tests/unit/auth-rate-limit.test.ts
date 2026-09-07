@@ -10,7 +10,7 @@ const { POST } = await import("@/app/api/auth/[...nextauth]/route");
 function post(ip: string) {
   return POST(new Request("https://example.com/api/auth/callback/credentials", {
     method: "POST",
-    headers: { "x-forwarded-for": ip },
+    headers: { "x-vercel-forwarded-for": ip },
   }) as unknown as NextRequest);
 }
 

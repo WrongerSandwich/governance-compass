@@ -24,7 +24,7 @@ vi.resetModules();
 const { POST } = await import("@/app/api/auth/signup/route");
 
 function post(body: unknown, ip?: string) {
-  return POST({ json: async () => body, headers: new Headers(ip ? { "x-forwarded-for": ip } : {}) } as unknown as NextRequest);
+  return POST({ json: async () => body, headers: new Headers(ip ? { "x-vercel-forwarded-for": ip } : {}) } as unknown as NextRequest);
 }
 
 function postRaw(json: () => Promise<unknown>) {

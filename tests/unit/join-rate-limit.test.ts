@@ -20,7 +20,7 @@ const { POST } = await import("@/app/api/groups/join/route");
 
 function post(ip: string) {
   return POST({
-    headers: new Headers({ "x-forwarded-for": ip }),
+    headers: new Headers({ "x-vercel-forwarded-for": ip }),
     json: async () => ({ inviteCode: "ABCD-EFGH" }),
   } as unknown as NextRequest);
 }
