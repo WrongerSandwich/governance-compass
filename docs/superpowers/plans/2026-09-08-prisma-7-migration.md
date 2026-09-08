@@ -34,7 +34,7 @@
 - Consumes: `DATABASE_URL`, `PrismaPg`, and generated `PrismaClient`.
 - Produces: adapter-backed cached `db`, adapter-backed seed client, and a Prisma 7 ESM client under `src/generated/prisma`.
 
-- [ ] **Step 1: Write a failing DB-client construction test**
+- [x] **Step 1: Write a failing DB-client construction test**
 
 ```ts
 it("creates the shared client with a PostgreSQL adapter", async () => {
@@ -53,14 +53,14 @@ The named break is replacing the required adapter with `new PrismaClient()`.
 Mock only the generated client and database driver constructors; the assertions
 cover this module's construction contract rather than either dependency.
 
-- [ ] **Step 2: Verify red**
+- [x] **Step 2: Verify red**
 
 Run: `npm test -- tests/unit/db.test.ts`
 
 Expected: FAIL resolving `@/generated/prisma/client` because the v7 generator
 does not yet produce that module.
 
-- [ ] **Step 3: Update packages, ESM metadata, schema, and CLI config**
+- [x] **Step 3: Update packages, ESM metadata, schema, and CLI config**
 
 Run: `npm install @prisma/client@7 @prisma/adapter-pg@7 pg && npm install --save-dev prisma@7`
 
@@ -77,7 +77,7 @@ The datasource must contain only `provider = "postgresql"`. Remove only
 `engine: "classic"` from `prisma.config.ts`, preserving its existing schema,
 migrations, seed, and `datasource.url` behavior. Run `npx prisma generate`.
 
-- [ ] **Step 4: Implement runtime and seed adapters**
+- [x] **Step 4: Implement runtime and seed adapters**
 
 ```ts
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -90,13 +90,13 @@ export const db = globalForPrisma.prisma || new PrismaClient({ adapter });
 Use the equivalent relative generated-client import and adapter in
 `prisma/seed.ts`, retaining its existing `$disconnect()` lifecycle.
 
-- [ ] **Step 5: Verify green and Prisma configuration**
+- [x] **Step 5: Verify green and Prisma configuration**
 
 Run: `npx prisma generate && npx prisma validate && npm test -- tests/unit/db.test.ts`
 
 Expected: no P1012 schema error; generation and the focused adapter test pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Run: `git add package.json package-lock.json prisma/schema.prisma prisma.config.ts src/lib/db.ts prisma/seed.ts tests/unit/db.test.ts && git commit -m "feat(db): migrate to Prisma 7 adapter"`
 
@@ -109,19 +109,19 @@ Run: `git add package.json package-lock.json prisma/schema.prisma prisma.config.
 - Consumes: the existing npm peer-resolution configuration.
 - Produces: Dependabot eligibility for future Prisma majors and a clean install that regenerates the client.
 
-- [ ] **Step 1: Remove only Prisma's ignore entries**
+- [x] **Step 1: Remove only Prisma's ignore entries**
 
 Delete the `prisma` and `@prisma/client` major-version entries and their
 migration-specific comment. Keep the TypeScript and ESLint entries unchanged.
 
-- [ ] **Step 2: Prove clean generation**
+- [x] **Step 2: Prove clean generation**
 
 Run: `rm -rf node_modules && npm ci && npx prisma generate`
 
 Expected: installation honors `.npmrc`, and generation completes with no
 database connection.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run: `git add .github/dependabot.yml && git commit -m "chore(deps): unblock Prisma Dependabot majors"`
 
@@ -142,7 +142,7 @@ Run: `docker compose up -d --wait postgres && npx prisma migrate deploy && npx p
 Expected: migration state applies (or is current) and seed logs 12 axes, 60
 questions, 7 ministries, and 12 archetypes.
 
-- [ ] **Step 2: Run static and unit gates**
+- [x] **Step 2: Run static and unit gates**
 
 Run: `npm run lint && npm run typecheck && npm test`
 
@@ -154,6 +154,22 @@ Run: `npm run build && CI=true npm run test:e2e`
 
 Expected: the build and all Playwright specs pass against seeded Postgres.
 
-- [ ] **Step 4: Record exact results and commit docs**
+Local result: `npm run build` passed under Node 24. The Docker daemon was not
+available, so local `prisma migrate deploy`, `prisma db seed`, and E2E execution
+remain for the PR's CI PostgreSQL service.
+
+- [x] **Step 4: Record exact results and commit docs**
 
 Run: `git add docs/superpowers/specs/2026-09-08-prisma-7-migration-design.md docs/superpowers/plans/2026-09-08-prisma-7-migration.md && git commit -m "docs: record Prisma 7 migration verification"`
+
+## Local verification record
+
+- Node runtime: bundled Node 24.19.0.
+- `npm ci` ran successfully and its `postinstall` generated Prisma Client 7.10.0.
+- `prisma generate` passed without `DATABASE_URL`; `prisma validate` passed with
+  CI's dummy PostgreSQL URL.
+- `npm run lint` and `npm run typecheck` passed.
+- `npm test` passed: 51 files and 542 tests.
+- `npm run build` passed.
+- Docker was unavailable (`Cannot connect to the Docker daemon`), so migration,
+  seed, and E2E results are intentionally not claimed locally.

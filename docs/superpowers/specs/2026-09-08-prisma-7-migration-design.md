@@ -31,6 +31,7 @@ or be corroborated by CI.
 
 `package.json` will declare `"type": "module"`, retain the project's existing
 `module: "esnext"` and `moduleResolution: "bundler"` TypeScript configuration,
+raise its target to `ES2023`,
 and upgrade `prisma` and `@prisma/client` together to the same Prisma 7 release.
 It will add matching `@prisma/adapter-pg` and `pg` dependencies. The lockfile
 will be regenerated using the repository's existing npm legacy-peer resolution
@@ -54,6 +55,11 @@ adapter to `new PrismaClient({ adapter })`. The development global cache will
 continue to cache that exact generated-client type. The Auth.js adapter will
 receive the same cached client; any necessary type bridge will be minimal and
 isolated to its adapter boundary.
+
+ESM removes CommonJS globals. The synthetic-study build script and Vitest
+configuration therefore derive their directory from `import.meta.url`, so the
+existing build pipeline and test aliases continue to work with `"type":
+"module"`.
 
 ## Validation
 
