@@ -58,7 +58,7 @@
     "tailwindcss": "^4",
     "topojson-server": "^3.0.1",
     "tsx": "^4.23.13",
-    "typescript": "^5",
+    "typescript": "^6.0.3",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
   }
