@@ -33,10 +33,11 @@ or be corroborated by CI.
 `module: "esnext"` and `moduleResolution: "bundler"` TypeScript configuration,
 and upgrade `prisma` and `@prisma/client` together to the same Prisma 7 release.
 It will add matching `@prisma/adapter-pg` and `pg` dependencies. The lockfile
-will be regenerated using npm's approved legacy-peer resolution because
-`@auth/prisma-adapter@2.11.3` currently declares a Prisma peer range only
-through v6, despite its runtime API remaining structurally compatible. The
-repository will commit the npm setting required for reproducible CI installs.
+will be regenerated using the repository's existing npm legacy-peer resolution
+setting because `@auth/prisma-adapter@2.11.3` currently declares a Prisma peer
+range only through v6, despite its runtime API remaining structurally
+compatible. That setting is already committed in `.npmrc`, so this migration
+does not need to modify it.
 
 ## Schema and CLI configuration
 
