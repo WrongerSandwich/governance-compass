@@ -1,11 +1,13 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../src/generated/prisma/client";
 import { axes } from "../src/data/axes";
 import { forcedChoiceItems } from "../src/data/forced-choice-items";
 import { scaledItems } from "../src/data/scaled-items";
 import { ministries, ministryAxisMappings } from "../src/data/ministries";
 import { archetypes } from "../src/data/archetypes";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Upsert axes
