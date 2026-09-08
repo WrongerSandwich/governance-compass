@@ -12,7 +12,11 @@ import { normalizeEmail } from "./user-lookup";
  * Normalizing here keeps every write path on the same rule.
  */
 export function normalizingPrismaAdapter(): Adapter {
-  const adapter = PrismaAdapter(db);
+  // Auth.js currently types its Prisma adapter against Prisma Client v6 even
+  // though its runtime contract is compatible with Prisma 7's generated client.
+  const adapter = PrismaAdapter(
+    db as unknown as Parameters<typeof PrismaAdapter>[0]
+  );
 
   return {
     ...adapter,

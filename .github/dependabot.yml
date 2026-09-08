@@ -17,10 +17,6 @@ updates:
       semver-major-days: 7
     ignore:
       # Major bumps that require migration work — handle separately when ready.
-      - dependency-name: "prisma"          # #15
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@prisma/client"  # #15
-        update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"          # #16
         update-types: ["version-update:semver-major"]
       - dependency-name: "typescript"      # #17
