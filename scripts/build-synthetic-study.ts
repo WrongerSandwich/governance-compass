@@ -11,6 +11,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { parse as parseCsv } from "csv-parse/sync";
 import { normalizeLocation } from "./data/country-name-normalization";
 import { archetypes } from "../src/data/archetypes";
@@ -50,9 +51,10 @@ import type {
 // Paths
 // ---------------------------------------------------------------------------
 
-const DATA_DIR = path.resolve(__dirname, "../data/synthetic_study");
-const DERIVED_DIR = path.resolve(__dirname, "../public/study/derived");
-const PUBLIC_DATA_DIR = path.resolve(__dirname, "../public/data");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.resolve(scriptDir, "../data/synthetic_study");
+const DERIVED_DIR = path.resolve(scriptDir, "../public/study/derived");
+const PUBLIC_DATA_DIR = path.resolve(scriptDir, "../public/data");
 
 function src(name: string) {
   return path.join(DATA_DIR, name);
