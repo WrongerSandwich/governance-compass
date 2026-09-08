@@ -1,12 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { PrismaClient, PrismaPg } = vi.hoisted(() => ({
-  PrismaClient: vi.fn(),
-  PrismaPg: vi.fn(),
-}));
+const { PrismaClient } = vi.hoisted(() => ({ PrismaClient: vi.fn() }));
 
 vi.mock("@/generated/prisma/client", () => ({ PrismaClient }));
-vi.mock("@prisma/adapter-pg", () => ({ PrismaPg }));
 
 describe("db", () => {
   const databaseUrl = "postgresql://user:pass@localhost:5432/app";
@@ -16,9 +12,6 @@ describe("db", () => {
     vi.resetModules();
     PrismaClient.mockReset().mockImplementation(function PrismaClientMock() {
       return { client: true };
-    });
-    PrismaPg.mockReset().mockImplementation(function PrismaPgMock() {
-      return { adapter: true };
     });
     process.env.DATABASE_URL = databaseUrl;
     delete (globalThis as { prisma?: unknown }).prisma;
@@ -36,8 +29,18 @@ describe("db", () => {
   it("creates the shared client with a PostgreSQL adapter", async () => {
     const { db } = await import("@/lib/db");
 
-    expect(PrismaPg).toHaveBeenCalledWith({ connectionString: databaseUrl });
-    expect(PrismaClient).toHaveBeenCalledWith({ adapter: expect.anything() });
+    expect(PrismaClient).toHaveBeenCalledWith({
+      adapter: expect.objectContaining({
+        config: { connectionString: databaseUrl },
+        provider: "postgres",
+      }),
+    });
     expect(db).toBe(PrismaClient.mock.results[0].value);
+  });
+
+  it("fails fast when the database URL is missing", async () => {
+    delete process.env.DATABASE_URL;
+
+    await expect(import("@/lib/db")).rejects.toThrow("DATABASE_URL");
   });
 });
