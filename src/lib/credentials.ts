@@ -4,6 +4,10 @@ import { findUserByEmail } from "./user-lookup";
 
 type Credentials = Partial<Record<"email" | "password", unknown>> | undefined;
 
+// A real bcrypt hash keeps the failure path's cost comparable whether or not
+// the supplied address belongs to a password account.
+const DUMMY_PASSWORD_HASH = "$2b$12$JUrGUqdOpYLKquuqv6UYOe8SUcJcGO/61uLChCqtsYHVDxa.TfRhG";
+
 /**
  * Verifies an email/password pair for the NextAuth credentials provider.
  * Lookup is case-insensitive: signup stores lowercase, but accounts created
@@ -17,10 +21,10 @@ export async function authorizeCredentials(credentials: Credentials) {
   if (!email || !password) return null;
 
   const user = await findUserByEmail(email);
-  if (!user?.passwordHash) return null;
+  const passwordHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) return null;
+  const valid = await bcrypt.compare(password, passwordHash);
+  if (!user?.passwordHash || !valid) return null;
 
   return { id: user.id, email: user.email, name: user.name };
 }

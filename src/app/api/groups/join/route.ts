@@ -3,8 +3,14 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readJsonBody } from "@/lib/api-errors";
 import { joinGroupSchema } from "@/lib/validation";
+import { createRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+
+const joinLimiter = createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1_000 });
 
 export async function POST(request: NextRequest) {
+  const limit = joinLimiter.check(getClientIp(request));
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
