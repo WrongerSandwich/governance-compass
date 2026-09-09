@@ -94,11 +94,13 @@ describe("home page", () => {
     const tertiary = methodology[1].className.split(/\s+/);
 
     expect(outlined).toContain("min-[560px]:hidden");
-    // A bare `hidden` cannot hide the tertiary link: it is emitted before the
-    // button variant's own `inline-block` (4734 vs 4769 in the compiled sheet),
-    // so `inline-block` wins at every width. `max-[560px]:hidden` lands in the
-    // trailing variant block and does win. Checked token-wise, because
-    // `toContain("hidden")` also passes on the spelling that never paints.
+    // A bare `hidden` cannot hide the tertiary link: unprefixed utilities are
+    // emitted in a fixed order and `.hidden` lands before the button variant's
+    // own `.inline-block`, so at equal specificity `inline-block` wins at every
+    // width. `max-[560px]:hidden` lands in the trailing media-variant block,
+    // which is emitted after every unprefixed utility, so it does win. Checked
+    // token-wise, because `toContain("hidden")` also passes on the spelling
+    // that never paints.
     expect(tertiary).toContain("max-[560px]:hidden");
     expect(tertiary).not.toContain("hidden");
   });

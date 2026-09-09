@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/Button";
 import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { axes } from "@/data/axes";
-import { DOMAIN_COLORS, getDomainForAxis, type DomainKey } from "@/lib/design-tokens";
+import { DOMAIN_COLORS, getDomainColor600, type DomainKey } from "@/lib/design-tokens";
 // Read at build time from committed derived JSON. This is a server component,
 // so `data/synthetic_study/` never reaches a client bundle. The two respondents
 // are real personas held anonymous — the panel says "Illustrative profile" and
@@ -74,11 +74,11 @@ export default function Home() {
       {/* Payoff block — a real pair of respondents, one row per axis */}
       <div className="max-w-shell mx-auto px-[18px] min-[560px]:px-14 pt-11 pb-[52px] grid grid-cols-1 min-[900px]:grid-cols-[1fr_356px] gap-5 min-[900px]:gap-7 items-start">
         <div className="bg-surface-1 border border-border-secondary rounded-sharp px-[26px] py-6">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 border-b border-stone-900 mb-3.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 border-b border-rule-strong mb-3.5">
             <p className="label-eyebrow text-text-label">Illustrative profile</p>
             <div className="flex gap-[18px] label text-text-secondary tracking-[0.02em]">
               <span className="flex items-center gap-1.5">
-                <span className="h-[9px] w-[9px] rounded-full bg-stone-900" />
+                <span className="h-[9px] w-[9px] rounded-full bg-text-primary" />
                 Respondent A
               </span>
               <span className="flex items-center gap-1.5">
@@ -91,7 +91,7 @@ export default function Home() {
             {axes.map((axis) => (
               <div
                 key={axis.id}
-                className="py-2.5 border-t border-stone-50 min-[560px]:grid min-[560px]:grid-cols-[24px_1fr_158px] min-[560px]:gap-3.5 min-[560px]:items-center"
+                className="py-2.5 border-t border-rule-hairline min-[560px]:grid min-[560px]:grid-cols-[24px_1fr_158px] min-[560px]:gap-3.5 min-[560px]:items-center"
               >
                 {/* Below 560px this wrapper is a row above the scale. At and
                     above it the wrapper dissolves, so the index and the name
@@ -103,15 +103,22 @@ export default function Home() {
                     {axis.name}
                   </p>
                 </div>
-                <PairedAxisScale
-                  axisId={axis.id}
-                  poleALabel={shortPole(axis.poleALabel)}
-                  poleBLabel={shortPole(axis.poleBLabel)}
-                  scoreA={a.axis_scores[axis.id - 1]}
-                  scoreB={b.axis_scores[axis.id - 1]}
-                  endpoints="below"
-                  label={`${axis.name}: ${axis.poleALabel} to ${axis.poleBLabel}`}
-                />
+                {/* `min-w-0` on the middle grid item, not on the scale: each
+                    row is its own grid, so `1fr` is floored at that row's own
+                    min-content unless the item opts out. Without it the widest
+                    endpoint pair (Military Policy) pushed its row past the
+                    panel and dragged the name column out of alignment. */}
+                <div className="min-w-0">
+                  <PairedAxisScale
+                    axisId={axis.id}
+                    poleALabel={shortPole(axis.poleALabel)}
+                    poleBLabel={shortPole(axis.poleBLabel)}
+                    scoreA={a.axis_scores[axis.id - 1]}
+                    scoreB={b.axis_scores[axis.id - 1]}
+                    endpoints="below"
+                    label={`${axis.name}: ${axis.poleALabel} to ${axis.poleBLabel}`}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -122,7 +129,7 @@ export default function Home() {
             data-divergence
             className="bg-surface-1 border border-border-secondary rounded-sharp p-[22px]"
           >
-            <p className="label-eyebrow text-text-label pb-3 border-b border-stone-900 mb-3.5">
+            <p className="label-eyebrow text-text-label pb-3 border-b border-rule-strong mb-3.5">
               Where the two diverge
             </p>
             <div className="flex flex-col gap-4">
@@ -131,7 +138,7 @@ export default function Home() {
                   key={axis.id}
                   data-divergence-item
                   className="border-l-2 pl-3"
-                  style={{ borderColor: DOMAIN_COLORS[getDomainForAxis(axis.id)][600] }}
+                  style={{ borderColor: getDomainColor600(axis.id) }}
                 >
                   <p className="font-serif font-medium text-sm">{axis.name}</p>
                   <p className="mt-1 text-[12.5px] leading-[1.55] text-text-secondary">
@@ -158,7 +165,7 @@ export default function Home() {
           <p className="label-eyebrow text-text-label mb-[26px]">
             The twelve axes, by domain
           </p>
-          <div className="grid grid-cols-1 min-[560px]:grid-cols-4 gap-[22px] min-[560px]:gap-[30px]">
+          <div className="grid grid-cols-1 min-[560px]:grid-cols-2 min-[900px]:grid-cols-4 gap-[22px] min-[560px]:gap-[30px]">
             {DOMAIN_ORDER.map((key, index) => {
               const domain = DOMAIN_COLORS[key];
               return (

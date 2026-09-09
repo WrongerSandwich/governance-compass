@@ -108,6 +108,45 @@ describe("design delta token layer", () => {
     expect(theme["--color-text-label"]).toBe("var(--text-label)");
   });
 
+  it("inverts the panel rules by mode instead of freezing them on the Stone ramp", () => {
+    // The Stone ramp is fixed across modes, so `border-stone-900`/`-50` at a
+    // call site swap roles in dark: the header rule drops to 1.21:1 (gone) and
+    // the twelve row separators jump to 14.41:1 (twelve near-white hairlines).
+    // These two tokens carry the intent instead of the value — strong stays
+    // ~13:1 on its ground in both modes, hairline stays ~1.1-1.2:1.
+    expect(light["--rule-strong"]).toBe("var(--stone-900)");
+    expect(light["--rule-hairline"]).toBe("var(--stone-50)");
+    expect(dark["--rule-strong"]).toBe("var(--stone-100)");
+    expect(dark["--rule-hairline"]).toBe("var(--stone-900)");
+    expect(theme["--color-rule-strong"]).toBe("var(--rule-strong)");
+    expect(theme["--color-rule-hairline"]).toBe("var(--rule-hairline)");
+  });
+
+  it("keeps the home page's rules and marks off the fixed Stone ramp", () => {
+    // The guardrail that would have caught the inversion above: any bare
+    // `border-stone-*` / `bg-stone-*` on the restyled home page is a value that
+    // cannot follow the surface. Scoped to page.tsx because the unrestyled
+    // screens still carry Stone literals until their own phase sweeps them.
+    const page = readFileSync(resolve(process.cwd(), "src/app/page.tsx"), "utf8");
+    const offenders = page.match(/(?:border|bg)-stone-\d{2,3}(?![\w-])/g) ?? [];
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the returning-user link off the sub-AA tertiary text token", () => {
+    // It renders only for visitors with stored results, so no render test on
+    // the home page reaches it — this is asserted at the source. --text-tertiary
+    // is #9d8b78 in BOTH modes: 3.28:1 on surface-1, under AA's 4.5:1 for the
+    // 12px text it styles. --text-label steps by mode precisely to clear it.
+    const source = readFileSync(
+      resolve(process.cwd(), "src/components/ReturningUserLink.tsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("text-text-label");
+    expect(source).not.toContain("text-text-tertiary");
+  });
+
   it("keeps every button token mode-aware and mapped into the colour namespace", () => {
     // Structural invariant: any button token a later phase adds must carry a
     // dark override and a Tailwind mapping, or this fails.
