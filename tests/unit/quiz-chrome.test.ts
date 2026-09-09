@@ -10,6 +10,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { PhaseTransition } from "@/components/quiz/PhaseTransition";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
+import { ScaledQuestionCard } from "@/components/quiz/ScaledQuestionCard";
 // Type-only, so it is erased at compile time and adds no runtime import of
 // QuizFlow — which must stay dynamic, behind the `next/navigation` mock.
 import type { QuizFlowProps } from "@/components/quiz/QuizFlow";
@@ -507,5 +508,96 @@ describe("PhaseTransition", () => {
     expect(classes(button)).toContain("control");
     expect(classes(button)).toContain("w-full");
     expect(classes(button)).not.toContain("border-stone-600");
+  });
+});
+
+describe("ScaledQuestionCard", () => {
+  const base = {
+    questionStem: "How should services be funded?",
+    option1Label: "One", option1Detail: "Detail one.",
+    option2Label: "Two", option2Detail: "Detail two.",
+    option3Label: "Three", option3Detail: "Detail three.",
+    option4Label: "Four", option4Detail: "Detail four.",
+    option5Label: "Five", option5Detail: "Detail five.",
+    onSelect: () => {},
+  };
+
+  function renderScale(selectedValue: 1 | 2 | 3 | 4 | 5 | undefined) {
+    return render(createElement(ScaledQuestionCard, { ...base, selectedValue }));
+  }
+
+  it("sets the stem in the serif card role — it is content, not an instruction", () => {
+    const container = renderScale(undefined);
+    const stem = container.querySelector("p")!;
+
+    expect(stem.textContent).toBe("How should services be funded?");
+    expect(classes(stem)).toContain("display-s");
+    expect(classes(stem)).not.toContain("label");
+  });
+
+  it("prompts in the mono label role until a value is chosen", () => {
+    const container = renderScale(undefined);
+    const hint = [...container.querySelectorAll("p")].find(
+      (p) => p.textContent === "Select to see full description",
+    )!;
+
+    expect(classes(hint)).toContain("label");
+    expect(classes(hint)).toContain("text-text-label");
+    expect(classes(hint)).not.toContain("text-text-tertiary");
+  });
+
+  it("fills the chosen desktop segment with ink and leaves the others on paper", () => {
+    const container = renderScale(3);
+    const desktop = container.querySelector("[data-scale-segments]")!;
+    const buttons = [...desktop.querySelectorAll("button")];
+
+    expect(classes(buttons[2])).toContain("bg-button-primary");
+    expect(classes(buttons[2])).toContain("text-button-primary-fg");
+    // Stone 600 is the focus ring and the progress fill; it is not a fill here.
+    expect(classes(buttons[2])).not.toContain("bg-stone-200");
+    expect(classes(buttons[0])).toContain("bg-surface-1");
+    expect(classes(buttons[0])).not.toContain("bg-button-primary");
+  });
+
+  it("mirrors the choice card's border states in the mobile list", () => {
+    const container = renderScale(2);
+    const mobile = container.querySelector("[data-scale-list]")!;
+    const buttons = [...mobile.querySelectorAll("button")];
+
+    expect(classes(buttons[1])).toContain("border-rule-strong");
+    expect(classes(buttons[1])).not.toContain("opacity-60");
+    expect(classes(buttons[0])).toContain("border-border-secondary");
+    expect(classes(buttons[0])).toContain("opacity-60");
+  });
+
+  // Not in the plan. Added after a mutation sweep found that swapping the two
+  // wrappers' visibility classes, showing both at once, or hiding both, all
+  // left the whole suite green. jsdom evaluates no media query, so the class
+  // tokens are the only thing a unit test can hold — and
+  // `tests/e2e/quiz-flow.spec.ts` clicks the first *visible*
+  // `button[aria-pressed]`, which silently picks the wrong layout, or none.
+  it("shows exactly one of the two layouts at a time", () => {
+    const container = renderScale(undefined);
+    const desktop = classes(container.querySelector("[data-scale-segments]")!);
+    const mobile = classes(container.querySelector("[data-scale-list]")!);
+
+    expect(desktop).toContain("hidden");
+    expect(desktop).toContain("min-[560px]:flex");
+    expect(desktop).not.toContain("flex");
+
+    expect(mobile).toContain("flex");
+    expect(mobile).toContain("min-[560px]:hidden");
+    expect(mobile).not.toContain("hidden");
+  });
+
+  it("separates the detail text with a rule rather than a third surface", () => {
+    const container = renderScale(4);
+    const detail = container.querySelector("[data-scale-detail]")!;
+
+    expect(detail.textContent).toContain("Detail four.");
+    expect(classes(detail)).toContain("border-t");
+    // The quiz already spends its two surface switches on the ground and the
+    // cards; delta 04 caps it there.
+    expect(classes(detail)).not.toContain("bg-surface-2");
   });
 });

@@ -65,11 +65,14 @@ export function ScaledQuestionCard({
     const base =
       "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring focus-visible:z-10";
 
+    // The segmented bar has no per-item border to carry state, so the chosen
+    // segment takes the ink fill — the same token pair as the primary button,
+    // which means it inverts correctly on the dark ground.
     if (isSelected) {
-      return `${base} bg-stone-200 text-stone-600`;
+      return `${base} bg-button-primary text-button-primary-fg`;
     }
     if (hasSelection) {
-      return `${base} bg-surface-1 text-text-tertiary hover:bg-surface-2`;
+      return `${base} bg-surface-1 text-text-label hover:bg-surface-2`;
     }
     return `${base} bg-surface-1 text-text-secondary hover:bg-surface-2 hover:text-text-primary`;
   }
@@ -78,24 +81,28 @@ export function ScaledQuestionCard({
     const isSelected = selectedValue === value;
     const hasSelection = selectedValue !== undefined;
 
+    // The mobile rows do have borders, so they mirror the choice card exactly.
     const base =
       "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring";
 
     if (isSelected) {
-      return `${base} border-stone-600 bg-stone-100 text-stone-600`;
+      return `${base} border-rule-strong bg-surface-1 text-text-primary`;
     }
     if (hasSelection) {
-      return `${base} border-border-secondary bg-surface-1 text-text-tertiary opacity-70 hover:opacity-100 hover:border-border-primary`;
+      return `${base} border-border-secondary bg-surface-1 text-text-secondary opacity-60 hover:opacity-100 hover:border-stone-600`;
     }
-    return `${base} border-border-secondary bg-surface-1 text-text-secondary hover:border-border-primary hover:bg-surface-2`;
+    return `${base} border-border-secondary bg-surface-1 text-text-secondary hover:border-stone-600`;
   }
 
   return (
     <div className="rounded-sharp border border-border-secondary bg-surface-1 p-6">
-      <p className="text-[16px] font-medium text-text-primary"><AnnotatedText text={questionStem} /></p>
+      <p className="display-s text-text-primary">
+        <AnnotatedText text={questionStem} />
+      </p>
 
       {/* Desktop: horizontal segmented bar */}
       <div
+        data-scale-segments
         className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-sharp border border-border-secondary divide-x divide-border-secondary"
         role="group"
         aria-label="Response options"
@@ -115,6 +122,7 @@ export function ScaledQuestionCard({
 
       {/* Mobile: vertical list */}
       <div
+        data-scale-list
         className="mt-4 flex min-[560px]:hidden flex-col gap-2"
         role="group"
         aria-label="Response options"
@@ -133,15 +141,15 @@ export function ScaledQuestionCard({
       </div>
 
       {/* Detail text / hint */}
-      <div aria-live="polite" className="mt-3">
+      <div aria-live="polite" className="mt-4">
         {selectedDetail ? (
-          <div className="rounded-sharp bg-surface-2 p-3">
-            <p className="text-[13px] text-text-secondary leading-relaxed">
+          <div data-scale-detail className="border-t border-border-secondary pt-3">
+            <p className="text-[13.5px] leading-[1.6] text-text-secondary">
               {selectedDetail}
             </p>
           </div>
         ) : (
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center">
+          <p className="label text-text-label text-center">
             Select to see full description
           </p>
         )}
