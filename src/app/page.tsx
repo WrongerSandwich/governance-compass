@@ -14,17 +14,24 @@ const DOMAIN_ORDER: DomainKey[] = ["economic", "power", "society", "world"];
 
 const axisById = new Map(axes.map((axis) => [axis.id, axis]));
 const shortPole = (label: string) => label.split(" ")[0];
+
+/** The page shell all three regions share. Extracted so a gutter change lands
+ *  in one place rather than drifting across three near-identical strings. */
+const SHELL = "max-w-shell mx-auto px-[18px] min-[560px]:px-14";
 const axisNumber = (axisId: number) => String(axisId).padStart(2, "0");
 
 export default function Home() {
   const { respondent_a: a, respondent_b: b } = homeSample;
+  // The selector requires AT LEAST three strongly divergent axes, not exactly
+  // three, so this list can grow if a data regen picks a different pair. The
+  // panel renders however many arrive; the artifact test pins the current three.
   const diverging = homeSample.divergent_axis_ids.map((id) => axisById.get(id)!);
   const tensionAxis = axisById.get(homeSample.tension_axis_id)!;
 
   return (
     <main className="min-h-screen">
       {/* Hero */}
-      <div className="max-w-shell mx-auto px-[18px] min-[560px]:px-14 pt-[66px]">
+      <div className={`${SHELL} pt-[66px]`}>
         <div className="max-w-[800px]">
           <p className="label-eyebrow text-text-label mb-[22px]">
             A twelve-axis self-assessment
@@ -72,7 +79,9 @@ export default function Home() {
       </div>
 
       {/* Payoff block — a real pair of respondents, one row per axis */}
-      <div className="max-w-shell mx-auto px-[18px] min-[560px]:px-14 pt-11 pb-[52px] grid grid-cols-1 min-[900px]:grid-cols-[1fr_356px] gap-5 min-[900px]:gap-7 items-start">
+      <div
+        className={`${SHELL} pt-11 pb-[52px] grid grid-cols-1 min-[900px]:grid-cols-[1fr_356px] gap-5 min-[900px]:gap-7 items-start`}
+      >
         <div className="bg-surface-1 border border-border-secondary rounded-sharp px-[26px] py-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 border-b border-rule-strong mb-3.5">
             <p className="label-eyebrow text-text-label">Illustrative profile</p>
@@ -161,7 +170,7 @@ export default function Home() {
 
       {/* Domain footer */}
       <div className="bg-surface-1 border-t border-border-secondary">
-        <div className="max-w-shell mx-auto px-[18px] min-[560px]:px-14 pt-7 pb-12">
+        <div className={`${SHELL} pt-7 pb-12`}>
           <p className="label-eyebrow text-text-label mb-[26px]">
             The twelve axes, by domain
           </p>

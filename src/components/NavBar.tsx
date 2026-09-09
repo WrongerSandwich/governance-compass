@@ -46,6 +46,11 @@ export function NavBar() {
       aria-label="Main"
       className="bg-surface-1 border-b border-border-secondary px-[18px] min-[560px]:px-7"
     >
+      {/* `items-center`, not `items-stretch` as the phase-2 plan wrote it: the
+          brand link would then fill the bar's full height and its focus-ring
+          outline would draw as a full-height rectangle. The right-hand nav
+          group stretches on its own (`self-stretch` below) so the active
+          underline still meets the bar's bottom edge. */}
       <div className="max-w-shell mx-auto flex items-center justify-between h-[52px] min-[560px]:h-[54px]">
         <Link
           href="/"
