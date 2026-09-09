@@ -14,6 +14,7 @@ import { ComputingMessages } from "./ComputingMessages";
 import { encodeResponses } from "@/lib/response-codec";
 import type { QuizResponses } from "@/lib/scoring-types";
 import { saveLastResults } from "@/lib/last-results";
+import { Button } from "@/components/Button";
 
 // ---------- data types coming from the server component ----------
 
@@ -67,6 +68,14 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
   return out;
 }
 
+// ---------- shell metrics ----------
+
+/** Mock 6b's body column: 672px wide, 36px above, 52px below. Gutters are the
+ *  page's — `src/app/quiz/page.tsx` sets them to the nav's 18/28px so the
+ *  column lines up with the wordmark. Extracted so a metric change lands in one
+ *  place rather than drifting across the question screens. */
+const QUESTION_SHELL = "mx-auto max-w-2xl pt-9 pb-[52px]";
+
 // ---------- recovery ----------
 
 /**
@@ -78,20 +87,14 @@ function UnrecoverableState({ onReset }: { onReset: () => void }) {
   return (
     <div className="mx-auto max-w-[640px] py-12 text-center">
       <GovernanceCompassMark size={36} className="mx-auto mb-4" />
-      <h1 className="text-[22px] font-serif font-medium text-text-primary mb-2">
-        We lost your place
-      </h1>
-      <p className="text-sm text-text-secondary mb-8 leading-relaxed">
+      <h1 className="display-entry text-text-primary mb-2">We lost your place</h1>
+      <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-8">
         Your saved progress doesn&apos;t match the current assessment, so we can&apos;t pick
         it back up. Starting over takes about 16 minutes.
       </p>
-      <button
-        type="button"
-        onClick={onReset}
-        className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 focus-ring"
-      >
+      <Button variant="secondary" onClick={onReset}>
         Start over
-      </button>
+      </Button>
     </div>
   );
 }
@@ -223,24 +226,18 @@ export function QuizFlow({
     return (
       <div className="mx-auto max-w-[640px] py-12 text-center">
         <GovernanceCompassMark size={36} className="mx-auto mb-4" />
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-2">
-          Welcome back
-        </h1>
-        <p className="text-sm text-text-secondary mb-8 leading-relaxed">
+        <h1 className="display-entry text-text-primary mb-2">Welcome back</h1>
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-8">
           You have an assessment in progress — {answeredCount} responses recorded, currently in the {phaseLabel} phase.
         </p>
-        <div className="flex flex-col gap-3 max-w-xs mx-auto">
-          <button
-            type="button"
-            onClick={() => setResumeAcknowledged(true)}
-            className="rounded-sharp bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus-ring"
-          >
+        <div className="flex flex-col items-center gap-3 max-w-xs mx-auto">
+          <Button className="w-full" onClick={() => setResumeAcknowledged(true)}>
             Continue where I left off
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => { dispatch({ type: "RESET" }); setResumeAcknowledged(true); }}
-            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+            className="label-nav text-text-label hover:text-text-primary transition-colors duration-150 focus-ring"
           >
             Start over
           </button>
@@ -258,29 +255,21 @@ export function QuizFlow({
         <div className="rounded-sharp border border-border-secondary bg-surface-1 p-8 text-center">
           <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
 
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
-            Phase 1 of 3
-          </p>
-          <h1 className="text-[18px] font-serif font-medium text-text-primary mb-2">
-            Governance dilemmas
-          </h1>
-          <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
+          <p className="label text-text-label mb-2">Phase 1 of 3</p>
+          <h1 className="display-s text-text-primary mb-2">Governance dilemmas</h1>
+          <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-4">
             This first section presents pairs of statements about how a society
             should be governed. For each pair, choose the statement that comes
             closer to your view — even if neither is a perfect match. There are
             no right answers, and you can&apos;t choose both.
           </p>
-          <p className="text-xs font-serif italic text-text-tertiary mb-8">
+          <p className="caption-italic mb-8">
             36 questions &middot; ~8 minutes &middot; Your progress is saved automatically
           </p>
 
-          <button
-            type="button"
-            onClick={() => dispatch({ type: "START_QUIZ" })}
-            className="w-full rounded-sharp bg-stone-600 py-3 px-6 text-sm font-medium text-white hover:bg-stone-700 transition-colors duration-150 focus-ring"
-          >
+          <Button className="w-full" onClick={() => dispatch({ type: "START_QUIZ" })}>
             Begin
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -294,7 +283,7 @@ export function QuizFlow({
     const hasResponse = item.id in state.forcedChoiceResponses;
 
     return (
-      <div className="mx-auto max-w-2xl py-8">
+      <div data-quiz-shell className={QUESTION_SHELL}>
         <ProgressBar
           currentPhase={1}
           currentIndex={state.currentQuestionIndex}
@@ -306,9 +295,17 @@ export function QuizFlow({
         </div>
 
         {isFirst && !glossaryHintSeen && (
-          <p className="text-xs text-text-tertiary text-center mb-4 px-4">
+          <p className="text-[12.5px] leading-[1.6] text-text-secondary text-center mb-5">
             See a{" "}
-            <span style={{ textDecoration: "underline", textDecorationStyle: "dotted", textDecorationColor: "#C4A84A" }}>
+            <span
+              className="text-text-primary"
+              style={{
+                textDecoration: "underline",
+                textDecorationStyle: "dotted",
+                textDecorationColor: "#C4A84A",
+                textUnderlineOffset: "3px",
+              }}
+            >
               highlighted term
             </span>
             ? Tap it for a plain-language definition.
@@ -328,32 +325,22 @@ export function QuizFlow({
           randomizeOrder
         />
 
-        <div className="mt-8 flex justify-between">
-          <button
-            type="button"
-            onClick={handlePrev}
-            disabled={isFirst}
-            className="rounded-sharp border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+        <div className="mt-8 flex items-center justify-between gap-4">
+          <Button variant="secondary" onClick={handlePrev} disabled={isFirst}>
             Previous
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={!hasResponse}
-            className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          </Button>
+          <Button onClick={handleNext} disabled={!hasResponse}>
             {state.currentQuestionIndex === shuffledFC.length - 1
               ? "Continue"
               : "Next"}
-          </button>
+          </Button>
         </div>
         {!hasResponse && (
           <div className="mt-3 text-center">
             <button
               type="button"
               onClick={handleNext}
-              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+              className="label-nav text-text-label hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               Skip this question
             </button>
@@ -385,7 +372,7 @@ export function QuizFlow({
     const hasResponse = item.id in state.scaledResponses;
 
     return (
-      <div className="mx-auto max-w-2xl py-8">
+      <div data-quiz-shell className={QUESTION_SHELL}>
         <ProgressBar
           currentPhase={2}
           currentIndex={state.currentQuestionIndex}
@@ -413,32 +400,22 @@ export function QuizFlow({
           onSelect={(value) => handleSCSelect(item.id, value)}
         />
 
-        <div className="mt-8 flex justify-between">
-          <button
-            type="button"
-            onClick={handlePrev}
-            disabled={isFirst}
-            className="rounded-sharp border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+        <div className="mt-8 flex items-center justify-between gap-4">
+          <Button variant="secondary" onClick={handlePrev} disabled={isFirst}>
             Previous
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={!hasResponse}
-            className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          </Button>
+          <Button onClick={handleNext} disabled={!hasResponse}>
             {state.currentQuestionIndex === shuffledSC.length - 1
               ? "Continue"
               : "Next"}
-          </button>
+          </Button>
         </div>
         {!hasResponse && (
           <div className="mt-3 text-center">
             <button
               type="button"
               onClick={handleNext}
-              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+              className="label-nav text-text-label hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               Skip this question
             </button>
@@ -465,13 +442,13 @@ export function QuizFlow({
   // Phase 3: Budget simulator
   if (state.phase === "phase3") {
     return (
-      <div className="mx-auto max-w-2xl py-8">
+      <div data-quiz-shell className={QUESTION_SHELL}>
         <ProgressBar currentPhase={3} currentIndex={0} totalInPhase={1} />
 
         {finalizeError && (
           <p
             role="alert"
-            className="mb-4 rounded-sharp bg-warning-bg px-4 py-3 text-[13px] text-warning-text"
+            className="mb-4 border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
           >
             Something went wrong finalizing your budget. Your answers are still here — please try again.
           </p>
@@ -502,9 +479,7 @@ export function QuizFlow({
             }}
           />
         </div>
-        <h2 className="text-[18px] font-serif font-medium text-text-primary mb-2">
-          Computing your results
-        </h2>
+        <h2 className="display-s text-text-primary mb-2">Computing your results</h2>
         <ComputingMessages />
       </div>
     );

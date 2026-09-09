@@ -319,3 +319,127 @@ describe("ForcedChoiceCard", () => {
     expect(classes(body)).not.toContain("text-text-tertiary");
   });
 });
+
+describe("QuizFlow chrome", () => {
+  // `vi.resetModules()` in the file-level afterEach clears the module cache but
+  // NOT the mock registry — a `doMock` factory stays registered for the
+  // worker's lifetime, and `vmForks` shares one registry per worker. The
+  // describe that registers the mock is the one that has to retire it.
+  afterEach(() => {
+    vi.doUnmock("next/navigation");
+  });
+
+  async function renderPhaseOne() {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+    const { QuizFlow } = await import("@/components/quiz/QuizFlow");
+    const { QuizProvider } = await import("@/components/quiz/QuizProvider");
+
+    const container = render(
+      createElement(
+        QuizProvider,
+        null,
+        createElement(QuizFlow, {
+          forcedChoiceItems: [
+            {
+              id: "FC-1", axisId: 1, itemNumber: 1, questionType: "FC",
+              abstractionLevel: "concrete",
+              headlineA: "Public goods", bodyA: "Funded by tax.",
+              headlineB: "Private providers", bodyB: "Funded by market.",
+            },
+            {
+              id: "FC-2", axisId: 2, itemNumber: 1, questionType: "FC",
+              abstractionLevel: "concrete",
+              headlineA: "Local control", bodyA: "Decide near home.",
+              headlineB: "Shared institutions", bodyB: "Decide together.",
+            },
+          ],
+          scaledItems: [],
+          ministries: [],
+        }),
+      ),
+    );
+
+    // The intro interstitial renders first; step past it into phase 1.
+    const begin = [...container.querySelectorAll("button")].find(
+      (b) => b.textContent?.trim() === "Begin",
+    )!;
+    act(() => begin.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    return container;
+  }
+
+  function byText(container: Element, text: string) {
+    return [...container.querySelectorAll("button")].find(
+      (b) => b.textContent?.trim() === text,
+    )!;
+  }
+
+  it("opens on an interstitial whose call to action is the ink primary", async () => {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+    const { QuizFlow } = await import("@/components/quiz/QuizFlow");
+    const { QuizProvider } = await import("@/components/quiz/QuizProvider");
+    const container = render(
+      createElement(QuizProvider, null,
+        createElement(QuizFlow, { forcedChoiceItems: [], scaledItems: [], ministries: [] })),
+    );
+
+    const begin = byText(container, "Begin");
+    expect(classes(begin)).toContain("bg-button-primary");
+    expect(classes(begin)).toContain("control");
+    expect(classes(begin)).toContain("w-full");
+    // The variant owns display and padding; className must never fight it.
+    expect(classes(begin)).not.toContain("block");
+    expect(container.querySelector("h1")!.textContent).toBe("Governance dilemmas");
+    expect(classes(container.querySelector("h1")!)).toContain("display-s");
+  });
+
+  it("pairs an outlined Previous with an ink-filled Next", async () => {
+    const container = await renderPhaseOne();
+
+    const previous = byText(container, "Previous");
+    const next = byText(container, "Next");
+
+    expect(classes(previous)).toContain("border-border-primary");
+    expect(classes(previous)).toContain("control");
+    expect(classes(previous)).not.toContain("bg-button-primary");
+    expect(previous.disabled).toBe(true);
+
+    // Spec decision D1: the mock draws Next as an ink fill, and that wins over
+    // CLAUDE.md's filled-button count, which #137 rewrites.
+    expect(classes(next)).toContain("bg-button-primary");
+    expect(classes(next)).toContain("text-button-primary-fg");
+    expect(next.disabled).toBe(true);
+  });
+
+  it("keeps Skip a focusable mono link while the question is unanswered", async () => {
+    const container = await renderPhaseOne();
+    const skip = byText(container, "Skip this question");
+
+    expect(classes(skip)).toContain("label-nav");
+    expect(classes(skip)).toContain("text-text-label");
+    // The shipped skip link had no focus affordance at all.
+    expect(classes(skip)).toContain("focus-ring");
+  });
+
+  it("hides Skip and enables Next once a dilemma is answered", async () => {
+    const container = await renderPhaseOne();
+    const card = container.querySelector("[data-choice-card]")!;
+    act(() => card.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    expect(byText(container, "Next").disabled).toBe(false);
+    expect(container.textContent).not.toContain("Skip this question");
+  });
+
+  it("holds the column at the mock's 672px with the nav's gutters on the page", async () => {
+    const container = await renderPhaseOne();
+    const shell = container.querySelector("[data-quiz-shell]")!;
+
+    expect(classes(shell)).toContain("max-w-2xl");
+    expect(classes(shell)).toContain("pt-9");
+    expect(classes(shell)).toContain("pb-[52px]");
+    // Gutters live on <main>, so the column lines up with the wordmark.
+    // The shipped shell was `py-8`; 6b asks for 36 above and 52 below.
+    expect(classes(shell)).not.toContain("py-8");
+  });
+});
