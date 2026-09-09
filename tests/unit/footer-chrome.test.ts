@@ -44,6 +44,9 @@ describe("footer chrome", () => {
     expect(groups[0].textContent).toBe("Privacy-first · No data sold");
     expect(groups[1].textContent).toContain("Source on GitHub");
     expect(groups[1].textContent).toContain("PolyForm Noncommercial");
+
+    const row = container.querySelector(".mono-meta")!;
+    expect(row.className.split(/\s+/)).toContain("justify-between");
   });
 
   it("keeps both external links attributed and safe", () => {
@@ -55,5 +58,9 @@ describe("footer chrome", () => {
       expect(anchor.getAttribute("rel")).toBe("noopener noreferrer");
       expect(anchor.getAttribute("target")).toBe("_blank");
     }
+    expect(anchors.map((anchor) => anchor.getAttribute("href"))).toEqual([
+      "https://github.com/WrongerSandwich/governance-compass",
+      "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+    ]);
   });
 });
