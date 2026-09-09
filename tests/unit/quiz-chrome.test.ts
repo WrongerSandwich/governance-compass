@@ -599,5 +599,16 @@ describe("ScaledQuestionCard", () => {
     // The quiz already spends its two surface switches on the ground and the
     // cards; delta 04 caps it there.
     expect(classes(detail)).not.toContain("bg-surface-2");
+    // `mt-4` replaced `mt-3` on the live region. 4px is invisible and the old
+    // value still reads as correct, so nothing else catches a revert.
+    expect(classes(detail.parentElement!)).toContain("mt-4");
+    // The prose pair replaced `text-[13px] leading-relaxed`. Task 8 guards the
+    // 13.5px/1.6 PAIRING but not its presence — reverting BOTH halves passes
+    // that guard vacuously, because a file with no `text-[13.5px]` has no
+    // offender to report.
+    const prose = detail.querySelector("p")!;
+    expect(classes(prose)).toContain("text-[13.5px]");
+    expect(classes(prose)).toContain("leading-[1.6]");
+    expect(classes(prose)).not.toContain("leading-relaxed");
   });
 });
