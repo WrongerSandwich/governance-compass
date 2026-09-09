@@ -382,7 +382,7 @@ export default function ArchetypesPage() {
         <div className="border-t border-border-secondary mt-12 pt-6 text-center">
           <Link
             href="/quiz"
-            className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-[8px] text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
+            className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-sharp text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
           >
             Begin assessment
           </Link>

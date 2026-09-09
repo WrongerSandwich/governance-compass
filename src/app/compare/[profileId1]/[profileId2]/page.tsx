@@ -97,7 +97,7 @@ export default async function ComparePage({
           <span className="font-medium text-text-primary">{labelB}</span>
         </p>
 
-        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+        <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-8">
           <AlignmentScore score={comparison.alignmentScore} />
           <ComparisonRadar
             axisScoresA={axisScoresA}
@@ -108,7 +108,7 @@ export default async function ComparePage({
           />
         </div>
 
-        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-8">
+        <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-8">
           <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-4">
             By axis
           </h2>
@@ -140,7 +140,7 @@ export default async function ComparePage({
 
         {comparison.closestAxes.length > 0 && (
           <div className="grid min-[560px]:grid-cols-2 gap-4 mb-8">
-            <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+            <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6">
               <h3 className="font-medium text-text-primary mb-3 text-sm">
                 Most aligned
               </h3>
@@ -153,7 +153,7 @@ export default async function ComparePage({
                 </div>
               ))}
             </div>
-            <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6">
+            <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6">
               <h3 className="font-medium text-text-primary mb-3 text-sm">
                 Most divergent
               </h3>

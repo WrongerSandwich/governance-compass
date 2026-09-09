@@ -79,7 +79,7 @@ export function ScaledQuestionCard({
     const hasSelection = selectedValue !== undefined;
 
     const base =
-      "flex w-full items-center rounded-[12px] border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600";
+      "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600";
 
     if (isSelected) {
       return `${base} border-stone-600 bg-stone-100 text-stone-600`;
@@ -91,12 +91,12 @@ export function ScaledQuestionCard({
   }
 
   return (
-    <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-6">
+    <div className="rounded-sharp border border-border-secondary bg-surface-1 p-6">
       <p className="text-[16px] font-medium text-text-primary"><AnnotatedText text={questionStem} /></p>
 
       {/* Desktop: horizontal segmented bar */}
       <div
-        className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-[12px] border border-border-secondary divide-x divide-border-secondary"
+        className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-sharp border border-border-secondary divide-x divide-border-secondary"
         role="group"
         aria-label="Response options"
       >
@@ -135,7 +135,7 @@ export function ScaledQuestionCard({
       {/* Detail text / hint */}
       <div aria-live="polite" className="mt-3">
         {selectedDetail ? (
-          <div className="rounded-[8px] bg-surface-2 p-3">
+          <div className="rounded-sharp bg-surface-2 p-3">
             <p className="text-[13px] text-text-secondary leading-relaxed">
               {selectedDetail}
             </p>

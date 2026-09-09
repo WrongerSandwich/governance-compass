@@ -90,7 +90,7 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
       {open && typeof document !== "undefined" && createPortal(
         <div
           ref={tooltipRef}
-          className="z-[9999] max-w-[calc(100vw-2rem)] w-[280px] rounded-[8px] border border-border-secondary p-3 shadow-sm text-left bg-surface-1"
+          className="z-[9999] max-w-[calc(100vw-2rem)] w-[280px] rounded-sharp border border-border-secondary p-3 shadow-sm text-left bg-surface-1"
           style={style}
           role="tooltip"
           onClick={(event) => event.stopPropagation()}

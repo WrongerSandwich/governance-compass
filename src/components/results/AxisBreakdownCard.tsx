@@ -62,7 +62,7 @@ export function AxisBreakdownCard({
 
   return (
     <div
-      className={`rounded-[8px] px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}
+      className={`rounded-sharp px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}
     >
       {/* Axis name row */}
       <div className="flex items-center justify-between mb-0.5">
@@ -70,7 +70,7 @@ export function AxisBreakdownCard({
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-text-tertiary">{confidenceText}</span>
           {tension.detected && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-[8px] bg-warning-bg text-warning-text">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-sharp bg-warning-bg text-warning-text">
               tension
             </span>
           )}
@@ -100,21 +100,21 @@ export function AxisBreakdownCard({
           </button>
 
           {expanded && (
-            <div className="mt-2 bg-surface-2 rounded-[8px] p-3 space-y-2">
+            <div className="mt-2 bg-surface-2 rounded-sharp p-3 space-y-2">
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-surface-1 rounded-[8px] p-2">
+                <div className="bg-surface-1 rounded-sharp p-2">
                   <p className="text-[11px] text-text-tertiary mb-0.5">Forced choice</p>
                   <p className="text-xs font-mono font-medium text-text-primary tabular-nums">
                     {formatScore(components.fc)}
                   </p>
                 </div>
-                <div className="bg-surface-1 rounded-[8px] p-2">
+                <div className="bg-surface-1 rounded-sharp p-2">
                   <p className="text-[11px] text-text-tertiary mb-0.5">Calibrated scale</p>
                   <p className="text-xs font-mono font-medium text-text-primary tabular-nums">
                     {formatScore(components.sc)}
                   </p>
                 </div>
-                <div className="bg-surface-1 rounded-[8px] p-2">
+                <div className="bg-surface-1 rounded-sharp p-2">
                   <p className="text-[11px] text-text-tertiary mb-0.5">Budget</p>
                   <p className="text-xs font-mono font-medium text-text-primary tabular-nums">
                     {formatScore(components.bg)}

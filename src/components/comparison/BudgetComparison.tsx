@@ -74,7 +74,7 @@ export function BudgetComparison({
         return (
           <div
             key={ministry.id}
-            className={`rounded-[8px] px-3 py-3 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
+            className={`rounded-sharp px-3 py-3 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
           >
             {/* Ministry header */}
             <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">

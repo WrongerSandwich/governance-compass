@@ -42,7 +42,7 @@ export default function ReferencesPage() {
             <Link
               key={page.href}
               href={page.href}
-              className="block rounded-[8px] border border-border-secondary px-5 py-4 hover:bg-surface-2 transition-colors duration-150"
+              className="block rounded-sharp border border-border-secondary px-5 py-4 hover:bg-surface-2 transition-colors duration-150"
             >
               <h2 className="text-[17px] font-serif font-medium text-text-primary mb-1">
                 {page.title}
@@ -58,7 +58,7 @@ export default function ReferencesPage() {
           <div className="text-center">
             <Link
               href="/quiz"
-              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
             >
               Take the assessment
             </Link>

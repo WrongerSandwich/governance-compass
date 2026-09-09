@@ -30,7 +30,7 @@ export default function SignInPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-8 w-full max-w-md">
+      <div className="bg-surface-1 rounded-sharp border border-border-secondary p-8 w-full max-w-md">
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">Sign in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -44,7 +44,7 @@ export default function SignInPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               aria-required="true"
-              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
             />
           </div>
           <div>
@@ -58,7 +58,7 @@ export default function SignInPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               aria-required="true"
-              className="w-full rounded-[8px] border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
             />
           </div>
           <div aria-live="polite" aria-atomic="true">
@@ -66,7 +66,7 @@ export default function SignInPage() {
           </div>
           <button
             type="submit"
-            className="w-full border border-stone-600 text-stone-600 py-2 rounded-[8px] font-medium hover:bg-stone-100 transition-colors duration-150"
+            className="w-full border border-stone-600 text-stone-600 py-2 rounded-sharp font-medium hover:bg-stone-100 transition-colors duration-150"
           >
             Sign in
           </button>
@@ -74,7 +74,7 @@ export default function SignInPage() {
         <div className="mt-4">
           <button
             onClick={() => signIn("google", { callbackUrl: "/account" })}
-            className="w-full border border-border-primary text-text-secondary py-2 rounded-[8px] font-medium hover:bg-surface-2 transition-colors duration-150"
+            className="w-full border border-border-primary text-text-secondary py-2 rounded-sharp font-medium hover:bg-surface-2 transition-colors duration-150"
           >
             Continue with Google
           </button>

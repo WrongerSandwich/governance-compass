@@ -21,7 +21,7 @@ export function GroupHeatMap({ stats }: { stats: AxisStat[] }) {
         return (
           <div
             key={stat.axisName}
-            className={`flex justify-between items-center px-3 py-2 rounded-[8px] ${bg}`}
+            className={`flex justify-between items-center px-3 py-2 rounded-sharp ${bg}`}
           >
             <span className="text-sm font-medium">{stat.axisName}</span>
             <span className="text-xs font-mono tabular-nums">

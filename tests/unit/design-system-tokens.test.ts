@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -26,7 +26,8 @@ function block(css: string, opener: string): string {
 /** Custom-property declarations in a block, whitespace-normalised. */
 function decls(css: string): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const [, name, value] of css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+  const body = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
     out[name] = value.trim();
   }
   return out;
@@ -39,7 +40,7 @@ const dark = decls(
 const theme = decls(block(globalsCss, "@theme inline"));
 
 const utilities = [
-  ...globalsCss.matchAll(/@utility ([a-z-]+) \{([^}]*)\}/g),
+  ...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{([^}]*)\}/g),
 ].map(([, name, body]) => ({ name, body }));
 
 const TYPE_SCALE = [
@@ -107,5 +108,38 @@ describe("design delta token layer", () => {
 
     expect(sizes).toHaveLength(TYPE_SCALE.length);
     expect(Math.min(...sizes)).toBeGreaterThanOrEqual(11);
+  });
+});
+
+describe("near-square corners (design delta 02)", () => {
+  function tsxFiles(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = resolve(dir, entry.name);
+      if (entry.isDirectory()) return tsxFiles(path);
+      return entry.name.endsWith(".tsx") ? [path] : [];
+    });
+  }
+
+  const sources = tsxFiles(resolve(process.cwd(), "src")).map((file) => ({
+    file,
+    text: readFileSync(file, "utf8"),
+  }));
+
+  it("has retired every 12px and 8px radius class literal from src", () => {
+    const offenders = sources
+      .filter(({ text }) => /rounded-\[(?:12|8)px\]/.test(text))
+      .map(({ file }) => file);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("has retired every 12px and 8px inline border radius from src", () => {
+    // A class-only sweep misses inline styles, which is how CompareView's
+    // panel kept an 8px corner. Guard both spellings, not just the tidy one.
+    const offenders = sources
+      .filter(({ text }) => /borderRadius:\s*["'](?:12|8)px["']/.test(text))
+      .map(({ file }) => file);
+
+    expect(offenders).toEqual([]);
   });
 });

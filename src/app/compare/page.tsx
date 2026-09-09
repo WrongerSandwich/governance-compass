@@ -35,7 +35,7 @@ function CopyLinkButton() {
   return (
     <button
       onClick={handleCopy}
-      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
+      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
     >
       {copied ? "Copied!" : "Copy comparison link"}
     </button>
@@ -136,7 +136,7 @@ function CompareResults() {
         </FadeInSection>
 
         <FadeInSection delay={100}>
-          <div className="bg-surface-2 rounded-[12px] p-6 mb-8">
+          <div className="bg-surface-2 rounded-sharp p-6 mb-8">
             <AlignmentScore score={comparison.alignmentScore} />
             <ComparisonRadar
               axisScoresA={axisScoresA}

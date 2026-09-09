@@ -86,7 +86,7 @@ export default async function AxisDetailPage({
         </div>
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">{axis.name}</h1>
 
-        <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+        <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
           <ScoreBar
             score={axisScore.finalScore}
             poleALabel={axis.poleALabel}
@@ -95,21 +95,21 @@ export default async function AxisDetailPage({
           />
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
-            <div className="bg-surface-2 rounded-[8px] p-3">
+            <div className="bg-surface-2 rounded-sharp p-3">
               <div className="text-[11px] text-text-tertiary mb-1">Forced choice</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.fcScore >= 0 ? "+" : ""}
                 {axisScore.fcScore.toFixed(2)}
               </div>
             </div>
-            <div className="bg-surface-2 rounded-[8px] p-3">
+            <div className="bg-surface-2 rounded-sharp p-3">
               <div className="text-[11px] text-text-tertiary mb-1">Scaled</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.scScore >= 0 ? "+" : ""}
                 {axisScore.scScore.toFixed(2)}
               </div>
             </div>
-            <div className="bg-surface-2 rounded-[8px] p-3">
+            <div className="bg-surface-2 rounded-sharp p-3">
               <div className="text-[11px] text-text-tertiary mb-1">Budget</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.bgScore != null
@@ -121,7 +121,7 @@ export default async function AxisDetailPage({
           </div>
 
           {axisScore.tensionLevel !== "none" && axisScore.tensionNarrative && (
-            <div className="mt-4 rounded-[8px] p-3" style={{ backgroundColor: 'var(--warning-bg)', borderColor: 'var(--warning-border)', borderWidth: '1px' }}>
+            <div className="mt-4 rounded-sharp p-3" style={{ backgroundColor: 'var(--warning-bg)', borderColor: 'var(--warning-border)', borderWidth: '1px' }}>
               <p className="text-[13px] text-text-secondary">{axisScore.tensionNarrative}</p>
             </div>
           )}
@@ -137,7 +137,7 @@ export default async function AxisDetailPage({
               {fcResponses.map((r) => (
                 <div
                   key={r.id}
-                  className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
+                  className="bg-surface-1 rounded-sharp border border-border-secondary p-4"
                 >
                   <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-3 text-sm">
                     <div
@@ -179,7 +179,7 @@ export default async function AxisDetailPage({
                 return (
                   <div
                     key={r.id}
-                    className="bg-surface-1 rounded-[8px] border border-border-secondary p-4"
+                    className="bg-surface-1 rounded-sharp border border-border-secondary p-4"
                   >
                     <p className="text-text-primary text-sm mb-2">
                       {r.item.questionStem}
@@ -220,7 +220,7 @@ export default async function AxisDetailPage({
             {axisScore.annotations.map((a) => (
               <div
                 key={a.id}
-                className="bg-surface-1 rounded-[8px] border border-border-secondary p-4 text-sm text-text-secondary"
+                className="bg-surface-1 rounded-sharp border border-border-secondary p-4 text-sm text-text-secondary"
               >
                 {a.text}
               </div>

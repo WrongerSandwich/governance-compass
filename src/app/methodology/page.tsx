@@ -191,7 +191,7 @@ export default function MethodologyPage() {
           </p>
           <Link
             href="/quiz"
-            className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+            className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
           >
             Begin the assessment
           </Link>
