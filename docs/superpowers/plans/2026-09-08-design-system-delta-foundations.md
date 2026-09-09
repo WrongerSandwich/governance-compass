@@ -1032,8 +1032,12 @@ describe("footer chrome", () => {
 
 Run: `npm test -- tests/unit/footer-chrome.test.ts`
 
-Expected: FAIL on the first test — the footer renders `text-xs`, so `.label`
-matches nothing.
+Expected: FAIL on the first two tests. The footer currently renders `text-xs`
+in a single centred row, so `.mono-meta` matches nothing and there are no
+`[data-footer-group]` elements. The third test — external-link safety — passes
+before any change, because the shipped footer already sets `target` and `rel`
+correctly on both anchors; that is expected, not a sign the assertion is
+vacuous.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -1157,6 +1161,9 @@ Known drift to fix:
   left Step 5's dropdown-item edit unguarded — reverting it alone kept the
   suite green. Replaced with an exact closed-state count of 2 plus a
   per-menuitem assertion inside the dropdown test.
+- Task 5's Step 1 never asserts the licence `href` or the row's
+  `justify-between`, so repointing the licence link and re-centring the row
+  both passed. Both are now pinned.
 - Task 3's Step 1 still shows `toContain` class assertions. Those were
   replaced with a `hasClass` whole-token helper, because `bg-button-primary`
   is a substring of `hover:bg-button-primary-hover` and `border-b` of
