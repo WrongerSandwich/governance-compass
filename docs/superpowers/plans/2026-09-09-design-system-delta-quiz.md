@@ -411,7 +411,10 @@ describe("ProgressBar", () => {
     );
     const fills = [...container.querySelectorAll("[data-progress-fill]")] as HTMLElement[];
 
-    // Without the `totalInPhase > 0` guard this is "Infinity%". A rewrite that
+    // Without the `totalInPhase > 0` guard the width computes to "Infinity%",
+    // which jsdom's style setter rejects outright, so the observed value is ""
+    // rather than "Infinity%". Either way this assertion fails — but don't
+    // write the comment as if "Infinity%" is what you'd see. A rewrite that
     // claims to preserve a guard should pin the guard.
     expect(fills[0].style.width).toBe("0%");
   });
