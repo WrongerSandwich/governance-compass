@@ -67,16 +67,36 @@ afterEach(() => {
 describe("nav bar chrome", () => {
   it("sets the wordmark in the mono wordmark role", async () => {
     const container = await renderNav();
-    const wordmark = container.querySelector(".wordmark")!;
+    // `wordmark-sm` is the unprefixed base; `wordmark` now only arrives
+    // through the 560px variant, so it is not a class token on its own.
+    const wordmark = container.querySelector(".wordmark-sm")!;
 
     expect(wordmark).not.toBeNull();
     expect(wordmark.textContent).toBe("Governance Compass");
   });
 
-  it("stands 54px tall", async () => {
+  it("uses the mobile bar metrics below the breakpoint", async () => {
     const container = await renderNav();
+    const bar = container.querySelector(".max-w-shell")!;
+    const classes = bar.className.split(/\s+/);
 
-    expect(container.querySelector(".h-\\[54px\\]")).not.toBeNull();
+    // 52px at mobile, 54px from the breakpoint up (mock 6a vs 5a).
+    expect(classes).toContain("h-[52px]");
+    expect(classes).toContain("min-[560px]:h-[54px]");
+  });
+
+  it("steps the wordmark down a size on mobile via a sibling role", async () => {
+    const container = await renderNav();
+    const wordmark = container.querySelector(".wordmark-sm")!;
+
+    // `wordmark` is self-contained; layering a built-in over it is unreliable,
+    // so the smaller variant is its own role. Compared token-wise, because a
+    // substring match here would also accept the `-sm` variant of this class,
+    // which is the opposite of what the breakpoint is for. (Spelling that
+    // wrong class out in a comment is enough for Tailwind's scanner to emit
+    // a dead rule for it, so it is described rather than written.)
+    expect(wordmark).not.toBeNull();
+    expect(wordmark.className.split(/\s+/)).toContain("min-[560px]:wordmark");
   });
 
   it("labels every nav destination with the 0.10em mono nav role", async () => {

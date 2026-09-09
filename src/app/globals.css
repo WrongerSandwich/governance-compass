@@ -404,6 +404,20 @@ body {
   text-transform: uppercase;
 }
 
+/* Mock 6a sets the wordmark a step smaller and more tightly tracked below the
+   560px breakpoint. A sibling role rather than `wordmark text-[11px]
+   tracking-[0.13em]`, for the same reason as `mono-meta`: the roles in this
+   scale are self-contained, and the emitted order of a custom `@utility`
+   against a built-in is too subtle to rely on. */
+@utility wordmark-sm {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
 /* ============================================
    Focus ring — the one interactive affordance the whole app shares.
 

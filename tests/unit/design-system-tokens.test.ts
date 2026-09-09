@@ -75,6 +75,7 @@ const TYPE_SCALE = [
   "mono-meta",
   "control",
   "wordmark",
+  "wordmark-sm",
   "caption-italic",
 ];
 
