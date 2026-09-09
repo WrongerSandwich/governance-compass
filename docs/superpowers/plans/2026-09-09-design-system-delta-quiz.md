@@ -574,6 +574,7 @@ describe("ForcedChoiceCard", () => {
     // `toContain` on the raw className passes on all three.
     expect(classes(prompt)).not.toContain("label-eyebrow");
     expect(classes(prompt)).toContain("text-text-label");
+    expect(classes(prompt)).toContain("mb-[18px]");
     // Mock 6b is explicit that this is not a heading.
     expect(container.querySelector("h1, h2, h3, h4")).toBeNull();
   });
@@ -641,6 +642,7 @@ describe("ForcedChoiceCard", () => {
     expect(marker.textContent).toBe("Selected");
     expect(classes(marker)).toContain("label");
     expect(classes(marker)).toContain("font-medium");
+    expect(classes(marker)).toContain("mt-3.5");
 
     expect(classes(other)).toContain("opacity-60");
     expect(classes(other)).toContain("border-border-secondary");
@@ -678,12 +680,20 @@ describe("ForcedChoiceCard", () => {
     );
   });
 
+  // The three `mb-`/`mt-` assertions in this describe are the weakest in the
+  // file: pure mirrors of a class name, with no negative counterpart and no
+  // failure mode beyond "someone edited this line". They are kept because all
+  // three mutated green before they existed and they cost one line each — but
+  // they are NOT the model to extend. See the pinning rule in Global
+  // Constraints: the assertions that pay for themselves here are the negative
+  // ones and the structural `:scope > button` pair.
   it("sets option headlines in the serif card role and bodies at the delta's prose size", () => {
     const container = renderCard(undefined);
     const card = container.querySelector("[data-choice-card]")!;
     const [headline, body] = card.querySelectorAll("p");
 
     expect(classes(headline)).toContain("display-s");
+    expect(classes(headline)).toContain("mb-2.5");
     expect(classes(body)).toContain("text-[13.5px]");
     // This replaced `leading-relaxed` (1.625), which still reads as correct to
     // a reviewer — the case the pinning rule exists for.
