@@ -579,6 +579,14 @@ describe("ForcedChoiceCard", () => {
     expect(classes(other)).toContain("opacity-60");
     expect(classes(other)).toContain("border-border-secondary");
     expect(other.querySelector("[data-selected-marker]")).toBeNull();
+
+    // The focus-ring coupling again, pinned in the selected state too. The
+    // states share `cardClasses` and the JSX, but a selected-state restyle that
+    // wrapped the card's contents would otherwise slip through.
+    for (const card of cards) {
+      expect(classes(card)).toContain("focus-ring-child");
+      expect(card.querySelector(":scope > button")).not.toBeNull();
+    }
   });
 
   it("sets option headlines in the serif card role and bodies at the delta's prose size", () => {
@@ -2008,7 +2016,7 @@ BODY
 
 Two things this phase touched that the results page will want:
 
-- **`focus-ring-child`** is now available for any card that draws a ring on a wrapper. `AxisBreakdownCard`'s disclosure rows are the likely next consumer. Note its scope: a direct `button` child, deliberately, so a focusable descendant deeper in the prose does not claim the parent's ring.
+- **`focus-ring-child`** is now available for any card that draws a ring on a wrapper. `AxisBreakdownCard`'s disclosure rows are the likely next consumer. Note its scope: a direct `button` child, deliberately, so a focusable descendant deeper in the prose does not claim the parent's ring. **A second consumer inherits that requirement with no guardrail of its own** — the utility test pins the selector, not any caller's DOM. Every consumer needs its own `:scope > button` assertion, the way Task 3's card test does.
 - **The ink-fill selection pattern** (`bg-button-primary` / `text-button-primary-fg` on a chosen segment) is the inverting way to mark a selected control. `ResultsView`'s jump nav and the compare input's controls will need the same treatment.
 
 `QuizProvider.tsx` was left alone deliberately — it holds the reducer and the
