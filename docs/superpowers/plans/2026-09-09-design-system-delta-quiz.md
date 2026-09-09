@@ -4,7 +4,7 @@
 
 **Goal:** Restyle every quiz surface onto the Phase 1 token layer so the assessment reads as the same surveyed instrument as the home page — and fix the choice card's focus ring, which has never painted.
 
-**Architecture:** Restyle only. No component is added, removed, split, or given new state; the quiz reducer, the seeded shuffle, autosave/resume, skip, and keyboard 1–5 are untouched. The work is class-level: mono label layer, `display-*` serif roles, `Button` at every call site, 1px rules instead of 2px borders, and ink-fill selection. One new `@utility` (`focus-within-ring`) joins `focus-ring` in `globals.css` because the choice card draws its ring on a wrapper while the focusable element is the `sr-only` button inside it.
+**Architecture:** Restyle only. No component is added, removed, split, or given new state; the quiz reducer, the seeded shuffle, autosave/resume, skip, and keyboard 1–5 are untouched. The work is class-level: mono label layer, `display-*` serif roles, `Button` at every call site, 1px rules instead of 2px borders, and ink-fill selection. One new `@utility` (`focus-ring-child`) joins `focus-ring` in `globals.css` because the choice card draws its ring on a wrapper while the focusable element is the `sr-only` button inside it.
 
 **Tech Stack:** Next.js 16 (App Router), TypeScript, Tailwind CSS 4.3.3, Vitest 4 (jsdom via docblock, `vmForks` pool), Playwright.
 
@@ -22,7 +22,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 - **`className` does NOT override variant classes on `Button`/`ButtonLink`.** Appending does not win; Tailwind's emitted order does, and the variant utilities land later in the sheet. `className` is only for properties no variant sets — margin, width, position. `w-full` is the verified conflict-free way to go full-width. Never pass `block`, `px-*`, or a text colour.
 - **Typography roles** (`display-s`, `display-entry`, `body-lead`, `label`, `label-nav`, `label-eyebrow`, `label-tight`, `control`, `caption-italic`) are single self-contained classes. Do not layer a built-in utility over one to vary a property the role already sets. Layering a property the role does **not** set is safe — `label` declares no `font-weight`, so `label font-medium` is fine, and `caption-italic` declares `color`, so a colour class next to it is not.
 - **`rounded-sharp`** for corners; a guardrail bans `rounded-[8px]`/`[12px]`/`lg`/`xl`. The `rounded-[3px]` literals in `BudgetSimulator` are in scope for this phase (Task 7) but retiring them does not close #139.
-- **`focus-ring`** (or, from Task 1, `focus-within-ring`) for every interactive element. Never hand-roll `outline-none` + `outline-2`; a source guardrail fails on both spellings after Task 1.
+- **`focus-ring`** (or, from Task 1, `focus-ring-child`) for every interactive element. Never hand-roll `outline-none` + `outline-2`; a source guardrail fails on both spellings after Task 1.
 - No new colour values. No Tailwind `dark:` variants — dark mode is `prefers-color-scheme` overriding `:root` custom properties. Watch for the inverse of that: a hard-coded ramp value like `text-stone-800` reads as near-black on a dark ground. Task 5 fixes one.
 - The codebase's single responsive breakpoint is `min-[560px]`. `sm:` (640px) appears once in the quiz, in `BudgetSimulator`; Task 7 converts it.
 - Vitest collects only `tests/**/*.test.ts` and `scripts/__tests__/**/*.test.ts`, never `.tsx`. Component tests use `createElement` with a `@vitest-environment jsdom` docblock.
@@ -40,7 +40,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 
 | File | Change | Responsibility after this phase |
 | --- | --- | --- |
-| `src/app/globals.css` | Modify (append one `@utility`) | Adds `focus-within-ring` beside `focus-ring`. |
+| `src/app/globals.css` | Modify (append one `@utility`) | Adds `focus-ring-child` beside `focus-ring`. |
 | `src/app/quiz/page.tsx` | Modify (1 line) | Owns the quiz gutters (18px / 28px), matching the nav. |
 | `src/components/quiz/ProgressBar.tsx` | Modify | Mock 6b's label row + three 3px segments. |
 | `src/components/quiz/ForcedChoiceCard.tsx` | Modify | Mock 6b's prompt, two-column option grid, and the three card states. |
@@ -64,7 +64,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 - Modify: `tests/unit/design-system-tokens.test.ts` — the `describe("focus ring")` block
 
 **Interfaces:**
-- Produces: the `focus-within-ring` utility.
+- Produces: the `focus-ring-child` utility.
 - Consumed by: `ForcedChoiceCard` here, and Task 3's card restyle.
 
 **Why this is first.** It is the phase's only behavioural fix, and it is the same defect Phase 1 found in `focus:outline-none`, wearing a different variant. Compiled against this repo's Tailwind 4.3.3, the four classes on `ForcedChoiceCard:52` emit:
@@ -81,7 +81,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 In `tests/unit/design-system-tokens.test.ts`, replace the body of the first test in `describe("focus ring")` so it reads:
 
 ```ts
-  it("routes every focus ring through the focus-ring utilities", () => {
+  it("bans the broken outline-none focus spellings", () => {
     // The hand-rolled spelling this replaced was silently broken:
     // `focus:outline-none` emits `--tw-outline-style: none`, and :focus always
     // matches when :focus-visible does, so `outline-style: var(...)` resolved
@@ -94,25 +94,52 @@ In `tests/unit/design-system-tokens.test.ts`, replace the body of the first test
     // `.focus-within\:outline-2:focus-within`; both match at once, so the
     // later rule wins. Verified by compiling both classes against this repo's
     // Tailwind, not inferred from the :focus/:focus-visible case.
-    expect(offenders(/focus-within:outline-none/, "focus-within-ring")).toEqual([]);
+    expect(offenders(/focus-within:outline-none/, "focus-ring-child")).toEqual([]);
   });
 ```
 
-Then append a second test inside the same `describe`, after the existing "is the only consumer of the focus-ring token" test:
+Also rename the test that follows it. Its title claims `focus-ring` "is the only
+consumer of the focus-ring token", which this task makes false — and its body
+never asserted uniqueness in the first place, so the name always overclaimed.
+Retitle it to what it checks, and pin the offset while you are in there:
 
 ```ts
-  it("draws the card ring on the wrapper, keyboard-only, through a real outline", () => {
-    const utility = utilities.find((entry) => entry.name === "focus-within-ring");
+  it("paints a real outline off the focus-ring token", () => {
+    const utility = utilities.find((entry) => entry.name === "focus-ring");
 
-    expect(utility, "focus-within-ring utility is missing").toBeDefined();
-    // `:has(:focus-visible)` rather than `:focus-within`: the ring belongs to
-    // the card, but the focusable element is the sr-only button inside it, and
-    // a mouse click on a card must not leave a ring behind.
-    expect(utility!.body).toMatch(/:has\(:focus-visible\)/);
-    expect(utility!.body).not.toMatch(/&:focus-within/);
+    expect(utility, "focus-ring utility is missing").toBeDefined();
     // The `outline` shorthand sets style explicitly, so it cannot be undone by
     // a custom property the way `outline-style: var(--tw-outline-style)` was.
     expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
+    // The offset is the one declaration that could drift silently — deleting it
+    // left the suite green before this assertion existed.
+    expect(utility!.body).toMatch(/outline-offset:\s*2px/);
+    expect(light["--focus-ring"]).toBe("var(--stone-600)");
+  });
+```
+
+Then append a third test inside the same `describe`:
+
+```ts
+  it("draws the card ring on the wrapper, for its own control only", () => {
+    const utility = utilities.find((entry) => entry.name === "focus-ring-child");
+
+    expect(utility, "focus-ring-child utility is missing").toBeDefined();
+    // `:focus-visible` rather than `:focus-within`: the ring belongs to the
+    // card, but the focusable element is the sr-only button inside it, and a
+    // mouse click on a card must not leave a ring behind.
+    expect(utility!.body).not.toMatch(/&:focus-within/);
+    // Scoped to a DIRECT BUTTON child, not any descendant. The card's prose
+    // runs through AnnotatedText -> GlossaryTerm, whose trigger is a
+    // `span[role=button][tabindex=0]` — focusable, and carrying no ring of its
+    // own. An unscoped `:has(:focus-visible)` rings the whole card while focus
+    // sits on an inline glossary term, which points the only affordance on
+    // screen at the wrong control.
+    expect(utility!.body).toMatch(/:has\(\s*>\s*button:focus-visible\s*\)/);
+    // The `outline` shorthand sets style explicitly, so it cannot be undone by
+    // a custom property the way `outline-style: var(--tw-outline-style)` was.
+    expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
+    expect(utility!.body).toMatch(/outline-offset:\s*2px/);
   });
 ```
 
@@ -120,7 +147,7 @@ Then append a second test inside the same `describe`, after the existing "is the
 
 Run: `npm test -- tests/unit/design-system-tokens.test.ts`
 
-Expected: FAIL twice — the guardrail reports `src/components/quiz/ForcedChoiceCard.tsx: focus-within:outline-none (use focus-within-ring instead)`, and `focus-within-ring utility is missing`.
+Expected: FAIL — the guardrail reports `src/components/quiz/ForcedChoiceCard.tsx: focus-within:outline-none (use focus-ring-child instead)`, and `focus-ring-child utility is missing`. The retitled `focus-ring` test fails too, on the new `outline-offset` assertion only if that declaration is absent; it should pass, since `focus-ring` already sets it.
 
 - [ ] **Step 3: Add the utility**
 
@@ -131,22 +158,37 @@ Append to `src/app/globals.css`, immediately after the closing brace of `@utilit
    the focusable element is the sr-only button inside it, so the selector has to
    reach downward.
 
-   `:has(:focus-visible)` rather than `:focus-within`, because :focus-within
-   matches a plain :focus too — a mouse click on a dilemma would leave a ring
-   behind, which is exactly the behaviour `focus-ring` exists to avoid.
+   `:focus-visible` rather than `:focus-within`, because :focus-within matches a
+   plain :focus too — a mouse click on a dilemma would leave a ring behind,
+   which is exactly the behaviour `focus-ring` exists to avoid.
+
+   Scoped to a DIRECT BUTTON child rather than any descendant. The card's prose
+   runs through AnnotatedText into GlossaryTerm, whose trigger is a focusable
+   `span[role="button"][tabindex="0"]` carrying no ring of its own — fifteen
+   glossary terms match text in the forced-choice bank. An unscoped
+   `:has(:focus-visible)` would ring the entire card while focus sat on an
+   inline term, pointing the only affordance on screen at the wrong control.
 
    The spelling this replaces was broken the same way `focus:outline-none` was.
    Tailwind 4.3.3 emits `.focus-within\:outline-none:focus-within` — which sets
    `outline-style: none` outright — after `.focus-within\:outline-2:focus-within`,
    and both match at once, so the later rule won and the ring never painted.
    Verified by compiling the four classes against this repo's Tailwind. */
-@utility focus-within-ring {
-  &:has(:focus-visible) {
+@utility focus-ring-child {
+  &:has(> button:focus-visible) {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 }
 ```
+
+Then correct the `focus-ring` banner comment above it, which claims `focus-ring`
+"is the only consumer of `--focus-ring`". This task makes that false; the two
+ring utilities are now its only consumers.
+
+Registering the new name in the test file's `NON_TYPOGRAPHY_UTILITIES` array is
+part of this step, not optional — that array's own comment states a new utility
+must be listed there or in `TYPE_SCALE`, and two type-scale tests fail otherwise.
 
 - [ ] **Step 4: Swap the call site**
 
@@ -154,7 +196,7 @@ In `src/components/quiz/ForcedChoiceCard.tsx`, replace the `base` string in `car
 
 ```ts
     const base =
-      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-within-ring";
+      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-ring-child";
 ```
 
 (The border weight and the rest of the card are Task 3's business; this step changes only the focus classes.)
@@ -167,7 +209,12 @@ Expected: PASS, all tests in the file.
 
 - [ ] **Step 6: Prove the guardrails are not vacuous**
 
-Temporarily re-add `focus-within:outline-none` to `ForcedChoiceCard.tsx:52` and run the file again — expect FAIL on the first test. Restore. Then temporarily change `:has(:focus-visible)` to `&:focus-within` in `globals.css` and run again — expect FAIL on the second test. Restore, and re-run to confirm green.
+Run four mutations, restoring after each, and confirm every one reddens its intended test **and only that one**:
+
+1. Re-add `focus-within:outline-none` to `ForcedChoiceCard.tsx:52` — expect FAIL on the guardrail test.
+2. Change `:has(> button:focus-visible)` to `&:focus-within` in `globals.css` — expect FAIL on the `focus-ring-child` test.
+3. Widen it to `:has(:focus-visible)` — expect FAIL on the same test's scoping assertion. This is the mutation that matters most; it is the defect the first attempt shipped.
+4. Delete `outline-offset: 2px` from **each** ring utility in turn — expect FAIL on that utility's test. Before this pass, deleting the offset left the whole suite green.
 
 A token test that fails by passing vacuously proves nothing; this step is the proof.
 
@@ -175,7 +222,13 @@ A token test that fails by passing vacuously proves nothing; this step is the pr
 
 Run: `npm run build && npx next start -p 3100`
 
-In a browser at `http://localhost:3100/quiz`, click `Begin`, then press Tab until focus lands on a dilemma card. Expect a 2px Stone 600 outline at 2px offset around the card. Then click a card with the mouse and confirm **no** ring appears. Stop the server.
+In a browser at `http://localhost:3100/quiz`, click `Begin`, then press Tab until focus lands on a dilemma card. Expect a 2px Stone 600 outline at 2px offset around the card. Read the computed `outlineStyle`/`outlineWidth`/`outlineColor`/`outlineOffset` longhands rather than the shorthand — Chromium serialises `color` into the shorthand and it reads as the wrong colour.
+
+Then, still on the keyboard, Tab once more so focus lands on a **glossary term inside that card** (a dotted-underlined phrase; the forced-choice bank has fifteen). Confirm the card's outline goes back to `none` — the ring must not follow focus onto an inline term.
+
+Then click a card with the mouse and confirm **no** ring appears on either card. Stop the server.
+
+Stop it by killing the PID you started, not with `pkill -f`. This machine runs several Next servers and other long-lived containers; a broad pattern kill has already taken down an unrelated one.
 
 Verify on the production build, not `next dev` — `next dev` reload-loops under a driven browser and resets React state mid-check.
 
@@ -494,7 +547,7 @@ describe("ForcedChoiceCard", () => {
       expect(tokens).toContain("border-border-secondary");
       expect(tokens).toContain("hover:border-stone-600");
       expect(tokens).not.toContain("opacity-60");
-      expect(tokens).toContain("focus-within-ring");
+      expect(tokens).toContain("focus-ring-child");
     }
     expect(container.textContent).not.toContain("Selected");
   });
@@ -553,7 +606,7 @@ In `src/components/quiz/ForcedChoiceCard.tsx`, replace `cardClasses` (lines 47�
     // 1px border in every state — the state is carried by the border's tone,
     // not its weight, so choosing does not shift the card's height.
     const base =
-      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-colors duration-150 focus-within-ring";
+      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-colors duration-150 focus-ring-child";
 
     if (isSelected) {
       // --rule-strong is the ink/hairline pair's strong end, so it inverts with
@@ -1924,7 +1977,7 @@ the budget, and the phase transitions, which the handoff does not draw.
 
 ## Fixes found on the way
 
-- **The choice card's focus ring never painted.** `focus-within:outline-none` is emitted after `focus-within:outline-2` and sets `outline-style: none`; both match at once, so the later rule won. Replaced with a `focus-within-ring` utility on the `outline` shorthand, and the Phase 1 guardrail now covers the `focus-within` spelling.
+- **The choice card's focus ring never painted.** `focus-within:outline-none` is emitted after `focus-within:outline-2` and sets `outline-style: none`; both match at once, so the later rule won. Replaced with a `focus-ring-child` utility on the `outline` shorthand, scoped to the card's own control so the ring does not follow focus onto an inline glossary term, and the Phase 1 guardrail now covers the `focus-within` spelling.
 - **`Up next` was `text-stone-800`** — a fixed ramp value on an inverting surface, 1.4:1 on the dark panel.
 - **The budget's sticky bar bled to `-mx-4`**, which stopped matching once the page gutters moved to 18px.
 
@@ -1949,8 +2002,20 @@ BODY
 
 Two things this phase touched that the results page will want:
 
-- **`focus-within-ring`** is now available for any card that draws a ring on a wrapper. `AxisBreakdownCard`'s disclosure rows are the likely next consumer.
+- **`focus-ring-child`** is now available for any card that draws a ring on a wrapper. `AxisBreakdownCard`'s disclosure rows are the likely next consumer. Note its scope: a direct `button` child, deliberately, so a focusable descendant deeper in the prose does not claim the parent's ring.
 - **The ink-fill selection pattern** (`bg-button-primary` / `text-button-primary-fg` on a chosen segment) is the inverting way to mark a selected control. `ResultsView`'s jump nav and the compare input's controls will need the same treatment.
 
 `QuizProvider.tsx` was left alone deliberately — it holds the reducer and the
 storage lifecycle and renders no markup of its own.
+
+## Follow-up found in this phase, out of its scope
+
+`src/app/account/page.tsx:236` hand-rolls a focus ring —
+`focus-visible:outline-2 focus-visible:outline-stone-600
+focus-visible:outline-offset-2`. It *paints*, so it is not the broken spelling
+the guardrail bans, but it hardcodes Stone 600 instead of reading
+`var(--focus-ring)` and bypasses the utility entirely. The account pages are
+phase 5's territory (#136), not this phase's; the fix is to swap those three
+classes for `focus-ring`. Until then, the guardrail's honest claim is that it
+bans the broken spellings, not that every ring routes through a utility — which
+is why Task 1 retitles it.
