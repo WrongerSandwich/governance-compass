@@ -139,7 +139,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
         Research
         <span
           aria-hidden="true"
-          className="text-[10px] leading-none"
+          className="text-[11px] leading-none"
           style={{
             transform: open ? "rotate(180deg)" : "none",
             transition: "transform 120ms ease",

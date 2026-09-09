@@ -56,8 +56,8 @@ describe("nav bar chrome", () => {
   it("labels every nav destination with the 0.10em mono nav role", async () => {
     const container = await renderNav();
 
-    // Quiz link plus the Research trigger.
-    expect(container.querySelectorAll(".label-nav").length).toBeGreaterThanOrEqual(2);
+    // Closed state has exactly two: the Quiz link and the Research trigger.
+    expect(container.querySelectorAll(".label-nav")).toHaveLength(2);
   });
 
   it("keeps the Research dropdown rather than hoisting its children", async () => {
@@ -69,9 +69,14 @@ describe("nav bar chrome", () => {
 
     act(() => trigger.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
-    const items = [...container.querySelectorAll("[role='menuitem']")].map(
-      (item) => item.textContent,
-    );
-    expect(items).toEqual(["Methodology", "Synthetic Study", "References"]);
+    const items = [...container.querySelectorAll("[role='menuitem']")];
+    expect(items.map((item) => item.textContent)).toEqual([
+      "Methodology",
+      "Synthetic Study",
+      "References",
+    ]);
+    for (const item of items) {
+      expect(item.className).toContain("label-nav");
+    }
   });
 });
