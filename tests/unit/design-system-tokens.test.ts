@@ -72,6 +72,7 @@ const TYPE_SCALE = [
   "label",
   "label-eyebrow",
   "label-nav",
+  "label-tight",
   "mono-meta",
   "control",
   "wordmark",

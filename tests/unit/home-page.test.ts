@@ -49,6 +49,13 @@ describe("home page", () => {
     // `block` would lose to the variant's `inline-block`; `w-full` does not.
     expect(classes).not.toContain("block");
     expect(classes).toContain("w-full");
+    // Mock 6a draws the mobile primary full-bleed, so no width cap.
+    expect(classes).not.toContain("max-w-xs");
+    // jsdom cannot measure layout, so this pins the classes rather than the
+    // result: without them the row's three items overflow between 560 and
+    // ~680px and flex squeezes the primary until its label wraps to two lines.
+    expect(classes).toContain("min-[560px]:shrink-0");
+    expect(cta.parentElement!.className.split(/\s+/)).toContain("min-[560px]:flex-wrap");
   });
 
   it("shows one paired scale per axis", () => {

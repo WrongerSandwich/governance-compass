@@ -366,8 +366,10 @@ body {
   line-height: 1.62;
 }
 
-/* Mono label layer. Tracking is the only difference between the three:
-   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links. */
+/* Mono label layer. Tracking is the only difference between the four:
+   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links, and 0.02em
+   where the label sits under a data mark (axis endpoints, the A/B legend) and
+   the usual airy tracking would push it past its column. */
 @utility label {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -389,6 +391,14 @@ body {
   font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@utility label-tight {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 

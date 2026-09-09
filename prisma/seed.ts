@@ -5,6 +5,7 @@ import { forcedChoiceItems } from "../src/data/forced-choice-items";
 import { scaledItems } from "../src/data/scaled-items";
 import { ministries, ministryAxisMappings } from "../src/data/ministries";
 import { archetypes } from "../src/data/archetypes";
+import { SEED_COLUMNS, pick } from "./seed-columns";
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -18,22 +19,11 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   // Upsert axes.
   //
-  // Projected column-by-column rather than spread: AxisData also carries
-  // presentation-only copy the database does not model (divergenceNote, which
-  // only the home page's divergence panel reads, straight from src/data). A
-  // bare spread sends that to Prisma as an unknown argument and fails the
-  // seed, so every future presentation field would break it too.
+  // Every model below projects its columns via SEED_COLUMNS rather than
+  // spreading the src/data object, which also carries presentation-only copy
+  // the database does not model. See prisma/seed-columns.ts.
   for (const axis of axes) {
-    const row = {
-      id: axis.id,
-      name: axis.name,
-      poleALabel: axis.poleALabel,
-      poleBLabel: axis.poleBLabel,
-      tagline: axis.tagline,
-      domain: axis.domain,
-      domainOrder: axis.domainOrder,
-      order: axis.order,
-    };
+    const row = pick(axis, SEED_COLUMNS.Axis);
     await prisma.axis.upsert({
       where: { id: axis.id },
       update: row,
@@ -44,32 +34,36 @@ async function main() {
 
   // Upsert forced-choice items
   for (const item of forcedChoiceItems) {
+    const row = pick(item, SEED_COLUMNS.ForcedChoiceItem);
     await prisma.forcedChoiceItem.upsert({
       where: { id: item.id },
-      update: item,
-      create: item,
+      update: row,
+      create: row,
     });
   }
   console.log(`Seeded ${forcedChoiceItems.length} forced-choice items.`);
 
   // Upsert scaled items
   for (const item of scaledItems) {
+    const row = pick(item, SEED_COLUMNS.ScaledItem);
     await prisma.scaledItem.upsert({
       where: { id: item.id },
-      update: item,
-      create: item,
+      update: row,
+      create: row,
     });
   }
   console.log(`Seeded ${scaledItems.length} scaled items.`);
 
   // Upsert ministries — map to Prisma schema shape
   for (const ministry of ministries) {
+    // belowBaselineWarning is derived, not copied, so this one is written out
+    // — the Record type makes a missing column a compile error.
     const data = {
       id: ministry.id,
       name: ministry.name,
       description: ministry.description,
       belowBaselineWarning: ministry.consequences[0].text, // crisis tier as warning
-    };
+    } satisfies Record<(typeof SEED_COLUMNS.Ministry)[number], unknown>;
     await prisma.ministry.upsert({
       where: { id: ministry.id },
       update: data,
@@ -88,17 +82,18 @@ async function main() {
         },
       },
       update: { direction: mapping.direction },
-      create: mapping,
+      create: pick(mapping, SEED_COLUMNS.MinistryAxisMapping),
     });
   }
   console.log(`Seeded ${ministryAxisMappings.length} ministry-axis mappings.`);
 
   // Upsert archetypes
   for (const archetype of archetypes) {
+    const row = pick(archetype, SEED_COLUMNS.Archetype);
     await prisma.archetype.upsert({
       where: { id: archetype.id },
-      update: archetype,
-      create: archetype,
+      update: row,
+      create: row,
     });
   }
   console.log(`Seeded ${archetypes.length} archetypes.`);

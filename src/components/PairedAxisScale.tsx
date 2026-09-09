@@ -43,7 +43,7 @@ export function PairedAxisScale({
   const domain = DOMAIN_COLORS[getDomainForAxis(axisId)];
   const endpointRow = (
     <div
-      className={`flex justify-between label text-text-label tracking-[0.02em] ${
+      className={`flex justify-between label-tight text-text-label ${
         endpoints === "above" ? "mb-1" : "mt-1.5"
       }`}
     >

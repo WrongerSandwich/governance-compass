@@ -49,8 +49,17 @@ export default function Home() {
             Fifteen minutes of applied dilemmas, calibration scales, and budget
             allocations produce a surveyed position on all twelve axes.
           </p>
-          <div className="flex flex-col min-[560px]:flex-row min-[560px]:items-center gap-2.5 min-[560px]:gap-5">
-            <ButtonLink href="/quiz" className="w-full min-[560px]:w-auto max-w-xs">
+          {/* flex-wrap so the meta line drops below the buttons rather than
+                squeezing them: without it the row's three items overflow between
+                560 and ~680px and flex shrinks the primary until its label wraps
+                to two lines. `shrink-0` holds the buttons at their own width. */}
+            <div className="flex flex-col min-[560px]:flex-row min-[560px]:flex-wrap min-[560px]:items-center gap-2.5 min-[560px]:gap-5">
+            {/* Full-bleed below the breakpoint, per mock 6a, and content-width above
+                it. No `max-w-xs` cap: it would hold the mobile button at 320px in
+                a 354px column, which reads as a near-miss rather than a choice.
+                `w-full`, not `block` — `block` loses to the variant's own
+                `inline-block` and would silently shrink this to content width. */}
+            <ButtonLink href="/quiz" className="w-full min-[560px]:w-auto min-[560px]:shrink-0">
               Begin the assessment
             </ButtonLink>
             {/* Mock 6a switches variant at 560px, so both render and CSS picks
@@ -61,14 +70,14 @@ export default function Home() {
             <ButtonLink
               href="/methodology"
               variant="secondary"
-              className="w-full min-[560px]:hidden max-w-xs"
+              className="w-full min-[560px]:hidden"
             >
               Methodology
             </ButtonLink>
             <ButtonLink
               href="/methodology"
               variant="tertiary"
-              className="max-[560px]:hidden"
+              className="max-[560px]:hidden shrink-0"
             >
               Methodology
             </ButtonLink>
@@ -85,7 +94,7 @@ export default function Home() {
         <div className="bg-surface-1 border border-border-secondary rounded-sharp px-[26px] py-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 border-b border-rule-strong mb-3.5">
             <p className="label-eyebrow text-text-label">Illustrative profile</p>
-            <div className="flex gap-[18px] label text-text-secondary tracking-[0.02em]">
+            <div className="flex gap-[18px] label-tight text-text-secondary">
               <span className="flex items-center gap-1.5">
                 <span className="h-[9px] w-[9px] rounded-full bg-text-primary" />
                 Respondent A

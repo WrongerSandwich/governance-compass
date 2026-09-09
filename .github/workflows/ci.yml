@@ -57,6 +57,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # `prebuild` regenerates public/study/derived/ and the public download
+      # from data/synthetic_study/, but those outputs are committed and the
+      # unit suite only ever sees the committed copy. Without this, a stale
+      # commit (selector changed, or a derived file hand-edited, without
+      # re-running `npm run build:study`) would deploy different content than
+      # the pinned tests validate, and nothing would say so.
+      - name: Derived study data is up to date with its sources
+        run: |
+          if ! git diff --exit-code --stat -- public/; then
+            echo "::error::Committed derived data is stale. Run 'npm run build:study' and commit the result."
+            exit 1
+          fi
 
   e2e:
     name: E2E tests
