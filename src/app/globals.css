@@ -471,6 +471,26 @@ body {
   }
 }
 
+/* The choice card's sibling of `focus-ring`. The ring belongs on the card, but
+   the focusable element is the sr-only button inside it, so the selector has to
+   reach downward.
+
+   `:has(:focus-visible)` rather than `:focus-within`, because :focus-within
+   matches a plain :focus too — a mouse click on a dilemma would leave a ring
+   behind, which is exactly the behaviour `focus-ring` exists to avoid.
+
+   The spelling this replaces was broken the same way `focus:outline-none` was.
+   Tailwind 4.3.3 emits `.focus-within\:outline-none:focus-within` — which sets
+   `outline-style: none` outright — after `.focus-within\:outline-2:focus-within`,
+   and both match at once, so the later rule won and the ring never painted.
+   Verified by compiling the four classes against this repo's Tailwind. */
+@utility focus-within-ring {
+  &:has(:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
 @utility caption-italic {
   font-family: var(--font-serif);
   font-style: italic;

@@ -54,7 +54,7 @@ const utilities = [...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{/g)].map(
 
 // Utilities that are deliberately not typography roles. A new utility must
 // be listed here or in TYPE_SCALE, or the type-scale test fails on it.
-const NON_TYPOGRAPHY_UTILITIES = ["focus-ring"];
+const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-within-ring"];
 
 const typographyUtilities = () =>
   utilities.filter(
@@ -250,13 +250,20 @@ describe("near-square corners (design delta 02)", () => {
 });
 
 describe("focus ring", () => {
-  it("routes every focus ring through the focus-ring utility", () => {
+  it("routes every focus ring through the focus-ring utilities", () => {
     // The hand-rolled spelling this replaced was silently broken:
     // `focus:outline-none` emits `--tw-outline-style: none`, and :focus always
     // matches when :focus-visible does, so `outline-style: var(...)` resolved
     // to `none`. Width and colour applied; the ring never painted. Confirmed
     // in Chromium before the sweep, across all 25 former call sites.
     expect(offenders(/focus:outline-none/, "focus-ring")).toEqual([]);
+    // Same defect, different variant. Tailwind 4.3.3 emits
+    // `.focus-within\:outline-none:focus-within` (which sets
+    // `outline-style: none` outright) AFTER
+    // `.focus-within\:outline-2:focus-within`; both match at once, so the
+    // later rule wins. Verified by compiling both classes against this repo's
+    // Tailwind, not inferred from the :focus/:focus-visible case.
+    expect(offenders(/focus-within:outline-none/, "focus-within-ring")).toEqual([]);
   });
 
   it("is the only consumer of the focus-ring token, and paints a real outline", () => {
@@ -267,5 +274,19 @@ describe("focus ring", () => {
     // a custom property the way `outline-style: var(--tw-outline-style)` was.
     expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
     expect(light["--focus-ring"]).toBe("var(--stone-600)");
+  });
+
+  it("draws the card ring on the wrapper, keyboard-only, through a real outline", () => {
+    const utility = utilities.find((entry) => entry.name === "focus-within-ring");
+
+    expect(utility, "focus-within-ring utility is missing").toBeDefined();
+    // `:has(:focus-visible)` rather than `:focus-within`: the ring belongs to
+    // the card, but the focusable element is the sr-only button inside it, and
+    // a mouse click on a card must not leave a ring behind.
+    expect(utility!.body).toMatch(/:has\(:focus-visible\)/);
+    expect(utility!.body).not.toMatch(/&:focus-within/);
+    // The `outline` shorthand sets style explicitly, so it cannot be undone by
+    // a custom property the way `outline-style: var(--tw-outline-style)` was.
+    expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
   });
 });
