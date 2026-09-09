@@ -8,6 +8,13 @@ interface ProgressBarProps {
 
 const PHASE_LABELS = ["Dilemmas", "Scales", "Budget"];
 
+/**
+ * Mock 6b's progress header: a mono label row over three equal segments.
+ *
+ * The `data-progress-*` hooks exist so the test can address the row, the
+ * tracks, and the fills without depending on DOM shape — this is a
+ * presentational component whose whole contract is its treatment.
+ */
 export function ProgressBar({
   currentPhase,
   currentIndex,
@@ -18,10 +25,14 @@ export function ProgressBar({
 
   return (
     <div className="mb-8">
-      {/* Phase label and count */}
-      <div className="flex justify-between text-xs text-text-secondary mb-2">
+      {/* Phase label and count — 11px mono, 0.10em, at the AA-clearing label
+          colour. 10px above the segments, per the mock. */}
+      <div
+        data-progress-label
+        className="flex justify-between label-nav text-text-label mb-2.5"
+      >
         <span>
-          Phase {currentPhase}: {PHASE_LABELS[currentPhase - 1]}
+          Phase {currentPhase} &middot; {PHASE_LABELS[currentPhase - 1]}
         </span>
         {totalInPhase > 1 && (
           <span>
@@ -39,11 +50,13 @@ export function ProgressBar({
           return (
             <div
               key={phase}
-              className="flex-1 h-[3px] overflow-hidden bg-border-tertiary"
+              data-progress-track
+              className="flex-1 h-[3px] overflow-hidden bg-border-secondary"
             >
               <div
+                data-progress-fill
                 className={`h-full transition-all duration-300 ${
-                  isCompleted ? "bg-stone-600 brightness-125" : isActive ? "bg-stone-600" : "bg-transparent"
+                  isCompleted || isActive ? "bg-stone-600" : "bg-transparent"
                 }`}
                 style={{
                   width: isCompleted
