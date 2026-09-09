@@ -57,9 +57,9 @@
   /* --- Button surfaces (design delta 03: ink-filled primary) ---
      Semantic aliases onto the Stone ramp so delta 06's dark-mode inversion
      is a token override rather than a per-component branch. */
-  --button-primary-bg:       var(--stone-900);
-  --button-primary-bg-hover: var(--stone-800);
-  --button-primary-text:     var(--stone-50);
+  --button-primary: var(--stone-900);
+  --button-primary-hover: var(--stone-800);
+  --button-primary-fg: var(--stone-50);
 
   /* --- Cluster colors (synthetic study section only) --- */
   --cluster-0: #cdbfb2; /* Stone 300 — central/balanced */
@@ -115,9 +115,9 @@
 
     /* Design delta 06: Stone 900 ink on a Stone 900 ground is invisible, so
        the primary inverts rather than darkens. */
-    --button-primary-bg:       var(--stone-300);
-    --button-primary-bg-hover: var(--stone-200);
-    --button-primary-text:     var(--stone-900);
+    --button-primary: var(--stone-300);
+    --button-primary-hover: var(--stone-200);
+    --button-primary-fg: var(--stone-900);
 
     /* --- Cluster colors (dark mode) --- */
     --cluster-0: #9d8b78; /* Stone 500 — muted/balanced in dark */
@@ -182,11 +182,11 @@
   --color-warning-bg:   var(--warning-bg);
   --color-info:         var(--info);
 
-  --color-button-primary-bg:       var(--button-primary-bg);
-  --color-button-primary-bg-hover: var(--button-primary-bg-hover);
-  --color-button-primary-text:     var(--button-primary-text);
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-primary-fg: var(--button-primary-fg);
 
-  --radius-panel: var(--radius);
+  --radius-sharp: var(--radius);
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -265,7 +265,17 @@ body {
    which the `--text-*` namespace cannot express. Tailwind variants
    (`min-[560px]:display-l`, etc.) work on `@utility` rules.
 
-   Type floor is 11px. Nothing below it, on any viewport.
+   `text-wrap: pretty` appears only on the long headline roles
+   (display-xl/-page/-l); display-m/-entry/-s and the rest of the scale
+   don't need it. That's deliberate, not an oversight — don't "fix" it
+   into consistency.
+
+   `caption-italic` additionally sets `color` (Stone tertiary text). That
+   colour is part of the role's definition, not a default to override.
+
+   Every role in this scale sits at or above 11px — the delta's floor.
+   Pre-existing sub-11px sites elsewhere in the codebase are swept by
+   later phases, not this one.
    ============================================ */
 
 @utility display-xl {
