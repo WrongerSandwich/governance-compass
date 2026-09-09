@@ -6,6 +6,7 @@ import { scaledItems } from "@/data/scaled-items";
 import { ministries, ministryAxisMappings } from "@/data/ministries";
 import { archetypes } from "@/data/archetypes";
 import { CLUSTERS } from "@/data/syntheticStudyClusters";
+import { DOMAIN_COLORS } from "@/lib/design-tokens";
 
 describe("data integrity", () => {
   it("has exactly 12 axes numbered 1-12", () => {
@@ -77,6 +78,25 @@ describe("data integrity", () => {
       expect(cluster.nearestArchetypeEmergence, cluster.code).toBe(
         archetype!.emergence
       );
+    }
+  });
+
+  it("gives every axis a divergence note in the right voice", () => {
+    for (const axis of axes) {
+      expect(axis.divergenceNote, `axis ${axis.id} has no divergenceNote`).toBeTruthy();
+      // One sentence describing what a wide gap on this axis means, so the
+      // home page's divergence panel reads correctly whichever axes diverge.
+      expect(axis.divergenceNote.length).toBeGreaterThan(40);
+      expect(axis.divergenceNote.length).toBeLessThan(140);
+      expect(axis.divergenceNote.trim()).toMatch(/\.$/);
+    }
+  });
+
+  it("gives every domain a blurb", () => {
+    for (const [key, domain] of Object.entries(DOMAIN_COLORS)) {
+      expect(domain.blurb, `domain ${key} has no blurb`).toBeTruthy();
+      expect(domain.blurb.length).toBeGreaterThan(30);
+      expect(domain.blurb.length).toBeLessThan(120);
     }
   });
 });
