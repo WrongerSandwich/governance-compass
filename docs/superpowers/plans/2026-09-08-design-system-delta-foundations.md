@@ -392,6 +392,39 @@ Merge `readdirSync` into the existing `node:fs` import at the top of
 import { readdirSync, readFileSync } from "node:fs";
 ```
 
+Then apply two hardening edits carried over from Task 1's code review. Both
+are prophylactic — neither is a live bug against `globals.css` as it stands —
+but both would fail confusingly, so they are cheaper to fix now.
+
+First, `decls()` does not strip comments, so a commented-out declaration is
+parsed as live. That matters because disabled button tokens were explicitly
+declined and routed to Phase 3, making a note like
+`/* --button-primary-disabled: ... deferred */` beside the button block a
+plausible thing for someone to write — and it would fail the structural
+invariant demanding a dark override for a token that does not exist in the
+cascade. Add comment stripping as the function's first line:
+
+```ts
+function decls(css: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  const body = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+    out[name] = value.trim();
+  }
+  return out;
+}
+```
+
+Second, the `@utility` name pattern `([a-z-]+)` cannot match a digit, so a
+future `display-2xl` would be silently uncollected and report as a confusing
+count mismatch rather than as the real problem. Widen it:
+
+```ts
+const utilities = [
+  ...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{([^}]*)\}/g),
+].map(([, name, body]) => ({ name, body }));
+```
+
 Then append this block at end of file:
 
 ```ts
