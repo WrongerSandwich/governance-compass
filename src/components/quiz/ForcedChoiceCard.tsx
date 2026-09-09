@@ -49,7 +49,7 @@ export function ForcedChoiceCard({
     const hasSelection = selectedPole !== undefined;
 
     const base =
-      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-within-ring";
+      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-ring-child";
 
     if (isSelected) {
       return `${base} border-stone-600 bg-surface-1`;
