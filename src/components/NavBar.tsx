@@ -31,7 +31,7 @@ export function NavBar() {
       (href !== "/" && pathname.startsWith(href)) ||
       (alsoActive?.some((p) => pathname === p || pathname.startsWith(p)) ?? false);
 
-    const base = "py-2 label-nav transition-colors duration-150";
+    const base = "flex items-center py-2 label-nav transition-colors duration-150";
 
     if (isActive) {
       return `${base} text-text-primary border-b-2 border-stone-600`;
@@ -52,7 +52,7 @@ export function NavBar() {
             Governance Compass
           </span>
         </Link>
-        <div className="flex items-center gap-[22px]">
+        <div className="flex items-stretch self-stretch gap-[22px]">
           {!resultsHref && (
             <Link
               href="/quiz"
@@ -115,7 +115,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
   }, [open]);
 
   const base =
-    "py-2 label-nav transition-colors duration-150 flex items-baseline gap-1";
+    "py-2 label-nav transition-colors duration-150 flex items-center gap-1";
   const activeClasses = isActive
     ? "text-text-primary border-b-2 border-stone-600"
     : "text-text-secondary hover:text-text-primary";
@@ -127,7 +127,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
   ];
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative flex">
       <button
         ref={buttonRef}
         type="button"
@@ -139,7 +139,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
         Research
         <span
           aria-hidden="true"
-          className="text-[11px] leading-none"
+          className="leading-none"
           style={{
             transform: open ? "rotate(180deg)" : "none",
             transition: "transform 120ms ease",
