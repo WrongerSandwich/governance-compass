@@ -75,6 +75,10 @@ describe("buttonClasses", () => {
     for (const variant of ["primary", "secondary", "tertiary"] as const) {
       expect(hasClass(buttonClasses(variant), "focus-visible:outline-stone-600")).toBe(true);
       expect(hasClass(buttonClasses(variant), "disabled:opacity-50")).toBe(true);
+      // House rule (BudgetSimulator.tsx:215-225): bound controls use
+      // aria-disabled rather than disabled, to preserve tab order.
+      expect(hasClass(buttonClasses(variant), "aria-disabled:opacity-50")).toBe(true);
+      expect(hasClass(buttonClasses(variant), "aria-disabled:cursor-not-allowed")).toBe(true);
     }
   });
 });
@@ -100,11 +104,32 @@ describe("Button and ButtonLink", () => {
     expect(anchor.textContent).toBe("Begin the assessment");
   });
 
-  it("appends caller classes after the variant classes so they can override", () => {
+  it("appends caller classes for conflict-free properties", () => {
     const container = render(
       createElement(Button, { className: "w-full" }, "Finalize budget"),
     );
 
-    expect(container.querySelector("button")!.className).toMatch(/w-full$/);
+    expect(hasClass(container.querySelector("button")!.className, "w-full")).toBe(true);
+  });
+
+  it("defaults to the primary variant and to type=button", () => {
+    // A bare <button> would be type=submit, which submits any enclosing form.
+    const container = render(createElement(Button, null, "Begin"));
+    const button = container.querySelector("button")!;
+
+    expect(button.className).toBe(buttonClasses("primary"));
+    expect(button.type).toBe("button");
+  });
+
+  it("honours an explicit type and applies variants to ButtonLink", () => {
+    const submit = render(
+      createElement(Button, { type: "submit" }, "Create account"),
+    );
+    expect(submit.querySelector("button")!.type).toBe("submit");
+
+    const link = render(
+      createElement(ButtonLink, { href: "/quiz", variant: "secondary" }, "Methodology"),
+    );
+    expect(link.querySelector("a")!.className).toBe(buttonClasses("secondary"));
   });
 });
