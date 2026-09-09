@@ -24,6 +24,7 @@ import {
   isAxisScoreOutOfBounds,
   findMissingClusterRows,
 } from "./lib/integrity";
+import { selectHomeSamplePair } from "./lib/home-sample";
 import {
   computeEuclideanDistance,
   computeHistogram,
@@ -819,6 +820,50 @@ function main() {
   for (const cs of caseStudyPersonas) {
     console.log(`  ${cs.kind}: ${cs.persona_id} (dist=${cs.distance.toFixed(4)})`);
   }
+
+  // --------------------------------------------------------------------------
+  // 12b. Home page illustrative pair (design delta, phase 2)
+  // --------------------------------------------------------------------------
+  const homePair = selectHomeSamplePair(personasSlim);
+  const tensionsFor = (id: string) =>
+    profiles
+      .filter((p) => p.persona_id === id)
+      .flatMap((p) => p.tensions ?? [])
+      .filter((t) => t.level === "strong")
+      // Magnitudes cluster tightly (some differ in the fourth decimal), so the
+      // axis id tiebreak keeps the pick from riding on float noise.
+      .sort((x, y) => y.magnitude - x.magnitude || x.axis - y.axis);
+
+  const strongestTension =
+    tensionsFor(homePair.a.id)[0] ?? tensionsFor(homePair.b.id)[0] ?? null;
+  if (!strongestTension) {
+    console.error(
+      `[BUILD FAIL] home sample: selected pair ${homePair.a.id}/${homePair.b.id} ` +
+        `has no strong tension to show`
+    );
+    process.exit(1);
+  }
+
+  writeJson(out("home_sample_pair.json"), {
+    respondent_a: {
+      persona_id: homePair.a.id,
+      archetype_id: homePair.a.nearest_archetype_id,
+      axis_scores: homePair.a.averaged_axis_scores,
+    },
+    respondent_b: {
+      persona_id: homePair.b.id,
+      archetype_id: homePair.b.nearest_archetype_id,
+      axis_scores: homePair.b.averaged_axis_scores,
+    },
+    distance: homePair.distance,
+    divergent_axis_ids: homePair.divergentAxisIds,
+    tension_axis_id: strongestTension.axis,
+  });
+
+  console.log(
+    `Home sample pair: ${homePair.a.id} / ${homePair.b.id} ` +
+      `(dist=${homePair.distance.toFixed(4)}, diverge on ${homePair.divergentAxisIds.join(", ")})`
+  );
 
   // --------------------------------------------------------------------------
   // 13. Public download JSON (§5)

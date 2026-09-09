@@ -17,7 +17,7 @@ interface ReturningUserLinkProps {
 
 export function ReturningUserLink({
   label = "or view your existing results",
-  className = "text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150",
+  className = "text-xs text-text-label hover:text-text-secondary transition-colors duration-150",
   wrapperClassName = "mt-2",
   as: Wrapper = "p",
   prefix,

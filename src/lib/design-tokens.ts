@@ -22,30 +22,35 @@ export const tokens = {
 
 /**
  * Domain color mapping — four muted tones for the four governance domains.
- * Used exclusively on the results page (radar chart, axis breakdown, score bars).
+ * Used on the results page (radar chart, axis breakdown, score bars) and, via
+ * `blurb`, in the home page's domain footer.
  * See docs/system_proposal/governance_compass_domain_colors.md
  */
 export const DOMAIN_COLORS = {
   economic: {
     name: 'Economic Organization',
+    blurb: 'How production and distribution are organised, and how far the state shapes them.',
     axes: [1, 2] as number[],
     600: '#85735e', // Stone
     400: '#b5a594',
   },
   power: {
     name: 'Power and Authority',
+    blurb: 'Where decisions are made, who is trusted to make them, and what limits them.',
     axes: [3, 4, 5, 6] as number[],
     600: '#6b7d8a', // Slate
     400: '#9daebb',
   },
   society: {
     name: 'Society and Identity',
+    blurb: 'How a society handles difference, inheritance, and what it takes people to be.',
     axes: [7, 8, 9] as number[],
     600: '#7a8b6e', // Sage
     400: '#94a488',
   },
   world: {
     name: 'The State in the World',
+    blurb: 'How a state acts beyond its borders — in cooperation, in force, and in technology.',
     axes: [10, 11, 12] as number[],
     600: '#96716b', // Clay
     400: '#c1a7a1',

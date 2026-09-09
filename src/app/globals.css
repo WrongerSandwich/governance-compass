@@ -41,6 +41,16 @@
   --border-secondary: #e0d6cc;
   --border-tertiary:  #efe9e3;
 
+  /* --- Rules (design delta 05) ---
+     The panel rules are a two-step ink/hairline pair, not a border tone: the
+     header rule is deliberate hard ink (13.05:1 here) and the row separators
+     are barely-there (1.10:1). Both must INVERT with the surface, which is why
+     they cannot be spelled `border-stone-900`/`border-stone-50` at the call
+     site — the Stone ramp is fixed across modes, so those literals swap roles
+     in dark: near-white hairlines and a header rule that vanishes. */
+  --rule-strong:   var(--stone-900);
+  --rule-hairline: var(--stone-50);
+
   /* --- Semantic --- */
   --warning:        #d97706;
   --warning-text:   #92400e;
@@ -119,6 +129,11 @@
     --border-secondary: #3d2e1f;
     --border-tertiary:  #2a2118;
 
+    /* Inverted, preserving intent rather than value: strong stays ~13:1 on the
+       dark ground, hairline stays ~1.2:1. */
+    --rule-strong:   var(--stone-100);
+    --rule-hairline: var(--stone-900);
+
     --warning-bg:     #451a03;
     --warning-text:   #fbbf24;
     --warning-border: #92400e;
@@ -187,6 +202,9 @@
   --color-border-primary:   var(--border-primary);
   --color-border-secondary: var(--border-secondary);
   --color-border-tertiary:  var(--border-tertiary);
+
+  --color-rule-strong:   var(--rule-strong);
+  --color-rule-hairline: var(--rule-hairline);
 
   --color-warning:      var(--warning);
   --color-warning-text: var(--warning-text);
@@ -348,8 +366,10 @@ body {
   line-height: 1.62;
 }
 
-/* Mono label layer. Tracking is the only difference between the three:
-   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links. */
+/* Mono label layer. Tracking is the only difference between the four:
+   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links, and 0.02em
+   where the label sits under a data mark (axis endpoints, the A/B legend) and
+   the usual airy tracking would push it past its column. */
 @utility label {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -371,6 +391,14 @@ body {
   font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@utility label-tight {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -401,6 +429,20 @@ body {
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Mock 6a sets the wordmark a step smaller and more tightly tracked below the
+   560px breakpoint. A sibling role rather than `wordmark text-[11px]
+   tracking-[0.13em]`, for the same reason as `mono-meta`: the roles in this
+   scale are self-contained, and the emitted order of a custom `@utility`
+   against a built-in is too subtle to rely on. */
+@utility wordmark-sm {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 

@@ -44,16 +44,22 @@ export function NavBar() {
   return (
     <nav
       aria-label="Main"
-      className="bg-surface-1 border-b border-border-secondary px-7"
+      className="bg-surface-1 border-b border-border-secondary px-[18px] min-[560px]:px-7"
     >
-      <div className="max-w-shell mx-auto flex items-center justify-between h-[54px]">
+      {/* `items-center`, not `items-stretch` as the phase-2 plan wrote it: the
+          brand link would then fill the bar's full height and its focus-ring
+          outline would draw as a full-height rectangle. The right-hand nav
+          group stretches on its own (`self-stretch` below) so the active
+          underline still meets the bar's bottom edge. */}
+      <div className="max-w-shell mx-auto flex items-center justify-between h-[52px] min-[560px]:h-[54px]">
         <Link
           href="/"
           className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-150 focus-ring"
           aria-current={pathname === "/" ? "page" : undefined}
         >
-          <GovernanceCompassMark size={22} />
-          <span className="hidden min-[480px]:inline wordmark text-text-primary">
+          <GovernanceCompassMark size={20} className="min-[560px]:hidden" />
+          <GovernanceCompassMark size={22} className="hidden min-[560px]:block" />
+          <span className="hidden min-[480px]:inline wordmark-sm min-[560px]:wordmark text-text-primary">
             Governance Compass
           </span>
         </Link>

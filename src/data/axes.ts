@@ -7,6 +7,8 @@ export interface AxisData {
   domain: string;
   domainOrder: number;
   order: number;
+  /** One sentence on what a wide gap between two respondents means here. */
+  divergenceNote: string;
 }
 
 export const axes: AxisData[] = [
@@ -20,6 +22,8 @@ export const axes: AxisData[] = [
     domain: "Economic Organization",
     domainOrder: 1,
     order: 1,
+    divergenceNote:
+      "One would have the state shape outcomes directly; the other leaves allocation to markets.",
   },
   {
     id: 2,
@@ -30,6 +34,8 @@ export const axes: AxisData[] = [
     domain: "Economic Organization",
     domainOrder: 2,
     order: 2,
+    divergenceNote:
+      "A gap over whether ecological limits bind growth, or growth can be reconciled with them.",
   },
   // DOMAIN B: POWER AND AUTHORITY
   {
@@ -41,6 +47,8 @@ export const axes: AxisData[] = [
     domain: "Power and Authority",
     domainOrder: 1,
     order: 3,
+    divergenceNote:
+      "One would push decisions down to local bodies; the other keeps them national.",
   },
   {
     id: 4,
@@ -51,6 +59,8 @@ export const axes: AxisData[] = [
     domain: "Power and Authority",
     domainOrder: 2,
     order: 4,
+    divergenceNote:
+      "One respondent trusts public judgment; the other places weight on institutional expertise.",
   },
   {
     id: 5,
@@ -61,6 +71,8 @@ export const axes: AxisData[] = [
     domain: "Power and Authority",
     domainOrder: 3,
     order: 5,
+    divergenceNote:
+      "A wide gap on how much liberty a state may trade away for security.",
   },
   {
     id: 6,
@@ -71,6 +83,8 @@ export const axes: AxisData[] = [
     domain: "Power and Authority",
     domainOrder: 4,
     order: 6,
+    divergenceNote:
+      "One grounds authority in how leaders are chosen; the other in what they deliver.",
   },
   // DOMAIN C: SOCIETY AND IDENTITY
   {
@@ -82,6 +96,8 @@ export const axes: AxisData[] = [
     domain: "Society and Identity",
     domainOrder: 1,
     order: 7,
+    divergenceNote:
+      "Disagreement over whether inherited institutions should be reformed or preserved.",
   },
   {
     id: 8,
@@ -92,6 +108,8 @@ export const axes: AxisData[] = [
     domain: "Society and Identity",
     domainOrder: 2,
     order: 8,
+    divergenceNote:
+      "One treats plurality as a strength; the other prioritises a shared civic identity.",
   },
   {
     id: 9,
@@ -102,6 +120,8 @@ export const axes: AxisData[] = [
     domain: "Society and Identity",
     domainOrder: 3,
     order: 9,
+    divergenceNote:
+      "Disagreement over how far behaviour is shaped by culture rather than fixed.",
   },
   // DOMAIN D: THE STATE IN THE WORLD
   {
@@ -113,6 +133,8 @@ export const axes: AxisData[] = [
     domain: "The State in the World",
     domainOrder: 1,
     order: 10,
+    divergenceNote:
+      "One would bind the nation into deeper cooperation; the other guards independent action.",
   },
   {
     id: 11,
@@ -123,6 +145,8 @@ export const axes: AxisData[] = [
     domain: "The State in the World",
     domainOrder: 2,
     order: 11,
+    divergenceNote:
+      "A wide gap on whether force has a legitimate role beyond national borders.",
   },
   {
     id: 12,
@@ -133,5 +157,7 @@ export const axes: AxisData[] = [
     domain: "The State in the World",
     domainOrder: 3,
     order: 12,
+    divergenceNote:
+      "One would restrain new technology until it is proven safe; the other would build and correct.",
   },
 ];
