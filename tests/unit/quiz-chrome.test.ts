@@ -557,6 +557,14 @@ describe("ScaledQuestionCard", () => {
     expect(classes(buttons[2])).not.toContain("bg-stone-200");
     expect(classes(buttons[0])).toContain("bg-surface-1");
     expect(classes(buttons[0])).not.toContain("bg-button-primary");
+    // The dimmed sibling carries its de-emphasis in opacity. The NEGATIVE is
+    // the assertion that matters: `text-text-label` resolves to the same
+    // #6e5a48 as `text-text-secondary` in light mode, so a revert to it would
+    // render identically and no mutation could observe the difference.
+    expect(classes(buttons[0])).toContain("opacity-60");
+    expect(classes(buttons[0])).not.toContain("text-text-label");
+    // The segmented wrapper must not clip its children's focus outlines.
+    expect(classes(desktop)).not.toContain("overflow-hidden");
   });
 
   it("mirrors the choice card's border states in the mobile list", () => {

@@ -62,8 +62,11 @@ export function ScaledQuestionCard({
     const isSelected = selectedValue === value;
     const hasSelection = selectedValue !== undefined;
 
+    // `transition-[...]` names opacity explicitly: `transition-colors` does not
+    // cover it, so the dimmed segment's `hover:opacity-100` would snap while
+    // its background eased. Same trap Task 3 hit on the choice card.
     const base =
-      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring focus-visible:z-10";
+      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-[color,background-color,opacity] duration-150 cursor-pointer focus-ring focus-visible:z-10";
 
     // The segmented bar has no per-item border to carry state, so the chosen
     // segment takes the ink fill — the same token pair as the primary button,
@@ -71,8 +74,13 @@ export function ScaledQuestionCard({
     if (isSelected) {
       return `${base} bg-button-primary text-button-primary-fg`;
     }
+    // Dim with opacity, NOT with `text-text-label`. That token resolves to the
+    // same #6e5a48 as `text-text-secondary` in light mode, so using it here
+    // would delete the de-emphasis outright — and invisibly, since the two
+    // render identically. `opacity-60` is the idiom the mobile branch and
+    // `ForcedChoiceCard` already use.
     if (hasSelection) {
-      return `${base} bg-surface-1 text-text-label hover:bg-surface-2`;
+      return `${base} bg-surface-1 text-text-secondary opacity-60 hover:opacity-100 hover:bg-surface-2`;
     }
     return `${base} bg-surface-1 text-text-secondary hover:bg-surface-2 hover:text-text-primary`;
   }
@@ -103,7 +111,7 @@ export function ScaledQuestionCard({
       {/* Desktop: horizontal segmented bar */}
       <div
         data-scale-segments
-        className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-sharp border border-border-secondary divide-x divide-border-secondary"
+        className="mt-4 hidden min-[560px]:flex rounded-sharp border border-border-secondary divide-x divide-border-secondary"
         role="group"
         aria-label="Response options"
       >
