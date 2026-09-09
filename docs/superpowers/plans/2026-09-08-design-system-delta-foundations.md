@@ -500,7 +500,7 @@ excluded from delta 02 exactly as `rounded-[4px]` is. Locking the namespace
 with `--radius-*: initial` to make off-system radii unwritable is attractive
 and was verified to work, but it makes bare `rounded` emit nothing *silently*,
 so it must land together with those seven sites and a visual review. Both are
-tracked as a follow-up rather than smuggled into this phase.
+tracked as issue #139 rather than smuggled into this phase.
 
 ---
 
@@ -1076,7 +1076,8 @@ Deliberately deferred, each to its own plan (see the spec's phasing table):
   unwritable. Both are worth doing and were verified to work, but sweeping
   those seven sites is an unspecified visual change and the lockdown makes
   bare `rounded` fail silently, so they belong together in a follow-up with a
-  visual review — not smuggled into this phase. See Task 2's closing note.
+  visual review — not smuggled into this phase. Tracked as issue #139; see
+  also Task 2's closing note.
 - `CLAUDE.md` and `docs/system_proposal/governance_compass_design_spec.md`
   updates, including the filled-button rule rewrite from spec decision D1 —
   Phase 6, so the docs describe what actually shipped.
