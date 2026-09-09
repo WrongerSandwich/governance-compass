@@ -9,6 +9,9 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
+// Type-only, so it is erased at compile time and adds no runtime import of
+// QuizFlow — which must stay dynamic, behind the `next/navigation` mock.
+import type { QuizFlowProps } from "@/components/quiz/QuizFlow";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -329,60 +332,70 @@ describe("QuizFlow chrome", () => {
     vi.doUnmock("next/navigation");
   });
 
-  async function renderPhaseOne() {
+  /** The mock-setup protocol, in one place: reset the module cache, register
+   *  the `next/navigation` stub, then import QuizFlow and QuizProvider back
+   *  through it. The ordering is subtle enough — reset before mock, both
+   *  imports after — that a second copy is a second place to get it wrong,
+   *  and a wrong copy fails as an unrelated-looking render error. */
+  async function renderIntro(forcedChoiceItems: QuizFlowProps["forcedChoiceItems"]) {
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
     const { QuizFlow } = await import("@/components/quiz/QuizFlow");
     const { QuizProvider } = await import("@/components/quiz/QuizProvider");
 
-    const container = render(
+    return render(
       createElement(
         QuizProvider,
         null,
-        createElement(QuizFlow, {
-          forcedChoiceItems: [
-            {
-              id: "FC-1", axisId: 1, itemNumber: 1, questionType: "FC",
-              abstractionLevel: "concrete",
-              headlineA: "Public goods", bodyA: "Funded by tax.",
-              headlineB: "Private providers", bodyB: "Funded by market.",
-            },
-            {
-              id: "FC-2", axisId: 2, itemNumber: 1, questionType: "FC",
-              abstractionLevel: "concrete",
-              headlineA: "Local control", bodyA: "Decide near home.",
-              headlineB: "Shared institutions", bodyB: "Decide together.",
-            },
-          ],
-          scaledItems: [],
-          ministries: [],
-        }),
+        createElement(QuizFlow, { forcedChoiceItems, scaledItems: [], ministries: [] }),
       ),
     );
+  }
 
+  /** Two items, and the count is load-bearing. At `length === 1`,
+   *  `currentQuestionIndex === shuffledFC.length - 1` is already true on the
+   *  first screen, so the forward button reads "Continue" and `byText(...,
+   *  "Next")` finds nothing. Trimming this array breaks two tests in a way
+   *  that reads as a styling regression rather than a fixture change. */
+  const TWO_DILEMMAS: QuizFlowProps["forcedChoiceItems"] = [
+    {
+      id: "FC-1", axisId: 1, itemNumber: 1, questionType: "FC",
+      abstractionLevel: "concrete",
+      headlineA: "Public goods", bodyA: "Funded by tax.",
+      headlineB: "Private providers", bodyB: "Funded by market.",
+    },
+    {
+      id: "FC-2", axisId: 2, itemNumber: 1, questionType: "FC",
+      abstractionLevel: "concrete",
+      headlineA: "Local control", bodyA: "Decide near home.",
+      headlineB: "Shared institutions", bodyB: "Decide together.",
+    },
+  ];
+
+  async function renderPhaseOne() {
+    const container = await renderIntro(TWO_DILEMMAS);
     // The intro interstitial renders first; step past it into phase 1.
-    const begin = [...container.querySelectorAll("button")].find(
-      (b) => b.textContent?.trim() === "Begin",
-    )!;
-    act(() => begin.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    act(() =>
+      byText(container, "Begin").dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
     return container;
   }
 
+  /** Throws rather than returning `undefined`. With a bare `!`, renaming a nav
+   *  button surfaces as `Cannot read properties of undefined (reading
+   *  'disabled')` in four tests at once, which names neither the button nor
+   *  the rename. */
   function byText(container: Element, text: string) {
-    return [...container.querySelectorAll("button")].find(
+    const found = [...container.querySelectorAll("button")].find(
       (b) => b.textContent?.trim() === text,
-    )!;
+    );
+    if (!found) throw new Error(`no button labelled "${text}"`);
+    return found;
   }
 
   it("opens on an interstitial whose call to action is the ink primary", async () => {
-    vi.resetModules();
-    vi.doMock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-    const { QuizFlow } = await import("@/components/quiz/QuizFlow");
-    const { QuizProvider } = await import("@/components/quiz/QuizProvider");
-    const container = render(
-      createElement(QuizProvider, null,
-        createElement(QuizFlow, { forcedChoiceItems: [], scaledItems: [], ministries: [] })),
-    );
+    // No items: this test never clicks past the intro, so the fixture is empty.
+    const container = await renderIntro([]);
 
     const begin = byText(container, "Begin");
     expect(classes(begin)).toContain("bg-button-primary");

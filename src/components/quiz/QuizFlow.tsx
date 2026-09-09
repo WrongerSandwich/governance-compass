@@ -448,7 +448,7 @@ export function QuizFlow({
         {finalizeError && (
           <p
             role="alert"
-            className="mb-4 border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
+            className="mb-4 rounded-sharp border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
           >
             Something went wrong finalizing your budget. Your answers are still here — please try again.
           </p>
