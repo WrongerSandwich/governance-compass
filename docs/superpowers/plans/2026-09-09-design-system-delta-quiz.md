@@ -991,7 +991,12 @@ describe("QuizFlow chrome", () => {
 
 Run: `npm test -- tests/unit/quiz-chrome.test.ts`
 
-Expected: FAIL on all five QuizFlow tests — `Begin` still carries `bg-stone-600`, `Next` is outlined, `Skip this question` has no `focus-ring`, and `[data-quiz-shell]` does not exist.
+Expected: FAIL on **four** of the five QuizFlow tests — `Begin` still carries `bg-stone-600`, `Next` is outlined, `Skip this question` has no `focus-ring`, and `[data-quiz-shell]` does not exist.
+
+"hides Skip and enables Next once a dilemma is answered" is green from the
+start, and should be. It pins behaviour this task must *not* change, so a red
+there would mean the restyle had already broken something. Do not go hunting
+for a fifth failure.
 
 - [ ] **Step 3: Move the gutters onto the page**
 
