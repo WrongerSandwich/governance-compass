@@ -223,6 +223,11 @@ describe("ForcedChoiceCard", () => {
       expect(tokens).toContain("border-border-secondary");
       expect(tokens).toContain("hover:border-stone-600");
       expect(tokens).not.toContain("opacity-60");
+      // `bg-surface-1` moved from the three per-state branches into `base`
+      // here, and a relocated surface token is exactly the value this project
+      // has twice got wrong by reaching for a fixed ramp value instead.
+      expect(tokens).toContain("bg-surface-1");
+      expect(tokens).toContain("p-6");
       expect(tokens).toContain("focus-ring-child");
       // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
       // ring stops painting the moment the sr-only control is not a DIRECT
@@ -267,6 +272,29 @@ describe("ForcedChoiceCard", () => {
     }
   });
 
+  it("pairs each headline with its own body, in either display order", () => {
+    const plain = renderCard(undefined).querySelectorAll("[data-choice-card]");
+
+    expect(plain[0].textContent).toContain("Universal public goods");
+    expect(plain[0].textContent).toContain("Funded through taxation.");
+    expect(plain[0].textContent).not.toContain("The state helps");
+
+    // `FC-1` hashes to a swapped display order (verified: ((h*31+c)>>>0) % 2 === 1),
+    // so the B option renders first — and must still carry B's body and record
+    // "B". Nothing else in the suite reads this wiring: the e2e spec clicks
+    // `[data-choice-card]` without looking at its text, so a headline paired
+    // with the wrong body renders plausibly and passes everything.
+    const swapped = render(
+      createElement(ForcedChoiceCard, { ...base, selectedPole: undefined, randomizeOrder: true }),
+    ).querySelectorAll("[data-choice-card]");
+
+    expect(swapped[0].textContent).toContain("Competing private providers");
+    expect(swapped[0].textContent).toContain("The state helps");
+    expect(swapped[0].querySelector("button")!.getAttribute("aria-label")).toBe(
+      "Select Competing private providers",
+    );
+  });
+
   it("sets option headlines in the serif card role and bodies at the delta's prose size", () => {
     const container = renderCard(undefined);
     const card = container.querySelector("[data-choice-card]")!;
@@ -276,6 +304,10 @@ describe("ForcedChoiceCard", () => {
     // 10px between the headline and the body, per the mock.
     expect(classes(headline)).toContain("mb-2.5");
     expect(classes(body)).toContain("text-[13.5px]");
+    // This replaced `leading-relaxed` (1.625), which still reads as correct to
+    // a reviewer — the case the pinning rule exists for.
+    expect(classes(body)).toContain("leading-[1.6]");
+    expect(classes(body)).not.toContain("leading-relaxed");
     expect(classes(body)).toContain("text-text-secondary");
     expect(classes(body)).not.toContain("text-text-tertiary");
   });

@@ -39,19 +39,24 @@ export function ForcedChoiceCard({
 
   const firstPole = swapped ? "B" : "A";
   const secondPole = swapped ? "A" : "B";
-  const firstHeadline = swapped ? headlineB : headlineA;
-  const firstBody = swapped ? bodyB : bodyA;
-  const secondHeadline = swapped ? headlineA : headlineB;
-  const secondBody = swapped ? bodyA : bodyB;
 
   function cardClasses(logicalPole: "A" | "B"): string {
     const isSelected = selectedPole === logicalPole;
     const hasSelection = selectedPole !== undefined;
 
     // 1px border in every state — the state is carried by the border's tone,
-    // not its weight, so choosing does not shift the card's height.
+    // not its weight, so the border itself never changes the card's metrics.
+    // (The card does grow on selection: the `Selected` marker below adds a
+    // line. That is mock 6b's design, not an accident of the border.)
+    //
+    // `transition-[border-color,opacity]`, not `transition-colors`: Tailwind's
+    // colour set covers color/background-color/border-color/fill/stroke and
+    // NOT opacity, so `hover:opacity-100` on the dimmed sibling would snap
+    // while its border eased. Two `transition-*` classes cannot both apply —
+    // they collide on `transition-property` — so name both properties on one
+    // utility. Verified to compile: `transition-property: border-color,opacity`.
     const base =
-      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-colors duration-150 focus-ring-child";
+      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-[border-color,opacity] duration-150 focus-ring-child";
 
     if (isSelected) {
       // --rule-strong is the ink/hairline pair's strong end, so it inverts with
@@ -64,13 +69,20 @@ export function ForcedChoiceCard({
     return `${base} border-border-secondary hover:border-stone-600`;
   }
 
-  function option(logicalPole: "A" | "B", headline: string, body: string) {
-    const isSelected = selectedPole === logicalPole;
+  /** Takes only the pole; the copy is derived. Passing `(pole, headline, body)`
+   *  ends in two adjacent `string` parameters, so a call site can transpose one
+   *  card's headline with the other's body — it type-checks, renders plausibly,
+   *  and the whole suite stays green. Deriving here makes that unrepresentable
+   *  and retires the four `first*`/`second*` copy variables. */
+  function renderOption(pole: "A" | "B") {
+    const isSelected = selectedPole === pole;
+    const headline = pole === "A" ? headlineA : headlineB;
+    const body = pole === "A" ? bodyA : bodyB;
     return (
       <div
         data-choice-card
-        onClick={() => onSelect(logicalPole)}
-        className={cardClasses(logicalPole)}
+        onClick={() => onSelect(pole)}
+        className={cardClasses(pole)}
       >
         <button
           type="button"
@@ -78,14 +90,14 @@ export function ForcedChoiceCard({
           aria-label={`Select ${headline}`}
           onClick={(event) => {
             event.stopPropagation();
-            onSelect(logicalPole);
+            onSelect(pole);
           }}
           className="sr-only"
         />
-        <p className="text-left display-s text-text-primary mb-2.5">
+        <p className="display-s text-text-primary mb-2.5">
           <AnnotatedText text={headline} />
         </p>
-        <p className="text-left text-[13.5px] leading-[1.6] text-text-secondary">
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary">
           <AnnotatedText text={body} />
         </p>
         {isSelected && (
@@ -107,8 +119,8 @@ export function ForcedChoiceCard({
           : "Select the position closer to your own view"}
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        {option(firstPole, firstHeadline, firstBody)}
-        {option(secondPole, secondHeadline, secondBody)}
+        {renderOption(firstPole)}
+        {renderOption(secondPole)}
       </div>
     </div>
   );
