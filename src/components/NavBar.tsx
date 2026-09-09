@@ -31,7 +31,9 @@ export function NavBar() {
       (href !== "/" && pathname.startsWith(href)) ||
       (alsoActive?.some((p) => pathname === p || pathname.startsWith(p)) ?? false);
 
-    const base = "py-2 text-sm transition-colors duration-150";
+    const base =
+      "flex items-center py-2 label-nav transition-colors duration-150 " +
+      "focus-ring";
 
     if (isActive) {
       return `${base} text-text-primary border-b-2 border-stone-600`;
@@ -40,19 +42,22 @@ export function NavBar() {
   }
 
   return (
-    <nav className="bg-surface-1 border-b border-border-secondary px-4">
-      <div className="max-w-4xl mx-auto flex items-center justify-between h-11">
+    <nav
+      aria-label="Main"
+      className="bg-surface-1 border-b border-border-secondary px-7"
+    >
+      <div className="max-w-shell mx-auto flex items-center justify-between h-[54px]">
         <Link
           href="/"
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity duration-150"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-150 focus-ring"
           aria-current={pathname === "/" ? "page" : undefined}
         >
-          <GovernanceCompassMark size={24} />
-          <span className="hidden min-[480px]:inline text-[17px] font-serif font-medium text-text-primary">
+          <GovernanceCompassMark size={22} />
+          <span className="hidden min-[480px]:inline wordmark text-text-primary">
             Governance Compass
           </span>
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-stretch self-stretch gap-[22px]">
           {!resultsHref && (
             <Link
               href="/quiz"
@@ -114,7 +119,9 @@ function ResearchMenu({ pathname }: { pathname: string }) {
     };
   }, [open]);
 
-  const base = "py-2 text-sm transition-colors duration-150 flex items-baseline gap-1";
+  const base =
+    "py-2 label-nav transition-colors duration-150 flex items-center gap-1 " +
+    "focus-ring";
   const activeClasses = isActive
     ? "text-text-primary border-b-2 border-stone-600"
     : "text-text-secondary hover:text-text-primary";
@@ -126,7 +133,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
   ];
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative flex">
       <button
         ref={buttonRef}
         type="button"
@@ -138,7 +145,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
         Research
         <span
           aria-hidden="true"
-          className="text-[10px] leading-none"
+          className="leading-none"
           style={{
             transform: open ? "rotate(180deg)" : "none",
             transition: "transform 120ms ease",
@@ -165,7 +172,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                className="block px-4 py-2 text-sm transition-colors duration-150 text-text-secondary hover:text-text-primary hover:bg-surface-2"
+                className="block px-4 py-2 label-nav transition-colors duration-150 text-text-secondary hover:text-text-primary hover:bg-surface-2 focus-ring"
                 style={{
                   color: itemActive ? "var(--text-primary)" : undefined,
                   fontWeight: itemActive ? 500 : undefined,

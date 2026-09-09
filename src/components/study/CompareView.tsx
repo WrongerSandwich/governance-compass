@@ -530,7 +530,7 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
           maxWidth: "1100px",
           margin: "0 auto",
           backgroundColor: "var(--surface-2)",
-          borderRadius: "8px",
+          borderRadius: "var(--radius)",
           border: "1px solid var(--border-primary)",
           overflow: "hidden",
         }}

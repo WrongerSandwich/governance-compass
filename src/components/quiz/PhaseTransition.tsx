@@ -21,7 +21,7 @@ export function PhaseTransition({
 }: PhaseTransitionProps) {
   return (
     <div className="mx-auto max-w-lg py-12">
-      <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
+      <div className="rounded-sharp border border-border-secondary bg-surface-1 p-8 text-center">
         {/* Contour mark as chapter break */}
         <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
 
@@ -52,7 +52,7 @@ export function PhaseTransition({
         <button
           type="button"
           onClick={onContinue}
-          className="w-full rounded-[12px] border border-stone-600 py-3 px-6 text-sm font-medium text-stone-600 hover:bg-stone-100 transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+          className="w-full rounded-sharp border border-stone-600 py-3 px-6 text-sm font-medium text-stone-600 hover:bg-stone-100 transition-colors duration-150 focus-ring"
         >
           Continue
         </button>

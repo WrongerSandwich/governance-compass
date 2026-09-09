@@ -88,7 +88,7 @@ function UnrecoverableState({ onReset }: { onReset: () => void }) {
       <button
         type="button"
         onClick={onReset}
-        className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+        className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 focus-ring"
       >
         Start over
       </button>
@@ -233,7 +233,7 @@ export function QuizFlow({
           <button
             type="button"
             onClick={() => setResumeAcknowledged(true)}
-            className="rounded-[12px] bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+            className="rounded-sharp bg-stone-600 px-8 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus-ring"
           >
             Continue where I left off
           </button>
@@ -255,7 +255,7 @@ export function QuizFlow({
   if (state.phase === "intro") {
     return (
       <div className="mx-auto max-w-lg py-12">
-        <div className="rounded-[12px] border border-border-secondary bg-surface-1 p-8 text-center">
+        <div className="rounded-sharp border border-border-secondary bg-surface-1 p-8 text-center">
           <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
 
           <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
@@ -277,7 +277,7 @@ export function QuizFlow({
           <button
             type="button"
             onClick={() => dispatch({ type: "START_QUIZ" })}
-            className="w-full rounded-[12px] bg-stone-600 py-3 px-6 text-sm font-medium text-white hover:bg-stone-700 transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+            className="w-full rounded-sharp bg-stone-600 py-3 px-6 text-sm font-medium text-white hover:bg-stone-700 transition-colors duration-150 focus-ring"
           >
             Begin
           </button>
@@ -333,7 +333,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sharp border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -341,7 +341,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledFC.length - 1
               ? "Continue"
@@ -418,7 +418,7 @@ export function QuizFlow({
             type="button"
             onClick={handlePrev}
             disabled={isFirst}
-            className="rounded-[8px] border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sharp border border-border-primary px-6 py-2.5 text-sm text-text-secondary transition-colors duration-150 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -426,7 +426,7 @@ export function QuizFlow({
             type="button"
             onClick={handleNext}
             disabled={!hasResponse}
-            className="rounded-[8px] border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sharp border border-stone-600 px-6 py-2.5 text-sm text-stone-600 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {state.currentQuestionIndex === shuffledSC.length - 1
               ? "Continue"
@@ -471,7 +471,7 @@ export function QuizFlow({
         {finalizeError && (
           <p
             role="alert"
-            className="mb-4 rounded-[8px] bg-warning-bg px-4 py-3 text-[13px] text-warning-text"
+            className="mb-4 rounded-sharp bg-warning-bg px-4 py-3 text-[13px] text-warning-text"
           >
             Something went wrong finalizing your budget. Your answers are still here — please try again.
           </p>

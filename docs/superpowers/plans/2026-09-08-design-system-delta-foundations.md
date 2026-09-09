@@ -25,11 +25,11 @@
 ### Task 1: Add the radius, button, and typography token layer
 
 **Files:**
-- Modify: `src/app/globals.css:8-90` (`:root` block), `:135-160` (dark block), `:162-200` (`@theme inline` block)
+- Modify: `src/app/globals.css` — the existing `:root` block (7-96), the `@media (prefers-color-scheme: dark)` block (98-154), and the `@theme inline` block (156-194); then append the typography utilities at end of file
 - Test: `tests/unit/design-system-tokens.test.ts`
 
 **Interfaces:**
-- Produces: `--radius`, `--radius-panel`, `--button-primary-*` custom properties; the `rounded-panel` utility; and the `display-*`, `body-lead`, `label*`, `control`, `wordmark`, `caption-italic` utilities.
+- Produces: `--radius`, `--radius-sharp`, `--button-primary-*` custom properties; the `rounded-sharp` utility; and the `display-*`, `body-lead`, `label*`, `mono-meta`, `control`, `wordmark`, `caption-italic` utilities.
 - Consumed by: Tasks 2–5 and every later phase.
 
 - [ ] **Step 1: Write the failing token test**
@@ -46,63 +46,105 @@ const globalsCss = readFileSync(
   "utf8",
 );
 
+/** Body of a top-level block, brace-matched so nested blocks don't truncate it. */
+function block(css: string, opener: string): string {
+  const start = css.indexOf(opener);
+  if (start === -1) throw new Error(`block not found: ${opener}`);
+  const braceStart = css.indexOf("{", start);
+  let depth = 0;
+  for (let i = braceStart; i < css.length; i += 1) {
+    if (css[i] === "{") depth += 1;
+    else if (css[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return css.slice(braceStart + 1, i);
+    }
+  }
+  throw new Error(`unterminated block: ${opener}`);
+}
+
+/** Custom-property declarations in a block, whitespace-normalised. */
+function decls(css: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [, name, value] of css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+    out[name] = value.trim();
+  }
+  return out;
+}
+
+const light = decls(block(globalsCss, ":root"));
+const dark = decls(
+  block(block(globalsCss, "@media (prefers-color-scheme: dark)"), ":root"),
+);
+const theme = decls(block(globalsCss, "@theme inline"));
+
+const utilities = [
+  ...globalsCss.matchAll(/@utility ([a-z-]+) \{([^}]*)\}/g),
+].map(([, name, body]) => ({ name, body }));
+
+const TYPE_SCALE = [
+  "display-xl",
+  "display-page",
+  "display-l",
+  "display-m",
+  "display-entry",
+  "display-s",
+  "body-lead",
+  "label",
+  "label-eyebrow",
+  "label-nav",
+  "mono-meta",
+  "control",
+  "wordmark",
+  "caption-italic",
+];
+
 describe("design delta token layer", () => {
   it("defines the near-square radius and exposes it to Tailwind", () => {
-    expect(globalsCss).toContain("--radius: 2px;");
-    expect(globalsCss).toContain("--radius-panel: var(--radius);");
+    expect(light["--radius"]).toBe("2px");
+    expect(theme["--radius-sharp"]).toBe("var(--radius)");
   });
 
   it("inverts the primary button in dark mode instead of darkening it", () => {
-    // Light: ink on paper. Dark: the same relationship, reversed.
-    expect(globalsCss).toContain("--button-primary-bg:       var(--stone-900);");
-    expect(globalsCss).toContain("--button-primary-bg:       var(--stone-300);");
-    expect(globalsCss).toContain("--button-primary-text:     var(--stone-50);");
-    expect(globalsCss).toContain("--button-primary-text:     var(--stone-900);");
+    // Stone 900 ink on a Stone 900 ground would be invisible, so dark mode
+    // reverses the relationship rather than darkening it. Asserted per block,
+    // because a whole-file substring match passes even when the two are swapped.
+    expect(light["--button-primary"]).toBe("var(--stone-900)");
+    expect(light["--button-primary-hover"]).toBe("var(--stone-800)");
+    expect(light["--button-primary-fg"]).toBe("var(--stone-50)");
+
+    expect(dark["--button-primary"]).toBe("var(--stone-300)");
+    expect(dark["--button-primary-hover"]).toBe("var(--stone-200)");
+    expect(dark["--button-primary-fg"]).toBe("var(--stone-900)");
   });
 
-  it("maps the button tokens into the Tailwind colour namespace", () => {
-    expect(globalsCss).toContain(
-      "--color-button-primary-bg:       var(--button-primary-bg);",
+  it("keeps every button token mode-aware and mapped into the colour namespace", () => {
+    // Structural invariant: any button token a later phase adds must carry a
+    // dark override and a Tailwind mapping, or this fails.
+    const buttonTokens = Object.keys(light).filter((key) =>
+      key.startsWith("--button-"),
     );
-    expect(globalsCss).toContain(
-      "--color-button-primary-bg-hover: var(--button-primary-bg-hover);",
-    );
-    expect(globalsCss).toContain(
-      "--color-button-primary-text:     var(--button-primary-text);",
-    );
-  });
 
-  it("declares every typography role from the delta's type scale", () => {
-    for (const utility of [
-      "display-xl",
-      "display-page",
-      "display-l",
-      "display-m",
-      "display-entry",
-      "display-s",
-      "body-lead",
-      "label",
-      "label-eyebrow",
-      "label-nav",
-      "mono-meta",
-      "control",
-      "wordmark",
-      "caption-italic",
-    ]) {
-      expect(globalsCss).toContain(`@utility ${utility} {`);
+    expect(buttonTokens.length).toBeGreaterThan(0);
+    for (const token of buttonTokens) {
+      expect(dark, `${token} has no dark-mode override`).toHaveProperty(token);
+      expect(theme[`--color-${token.slice(2)}`]).toBe(`var(${token})`);
     }
   });
 
-  it("holds the 11px type floor across every label role", () => {
-    const utilityBlocks = globalsCss.matchAll(
-      /@utility [a-z-]+ \{([^}]*)\}/g,
+  it("declares exactly the type scale's typography roles", () => {
+    expect(utilities.map((utility) => utility.name).sort()).toEqual(
+      [...TYPE_SCALE].sort(),
     );
-    const sizes: number[] = [];
-    for (const [, body] of utilityBlocks) {
-      const match = body.match(/font-size:\s*([0-9.]+)px/);
-      if (match) sizes.push(Number(match[1]));
-    }
-    expect(sizes.length).toBeGreaterThan(0);
+  });
+
+  it("holds the 11px type floor across every typography role", () => {
+    const sizes = utilities.map((utility) => {
+      const match = utility.body.match(/font-size:\s*([0-9.]+)px/);
+      expect(match, `${utility.name} declares no font-size`).not.toBeNull();
+      return Number(match![1]);
+    });
+
+    expect(sizes).toHaveLength(TYPE_SCALE.length);
     expect(Math.min(...sizes)).toBeGreaterThanOrEqual(11);
   });
 });
@@ -112,8 +154,10 @@ describe("design delta token layer", () => {
 
 Run: `npm test -- tests/unit/design-system-tokens.test.ts`
 
-Expected: FAIL — every assertion misses, starting with
-`expect(globalsCss).toContain("--radius: 2px;")`, because no token exists yet.
+Expected: FAIL, all 5 tests. The first two fail on `undefined` lookups
+because no token exists yet; the type-scale tests fail because `utilities` is
+empty. If any test *passes* at this point, the assertion is not reaching the
+file — investigate before implementing.
 
 - [ ] **Step 3: Add the `:root` tokens**
 
@@ -127,9 +171,9 @@ declaration and before the cluster-colour comment block, insert:
   /* --- Button surfaces (design delta 03: ink-filled primary) ---
      Semantic aliases onto the Stone ramp so delta 06's dark-mode inversion
      is a token override rather than a per-component branch. */
-  --button-primary-bg:       var(--stone-900);
-  --button-primary-bg-hover: var(--stone-800);
-  --button-primary-text:     var(--stone-50);
+  --button-primary: var(--stone-900);
+  --button-primary-hover: var(--stone-800);
+  --button-primary-fg: var(--stone-50);
 ```
 
 - [ ] **Step 4: Add the dark-mode inversion**
@@ -140,9 +184,9 @@ In the `@media (prefers-color-scheme: dark)` block, immediately after the
 ```css
     /* Design delta 06: Stone 900 ink on a Stone 900 ground is invisible, so
        the primary inverts rather than darkens. */
-    --button-primary-bg:       var(--stone-300);
-    --button-primary-bg-hover: var(--stone-200);
-    --button-primary-text:     var(--stone-900);
+    --button-primary: var(--stone-300);
+    --button-primary-hover: var(--stone-200);
+    --button-primary-fg: var(--stone-900);
 ```
 
 - [ ] **Step 5: Extend `@theme inline`**
@@ -150,11 +194,11 @@ In the `@media (prefers-color-scheme: dark)` block, immediately after the
 In the `@theme inline` block, after the `--color-info` line, insert:
 
 ```css
-  --color-button-primary-bg:       var(--button-primary-bg);
-  --color-button-primary-bg-hover: var(--button-primary-bg-hover);
-  --color-button-primary-text:     var(--button-primary-text);
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-primary-fg: var(--button-primary-fg);
 
-  --radius-panel: var(--radius);
+  --radius-sharp: var(--radius);
 ```
 
 - [ ] **Step 6: Add the typography utilities**
@@ -171,7 +215,17 @@ At the end of `src/app/globals.css`, append:
    which the `--text-*` namespace cannot express. Tailwind variants
    (`min-[560px]:display-l`, etc.) work on `@utility` rules.
 
-   Type floor is 11px. Nothing below it, on any viewport.
+   `text-wrap: pretty` appears only on the long headline roles
+   (display-xl/-page/-l); display-m/-entry/-s and the rest of the scale
+   don't need it. That's deliberate, not an oversight — don't "fix" it
+   into consistency.
+
+   `caption-italic` additionally sets `color` (Stone tertiary text). That
+   colour is part of the role's definition, not a default to override.
+
+   Every role in this scale sits at or above 11px — the delta's floor.
+   Pre-existing sub-11px sites elsewhere in the codebase are swept by
+   later phases, not this one.
    ============================================ */
 
 @utility display-xl {
@@ -304,7 +358,7 @@ Expected: PASS, 5 tests.
 Run: `npm run build`
 
 Expected: build succeeds. This is the real check that Tailwind 4.3.3 accepts
-the `@utility` syntax and the `--radius-panel` theme entry — a malformed
+the `@utility` syntax and the `--radius-sharp` theme entry — a malformed
 `@theme`/`@utility` rule fails the CSS build, not the unit test.
 
 - [ ] **Step 9: Commit**
@@ -319,33 +373,96 @@ git commit -m "feat(design): add radius, button, and typography tokens for the d
 ### Task 2: Sweep the legacy radius literals
 
 **Files:**
-- Modify (26 files, 89 literals): `src/app/account/page.tsx`, `src/app/archetypes/page.tsx`, `src/app/auth/signin/page.tsx`, `src/app/auth/signup/page.tsx`, `src/app/axes/page.tsx`, `src/app/compare/page.tsx`, `src/app/compare/[profileId1]/[profileId2]/page.tsx`, `src/app/groups/[groupId]/page.tsx`, `src/app/methodology/page.tsx`, `src/app/page.tsx`, `src/app/questions/page.tsx`, `src/app/references/page.tsx`, `src/app/results/[profileId]/[axisId]/page.tsx`, `src/components/annotations/AnnotationEditor.tsx`, `src/components/comparison/BudgetComparison.tsx`, `src/components/comparison/ComparisonScoreBar.tsx`, `src/components/GlossaryTerm.tsx`, `src/components/groups/GroupHeatMap.tsx`, `src/components/quiz/BudgetSimulator.tsx`, `src/components/quiz/ForcedChoiceCard.tsx`, `src/components/quiz/PhaseTransition.tsx`, `src/components/quiz/QuizFlow.tsx`, `src/components/quiz/ScaledQuestionCard.tsx`, `src/components/results/ArchetypeCard.tsx`, `src/components/results/AxisBreakdownCard.tsx`, `src/components/results/ResultsView.tsx`
+- Modify (26 files, 89 class literals): `src/app/account/page.tsx`, `src/app/archetypes/page.tsx`, `src/app/auth/signin/page.tsx`, `src/app/auth/signup/page.tsx`, `src/app/axes/page.tsx`, `src/app/compare/page.tsx`, `src/app/compare/[profileId1]/[profileId2]/page.tsx`, `src/app/groups/[groupId]/page.tsx`, `src/app/methodology/page.tsx`, `src/app/page.tsx`, `src/app/questions/page.tsx`, `src/app/references/page.tsx`, `src/app/results/[profileId]/[axisId]/page.tsx`, `src/components/annotations/AnnotationEditor.tsx`, `src/components/comparison/BudgetComparison.tsx`, `src/components/comparison/ComparisonScoreBar.tsx`, `src/components/GlossaryTerm.tsx`, `src/components/groups/GroupHeatMap.tsx`, `src/components/quiz/BudgetSimulator.tsx`, `src/components/quiz/ForcedChoiceCard.tsx`, `src/components/quiz/PhaseTransition.tsx`, `src/components/quiz/QuizFlow.tsx`, `src/components/quiz/ScaledQuestionCard.tsx`, `src/components/results/ArchetypeCard.tsx`, `src/components/results/AxisBreakdownCard.tsx`, `src/components/results/ResultsView.tsx`
+- Modify (1 inline style): `src/components/study/CompareView.tsx:533`
 - Test: `tests/unit/design-system-tokens.test.ts` (extend)
 
 **Interfaces:**
-- Consumes: the `rounded-panel` utility from Task 1.
-- Produces: a source-wide guardrail against the reintroduction of 12px/8px radii.
+- Consumes: the `rounded-sharp` utility and `--radius` from Task 1.
+- Produces: a source-wide guardrail against the reintroduction of 12px/8px radii, in both class and inline-style form.
+
+**Why one inline site is included.** A class-only grep misses `src/components/study/CompareView.tsx:533`, which sets `borderRadius: "8px"` on the compare-view panel via an inline style. That is an in-scope 8px panel radius by any reading of delta 02, and leaving it behind would strand the one study-section element that actually is a panel. It is the *only* such site: the other 36 inline `borderRadius` values in `src/components/study/` are 1px/2px/3px/4px/6px data-viz marks — badges, bars, swatches — which delta 02 does not address, exactly as the class-literal exclusions do not.
 
 - [ ] **Step 1: Write the failing guardrail test**
 
-Append to `tests/unit/design-system-tokens.test.ts`:
+> **Shipped differently.** The regexes below were widened in `7197bcf` after
+> review: they banned `rounded-[8px]`/`[12px]` but not `rounded-lg`/`rounded-xl`,
+> which are Tailwind's own names for those same 8px and 12px radii, nor
+> directional variants, nor the unquoted `borderRadius: 8` form this repo
+> already uses. Offender output also became actionable (relative path, matched
+> text, replacement). See `tests/unit/design-system-tokens.test.ts`.
+
+Merge `readdirSync` into the existing `node:fs` import at the top of
+`tests/unit/design-system-tokens.test.ts` so it reads:
 
 ```ts
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+```
 
-function tsxFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = resolve(dir, entry.name);
-    if (entry.isDirectory()) return tsxFiles(path);
-    return entry.name.endsWith(".tsx") ? [path] : [];
-  });
+Then apply two hardening edits carried over from Task 1's code review. Both
+are prophylactic — neither is a live bug against `globals.css` as it stands —
+but both would fail confusingly, so they are cheaper to fix now.
+
+First, `decls()` does not strip comments, so a commented-out declaration is
+parsed as live. That matters because disabled button tokens were explicitly
+declined and routed to Phase 3, making a note like
+`/* --button-primary-disabled: ... deferred */` beside the button block a
+plausible thing for someone to write — and it would fail the structural
+invariant demanding a dark override for a token that does not exist in the
+cascade. Add comment stripping as the function's first line:
+
+```ts
+function decls(css: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  const body = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+    out[name] = value.trim();
+  }
+  return out;
 }
+```
 
+Second, the `@utility` name pattern `([a-z-]+)` cannot match a digit, so a
+future `display-2xl` would be silently uncollected and report as a confusing
+count mismatch rather than as the real problem. Widen it:
+
+```ts
+const utilities = [
+  ...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{([^}]*)\}/g),
+].map(([, name, body]) => ({ name, body }));
+```
+
+Then append this block at end of file:
+
+```ts
 describe("near-square corners (design delta 02)", () => {
-  it("has retired every 12px and 8px radius literal from src", () => {
-    const offenders = tsxFiles(resolve(process.cwd(), "src")).filter((file) =>
-      /rounded-\[(?:12|8)px\]/.test(readFileSync(file, "utf8")),
-    );
+  function tsxFiles(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = resolve(dir, entry.name);
+      if (entry.isDirectory()) return tsxFiles(path);
+      return entry.name.endsWith(".tsx") ? [path] : [];
+    });
+  }
+
+  const sources = tsxFiles(resolve(process.cwd(), "src")).map((file) => ({
+    file,
+    text: readFileSync(file, "utf8"),
+  }));
+
+  it("has retired every 12px and 8px radius class literal from src", () => {
+    const offenders = sources
+      .filter(({ text }) => /rounded-\[(?:12|8)px\]/.test(text))
+      .map(({ file }) => file);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("has retired every 12px and 8px inline border radius from src", () => {
+    // A class-only sweep misses inline styles, which is how CompareView's
+    // panel kept an 8px corner. Guard both spellings, not just the tidy one.
+    const offenders = sources
+      .filter(({ text }) => /borderRadius:\s*["'](?:12|8)px["']/.test(text))
+      .map(({ file }) => file);
 
     expect(offenders).toEqual([]);
   });
@@ -356,9 +473,10 @@ describe("near-square corners (design delta 02)", () => {
 
 Run: `npm test -- tests/unit/design-system-tokens.test.ts`
 
-Expected: FAIL — `offenders` lists 26 absolute file paths.
+Expected: FAIL on both new tests — the class test lists 26 absolute paths, the
+inline test lists exactly one (`src/components/study/CompareView.tsx`).
 
-- [ ] **Step 3: Run the sweep**
+- [ ] **Step 3: Sweep the class literals**
 
 Both literals map to the same new utility, and there are no directional
 variants (`rounded-t-[8px]` and friends do not appear in `src`), so this is a
@@ -366,33 +484,63 @@ safe two-pattern replace:
 
 ```bash
 grep -rl --include='*.tsx' -E 'rounded-\[(12|8)px\]' src \
-  | xargs sed -i -E 's/rounded-\[(12|8)px\]/rounded-panel/g'
+  | xargs sed -i -E 's/rounded-\[(12|8)px\]/rounded-sharp/g'
 ```
 
-- [ ] **Step 4: Confirm the sweep was total and left nothing else behind**
+- [ ] **Step 4: Sweep the one inline site**
+
+In `src/components/study/CompareView.tsx:533`, change:
+
+```tsx
+          borderRadius: "8px",
+```
+
+to:
+
+```tsx
+          borderRadius: "var(--radius)",
+```
+
+This is why Task 1 defines `--radius` on `:root` as well as `--radius-sharp`
+in the theme: inline styles cannot reach a Tailwind utility, so they need the
+raw custom property.
+
+- [ ] **Step 5: Confirm the sweep was total and left nothing else behind**
 
 Run:
 
 ```bash
 grep -rn --include='*.tsx' -E 'rounded-\[(12|8)px\]' src | wc -l
-grep -roh --include='*.tsx' 'rounded-panel' src | wc -l
+grep -roh --include='*.tsx' 'rounded-sharp' src | wc -l
+grep -rn --include='*.tsx' -E 'borderRadius:\s*"(12|8)px"' src | wc -l
 ```
 
-Expected: `0` then `89`.
+Expected: `0`, then `89`, then `0`.
 
-- [ ] **Step 5: Verify green**
+- [ ] **Step 6: Verify green**
 
 Run: `npm test -- tests/unit/design-system-tokens.test.ts && npm run typecheck && npm run lint`
 
-Expected: tests PASS (6 tests), typecheck clean, lint clean at
+Expected: tests PASS (7 tests), typecheck clean, lint clean at
 `--max-warnings=0`.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src tests/unit/design-system-tokens.test.ts
-git commit -m "refactor(design): collapse 12px and 8px radii to the 2px panel token"
+git commit -m "refactor(design): collapse 12px and 8px radii onto the 2px token"
 ```
+
+**Deliberately not in this task.** Seven bare `rounded` classes
+(`src/app/questions/page.tsx:176,190,248,315`, `src/app/account/page.tsx:236`,
+`src/components/comparison/ComparisonScoreBar.tsx:60,68`) compile to Tailwind's
+default 4px and so sit off-system. Sweeping them to 2px is a *visual* change on
+chips, a checkbox, and tooltips that the handoff never specified — 4px is
+excluded from delta 02 exactly as `rounded-[4px]` is. Locking the namespace
+with `--radius-*: initial` to make off-system radii unwritable is attractive
+and was verified to work, but it makes bare `rounded` emit nothing *silently*,
+so it must land together with those seven sites and a visual review. Both are
+tracked as issue #139 rather than smuggled into this phase.
 
 ---
 
@@ -404,10 +552,63 @@ git commit -m "refactor(design): collapse 12px and 8px radii to the 2px panel to
 
 **Interfaces:**
 - Produces: `buttonClasses(variant)`, `Button` (renders `<button>`), `ButtonLink` (renders a `next/link` anchor), and the `ButtonVariant` type.
-- Consumes: `control`, `label-nav`, `rounded-panel`, and the `button-primary-*` colours from Task 1.
-- Consumed by: Task 4 (`NavBar` has no buttons, but Phases 2–5 replace all nine inline button call sites with these).
+- Consumes: `control`, `label-nav`, `rounded-sharp`, and the `button-primary-*` colours from Task 1.
+- Consumed by: Task 4 (`NavBar` has no buttons, but Phases 2–5 replace the inline button call sites with these).
+
+**The eight existing filled buttons are compliant — do not "fix" them.**
+Task 2's review flagged them as violating `CLAUDE.md`, reading its rule as a
+count of two. It is not a count. Line 83 reserves filled buttons for "primary
+assessment actions (beginning or resuming the assessment and confirming the
+budget)", and all eight fall inside that category: `page.tsx:28`
+("Begin assessment"), `axes:184` / `questions:338` / `references:61`
+("Take the assessment"), `methodology:194` ("Begin the assessment"),
+`QuizFlow:236` ("Continue where I left off"), `QuizFlow:280` ("Begin"), and
+`BudgetSimulator:192` ("Confirm budget"). Three further `bg-stone-600` uses —
+`QuizFlow:498`, `ProgressBar:46`, `ArchetypeCard:162` — are progress fills and
+a rule, which delta 03 explicitly keeps as Stone 600's remaining jobs.
+
+What actually conflicts with that rule is mock `6b`'s ink-filled quiz `Next`,
+which advances within the assessment rather than beginning, resuming, or
+confirming. That is spec decision D1, and Phase 6 (#137) rewrites the rule to
+cover it. Nothing in Phase 1 depends on the rewrite.
+
+**Notes for the Phase 2–5 migrations.** Three things the Task 3 review
+established that the migrating phases would otherwise rediscover the hard way:
+
+1. **`className` does not override variant classes.** Appending does not win —
+   Tailwind's emitted order decides, and the variant utilities land later in
+   the sheet than common ones. Verified by byte offset: `.block` at 4660 loses
+   to BASE's `.inline-block` at 4695, and `.px-6` at 4973 loses to
+   `.px-[34px]` at 5033. So `className` is only for properties no variant sets
+   — margin, width, position. The concrete trap: `src/app/page.tsx:26-30` is
+   currently `block mx-auto max-w-xs`, and migrating it verbatim silently
+   shrinks the app's flagship CTA from a 320px block to content width. The
+   working spelling is `className="w-full max-w-xs"`, which is conflict-free
+   and centres via the hero's existing `text-center`. Anything needing
+   different padding or display needs a variant, not a class.
+
+2. **The tertiary variant's intended sites.** It is uppercase mono
+   (`label-nav`) by design, so it is *not* for prose links or the
+   `no-underline` breadcrumb kickers. Mock `5a` uses it for the "Methodology"
+   link beside the hero primary (Phase 2); mock `7a` uses it for "Learn more"
+   in the archetype panel (Phase 4). Applying it to a sentence-case prose link
+   would uppercase the text.
+
+3. **Worth adding once migrations finish (Phase 5, #136):** a source-scanning
+   guardrail in the `tests/unit/design-system-tokens.test.ts` idiom asserting
+   no `.tsx` outside `Button.tsx` hand-rolls a filled-button recipe. Class
+   assertions protect the primitive; only a source scan protects the
+   invariant across five phases of migration. It cannot pass until the last
+   call site moves, so it belongs at the end.
 
 - [ ] **Step 1: Write the failing test**
+
+> **Shipped differently.** The `toContain` class assertions below were replaced
+> in `1c41363` with a `hasClass` whole-token helper: `bg-button-primary` is a
+> substring of `hover:bg-button-primary-hover` and `border-b` of
+> `border-border-primary`, so the originals passed against a primary that never
+> filled at rest and a tertiary with no underline. `2eae9ea` then added a
+> `type="button"` default and `aria-disabled` coverage.
 
 Create `tests/unit/button.test.ts`:
 
@@ -447,9 +648,9 @@ describe("buttonClasses", () => {
   it("fills the primary with the invertible ink token, never a raw ramp step", () => {
     const classes = buttonClasses("primary");
 
-    expect(classes).toContain("bg-button-primary-bg");
-    expect(classes).toContain("text-button-primary-text");
-    expect(classes).toContain("hover:bg-button-primary-bg-hover");
+    expect(classes).toContain("bg-button-primary");
+    expect(classes).toContain("text-button-primary-fg");
+    expect(classes).toContain("hover:bg-button-primary-hover");
     // Stone 600 keeps its jobs as focus ring and progress fill only.
     expect(classes).not.toContain("bg-stone-600");
     expect(classes).not.toContain("bg-stone-900");
@@ -459,7 +660,7 @@ describe("buttonClasses", () => {
     const classes = buttonClasses("secondary");
 
     expect(classes).toContain("border-border-primary");
-    expect(classes).not.toContain("bg-button-primary-bg");
+    expect(classes).not.toContain("bg-button-primary");
   });
 
   it("gives the tertiary an underline and no padding box", () => {
@@ -545,10 +746,10 @@ const BASE =
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "control rounded-panel bg-button-primary-bg text-button-primary-text " +
-    "px-[34px] py-[15px] hover:bg-button-primary-bg-hover",
+    "control rounded-sharp bg-button-primary text-button-primary-fg " +
+    "px-[34px] py-[15px] hover:bg-button-primary-hover",
   secondary:
-    "control rounded-panel border border-border-primary text-text-secondary " +
+    "control rounded-sharp border border-border-primary text-text-secondary " +
     "px-[26px] py-[15px] hover:bg-surface-2",
   tertiary:
     "label-nav text-text-secondary border-b border-border-primary pb-[3px] " +
@@ -605,6 +806,12 @@ git commit -m "feat(design): extract the three-tier button primitive"
 
 **Interfaces:**
 - Consumes: `wordmark`, `label-nav` from Task 1.
+- Also brings the dropdown chevron (`NavBar.tsx:142`) from `text-[10px]` to
+  `text-[11px]`. The plan's global constraints defer pre-existing sub-floor
+  sites to later phases, but no later phase touches `NavBar` — Phase 1 is its
+  only pass — so deferring would mean never fixing it. It now matches the 11px
+  `label-nav` text beside it. Its `aria-hidden`, rotate transform, and 120ms
+  transition are unchanged.
 - Preserves: the conditional Quiz/Results link, the Research dropdown and its outside-click/Escape handling, `aria-current`, and the active-state underline (spec decision D5 — the mocks are static prototypes that cannot draw a dropdown, so the shipped IA stands and only the treatment changes).
 
 - [ ] **Step 1: Write the failing test**
@@ -839,8 +1046,12 @@ describe("footer chrome", () => {
 
 Run: `npm test -- tests/unit/footer-chrome.test.ts`
 
-Expected: FAIL on the first test — the footer renders `text-xs`, so `.label`
-matches nothing.
+Expected: FAIL on the first two tests. The footer currently renders `text-xs`
+in a single centred row, so `.mono-meta` matches nothing and there are no
+`[data-footer-group]` elements. The third test — external-link safety — passes
+before any change, because the shipped footer already sets `target` and `rel`
+correctly on both anchors; that is expected, not a sign the assertion is
+vacuous.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -906,9 +1117,9 @@ git commit -m "feat(design): regroup the footer onto the mono label layer"
 
 Run: `npm test`
 
-Expected: PASS at 564 tests across 52 files. The baseline on `main` is 543
-tests across 51 files (verified 2026-09-08), and this phase adds 21: 5 token +
-1 radius guardrail + 8 button + 4 navbar + 3 footer. Confirm no pre-existing
+Expected: PASS at 565 tests across 52 files. The baseline on `main` is 543
+tests across 51 files (verified 2026-09-08), and this phase adds 22: 5 token +
+2 radius guardrails + 8 button + 4 navbar + 3 footer. Confirm no pre-existing
 spec regressed — the `vmForks` pool shares a module registry per worker, so a
 spec that passes alone can still fail in the full run.
 
@@ -939,7 +1150,42 @@ colour scheme. Confirm by eye: 54px nav with a mono wordmark, mono nav links,
 2px corners on the hero CTA, a two-group mono footer, and — critically — that
 no ink-primary button has gone invisible in dark mode.
 
-- [ ] **Step 5: Commit any fixes and open the PR**
+- [ ] **Step 5: Reconcile this plan with what actually shipped**
+
+Review cycles changed several tasks after they were written — Task 1's test
+was rewritten, Task 2's guardrail regexes were widened, and token names
+changed. Task 1's code blocks were synced at the time; Tasks 2–5 were not, to
+avoid churning this document after every task.
+
+Walk each task's code blocks and replace any that drifted with the landed
+artifact, so this plan documents what shipped rather than what was intended.
+Diff each block against its file rather than eyeballing:
+
+```bash
+git log --oneline main..HEAD
+git diff main..HEAD -- src tests
+```
+
+Known drift to fix:
+
+- Task 2's Step 1 still shows the pre-hardening guardrail block (narrow
+  regexes, bare-path offender output) rather than the widened patterns and
+  actionable messages in `tests/unit/design-system-tokens.test.ts`.
+- Task 4's Step 1 still shows a loose `>= 2` count for `.label-nav`, which
+  left Step 5's dropdown-item edit unguarded — reverting it alone kept the
+  suite green. Replaced with an exact closed-state count of 2 plus a
+  per-menuitem assertion inside the dropdown test.
+- Task 5's Step 1 never asserts the licence `href` or the row's
+  `justify-between`, so repointing the licence link and re-centring the row
+  both passed. Both are now pinned.
+- Task 3's Step 1 still shows `toContain` class assertions. Those were
+  replaced with a `hasClass` whole-token helper, because `bg-button-primary`
+  is a substring of `hover:bg-button-primary-hover` and `border-b` of
+  `border-border-primary` — so the original assertions passed against a
+  primary that never filled at rest and a tertiary with no underline. Both
+  are now proven by mutation.
+
+- [ ] **Step 6: Commit any fixes and open the PR**
 
 ```bash
 git switch -c feat/design-delta-foundations
@@ -960,8 +1206,65 @@ Deliberately deferred, each to its own plan (see the spec's phasing table):
   keep working on their current classes until each screen's phase reaches them;
   the primitive exists first so no phase has to invent it.
 - The 14 `rounded-[3px]`, three `rounded-[6px]`, and one `rounded-[4px]`
-  literals. The 3px ones are score-bar and budget-bar tracks that Phase 4
-  replaces outright with the paired axis scale's 2px track.
+  literals, plus the 38 inline `borderRadius` marks at 1–6px in
+  `src/components/study/` (35 quoted, three unquoted numeric). The 3px ones are score-bar and budget-bar tracks
+  that Phase 4 replaces outright with the paired axis scale's 2px track.
+- The seven bare `rounded` classes (Tailwind's default 4px) and the
+  `--radius-*: initial` namespace lockdown that would make off-system radii
+  unwritable. Both are worth doing and were verified to work, but sweeping
+  those seven sites is an unspecified visual change and the lockdown makes
+  bare `rounded` fail silently, so they belong together in a follow-up with a
+  visual review — not smuggled into this phase. Tracked as issue #139; see
+  also Task 2's closing note.
 - `CLAUDE.md` and `docs/system_proposal/governance_compass_design_spec.md`
   updates, including the filled-button rule rewrite from spec decision D1 —
   Phase 6, so the docs describe what actually shipped.
+
+---
+
+## Outcome
+
+Phase 1 shipped in 24 commits on `feat/design-delta-foundations`. The unit
+suite went from 543 to 582; typecheck, lint at `--max-warnings=0`, and the
+production build are clean.
+
+**What the plan got right:** the six-task sequence, the token mechanism
+(`@utility` over `--text-*`), and the decision to build the button primitive
+before any call site needed it. No task had to be reordered or split.
+
+**What review changed.** Every task produced at least one finding, and most
+were defects in this plan rather than in the implementations:
+
+| Task | Finding |
+| --- | --- |
+| 1 | The token test passed even with the light and dark button values swapped — whole-file `toContain` is block-blind. Rewritten to brace-match each block and assert on parsed declaration maps, plus a structural invariant requiring every `--button-*` token to carry a dark override and a theme mapping. |
+| 1 | `--radius-panel` was a misnomer (55 of 89 sweep targets are badges and inputs, not panels) and `--color-button-primary-bg` compiled to the stuttering `bg-button-primary-bg`. Renamed to `--radius-sharp` and `--button-primary`/`-hover`/`-fg` while it was a 2-line change. |
+| 2 | The radius guardrail banned `rounded-[8px]`/`[12px]` but not `rounded-lg`/`rounded-xl` — Tailwind's own names for the same values, and the spelling a contributor would actually type. Also missed the unquoted `borderRadius: 8` form the repo already uses, and never scanned `globals.css`. |
+| 2 | A class-only grep missed `CompareView.tsx:533`, an 8px panel radius set inline. |
+| 3 | `Button` had no `type` default, so it was `type="submit"` — any migrated action button inside a form would have submitted it. |
+| 3 | A test *name* claimed appended `className` overrides variant classes. It does not; Tailwind's emitted order decides. Verified by byte offset: `.block` (4660) loses to `.inline-block` (4695). Migrating `page.tsx`'s CTA verbatim would have silently shrunk it from a 320px block to content width while still looking centred. |
+| 4 | The 54px bar left the dropdown panel overlapping the nav's bottom rule by 7.3px and the active underline floating 11.3px off it. Fixed by letting link boxes span the bar, which also restored tap-target height. |
+| 5 | The footer test never asserted the licence `href` or the row's justification, so repointing the licence link and re-centring the row both passed. |
+
+**Two findings were declined,** with reasons recorded: disabled-state button
+tokens (the primitive's mode-agnostic `disabled:opacity-50` is correct under
+inversion; the defect is `BudgetSimulator`'s hardcoded classes, routed to
+Phase 3), and stripping `caption-italic`'s colour (it is part of the role;
+the real defect was the inaccurate contract comment). A third — eight filled
+buttons reported as `CLAUDE.md` violations — was simply wrong: the rule is
+category-based, not a count of two, and all eight fall inside it.
+
+**Two findings exceeded the plan's scope and were fixed anyway:**
+
+- **The app-wide focus ring never painted.** All 25 occurrences of
+  `focus:outline-none focus-visible:outline-2 …` computed `outline-style:
+  none`, because `outline-none` sets `--tw-outline-style: none` and `:focus`
+  always matches when `:focus-visible` does. Confirmed in Chromium. Replaced
+  with a `focus-ring` utility using the `outline` shorthand.
+- **The label colour cannot be mode-independent.** Stone 500 measures 2.73:1
+  on the light ground. `--text-label` steps Stone 700 / Stone 500 — spec
+  decision D7.
+
+**Deferred:** the bare-`rounded` sweep and radius namespace lockdown (#139),
+the 17 remaining sub-11px component literals, a shared `vi.resetModules()`
+setup file, and aligning page shells to the chrome's gutter (Phase 2).

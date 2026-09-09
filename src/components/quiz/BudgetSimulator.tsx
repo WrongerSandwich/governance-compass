@@ -154,7 +154,7 @@ export function BudgetSimulator({
       </p>
 
       {/* Sticky points remaining counter */}
-      <div className="sticky top-0 z-10 bg-surface-2 rounded-[8px] px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-surface-2 rounded-sharp px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-text-secondary">Points remaining</span>
         <span className="text-[16px] font-mono font-medium text-text-primary tabular-nums">
           {remaining}
@@ -189,7 +189,7 @@ export function BudgetSimulator({
           type="button"
           onClick={onFinalize}
           disabled={!canFinalize}
-          className="w-full rounded-[12px] bg-stone-600 px-6 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-stone-400 disabled:text-stone-200"
+          className="w-full rounded-sharp bg-stone-600 px-6 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus-ring disabled:cursor-not-allowed disabled:bg-stone-400 disabled:text-stone-200"
         >
           Confirm budget
         </button>
@@ -209,9 +209,8 @@ interface MinistrySliderProps {
 }
 
 const STEPPER_BASE =
-  "flex h-9 w-9 items-center justify-center rounded-[8px] border border-border-primary " +
-  "bg-surface-1 text-text-secondary transition-colors duration-150 focus:outline-none " +
-  "focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+  "flex h-9 w-9 items-center justify-center rounded-sharp border border-border-primary " +
+  "bg-surface-1 text-text-secondary transition-colors duration-150 focus-ring";
 
 /**
  * Bounds are marked with `aria-disabled` rather than `disabled`: a disabled
@@ -253,7 +252,7 @@ function MinistrySlider({
   const inc = useStepper(handleIncrement);
 
   return (
-    <div className="bg-surface-1 rounded-[12px] border border-border-secondary p-4">
+    <div className="bg-surface-1 rounded-sharp border border-border-secondary p-4">
       <div className="mb-1">
         <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
           {(() => { const Icon = MINISTRY_ICONS[ministry.id]; return Icon ? <Icon size={13} strokeWidth={1.5} className="shrink-0" /> : null; })()}

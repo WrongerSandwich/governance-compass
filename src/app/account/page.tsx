@@ -174,7 +174,7 @@ export default function AccountPage() {
         <p className="text-text-tertiary text-sm mb-8">{session?.user?.email}</p>
 
         {/* Profile link / claim */}
-        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+        <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
           <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
             Your profile
           </h2>
@@ -194,7 +194,7 @@ export default function AccountPage() {
               {unsavedResults && (
                 <button
                   onClick={handleSaveResults}
-                  className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
+                  className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
                 >
                   Save current results to account
                 </button>
@@ -207,7 +207,7 @@ export default function AccountPage() {
         </section>
 
         {/* Axis visibility */}
-        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+        <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
           <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
             Privacy
           </h2>
@@ -249,7 +249,7 @@ export default function AccountPage() {
         </section>
 
         {/* Groups */}
-        <section className="bg-surface-1 rounded-[12px] border border-border-secondary p-6 mb-6">
+        <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
           <h2 className="text-[18px] font-serif font-medium text-text-primary mb-4">
             Groups
           </h2>
@@ -259,7 +259,7 @@ export default function AccountPage() {
                 <Link
                   key={g.id}
                   href={`/groups/${g.id}`}
-                  className="block bg-surface-2 rounded-[8px] p-3 hover:bg-stone-100 transition-colors duration-150"
+                  className="block bg-surface-2 rounded-sharp p-3 hover:bg-stone-100 transition-colors duration-150"
                 >
                   <div className="font-medium text-text-primary">{g.name}</div>
                   <div className="text-xs text-text-tertiary">
@@ -283,11 +283,11 @@ export default function AccountPage() {
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Group name"
-                className="flex-1 rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
               <button
                 onClick={handleCreateGroup}
-                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
+                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
               >
                 Create
               </button>
@@ -303,11 +303,11 @@ export default function AccountPage() {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
                 placeholder="Invite code (e.g., ABCD-1234)"
-                className="flex-1 rounded-[8px] border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
               <button
                 onClick={handleJoinGroup}
-                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-[8px] text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
+                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
               >
                 Join
               </button>

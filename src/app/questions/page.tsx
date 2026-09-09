@@ -71,7 +71,7 @@ export default function QuestionsPage() {
         </h1>
 
         {/* Spoiler notice */}
-        <div className="border-l-2 rounded-[8px] px-4 py-3 mb-8" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
+        <div className="border-l-2 rounded-sharp px-4 py-3 mb-8" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
           <p className="text-sm text-text-secondary leading-relaxed">
             This page lists every question in the assessment and shows how each
             one maps to the scoring model. If you haven&apos;t taken the quiz
@@ -158,7 +158,7 @@ export default function QuestionsPage() {
                             {fcItems.map((fc) => (
                               <div
                                 key={fc.id}
-                                className="border border-border-secondary rounded-[8px] px-4 py-3 border-l-2"
+                                className="border border-border-secondary rounded-sharp px-4 py-3 border-l-2"
                                 style={{ borderLeftColor: DOMAIN_COLORS[domain.key][600] }}
                               >
                                 <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-2.5">
@@ -209,7 +209,7 @@ export default function QuestionsPage() {
                             {scItems.map((sc) => (
                               <div
                                 key={sc.id}
-                                className="border border-border-secondary rounded-[8px] px-4 py-3"
+                                className="border border-border-secondary rounded-sharp px-4 py-3"
                               >
                                 <p className="text-sm font-medium text-text-primary mb-3">
                                   {sc.questionStem}
@@ -299,7 +299,7 @@ export default function QuestionsPage() {
             {ministryMappings.map(({ ministry, mappings }) => (
               <div
                 key={ministry.id}
-                className="border border-border-secondary rounded-[8px] px-4 py-3"
+                className="border border-border-secondary rounded-sharp px-4 py-3"
               >
                 <p className="text-sm font-medium text-text-primary">
                   {ministry.name}
@@ -335,7 +335,7 @@ export default function QuestionsPage() {
           <div className="text-center">
             <Link
               href="/quiz"
-              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-[12px] text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
             >
               Take the assessment
             </Link>

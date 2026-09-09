@@ -76,7 +76,7 @@ function CopyLinkButton() {
   return (
     <button
       onClick={handleCopy}
-      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus-ring"
     >
       {copied ? "Copied!" : "Copy link"}
     </button>
@@ -100,7 +100,7 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-[8px] px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
+        className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
       >
         Compare with someone
       </button>
@@ -116,12 +116,12 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
         onKeyDown={(e) => e.key === "Enter" && handleCompare()}
         placeholder="Paste their results link"
         autoFocus
-        className="flex-1 min-w-0 rounded-[8px] border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+        className="flex-1 min-w-0 rounded-sharp border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus-ring"
       />
       <button
         onClick={handleCompare}
         disabled={!link.trim()}
-        className="text-xs border border-stone-600 text-stone-600 rounded-[8px] px-3.5 py-1.5 hover:bg-stone-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-xs border border-stone-600 text-stone-600 rounded-sharp px-3.5 py-1.5 hover:bg-stone-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Compare
       </button>
@@ -206,7 +206,7 @@ export function ResultsView({
 
         {/* 1. Archetype hero — with mini radar, no compass */}
         <FadeInSection delay={200}>
-        <section id={SECTION_IDS.archetype} className="bg-surface-2 rounded-[12px] p-6">
+        <section id={SECTION_IDS.archetype} className="bg-surface-2 rounded-sharp p-6">
           <ArchetypeCard
             primary={{
               id: archetype.primary.id,
@@ -248,7 +248,7 @@ export function ResultsView({
           <p className="text-xs font-serif italic text-text-tertiary mb-4">
             Each spoke runs from one governance pole (center) to its counterpart (perimeter). The midpoint ring is neutral. Colors group axes by domain.
           </p>
-          <div className="bg-surface-2 rounded-[12px] p-6">
+          <div className="bg-surface-2 rounded-sharp p-6">
             <RadarChart axisScores={axisData} />
           </div>
         </section>
@@ -280,7 +280,7 @@ export function ResultsView({
                 return (
                   <div
                     key={axis.axisId}
-                    className="bg-surface-1 rounded-[12px] border border-border-secondary p-5"
+                    className="bg-surface-1 rounded-sharp border border-border-secondary p-5"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-warning-bg text-warning-text">
@@ -359,7 +359,7 @@ export function ResultsView({
           <p className="text-xs font-serif italic text-text-tertiary mb-4">
             A simplified projection onto two super-dimensions. The full 12-axis radar above is the primary output.
           </p>
-          <div className="bg-surface-2 rounded-[12px] p-6">
+          <div className="bg-surface-2 rounded-sharp p-6">
             <CompassPlot
               economic={compass.economic}
               cultural={compass.cultural}

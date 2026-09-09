@@ -26,6 +26,15 @@
   --text-primary:   #3d2e1f;
   --text-secondary: #6e5a48;
   --text-tertiary:  #9d8b78;
+  /* The label layer's colour is the one place the delta's "identical in both
+     modes" note does not hold. Stone 500 measures 2.73:1 on the light page
+     ground (#efe9e3) — under AA's 4.5:1 for small text and under even the
+     3:1 large-text floor — while measuring a comfortable 5.67:1 on the dark
+     ground. No single value on the Stone ramp clears AA in both modes, so
+     this token steps to Stone 700 in light (5.42:1) and back to Stone 500 in
+     dark. Distinct from --text-tertiary, which stays Stone 500 in both modes
+     until the per-screen phases sweep its call sites. */
+  --text-label:     var(--stone-700);
 
   /* --- Borders (light mode) --- */
   --border-primary:   #cdbfb2;
@@ -50,6 +59,16 @@
 
   /* --- Focus --- */
   --focus-ring: var(--stone-600);
+
+  /* --- Radius (design delta 02: 12px and 8px both collapse to 2px) --- */
+  --radius: 2px;
+
+  /* --- Button surfaces (design delta 03: ink-filled primary) ---
+     Semantic aliases onto the Stone ramp so delta 06's dark-mode inversion
+     is a token override rather than a per-component branch. */
+  --button-primary: var(--stone-900);
+  --button-primary-hover: var(--stone-800);
+  --button-primary-fg: var(--stone-50);
 
   /* --- Cluster colors (synthetic study section only) --- */
   --cluster-0: #cdbfb2; /* Stone 300 — central/balanced */
@@ -94,6 +113,7 @@
     --text-primary:   #efe9e3;
     --text-secondary: #cdbfb2;
     --text-tertiary:  #9d8b78;
+    --text-label:     var(--stone-500);
 
     --border-primary:   #5a4636;
     --border-secondary: #3d2e1f;
@@ -102,6 +122,12 @@
     --warning-bg:     #451a03;
     --warning-text:   #fbbf24;
     --warning-border: #92400e;
+
+    /* Design delta 06: Stone 900 ink on a Stone 900 ground is invisible, so
+       the primary inverts rather than darkens. */
+    --button-primary: var(--stone-300);
+    --button-primary-hover: var(--stone-200);
+    --button-primary-fg: var(--stone-900);
 
     /* --- Cluster colors (dark mode) --- */
     --cluster-0: #9d8b78; /* Stone 500 — muted/balanced in dark */
@@ -156,6 +182,7 @@
   --color-text-primary:   var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary:  var(--text-tertiary);
+  --color-text-label:     var(--text-label);
 
   --color-border-primary:   var(--border-primary);
   --color-border-secondary: var(--border-secondary);
@@ -165,6 +192,17 @@
   --color-warning-text: var(--warning-text);
   --color-warning-bg:   var(--warning-bg);
   --color-info:         var(--info);
+
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-primary-fg: var(--button-primary-fg);
+
+  --radius-sharp: var(--radius);
+
+  /* Chrome shell width. NavBar and Footer share it, and Phase 2's home
+     page is the third consumer; the mock's own nav is edge-to-edge at a 28px
+     gutter, so the cap is ours rather than the handoff's. */
+  --container-shell: 1040px;
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -232,4 +270,169 @@ body {
   0%   { opacity: 1; }
   70%  { opacity: 1; }
   100% { opacity: 0.35; }
+}
+
+/* ============================================
+   Typography scale — design delta 01
+
+   One class per role, each self-contained (family, size, line-height,
+   tracking, weight). Authored as `@utility` rather than `--text-*` theme
+   entries because the mono roles need `text-transform` and `font-family`,
+   which the `--text-*` namespace cannot express. Tailwind variants
+   (`min-[560px]:display-l`, etc.) work on `@utility` rules.
+
+   `text-wrap: pretty` appears only on the long headline roles
+   (display-xl/-page/-l); display-m/-entry/-s and the rest of the scale
+   don't need it. That's deliberate, not an oversight — don't "fix" it
+   into consistency.
+
+   `caption-italic` additionally sets `color` (the AA-clearing label text). That
+   colour is part of the role's definition, not a default to override.
+
+   Every role in this scale sits at or above 11px — the delta's floor.
+   Pre-existing sub-11px sites elsewhere in the codebase are swept by
+   later phases, not this one.
+   ============================================ */
+
+@utility display-xl {
+  font-family: var(--font-serif);
+  font-size: 58px;
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.021em;
+  text-wrap: pretty;
+}
+
+@utility display-page {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+@utility display-l {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  text-wrap: pretty;
+}
+
+@utility display-m {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@utility display-entry {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@utility display-s {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+@utility body-lead {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.62;
+}
+
+/* Mono label layer. Tracking is the only difference between the three:
+   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@utility label-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility label-nav {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The footer's provenance row: mono and finely tracked, but sentence case.
+   Mock 5a sets no `text-transform` here, so this cannot reuse `label`.
+   It is a separate role rather than `label tracking-[0.06em]` because the
+   emitted order of a custom `@utility` against a built-in depends on which
+   properties the custom rule sets, which is too subtle to rely on. */
+@utility mono-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+@utility control {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@utility wordmark {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   Focus ring — the one interactive affordance the whole app shares.
+
+   Authored as a utility because the hand-rolled spelling it replaces was
+   silently broken: `focus:outline-none focus-visible:outline-2` emits
+   `--tw-outline-style: none` on :focus, and since :focus always matches when
+   :focus-visible does, `outline-style: var(--tw-outline-style)` resolved to
+   `none`. Width and colour applied; the ring never painted. Confirmed in
+   Chromium across all 25 former call sites.
+
+   Using the `outline` shorthand here sets style explicitly, so it cannot be
+   undone by a custom property. This is also the only consumer of
+   `--focus-ring`, which was previously declared and never used.
+   ============================================ */
+
+@utility focus-ring {
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility caption-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-label);
 }

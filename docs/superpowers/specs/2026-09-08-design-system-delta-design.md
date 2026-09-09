@@ -87,8 +87,8 @@ block in `globals.css` needs **no new tokens**, only correct usage.
 Tailwind is v4.3.3, so both mechanisms below are available and variant-capable.
 
 **Radius.** Add `--radius: 2px` to `:root` (for inline-style and SVG contexts),
-and `--radius-panel: var(--radius)` inside `@theme inline` to generate a
-`rounded-panel` utility for the sweep.
+and `--radius-sharp: var(--radius)` inside `@theme inline` to generate a
+`rounded-sharp` utility for the sweep.
 
 **Type scale** via the `--text-*` namespace in `@theme inline`, using the
 `--line-height`, `--letter-spacing`, and `--font-weight` modifiers (all three
@@ -103,6 +103,26 @@ confirmed supported in 4.3.3):
 | `text-display-entry` | 22px / 1.2, serif 500 | Entry titles in long reference lists. |
 | `text-display-s` | 17px / 1.35, serif 500 | Card titles, option headlines, archetype name. |
 | `text-body-lead` | 17px / 1.62, sans | Lead paragraph. |
+
+**Colour tokens beyond the button family.**
+
+- `--text-label` — the label layer's colour, and the one token that must be
+  mode-dependent: Stone 700 in light, Stone 500 in dark. See D7.
+- `--container-shell: 1040px` in `@theme inline`, yielding `max-w-shell`. The
+  chrome shell width, shared by `NavBar`, `Footer`, and the home page. The
+  mock's own nav is edge-to-edge at a 28px gutter, so the cap is ours rather
+  than the handoff's.
+
+**`focus-ring` via `@utility`.** The app's single focus affordance: `outline:
+none` on `:focus`, `2px solid var(--focus-ring)` at `2px` offset on
+`:focus-visible`. It must use the `outline` *shorthand*. The hand-rolled
+spelling it replaced — `focus:outline-none focus-visible:outline-2` — was
+silently broken in all 25 of its call sites: `outline-none` emits
+`--tw-outline-style: none`, `outline-2` emits `outline-style:
+var(--tw-outline-style)`, and since `:focus` always matches when
+`:focus-visible` does, the style resolved to `none`. Width and colour applied;
+no ring was ever drawn. Confirmed in Chromium. A source guardrail now fails on
+any reintroduction of `focus:outline-none`.
 
 **Mono layers** via `@utility`, because they need `text-transform` and
 `font-family` which the `--text-*` namespace cannot express:
@@ -175,6 +195,22 @@ is prototype simplification rather than an IA decision — and duplicating
 Methodology at top level while it also sits inside Research would be worse.
 Methodology retains prominence through the hero's tertiary link, which the mock
 also shows.
+
+**D7 — The label colour steps by mode.** The handoff states that Stone 500
+"holds as the label colour in both modes — the one token needing no dark
+variant." Measured against WCAG AA for small text, that cannot hold: Stone 500
+is 2.73:1 on the light page ground, 3.28:1 on white panels, and 2.99:1 on the
+quiet band — under AA's 4.5:1 and under even the 3:1 large-text floor — while
+clearing it comfortably on dark at 4.81–5.67:1. No single value on the Stone
+ramp passes both modes (Stone 600 fails both dark surfaces; Stone 700 fails
+dark badly at 2.42–2.85:1). **Resolution: `--text-label` steps to Stone 700 in
+light and Stone 500 in dark.** It introduces no new colour and uses the
+`prefers-color-scheme` mechanism the codebase already relies on.
+
+This is the one place the delta knowingly departs from the handoff, and it is
+an accessibility departure rather than an aesthetic one. `--text-tertiary`
+keeps Stone 500 in both modes; its other 141 call sites are swept by the
+per-screen phases as each adopts `--text-label` for its label layer.
 
 **D6 — Undrawn surfaces.** The handoff draws only home, quiz phase 1, results,
 and the archetype reference. **Resolution: apply the global token layer
