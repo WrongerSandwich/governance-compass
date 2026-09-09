@@ -1544,6 +1544,29 @@ describe("ScaledQuestionCard", () => {
     expect(classes(buttons[0])).toContain("opacity-60");
   });
 
+  it("shows exactly one of the two layouts at a time", () => {
+    const container = renderScale(undefined);
+    const desktop = classes(container.querySelector("[data-scale-segments]")!);
+    const mobile = classes(container.querySelector("[data-scale-list]")!);
+
+    // jsdom evaluates no media query, so class tokens are the ONLY thing a
+    // unit test can hold here — and all three of "show both", "show neither"
+    // and "swap them" left the full suite green before this test existed.
+    // `quiz-flow.spec.ts:26` clicks the first visible `button[aria-pressed]`,
+    // so a broken pair sends the e2e run at the wrong layout.
+    //
+    // Exact tokens matter: `classes()` returns a token array, so
+    // `not.toContain("flex")` does not match `min-[560px]:flex`, and
+    // `not.toContain("hidden")` does not match `min-[560px]:hidden`.
+    expect(desktop).toContain("hidden");
+    expect(desktop).toContain("min-[560px]:flex");
+    expect(desktop).not.toContain("flex");
+
+    expect(mobile).toContain("flex");
+    expect(mobile).toContain("min-[560px]:hidden");
+    expect(mobile).not.toContain("hidden");
+  });
+
   it("separates the detail text with a rule rather than a third surface", () => {
     const container = renderScale(4);
     const detail = container.querySelector("[data-scale-detail]")!;
@@ -1553,6 +1576,17 @@ describe("ScaledQuestionCard", () => {
     // The quiz already spends its two surface switches on the ground and the
     // cards; delta 04 caps it there.
     expect(classes(detail)).not.toContain("bg-surface-2");
+    // `mt-4` replaced `mt-3` on the live region. 4px is invisible and the old
+    // value still reads as correct, so nothing else catches a revert.
+    expect(classes(detail.parentElement!)).toContain("mt-4");
+    // The prose pair replaced `text-[13px] leading-relaxed`. Task 8 guards the
+    // 13.5px/1.6 PAIRING but not its presence — reverting BOTH halves passes
+    // that guard vacuously, because a file with no `text-[13.5px]` has no
+    // offender to report.
+    const prose = detail.querySelector("p")!;
+    expect(classes(prose)).toContain("text-[13.5px]");
+    expect(classes(prose)).toContain("leading-[1.6]");
+    expect(classes(prose)).not.toContain("leading-relaxed");
   });
 });
 ```
@@ -1561,7 +1595,7 @@ describe("ScaledQuestionCard", () => {
 
 Run: `npm test -- tests/unit/quiz-chrome.test.ts`
 
-Expected: FAIL on all five — the stem is `text-[16px] font-medium`, the selected segment is `bg-stone-200`, and `[data-scale-segments]` / `[data-scale-list]` / `[data-scale-detail]` do not exist.
+Expected: FAIL on all six — the stem is `text-[16px] font-medium`, the selected segment is `bg-stone-200`, and `[data-scale-segments]` / `[data-scale-list]` / `[data-scale-detail]` do not exist.
 
 - [ ] **Step 3: Restyle the option classes**
 
