@@ -792,6 +792,12 @@ git commit -m "feat(design): extract the three-tier button primitive"
 
 **Interfaces:**
 - Consumes: `wordmark`, `label-nav` from Task 1.
+- Also brings the dropdown chevron (`NavBar.tsx:142`) from `text-[10px]` to
+  `text-[11px]`. The plan's global constraints defer pre-existing sub-floor
+  sites to later phases, but no later phase touches `NavBar` — Phase 1 is its
+  only pass — so deferring would mean never fixing it. It now matches the 11px
+  `label-nav` text beside it. Its `aria-hidden`, rotate transform, and 120ms
+  transition are unchanged.
 - Preserves: the conditional Quiz/Results link, the Research dropdown and its outside-click/Escape handling, `aria-current`, and the active-state underline (spec decision D5 — the mocks are static prototypes that cannot draw a dropdown, so the shipped IA stands and only the treatment changes).
 
 - [ ] **Step 1: Write the failing test**
@@ -1147,6 +1153,10 @@ Known drift to fix:
 - Task 2's Step 1 still shows the pre-hardening guardrail block (narrow
   regexes, bare-path offender output) rather than the widened patterns and
   actionable messages in `tests/unit/design-system-tokens.test.ts`.
+- Task 4's Step 1 still shows a loose `>= 2` count for `.label-nav`, which
+  left Step 5's dropdown-item edit unguarded — reverting it alone kept the
+  suite green. Replaced with an exact closed-state count of 2 plus a
+  per-menuitem assertion inside the dropdown test.
 - Task 3's Step 1 still shows `toContain` class assertions. Those were
   replaced with a `hasClass` whole-token helper, because `bg-button-primary`
   is a substring of `hover:bg-button-primary-hover` and `border-b` of
