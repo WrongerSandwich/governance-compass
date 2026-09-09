@@ -51,6 +51,16 @@
   /* --- Focus --- */
   --focus-ring: var(--stone-600);
 
+  /* --- Radius (design delta 02: 12px and 8px both collapse to 2px) --- */
+  --radius: 2px;
+
+  /* --- Button surfaces (design delta 03: ink-filled primary) ---
+     Semantic aliases onto the Stone ramp so delta 06's dark-mode inversion
+     is a token override rather than a per-component branch. */
+  --button-primary-bg:       var(--stone-900);
+  --button-primary-bg-hover: var(--stone-800);
+  --button-primary-text:     var(--stone-50);
+
   /* --- Cluster colors (synthetic study section only) --- */
   --cluster-0: #cdbfb2; /* Stone 300 — central/balanced */
   --cluster-1: #c1a7a1; /* Clay 400 */
@@ -102,6 +112,12 @@
     --warning-bg:     #451a03;
     --warning-text:   #fbbf24;
     --warning-border: #92400e;
+
+    /* Design delta 06: Stone 900 ink on a Stone 900 ground is invisible, so
+       the primary inverts rather than darkens. */
+    --button-primary-bg:       var(--stone-300);
+    --button-primary-bg-hover: var(--stone-200);
+    --button-primary-text:     var(--stone-900);
 
     /* --- Cluster colors (dark mode) --- */
     --cluster-0: #9d8b78; /* Stone 500 — muted/balanced in dark */
@@ -165,6 +181,12 @@
   --color-warning-text: var(--warning-text);
   --color-warning-bg:   var(--warning-bg);
   --color-info:         var(--info);
+
+  --color-button-primary-bg:       var(--button-primary-bg);
+  --color-button-primary-bg-hover: var(--button-primary-bg-hover);
+  --color-button-primary-text:     var(--button-primary-text);
+
+  --radius-panel: var(--radius);
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -232,4 +254,134 @@ body {
   0%   { opacity: 1; }
   70%  { opacity: 1; }
   100% { opacity: 0.35; }
+}
+
+/* ============================================
+   Typography scale — design delta 01
+
+   One class per role, each self-contained (family, size, line-height,
+   tracking, weight). Authored as `@utility` rather than `--text-*` theme
+   entries because the mono roles need `text-transform` and `font-family`,
+   which the `--text-*` namespace cannot express. Tailwind variants
+   (`min-[560px]:display-l`, etc.) work on `@utility` rules.
+
+   Type floor is 11px. Nothing below it, on any viewport.
+   ============================================ */
+
+@utility display-xl {
+  font-family: var(--font-serif);
+  font-size: 58px;
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.021em;
+  text-wrap: pretty;
+}
+
+@utility display-page {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+@utility display-l {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  text-wrap: pretty;
+}
+
+@utility display-m {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@utility display-entry {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@utility display-s {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+@utility body-lead {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.62;
+}
+
+/* Mono label layer. Tracking is the only difference between the three:
+   0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@utility label-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility label-nav {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The footer's provenance row: mono and finely tracked, but sentence case.
+   Mock 5a sets no `text-transform` here, so this cannot reuse `label`.
+   It is a separate role rather than `label tracking-[0.06em]` because the
+   emitted order of a custom `@utility` against a built-in depends on which
+   properties the custom rule sets, which is too subtle to rely on. */
+@utility mono-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+@utility control {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@utility wordmark {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@utility caption-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
 }
