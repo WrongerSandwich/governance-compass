@@ -27,6 +27,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 - The codebase's single responsive breakpoint is `min-[560px]`. `sm:` (640px) appears once in the quiz, in `BudgetSimulator`; Task 7 converts it.
 - Vitest collects only `tests/**/*.test.ts` and `scripts/__tests__/**/*.test.ts`, never `.tsx`. Component tests use `createElement` with a `@vitest-environment jsdom` docblock.
 - **`vmForks` shares a module registry per worker.** Any spec that calls `vi.mock` must `vi.resetModules()` and dynamically `import()` the component under test, the way `tests/unit/navbar-chrome.test.ts` does. A spec that mocks at module scope and imports statically passes alone and fails in a full run.
+- **Pin a value when, if it were wrong, nothing else would fail and the wrongness would be silent.** That is the test — not "did this task type it?". Pin: a fixed ramp value where an inverting token belongs (this has shipped twice), a structural coupling like `:scope > button`, and any value that *replaced* a different value, because the old one still looks correct to a reviewer. Skip: anything a repo-wide guardrail already covers (radius, the banned focus spellings), and anything whose wrongness is loud enough that opening the page catches it. A test restating fifteen class names has crossed from regression guard into implementation copy. Pair every positive assertion with the negative of the value it replaced — that negative is what carries the information.
 - **Assert class tokens, never substrings.** `expect(el.className).toContain("label")` also passes on `label-nav`, and `toContain("hidden")` passes on `min-[560px]:hidden`. Split on whitespace and use `expect(classes).toContain(...)`.
 - Lint runs at `--max-warnings=0`.
 
@@ -607,6 +608,11 @@ describe("ForcedChoiceCard", () => {
       expect(tokens).toContain("border-border-secondary");
       expect(tokens).toContain("hover:border-stone-600");
       expect(tokens).not.toContain("opacity-60");
+      // `bg-surface-1` moved from the three per-state branches into `base`
+      // here, and a relocated surface token is exactly the value this project
+      // has twice got wrong by reaching for a fixed ramp value instead.
+      expect(tokens).toContain("bg-surface-1");
+      expect(tokens).toContain("p-6");
       expect(tokens).toContain("focus-ring-child");
       // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
       // ring stops painting the moment the sr-only control is not a DIRECT
@@ -649,6 +655,29 @@ describe("ForcedChoiceCard", () => {
     }
   });
 
+  it("pairs each headline with its own body, in either display order", () => {
+    const plain = renderCard(undefined).querySelectorAll("[data-choice-card]");
+
+    expect(plain[0].textContent).toContain("Universal public goods");
+    expect(plain[0].textContent).toContain("Funded through taxation.");
+    expect(plain[0].textContent).not.toContain("The state helps");
+
+    // `FC-1` hashes to a swapped display order (verified: ((h*31+c)>>>0) % 2 === 1),
+    // so the B option renders first — and must still carry B's body and record
+    // "B". Nothing else in the suite reads this wiring: the e2e spec clicks
+    // `[data-choice-card]` without looking at its text, so a headline paired
+    // with the wrong body renders plausibly and passes everything.
+    const swapped = render(
+      createElement(ForcedChoiceCard, { ...base, selectedPole: undefined, randomizeOrder: true }),
+    ).querySelectorAll("[data-choice-card]");
+
+    expect(swapped[0].textContent).toContain("Competing private providers");
+    expect(swapped[0].textContent).toContain("The state helps");
+    expect(swapped[0].querySelector("button")!.getAttribute("aria-label")).toBe(
+      "Select Competing private providers",
+    );
+  });
+
   it("sets option headlines in the serif card role and bodies at the delta's prose size", () => {
     const container = renderCard(undefined);
     const card = container.querySelector("[data-choice-card]")!;
@@ -656,6 +685,10 @@ describe("ForcedChoiceCard", () => {
 
     expect(classes(headline)).toContain("display-s");
     expect(classes(body)).toContain("text-[13.5px]");
+    // This replaced `leading-relaxed` (1.625), which still reads as correct to
+    // a reviewer — the case the pinning rule exists for.
+    expect(classes(body)).toContain("leading-[1.6]");
+    expect(classes(body)).not.toContain("leading-relaxed");
     expect(classes(body)).toContain("text-text-secondary");
     expect(classes(body)).not.toContain("text-text-tertiary");
   });
@@ -678,9 +711,18 @@ In `src/components/quiz/ForcedChoiceCard.tsx`, replace `cardClasses` (lines 47�
     const hasSelection = selectedPole !== undefined;
 
     // 1px border in every state — the state is carried by the border's tone,
-    // not its weight, so choosing does not shift the card's height.
+    // not its weight, so the border itself never changes the card's metrics.
+    // (The card does grow on selection: the `Selected` marker below adds a
+    // line. That is mock 6b's design, not an accident of the border.)
+    //
+    // `transition-[border-color,opacity]`, not `transition-colors`: Tailwind's
+    // colour set covers color/background-color/border-color/fill/stroke and
+    // NOT opacity, so `hover:opacity-100` on the dimmed sibling would snap
+    // while its border eased. Two `transition-*` classes cannot both apply —
+    // they collide on `transition-property` — so name both properties on one
+    // utility. Verified to compile: `transition-property: border-color,opacity`.
     const base =
-      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-colors duration-150 focus-ring-child";
+      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-[border-color,opacity] duration-150 focus-ring-child";
 
     if (isSelected) {
       // --rule-strong is the ink/hairline pair's strong end, so it inverts with
@@ -694,16 +736,29 @@ In `src/components/quiz/ForcedChoiceCard.tsx`, replace `cardClasses` (lines 47�
   }
 ```
 
+Delete the now-unused `firstHeadline`, `firstBody`, `secondHeadline` and
+`secondBody` derivations (lines 42–45); `firstPole`/`secondPole` stay, since the
+display order is still seeded. Drop `text-left` from both paragraphs while you
+are here — no ancestor sets `text-center` on the phase-1 branch, so it is dead
+weight inherited from when the card was a `<button>`.
+
 Then replace the returned JSX (lines 68–118) with:
 
 ```tsx
-  function option(logicalPole: "A" | "B", headline: string, body: string) {
-    const isSelected = selectedPole === logicalPole;
+  /** Takes only the pole; the copy is derived. Passing `(pole, headline, body)`
+   *  ends in two adjacent `string` parameters, so a call site can transpose one
+   *  card's headline with the other's body — it type-checks, renders plausibly,
+   *  and the whole suite stays green. Deriving here makes that unrepresentable
+   *  and retires the four `first*`/`second*` copy variables. */
+  function renderOption(pole: "A" | "B") {
+    const isSelected = selectedPole === pole;
+    const headline = pole === "A" ? headlineA : headlineB;
+    const body = pole === "A" ? bodyA : bodyB;
     return (
       <div
         data-choice-card
-        onClick={() => onSelect(logicalPole)}
-        className={cardClasses(logicalPole)}
+        onClick={() => onSelect(pole)}
+        className={cardClasses(pole)}
       >
         <button
           type="button"
@@ -711,14 +766,14 @@ Then replace the returned JSX (lines 68–118) with:
           aria-label={`Select ${headline}`}
           onClick={(event) => {
             event.stopPropagation();
-            onSelect(logicalPole);
+            onSelect(pole);
           }}
           className="sr-only"
         />
-        <p className="text-left display-s text-text-primary mb-2.5">
+        <p className="display-s text-text-primary mb-2.5">
           <AnnotatedText text={headline} />
         </p>
-        <p className="text-left text-[13.5px] leading-[1.6] text-text-secondary">
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary">
           <AnnotatedText text={body} />
         </p>
         {isSelected && (
@@ -740,8 +795,8 @@ Then replace the returned JSX (lines 68–118) with:
           : "Select the position closer to your own view"}
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        {option(firstPole, firstHeadline, firstBody)}
-        {option(secondPole, secondHeadline, secondBody)}
+        {renderOption(firstPole)}
+        {renderOption(secondPole)}
       </div>
     </div>
   );
