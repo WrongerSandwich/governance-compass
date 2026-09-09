@@ -267,7 +267,7 @@ Create `tests/unit/quiz-chrome.test.ts`:
  * behaviour that must survive it.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, createElement } from "react";
+import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
 
@@ -275,34 +275,57 @@ import { ProgressBar } from "@/components/quiz/ProgressBar";
 
 const mounted: { container: HTMLDivElement; root: Root }[] = [];
 
-function render(element: React.ReactNode) {
+function render(element: ReactNode) {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
-  act(() => root.render(element));
+  // Registered BEFORE rendering. A component that throws during render would
+  // otherwise strand its container in document.body with nothing to clean it
+  // up — and Tasks 4 and 7 mount QuizFlow and BudgetSimulator with real
+  // providers, which is exactly where a render-time throw is likely.
   mounted.push({ container, root });
+  act(() => root.render(element));
   return container;
 }
 
-/** Class tokens, split. `toContain` on a raw className also matches substrings
- *  of other classes — `label` inside `label-nav`, `hidden` inside
- *  `min-[560px]:hidden` — which has shipped three bugs in this migration. */
+/** Class tokens. `toContain` on a raw className also matches substrings of
+ *  other classes — `label` inside `label-nav`, `hidden` inside
+ *  `min-[560px]:hidden` — which has shipped three bugs in this migration.
+ *
+ *  `classList`, not `className.split(...)`: on an SVGElement `className` is a
+ *  read-only `SVGAnimatedString` with no `.split`, and TypeScript will not
+ *  catch the call because `SVGElement` declares it `any`. Task 7 renders a
+ *  Lucide icon inside the ministry name row, so an SVG is one
+ *  `firstElementChild` away from a test author. */
 function classes(element: Element): string[] {
-  return element.className.split(/\s+/).filter(Boolean);
+  return [...element.classList];
 }
 
 afterEach(() => {
   while (mounted.length) {
     const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
+    try {
+      act(() => entry.root.unmount());
+    } finally {
+      // In a `finally` so a throwing unmount cannot both strand this container
+      // and abort the loop, leaving every remaining entry mounted for the next
+      // test.
+      entry.container.remove();
+    }
   }
-  // `vi.doMock` in the QuizFlow describe registers into this file's module
-  // registry, and `vmForks` shares one registry per worker. Reset it here so a
-  // mocked `next/navigation` cannot leak into a spec that runs after this one.
+  // A fresh module graph for the next dynamic import. This does NOT clear the
+  // mock registry: `vi.doMock` stays registered for the worker's lifetime, and
+  // resetting modules makes it MORE likely to apply, by forcing the next
+  // import back through the mocker. The describe that calls `doMock` owns the
+  // matching `doUnmock`.
   vi.resetModules();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  // BudgetSimulator's hold-to-repeat and QuizFlow's finalize both run on
+  // setTimeout, so a later task will reach for fake timers.
+  vi.useRealTimers();
   sessionStorage.clear();
+  localStorage.clear();
 });
 
 describe("ProgressBar", () => {
@@ -314,6 +337,10 @@ describe("ProgressBar", () => {
 
     expect(classes(row)).toContain("label-nav");
     expect(classes(row)).toContain("text-text-label");
+    // 10px above the segments, per the mock. Pinned because spacing is one of
+    // this task's five deltas, and every spacing class mutates green without
+    // an assertion of its own.
+    expect(classes(row)).toContain("mb-2.5");
     // Mock 6b separates phase from name with a middot, not a colon.
     expect(row.textContent).toContain("Phase 1 · Dilemmas");
     expect(row.textContent).toContain("2 of 36");
@@ -343,6 +370,9 @@ describe("ProgressBar", () => {
       expect(classes(track)).not.toContain("bg-border-tertiary");
       expect(classes(track)).toContain("h-[3px]");
     }
+    // The rest of the mock's geometry: 4px between segments, 32px below the bar.
+    expect(classes(tracks[0].parentElement!)).toContain("gap-1");
+    expect(classes(container.firstElementChild!)).toContain("mb-8");
   });
 
   it("fills completed phases whole and the active phase proportionally", () => {
@@ -352,13 +382,38 @@ describe("ProgressBar", () => {
     const fills = [...container.querySelectorAll("[data-progress-fill]")] as HTMLElement[];
 
     expect(fills[0].style.width).toBe("100%");
-    expect(fills[1].style.width).toBe(`${(6 / 24) * 100}%`);
+    // A literal, not `${(6 / 24) * 100}%`. Recomputing the formula under test
+    // means a changed formula passes trivially, and the float-to-string
+    // formatting is never pinned at all.
+    expect(fills[1].style.width).toBe("25%");
     expect(fills[2].style.width).toBe("0%");
     // Stone 600 is the progress fill in every state. `brightness-125` lifted
     // completed segments into a tone the Stone ramp does not contain.
     expect(classes(fills[0])).toContain("bg-stone-600");
     expect(classes(fills[0])).not.toContain("brightness-125");
     expect(classes(fills[1])).toContain("bg-stone-600");
+  });
+
+  it("writes the raw ratio, not a rounded one", () => {
+    const container = render(
+      createElement(ProgressBar, { currentPhase: 1, currentIndex: 0, totalInPhase: 36 }),
+    );
+    const fills = [...container.querySelectorAll("[data-progress-fill]")] as HTMLElement[];
+
+    // The shape every phase-1 screen produces. Pins the formatting that the
+    // terminating 25% case above cannot.
+    expect(fills[0].style.width).toBe("2.7777777777777777%");
+  });
+
+  it("survives an empty phase without dividing by zero", () => {
+    const container = render(
+      createElement(ProgressBar, { currentPhase: 1, currentIndex: 0, totalInPhase: 0 }),
+    );
+    const fills = [...container.querySelectorAll("[data-progress-fill]")] as HTMLElement[];
+
+    // Without the `totalInPhase > 0` guard this is "Infinity%". A rewrite that
+    // claims to preserve a guard should pin the guard.
+    expect(fills[0].style.width).toBe("0%");
   });
 });
 ```
@@ -367,7 +422,7 @@ describe("ProgressBar", () => {
 
 Run: `npm test -- tests/unit/quiz-chrome.test.ts`
 
-Expected: FAIL on all four tests — `container.querySelector("[data-progress-label]")` is `null`, because the hooks do not exist yet.
+Expected: FAIL on all six tests — `container.querySelector("[data-progress-label]")` is `null`, because the hooks do not exist yet.
 
 - [ ] **Step 3: Rewrite the component**
 
@@ -455,7 +510,7 @@ export function ProgressBar({
 
 Run: `npm test -- tests/unit/quiz-chrome.test.ts`
 
-Expected: PASS, 4 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -725,6 +780,14 @@ Append to `tests/unit/quiz-chrome.test.ts`. This spec mocks `next/navigation`, s
 
 ```ts
 describe("QuizFlow chrome", () => {
+  // `vi.resetModules()` in the file-level afterEach clears the module cache but
+  // NOT the mock registry — a `doMock` factory stays registered for the
+  // worker's lifetime, and `vmForks` shares one registry per worker. The
+  // describe that registers the mock is the one that has to retire it.
+  afterEach(() => {
+    vi.doUnmock("next/navigation");
+  });
+
   async function renderPhaseOne() {
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
