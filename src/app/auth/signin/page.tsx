@@ -44,7 +44,7 @@ export default function SignInPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               aria-required="true"
-              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus-ring"
             />
           </div>
           <div>
@@ -58,7 +58,7 @@ export default function SignInPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               aria-required="true"
-              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+              className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus-ring"
             />
           </div>
           <div aria-live="polite" aria-atomic="true">

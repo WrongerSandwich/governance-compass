@@ -1,0 +1,2 @@
+@import "tailwindcss";
+@source inline("focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2");

@@ -31,7 +31,9 @@ export function NavBar() {
       (href !== "/" && pathname.startsWith(href)) ||
       (alsoActive?.some((p) => pathname === p || pathname.startsWith(p)) ?? false);
 
-    const base = "flex items-center py-2 label-nav transition-colors duration-150";
+    const base =
+      "flex items-center py-2 label-nav transition-colors duration-150 " +
+      "focus-ring";
 
     if (isActive) {
       return `${base} text-text-primary border-b-2 border-stone-600`;
@@ -40,8 +42,11 @@ export function NavBar() {
   }
 
   return (
-    <nav className="bg-surface-1 border-b border-border-secondary px-7">
-      <div className="max-w-[1040px] mx-auto flex items-center justify-between h-[54px]">
+    <nav
+      aria-label="Main"
+      className="bg-surface-1 border-b border-border-secondary px-7"
+    >
+      <div className="max-w-shell mx-auto flex items-center justify-between h-[54px]">
         <Link
           href="/"
           className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-150"
@@ -115,7 +120,8 @@ function ResearchMenu({ pathname }: { pathname: string }) {
   }, [open]);
 
   const base =
-    "py-2 label-nav transition-colors duration-150 flex items-center gap-1";
+    "py-2 label-nav transition-colors duration-150 flex items-center gap-1 " +
+    "focus-ring";
   const activeClasses = isActive
     ? "text-text-primary border-b-2 border-stone-600"
     : "text-text-secondary hover:text-text-primary";
@@ -166,7 +172,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                className="block px-4 py-2 label-nav transition-colors duration-150 text-text-secondary hover:text-text-primary hover:bg-surface-2"
+                className="block px-4 py-2 label-nav transition-colors duration-150 text-text-secondary hover:text-text-primary hover:bg-surface-2 focus-ring"
                 style={{
                   color: itemActive ? "var(--text-primary)" : undefined,
                   fontWeight: itemActive ? 500 : undefined,

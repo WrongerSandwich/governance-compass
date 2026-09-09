@@ -63,7 +63,7 @@ export function ScaledQuestionCard({
     const hasSelection = selectedValue !== undefined;
 
     const base =
-      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:z-10";
+      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring focus-visible:z-10";
 
     if (isSelected) {
       return `${base} bg-stone-200 text-stone-600`;
@@ -79,7 +79,7 @@ export function ScaledQuestionCard({
     const hasSelection = selectedValue !== undefined;
 
     const base =
-      "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600";
+      "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring";
 
     if (isSelected) {
       return `${base} border-stone-600 bg-stone-100 text-stone-600`;

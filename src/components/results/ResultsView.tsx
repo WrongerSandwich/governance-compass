@@ -76,7 +76,7 @@ function CopyLinkButton() {
   return (
     <button
       onClick={handleCopy}
-      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus-ring"
     >
       {copied ? "Copied!" : "Copy link"}
     </button>
@@ -116,7 +116,7 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
         onKeyDown={(e) => e.key === "Enter" && handleCompare()}
         placeholder="Paste their results link"
         autoFocus
-        className="flex-1 min-w-0 rounded-sharp border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+        className="flex-1 min-w-0 rounded-sharp border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus-ring"
       />
       <button
         onClick={handleCompare}

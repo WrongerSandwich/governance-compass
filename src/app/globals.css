@@ -26,6 +26,15 @@
   --text-primary:   #3d2e1f;
   --text-secondary: #6e5a48;
   --text-tertiary:  #9d8b78;
+  /* The label layer's colour is the one place the delta's "identical in both
+     modes" note does not hold. Stone 500 measures 2.73:1 on the light page
+     ground (#efe9e3) — under AA's 4.5:1 for small text and under even the
+     3:1 large-text floor — while measuring a comfortable 5.67:1 on the dark
+     ground. No single value on the Stone ramp clears AA in both modes, so
+     this token steps to Stone 700 in light (5.42:1) and back to Stone 500 in
+     dark. Distinct from --text-tertiary, which stays Stone 500 in both modes
+     until the per-screen phases sweep its call sites. */
+  --text-label:     var(--stone-700);
 
   /* --- Borders (light mode) --- */
   --border-primary:   #cdbfb2;
@@ -104,6 +113,7 @@
     --text-primary:   #efe9e3;
     --text-secondary: #cdbfb2;
     --text-tertiary:  #9d8b78;
+    --text-label:     var(--stone-500);
 
     --border-primary:   #5a4636;
     --border-secondary: #3d2e1f;
@@ -172,6 +182,7 @@
   --color-text-primary:   var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary:  var(--text-tertiary);
+  --color-text-label:     var(--text-label);
 
   --color-border-primary:   var(--border-primary);
   --color-border-secondary: var(--border-secondary);
@@ -187,6 +198,11 @@
   --color-button-primary-fg: var(--button-primary-fg);
 
   --radius-sharp: var(--radius);
+
+  /* Chrome shell width. NavBar and Footer share it, and Phase 2's home
+     page is the third consumer; the mock's own nav is edge-to-edge at a 28px
+     gutter, so the cap is ours rather than the handoff's. */
+  --container-shell: 1040px;
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -270,7 +286,7 @@ body {
    don't need it. That's deliberate, not an oversight — don't "fix" it
    into consistency.
 
-   `caption-italic` additionally sets `color` (Stone tertiary text). That
+   `caption-italic` additionally sets `color` (the AA-clearing label text). That
    colour is part of the role's definition, not a default to override.
 
    Every role in this scale sits at or above 11px — the delta's floor.
@@ -388,10 +404,35 @@ body {
   text-transform: uppercase;
 }
 
+/* ============================================
+   Focus ring — the one interactive affordance the whole app shares.
+
+   Authored as a utility because the hand-rolled spelling it replaces was
+   silently broken: `focus:outline-none focus-visible:outline-2` emits
+   `--tw-outline-style: none` on :focus, and since :focus always matches when
+   :focus-visible does, `outline-style: var(--tw-outline-style)` resolved to
+   `none`. Width and colour applied; the ring never painted. Confirmed in
+   Chromium across all 25 former call sites.
+
+   Using the `outline` shorthand here sets style explicitly, so it cannot be
+   undone by a custom property. This is also the only consumer of
+   `--focus-ring`, which was previously declared and never used.
+   ============================================ */
+
+@utility focus-ring {
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
 @utility caption-italic {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 13.5px;
   line-height: 1.5;
-  color: var(--text-tertiary);
+  color: var(--text-label);
 }

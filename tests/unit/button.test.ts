@@ -73,7 +73,7 @@ describe("buttonClasses", () => {
 
   it("carries the unchanged focus ring and disabled treatment on every variant", () => {
     for (const variant of ["primary", "secondary", "tertiary"] as const) {
-      expect(hasClass(buttonClasses(variant), "focus-visible:outline-stone-600")).toBe(true);
+      expect(hasClass(buttonClasses(variant), "focus-ring")).toBe(true);
       expect(hasClass(buttonClasses(variant), "disabled:opacity-50")).toBe(true);
       // House rule (BudgetSimulator.tsx:215-225): bound controls use
       // aria-disabled rather than disabled, to preserve tab order.

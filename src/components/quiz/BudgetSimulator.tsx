@@ -189,7 +189,7 @@ export function BudgetSimulator({
           type="button"
           onClick={onFinalize}
           disabled={!canFinalize}
-          className="w-full rounded-sharp bg-stone-600 px-6 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-stone-400 disabled:text-stone-200"
+          className="w-full rounded-sharp bg-stone-600 px-6 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus-ring disabled:cursor-not-allowed disabled:bg-stone-400 disabled:text-stone-200"
         >
           Confirm budget
         </button>
@@ -210,8 +210,7 @@ interface MinistrySliderProps {
 
 const STEPPER_BASE =
   "flex h-9 w-9 items-center justify-center rounded-sharp border border-border-primary " +
-  "bg-surface-1 text-text-secondary transition-colors duration-150 focus:outline-none " +
-  "focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2";
+  "bg-surface-1 text-text-secondary transition-colors duration-150 focus-ring";
 
 /**
  * Bounds are marked with `aria-disabled` rather than `disabled`: a disabled

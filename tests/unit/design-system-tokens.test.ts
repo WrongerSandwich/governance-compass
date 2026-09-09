@@ -43,9 +43,23 @@ const dark = decls(
 );
 const theme = decls(block(globalsCss, "@theme inline"));
 
-const utilities = [
-  ...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{([^}]*)\}/g),
-].map(([, name, body]) => ({ name, body }));
+// Bodies are brace-matched rather than regexed to the first `}`: `focus-ring`
+// nests `&:focus` blocks, and a `[^}]*` body would truncate at the inner brace.
+const utilities = [...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{/g)].map(
+  (match) => ({
+    name: match[1],
+    body: block(globalsCss.slice(match.index!), `@utility ${match[1]}`),
+  }),
+);
+
+// Utilities that are deliberately not typography roles. A new utility must
+// be listed here or in TYPE_SCALE, or the type-scale test fails on it.
+const NON_TYPOGRAPHY_UTILITIES = ["focus-ring"];
+
+const typographyUtilities = () =>
+  utilities.filter(
+    (utility) => !NON_TYPOGRAPHY_UTILITIES.includes(utility.name),
+  );
 
 const TYPE_SCALE = [
   "display-xl",
@@ -83,6 +97,16 @@ describe("design delta token layer", () => {
     expect(dark["--button-primary-fg"]).toBe("var(--stone-900)");
   });
 
+  it("steps the label colour by mode so it clears AA in both", () => {
+    // Stone 500 measures 2.73:1 on the light ground — under AA's 4.5:1 and
+    // under even the 3:1 large-text floor — while clearing it comfortably on
+    // dark. No single ramp value passes both, so this token is mode-dependent
+    // even though the handoff describes the label colour as identical in both.
+    expect(light["--text-label"]).toBe("var(--stone-700)");
+    expect(dark["--text-label"]).toBe("var(--stone-500)");
+    expect(theme["--color-text-label"]).toBe("var(--text-label)");
+  });
+
   it("keeps every button token mode-aware and mapped into the colour namespace", () => {
     // Structural invariant: any button token a later phase adds must carry a
     // dark override and a Tailwind mapping, or this fails.
@@ -98,13 +122,13 @@ describe("design delta token layer", () => {
   });
 
   it("declares exactly the type scale's typography roles", () => {
-    expect(utilities.map((utility) => utility.name).sort()).toEqual(
+    expect(typographyUtilities().map((utility) => utility.name).sort()).toEqual(
       [...TYPE_SCALE].sort(),
     );
   });
 
   it("holds the 11px type floor across every typography role", () => {
-    const sizes = utilities.map((utility) => {
+    const sizes = typographyUtilities().map((utility) => {
       const match = utility.body.match(/font-size:\s*([0-9.]+)px/);
       expect(match, `${utility.name} declares no font-size`).not.toBeNull();
       return Number(match![1]);
@@ -115,20 +139,30 @@ describe("design delta token layer", () => {
   });
 });
 
+function tsxFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(dir, entry.name);
+    if (entry.isDirectory()) return tsxFiles(path);
+    return entry.name.endsWith(".tsx") ? [path] : [];
+  });
+}
+
+const sources = tsxFiles(resolve(process.cwd(), "src")).map((file) => ({
+  file,
+  text: readFileSync(file, "utf8"),
+}));
+
+/** Offending sources for a banned pattern, reported with the fix to use. */
+function offenders(pattern: RegExp, replacement: string): string[] {
+  return sources.flatMap(({ file, text }) => {
+    const match = text.match(pattern);
+    return match
+      ? [`${relative(process.cwd(), file)}: ${match[0]} (use ${replacement} instead)`]
+      : [];
+  });
+}
+
 describe("near-square corners (design delta 02)", () => {
-  function tsxFiles(dir: string): string[] {
-    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-      const path = resolve(dir, entry.name);
-      if (entry.isDirectory()) return tsxFiles(path);
-      return entry.name.endsWith(".tsx") ? [path] : [];
-    });
-  }
-
-  const sources = tsxFiles(resolve(process.cwd(), "src")).map((file) => ({
-    file,
-    text: readFileSync(file, "utf8"),
-  }));
-
   it("has retired every 12px and 8px radius class literal from src", () => {
     // Covers the arbitrary-value spelling (rounded-[8px]), Tailwind's default
     // idiomatic names for the same corners (rounded-lg is 0.5rem = 8px,
@@ -171,5 +205,26 @@ describe("near-square corners (design delta 02)", () => {
     // globals.css is where later phases add shared styling, and the two tests
     // above only scan .tsx files.
     expect(globalsCss).not.toMatch(/border-radius:\s*(?:12|8)px/);
+  });
+});
+
+describe("focus ring", () => {
+  it("routes every focus ring through the focus-ring utility", () => {
+    // The hand-rolled spelling this replaced was silently broken:
+    // `focus:outline-none` emits `--tw-outline-style: none`, and :focus always
+    // matches when :focus-visible does, so `outline-style: var(...)` resolved
+    // to `none`. Width and colour applied; the ring never painted. Confirmed
+    // in Chromium before the sweep, across all 25 former call sites.
+    expect(offenders(/focus:outline-none/, "focus-ring")).toEqual([]);
+  });
+
+  it("is the only consumer of the focus-ring token, and paints a real outline", () => {
+    const utility = utilities.find((entry) => entry.name === "focus-ring");
+
+    expect(utility, "focus-ring utility is missing").toBeDefined();
+    // The `outline` shorthand sets style explicitly, so it cannot be undone by
+    // a custom property the way `outline-style: var(--tw-outline-style)` was.
+    expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
+    expect(light["--focus-ring"]).toBe("var(--stone-600)");
   });
 });

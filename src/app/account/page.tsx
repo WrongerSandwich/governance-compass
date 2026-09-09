@@ -283,7 +283,7 @@ export default function AccountPage() {
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Group name"
-                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
               <button
                 onClick={handleCreateGroup}
@@ -303,7 +303,7 @@ export default function AccountPage() {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
                 placeholder="Invite code (e.g., ABCD-1234)"
-                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2"
+                className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
               <button
                 onClick={handleJoinGroup}

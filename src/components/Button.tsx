@@ -14,7 +14,7 @@ export type ButtonVariant = "primary" | "secondary" | "tertiary";
 
 const BASE =
   "inline-block text-center transition-colors duration-150 " +
-  "focus:outline-none focus-visible:outline-2 focus-visible:outline-stone-600 focus-visible:outline-offset-2 " +
+  "focus-ring " +
   "disabled:opacity-50 disabled:cursor-not-allowed " +
   "aria-disabled:opacity-50 aria-disabled:cursor-not-allowed";
 
