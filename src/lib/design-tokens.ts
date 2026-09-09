@@ -22,7 +22,8 @@ export const tokens = {
 
 /**
  * Domain color mapping — four muted tones for the four governance domains.
- * Used exclusively on the results page (radar chart, axis breakdown, score bars).
+ * Used on the results page (radar chart, axis breakdown, score bars) and, via
+ * `blurb`, in the home page's domain footer.
  * See docs/system_proposal/governance_compass_domain_colors.md
  */
 export const DOMAIN_COLORS = {

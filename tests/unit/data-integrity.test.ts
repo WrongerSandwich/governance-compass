@@ -81,7 +81,7 @@ describe("data integrity", () => {
     }
   });
 
-  it("gives every axis a divergence note in the right voice", () => {
+  it("gives every axis a divergence note of the right shape", () => {
     for (const axis of axes) {
       expect(axis.divergenceNote, `axis ${axis.id} has no divergenceNote`).toBeTruthy();
       // One sentence describing what a wide gap on this axis means, so the
