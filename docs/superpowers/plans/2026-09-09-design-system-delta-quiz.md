@@ -548,6 +548,12 @@ describe("ForcedChoiceCard", () => {
       expect(tokens).toContain("hover:border-stone-600");
       expect(tokens).not.toContain("opacity-60");
       expect(tokens).toContain("focus-ring-child");
+      // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
+      // ring stops painting the moment the sr-only control is not a DIRECT
+      // child of the card. Task 1's utility test pins the selector's shape;
+      // this pins the DOM that has to satisfy it. Wrapping the card's contents
+      // in an inner element would silently break the focus indicator.
+      expect(card.querySelector(":scope > button")).not.toBeNull();
     }
     expect(container.textContent).not.toContain("Selected");
   });
