@@ -1097,7 +1097,27 @@ colour scheme. Confirm by eye: 54px nav with a mono wordmark, mono nav links,
 2px corners on the hero CTA, a two-group mono footer, and — critically — that
 no ink-primary button has gone invisible in dark mode.
 
-- [ ] **Step 5: Commit any fixes and open the PR**
+- [ ] **Step 5: Reconcile this plan with what actually shipped**
+
+Review cycles changed several tasks after they were written — Task 1's test
+was rewritten, Task 2's guardrail regexes were widened, and token names
+changed. Task 1's code blocks were synced at the time; Tasks 2–5 were not, to
+avoid churning this document after every task.
+
+Walk each task's code blocks and replace any that drifted with the landed
+artifact, so this plan documents what shipped rather than what was intended.
+Diff each block against its file rather than eyeballing:
+
+```bash
+git log --oneline main..HEAD
+git diff main..HEAD -- src tests
+```
+
+Known drift to fix: Task 2's Step 1 still shows the pre-hardening guardrail
+block (narrow regexes, bare-path offender output) rather than the widened
+patterns and actionable messages in `tests/unit/design-system-tokens.test.ts`.
+
+- [ ] **Step 6: Commit any fixes and open the PR**
 
 ```bash
 git switch -c feat/design-delta-foundations
