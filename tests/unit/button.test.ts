@@ -10,6 +10,17 @@ import { Button, ButtonLink, buttonClasses } from "@/components/Button";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+/**
+ * True when `className` appears as a whole class, not as a substring of a
+ * longer one. `toContain` is unsafe here: "bg-button-primary" is a substring
+ * of "hover:bg-button-primary-hover", and "border-b" of
+ * "border-border-primary", so substring assertions pass against a primary
+ * that never fills at rest and a tertiary with no underline.
+ */
+function hasClass(classes: string, className: string): boolean {
+  return classes.split(/\s+/).includes(className);
+}
+
 const mounted: { container: HTMLDivElement; root: Root }[] = [];
 
 function render(element: React.ReactNode) {
@@ -33,37 +44,37 @@ describe("buttonClasses", () => {
   it("fills the primary with the invertible ink token, never a raw ramp step", () => {
     const classes = buttonClasses("primary");
 
-    expect(classes).toContain("bg-button-primary");
-    expect(classes).toContain("text-button-primary-fg");
-    expect(classes).toContain("hover:bg-button-primary-hover");
+    expect(hasClass(classes, "bg-button-primary")).toBe(true);
+    expect(hasClass(classes, "text-button-primary-fg")).toBe(true);
+    expect(hasClass(classes, "hover:bg-button-primary-hover")).toBe(true);
     // Stone 600 keeps its jobs as focus ring and progress fill only.
-    expect(classes).not.toContain("bg-stone-600");
-    expect(classes).not.toContain("bg-stone-900");
+    expect(hasClass(classes, "bg-stone-600")).toBe(false);
+    expect(hasClass(classes, "bg-stone-900")).toBe(false);
   });
 
   it("outlines the secondary and never fills it", () => {
     const classes = buttonClasses("secondary");
 
-    expect(classes).toContain("border-border-primary");
-    expect(classes).not.toContain("bg-button-primary");
+    expect(hasClass(classes, "border-border-primary")).toBe(true);
+    expect(hasClass(classes, "bg-button-primary")).toBe(false);
   });
 
   it("gives the tertiary an underline and no padding box", () => {
     const classes = buttonClasses("tertiary");
 
-    expect(classes).toContain("border-b");
+    expect(hasClass(classes, "border-b")).toBe(true);
     expect(classes).not.toMatch(/\bpx-/);
   });
 
   it("labels primary and secondary with the mono control role", () => {
-    expect(buttonClasses("primary")).toContain("control");
-    expect(buttonClasses("secondary")).toContain("control");
+    expect(hasClass(buttonClasses("primary"), "control")).toBe(true);
+    expect(hasClass(buttonClasses("secondary"), "control")).toBe(true);
   });
 
   it("carries the unchanged focus ring and disabled treatment on every variant", () => {
     for (const variant of ["primary", "secondary", "tertiary"] as const) {
-      expect(buttonClasses(variant)).toContain("focus-visible:outline-stone-600");
-      expect(buttonClasses(variant)).toContain("disabled:opacity-50");
+      expect(hasClass(buttonClasses(variant), "focus-visible:outline-stone-600")).toBe(true);
+      expect(hasClass(buttonClasses(variant), "disabled:opacity-50")).toBe(true);
     }
   });
 });
