@@ -16,12 +16,28 @@ const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  // Upsert axes
+  // Upsert axes.
+  //
+  // Projected column-by-column rather than spread: AxisData also carries
+  // presentation-only copy the database does not model (divergenceNote, which
+  // only the home page's divergence panel reads, straight from src/data). A
+  // bare spread sends that to Prisma as an unknown argument and fails the
+  // seed, so every future presentation field would break it too.
   for (const axis of axes) {
+    const row = {
+      id: axis.id,
+      name: axis.name,
+      poleALabel: axis.poleALabel,
+      poleBLabel: axis.poleBLabel,
+      tagline: axis.tagline,
+      domain: axis.domain,
+      domainOrder: axis.domainOrder,
+      order: axis.order,
+    };
     await prisma.axis.upsert({
       where: { id: axis.id },
-      update: axis,
-      create: axis,
+      update: row,
+      create: row,
     });
   }
   console.log(`Seeded ${axes.length} axes.`);
