@@ -39,9 +39,11 @@ test.describe("Governance Compass quiz flow", () => {
     // ── Landing ───────────────────────────────────────────────────────────────
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "The Governance Compass" })
+      page.getByRole("heading", {
+        name: "Locating a political position across twelve axes.",
+      })
     ).toBeVisible();
-    await page.getByRole("link", { name: "Begin assessment" }).click();
+    await page.getByRole("link", { name: "Begin the assessment" }).click();
 
     // ── Quiz intro ────────────────────────────────────────────────────────────
     await expect(
