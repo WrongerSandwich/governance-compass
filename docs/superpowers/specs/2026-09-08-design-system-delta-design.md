@@ -87,8 +87,8 @@ block in `globals.css` needs **no new tokens**, only correct usage.
 Tailwind is v4.3.3, so both mechanisms below are available and variant-capable.
 
 **Radius.** Add `--radius: 2px` to `:root` (for inline-style and SVG contexts),
-and `--radius-panel: var(--radius)` inside `@theme inline` to generate a
-`rounded-panel` utility for the sweep.
+and `--radius-sharp: var(--radius)` inside `@theme inline` to generate a
+`rounded-sharp` utility for the sweep.
 
 **Type scale** via the `--text-*` namespace in `@theme inline`, using the
 `--line-height`, `--letter-spacing`, and `--font-weight` modifiers (all three
