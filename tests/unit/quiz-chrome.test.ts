@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
+import { PhaseTransition } from "@/components/quiz/PhaseTransition";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
 // Type-only, so it is erased at compile time and adds no runtime import of
 // QuizFlow — which must stay dynamic, behind the `next/navigation` mock.
@@ -454,5 +455,56 @@ describe("QuizFlow chrome", () => {
     // Gutters live on <main>, so the column lines up with the wordmark.
     // The shipped shell was `py-8`; 6b asks for 36 above and 52 below.
     expect(classes(shell)).not.toContain("py-8");
+  });
+});
+
+describe("PhaseTransition", () => {
+  function renderTransition() {
+    return render(
+      createElement(PhaseTransition, {
+        completedPhase: 1,
+        completedCount: 36,
+        nextPhaseTitle: "Nuanced scales",
+        nextPhaseDescription: "You're more than halfway done.",
+        estimatedTime: "~5 minutes",
+        onContinue: () => {},
+      }),
+    );
+  }
+
+  it("sets both labels in the mono role at a colour that survives dark mode", () => {
+    const container = renderTransition();
+    const labels = [...container.querySelectorAll("p")].filter((p) =>
+      classes(p).includes("label"),
+    );
+
+    expect(labels.map((p) => p.textContent)).toEqual(["Phase 1 complete", "Up next"]);
+    for (const p of labels) {
+      expect(classes(p)).toContain("text-text-label");
+      // The Stone ramp does not invert: text-stone-800 measures 1.4:1 on the
+      // dark panel ground, which is where "Up next" used to sit.
+      expect(classes(p)).not.toContain("text-stone-800");
+    }
+  });
+
+  it("titles the next phase in the serif card role and dates it in the caption role", () => {
+    const container = renderTransition();
+
+    expect(classes(container.querySelector("h3")!)).toContain("display-s");
+    const caption = [...container.querySelectorAll("p")].find((p) =>
+      p.textContent?.startsWith("Estimated time"),
+    )!;
+    expect(classes(caption)).toContain("caption-italic");
+  });
+
+  it("carries the flow forward on the ink primary", () => {
+    const container = renderTransition();
+    const button = container.querySelector("button")!;
+
+    expect(button.textContent).toBe("Continue");
+    expect(classes(button)).toContain("bg-button-primary");
+    expect(classes(button)).toContain("control");
+    expect(classes(button)).toContain("w-full");
+    expect(classes(button)).not.toContain("border-stone-600");
   });
 });
