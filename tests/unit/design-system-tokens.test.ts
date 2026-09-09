@@ -1,11 +1,16 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+// Comments are stripped once, here, so every helper below sees declaration
+// text only. block() is the reason this belongs at the top rather than inside
+// decls(): it locates blocks by indexOf and matches braces by depth, so a
+// comment that merely mentions `:root` or contains a stray `}` would silently
+// anchor it to the wrong place.
 const globalsCss = readFileSync(
   resolve(process.cwd(), "src/app/globals.css"),
   "utf8",
-);
+).replace(/\/\*[\s\S]*?\*\//g, "");
 
 /** Body of a top-level block, brace-matched so nested blocks don't truncate it. */
 function block(css: string, opener: string): string {
@@ -26,8 +31,7 @@ function block(css: string, opener: string): string {
 /** Custom-property declarations in a block, whitespace-normalised. */
 function decls(css: string): Record<string, string> {
   const out: Record<string, string> = {};
-  const body = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+  for (const [, name, value] of css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
     out[name] = value.trim();
   }
   return out;
@@ -126,20 +130,46 @@ describe("near-square corners (design delta 02)", () => {
   }));
 
   it("has retired every 12px and 8px radius class literal from src", () => {
-    const offenders = sources
-      .filter(({ text }) => /rounded-\[(?:12|8)px\]/.test(text))
-      .map(({ file }) => file);
+    // Covers the arbitrary-value spelling (rounded-[8px]), Tailwind's default
+    // idiomatic names for the same corners (rounded-lg is 0.5rem = 8px,
+    // rounded-xl is 0.75rem = 12px), and directional variants of both
+    // (rounded-t-[8px], rounded-tl-[8px]). Does not match rounded-sharp,
+    // rounded-2xl/md/full/none, or bare rounded — those are untouched or
+    // deliberately deferred to issue #139.
+    const pattern = /rounded(?:-[a-z]{1,2})?-(?:\[(?:12|8)px\]|lg|xl)(?![\w-])/;
+    const offenders = sources.flatMap(({ file, text }) => {
+      const match = text.match(pattern);
+      return match
+        ? [
+            `${relative(process.cwd(), file)}: ${match[0]} (use rounded-sharp instead)`,
+          ]
+        : [];
+    });
 
     expect(offenders).toEqual([]);
   });
 
   it("has retired every 12px and 8px inline border radius from src", () => {
     // A class-only sweep misses inline styles, which is how CompareView's
-    // panel kept an 8px corner. Guard both spellings, not just the tidy one.
-    const offenders = sources
-      .filter(({ text }) => /borderRadius:\s*["'](?:12|8)px["']/.test(text))
-      .map(({ file }) => file);
+    // panel kept an 8px corner. Guards the quoted form ("8px", '8px', `8px`)
+    // and the unquoted numeric form React accepts (borderRadius: 8), which
+    // MapLegend.tsx and DemographicAggregates.tsx already use elsewhere.
+    const pattern = /borderRadius:\s*(?:["'`](?:12|8)px["'`]|(?:12|8)\s*[,}])/;
+    const offenders = sources.flatMap(({ file, text }) => {
+      const match = text.match(pattern);
+      return match
+        ? [
+            `${relative(process.cwd(), file)}: ${match[0]} (use var(--radius) instead)`,
+          ]
+        : [];
+    });
 
     expect(offenders).toEqual([]);
+  });
+
+  it("has retired every 12px and 8px radius from the stylesheet", () => {
+    // globals.css is where later phases add shared styling, and the two tests
+    // above only scan .tsx files.
+    expect(globalsCss).not.toMatch(/border-radius:\s*(?:12|8)px/);
   });
 });
