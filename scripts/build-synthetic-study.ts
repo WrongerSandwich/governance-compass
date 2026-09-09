@@ -830,12 +830,18 @@ function main() {
       .filter((p) => p.persona_id === id)
       .flatMap((p) => p.tensions ?? [])
       .filter((t) => t.level === "strong")
-      .sort((x, y) => y.magnitude - x.magnitude);
+      // Magnitudes cluster tightly (some differ in the fourth decimal), so the
+      // axis id tiebreak keeps the pick from riding on float noise.
+      .sort((x, y) => y.magnitude - x.magnitude || x.axis - y.axis);
 
   const strongestTension =
     tensionsFor(homePair.a.id)[0] ?? tensionsFor(homePair.b.id)[0] ?? null;
   if (!strongestTension) {
-    throw new Error("home sample: selected pair has no strong tension to show");
+    console.error(
+      `[BUILD FAIL] home sample: selected pair ${homePair.a.id}/${homePair.b.id} ` +
+        `has no strong tension to show`
+    );
+    process.exit(1);
   }
 
   writeJson(out("home_sample_pair.json"), {

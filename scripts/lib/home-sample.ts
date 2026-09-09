@@ -39,7 +39,9 @@ function gaps(a: SamplePersona, b: SamplePersona): number[] {
 export function selectHomeSamplePair(personas: SamplePersona[]): HomeSamplePair {
   const pool = personas
     .filter((p) => p.n_models === 2 && p.averaged_axis_scores?.length === 12)
-    .sort((x, y) => x.id.localeCompare(y.id));
+    // Plain codepoint order, not localeCompare: the scan below is the source of
+    // the selector's determinism, so it must not depend on the host locale.
+    .sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
 
   let best: HomeSamplePair | null = null;
 
@@ -55,6 +57,10 @@ export function selectHomeSamplePair(personas: SamplePersona[]): HomeSamplePair 
       if (strong < MIN_STRONG_AXES || close < MIN_CLOSE_AXES) continue;
 
       const distance = Math.sqrt(g.reduce((sum, v) => sum + v * v, 0));
+      // Keep-first on an exact tie (`>=`, not `>`) is the whole tie-breaking
+      // mechanism: the pool is id-sorted, so the incumbent is always the
+      // lower-id pair and equal distances leave it in place. Swapping this to
+      // `>` would make ties resolve to the *last* pair scanned.
       if (best && distance >= best.distance) continue;
 
       best = {
@@ -70,6 +76,14 @@ export function selectHomeSamplePair(personas: SamplePersona[]): HomeSamplePair 
     }
   }
 
-  if (!best) throw new Error("home sample: no qualifying pair found");
+  if (!best) {
+    // A library, so this throws rather than calling process.exit. The numbers
+    // are in the message because the only way to debug this from a CI log is
+    // to know how big the pool was and which bar the data failed to clear.
+    throw new Error(
+      `home sample: no qualifying pair among ${pool.length} dual-model personas ` +
+        `(need >=${MIN_STRONG_AXES} gaps >=${STRONG} and >=${MIN_CLOSE_AXES} gaps <=${CLOSE})`,
+    );
+  }
   return best;
 }
