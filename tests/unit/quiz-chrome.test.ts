@@ -7,6 +7,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -157,5 +158,125 @@ describe("ProgressBar", () => {
     // write the comment as if "Infinity%" is what you'd see. A rewrite that
     // claims to preserve a guard should pin the guard.
     expect(fills[0].style.width).toBe("0%");
+  });
+});
+
+describe("ForcedChoiceCard", () => {
+  const base = {
+    itemId: "FC-1",
+    headlineA: "Universal public goods",
+    bodyA: "Funded through taxation.",
+    headlineB: "Competing private providers",
+    bodyB: "The state helps those who cannot help themselves.",
+    questionType: "FC" as const,
+    onSelect: () => {},
+  };
+
+  function renderCard(selectedPole: "A" | "B" | undefined) {
+    return render(createElement(ForcedChoiceCard, { ...base, selectedPole }));
+  }
+
+  it("keeps the prompt a mono label, not a serif heading", () => {
+    const container = renderCard(undefined);
+    const prompt = container.querySelector("p")!;
+
+    expect(prompt.textContent).toBe("Select the position closer to your own view");
+    expect(classes(prompt)).toContain("label");
+    // `label`, not `label-nav`/`label-eyebrow` — checked token-wise, since
+    // `toContain` on the raw className passes on all three.
+    expect(classes(prompt)).not.toContain("label-eyebrow");
+    expect(classes(prompt)).toContain("text-text-label");
+    // 18px below the prompt, per the mock. Spacing mutates green without an
+    // assertion of its own.
+    expect(classes(prompt)).toContain("mb-[18px]");
+    // Mock 6b is explicit that this is not a heading.
+    expect(container.querySelector("h1, h2, h3, h4")).toBeNull();
+  });
+
+  it("uses the PT prompt when the item is a person-type dilemma", () => {
+    const container = render(
+      createElement(ForcedChoiceCard, { ...base, questionType: "PT", selectedPole: undefined }),
+    );
+
+    expect(container.querySelector("p")!.textContent).toBe(
+      "Which person’s view is closer to your own?",
+    );
+  });
+
+  it("stacks the options below 560px and pairs them above it", () => {
+    const container = renderCard(undefined);
+    const grid = container.querySelector("[data-choice-card]")!.parentElement!;
+
+    expect(classes(grid)).toContain("grid-cols-1");
+    expect(classes(grid)).toContain("min-[560px]:grid-cols-2");
+    expect(classes(grid)).toContain("gap-4");
+  });
+
+  it("draws an unanswered pair as two equal hairline cards", () => {
+    const container = renderCard(undefined);
+
+    for (const card of container.querySelectorAll("[data-choice-card]")) {
+      const tokens = classes(card);
+      expect(tokens).toContain("border");
+      // 1px, per the mock. `border-2` was the shipped weight.
+      expect(tokens).not.toContain("border-2");
+      expect(tokens).toContain("border-border-secondary");
+      expect(tokens).toContain("hover:border-stone-600");
+      expect(tokens).not.toContain("opacity-60");
+      expect(tokens).toContain("focus-ring-child");
+      // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
+      // ring stops painting the moment the sr-only control is not a DIRECT
+      // child of the card. Task 1's utility test pins the selector's shape;
+      // this pins the DOM that has to satisfy it. Wrapping the card's contents
+      // in an inner element would silently break the focus indicator.
+      expect(card.querySelector(":scope > button")).not.toBeNull();
+    }
+    expect(container.textContent).not.toContain("Selected");
+  });
+
+  it("marks the chosen card with an ink rule and a mono marker, and dims the other", () => {
+    const container = renderCard("A");
+    const cards = [...container.querySelectorAll("[data-choice-card]")];
+    const chosen = cards.find((card) =>
+      card.querySelector("[aria-pressed='true']"),
+    )!;
+    const other = cards.find((card) => card !== chosen)!;
+
+    // --rule-strong, not border-stone-900: the Stone ramp is fixed across
+    // modes, so a literal would go near-invisible on the dark ground.
+    expect(classes(chosen)).toContain("border-rule-strong");
+    expect(classes(chosen)).not.toContain("opacity-60");
+
+    const marker = chosen.querySelector("[data-selected-marker]")!;
+    expect(marker.textContent).toBe("Selected");
+    expect(classes(marker)).toContain("label");
+    expect(classes(marker)).toContain("font-medium");
+    // 14px below the body, per the mock.
+    expect(classes(marker)).toContain("mt-3.5");
+
+    expect(classes(other)).toContain("opacity-60");
+    expect(classes(other)).toContain("border-border-secondary");
+    expect(other.querySelector("[data-selected-marker]")).toBeNull();
+
+    // The focus-ring coupling again, pinned in the selected state too. The
+    // states share `cardClasses` and the JSX, but a selected-state restyle that
+    // wrapped the card's contents would otherwise slip through.
+    for (const card of cards) {
+      expect(classes(card)).toContain("focus-ring-child");
+      expect(card.querySelector(":scope > button")).not.toBeNull();
+    }
+  });
+
+  it("sets option headlines in the serif card role and bodies at the delta's prose size", () => {
+    const container = renderCard(undefined);
+    const card = container.querySelector("[data-choice-card]")!;
+    const [headline, body] = card.querySelectorAll("p");
+
+    expect(classes(headline)).toContain("display-s");
+    // 10px between the headline and the body, per the mock.
+    expect(classes(headline)).toContain("mb-2.5");
+    expect(classes(body)).toContain("text-[13.5px]");
+    expect(classes(body)).toContain("text-text-secondary");
+    expect(classes(body)).not.toContain("text-text-tertiary");
   });
 });

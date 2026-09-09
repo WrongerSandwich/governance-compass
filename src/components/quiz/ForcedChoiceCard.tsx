@@ -48,71 +48,67 @@ export function ForcedChoiceCard({
     const isSelected = selectedPole === logicalPole;
     const hasSelection = selectedPole !== undefined;
 
+    // 1px border in every state — the state is carried by the border's tone,
+    // not its weight, so choosing does not shift the card's height.
     const base =
-      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-ring-child";
+      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-colors duration-150 focus-ring-child";
 
     if (isSelected) {
-      return `${base} border-stone-600 bg-surface-1`;
+      // --rule-strong is the ink/hairline pair's strong end, so it inverts with
+      // the surface. `border-stone-900` would go near-invisible in dark mode.
+      return `${base} border-rule-strong`;
     }
     if (hasSelection) {
-      return `${base} border-transparent bg-surface-1 opacity-60`;
+      return `${base} border-border-secondary opacity-60 hover:opacity-100 hover:border-stone-600`;
     }
-    return `${base} border-transparent bg-surface-1 hover:border-border-primary`;
+    return `${base} border-border-secondary hover:border-stone-600`;
+  }
+
+  function option(logicalPole: "A" | "B", headline: string, body: string) {
+    const isSelected = selectedPole === logicalPole;
+    return (
+      <div
+        data-choice-card
+        onClick={() => onSelect(logicalPole)}
+        className={cardClasses(logicalPole)}
+      >
+        <button
+          type="button"
+          aria-pressed={isSelected}
+          aria-label={`Select ${headline}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect(logicalPole);
+          }}
+          className="sr-only"
+        />
+        <p className="text-left display-s text-text-primary mb-2.5">
+          <AnnotatedText text={headline} />
+        </p>
+        <p className="text-left text-[13.5px] leading-[1.6] text-text-secondary">
+          <AnnotatedText text={body} />
+        </p>
+        {isSelected && (
+          // `label` declares no font-weight, so `font-medium` layers over it
+          // safely — the roles only conflict on properties they both set.
+          <p data-selected-marker className="mt-3.5 label font-medium text-text-primary">
+            Selected
+          </p>
+        )}
+      </div>
+    );
   }
 
   return (
     <div>
-      <p className="mb-4 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium">
+      <p className="mb-[18px] label text-text-label">
         {questionType === "PT"
           ? "Which person\u2019s view is closer to your own?"
           : "Select the position closer to your own view"}
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        <div
-          data-choice-card
-          onClick={() => onSelect(firstPole)}
-          className={cardClasses(firstPole)}
-        >
-          <button
-            type="button"
-            aria-pressed={selectedPole === firstPole}
-            aria-label={`Select ${firstHeadline}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(firstPole);
-            }}
-            className="sr-only"
-          />
-          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            <AnnotatedText text={firstHeadline} />
-          </p>
-          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            <AnnotatedText text={firstBody} />
-          </p>
-        </div>
-
-        <div
-          data-choice-card
-          onClick={() => onSelect(secondPole)}
-          className={cardClasses(secondPole)}
-        >
-          <button
-            type="button"
-            aria-pressed={selectedPole === secondPole}
-            aria-label={`Select ${secondHeadline}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(secondPole);
-            }}
-            className="sr-only"
-          />
-          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            <AnnotatedText text={secondHeadline} />
-          </p>
-          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            <AnnotatedText text={secondBody} />
-          </p>
-        </div>
+        {option(firstPole, firstHeadline, firstBody)}
+        {option(secondPole, secondHeadline, secondBody)}
       </div>
     </div>
   );
