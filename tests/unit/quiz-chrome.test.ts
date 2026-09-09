@@ -481,8 +481,9 @@ describe("PhaseTransition", () => {
     expect(labels.map((p) => p.textContent)).toEqual(["Phase 1 complete", "Up next"]);
     for (const p of labels) {
       expect(classes(p)).toContain("text-text-label");
-      // The Stone ramp does not invert: text-stone-800 measures 1.4:1 on the
-      // dark panel ground, which is where "Up next" used to sit.
+      // The Stone ramp does not invert: text-stone-800 measures 1.78:1 on the
+      // dark panel ground — and dark `--border-primary` is also #5a4636, so the
+      // old label rendered at exactly the panel's border colour.
       expect(classes(p)).not.toContain("text-stone-800");
     }
   });

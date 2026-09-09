@@ -1327,7 +1327,11 @@ git commit -m "feat(design): restyle the quiz shell, navigation, and interstitia
 
 **Not drawn in the handoff** — extended from 6b's rules: mono labels, `display-s` heading, 13.5px prose, `caption-italic` meta, and `Button` for the forward action. Continue becomes the ink primary rather than the Stone 600 outline, because it is the same forward action as `Next` (spec D1).
 
-**One real bug goes with it.** The `Up next` label is `text-stone-800`, a fixed ramp value. The Stone ramp does not invert, so on the dark ground (`--surface-1` = `#2a2118`) Stone 800 (`#5a4636`) is near-invisible — 1.4:1. It becomes `text-text-label`, like every other label in this phase.
+**One real bug goes with it.** The `Up next` label is `text-stone-800`, a fixed ramp value. The Stone ramp does not invert, so on the dark ground (`--surface-1` = `#2a2118`) Stone 800 (`#5a4636`) is near-invisible — **1.78:1**. (Not 1.4:1, as an
+earlier draft of this plan said; no surface token yields 1.4 against Stone 800,
+because the darker surfaces score *higher*. The sharper fact: dark
+`--border-primary` is also `#5a4636`, so the label rendered at exactly the
+panel's own border colour.) It becomes `text-text-label`, like every other label in this phase.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1361,8 +1365,9 @@ describe("PhaseTransition", () => {
     expect(labels.map((p) => p.textContent)).toEqual(["Phase 1 complete", "Up next"]);
     for (const p of labels) {
       expect(classes(p)).toContain("text-text-label");
-      // The Stone ramp does not invert: text-stone-800 measures 1.4:1 on the
-      // dark panel ground, which is where "Up next" used to sit.
+      // The Stone ramp does not invert: text-stone-800 measures 1.78:1 on the
+      // dark panel ground — and dark `--border-primary` is also #5a4636, so the
+      // old label rendered at exactly the panel's border colour.
       expect(classes(p)).not.toContain("text-stone-800");
     }
   });
@@ -2089,6 +2094,36 @@ describe("quiz chrome drift guards", () => {
     expect(computing).toMatch(/text-\[13\.5px\] leading-\[1\.6\] text-text-secondary/);
   });
 
+  it("never layers a colour over a self-contained role", () => {
+    // `caption-italic` declares its own `color`. Layering `text-*` beside it
+    // is banned — whether the custom rule wins depends on Tailwind's emitted
+    // order, which is too subtle to rely on. A review mutation proved this
+    // offence had NO net anywhere in the repo, in any file.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      [...text.matchAll(/className="([^"]*\bcaption-italic\b[^"]*)"/g)]
+        .filter(([, classes]) => /\btext-(?!\[)[a-z-]+\b/.test(classes))
+        .map(([, classes]) => `${name}: ${classes}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the delta's prose size and its line-height together", () => {
+    // `text-[13.5px] leading-[1.6]` is the quiz's most-repeated literal — eight
+    // occurrences across five files — and it is the one size in the delta with
+    // no named role, so the pair travels by convention alone. A `text-[13.5px]`
+    // that loses its `leading-[1.6]` drifts silently. Minting a `body-s` role
+    // is the better fix and is recorded as a follow-up; this holds the line
+    // until then.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      [...text.matchAll(/className="([^"]*\btext-\[13\.5px\][^"]*)"/g)]
+        .filter(([, classes]) => !classes.includes("leading-[1.6]"))
+        .map(([, classes]) => `${name}: ${classes}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
   it("holds the 11px type floor across the quiz", () => {
     // Every explicit size in the quiz sits at or above the delta's floor.
     const sizes = quizSources.flatMap(({ name, text }) =>
@@ -2189,7 +2224,7 @@ the budget, and the phase transitions, which the handoff does not draw.
 ## Fixes found on the way
 
 - **The choice card's focus ring never painted.** `focus-within:outline-none` is emitted after `focus-within:outline-2` and sets `outline-style: none`; both match at once, so the later rule won. Replaced with a `focus-ring-child` utility on the `outline` shorthand, scoped to the card's own control so the ring does not follow focus onto an inline glossary term, and the Phase 1 guardrail now covers the `focus-within` spelling.
-- **`Up next` was `text-stone-800`** — a fixed ramp value on an inverting surface, 1.4:1 on the dark panel.
+- **`Up next` was `text-stone-800`** — a fixed ramp value on an inverting surface, 1.78:1 on the dark panel, which is also exactly its border colour.
 - **The budget's sticky bar bled to `-mx-4`**, which stopped matching once the page gutters moved to 18px.
 
 ## Decisions
@@ -2220,6 +2255,22 @@ Two things this phase touched that the results page will want:
 storage lifecycle and renders no markup of its own.
 
 ## Follow-up found in this phase, out of its scope
+
+**`text-[13.5px] leading-[1.6]` deserves a named role.** The delta minted a role
+for every other size on these screens — `display-s` at 17px, `caption-italic` at
+13.5px serif — but left the most-used sans size as an arbitrary-value pair
+repeated eight times across five files, which must travel together by
+convention. Minting `body-s` in `globals.css` and sweeping the call sites is the
+right fix; it is deliberately NOT done here, because it would touch files from
+Tasks 3, 4 and 5 after they were reviewed. Task 8 guardrails the pairing
+instead. Phase 6 (#137) owns the design-system docs and is the natural home.
+
+**`--warning-border` is a token no utility can reach.** `globals.css` defines it
+(`#fde68a`, inverted to `#92400e`) but never exports it in the `@theme` block,
+so `border-warning-border` does not compile. Task 4 correctly used
+`border-warning`, the only spelling that works. An inverting border token that
+cannot be reached is the setup for the bug class that has now shipped three
+times in this project.
 
 `src/app/account/page.tsx:236` hand-rolls a focus ring —
 `focus-visible:outline-2 focus-visible:outline-stone-600
