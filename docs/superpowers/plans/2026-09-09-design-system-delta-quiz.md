@@ -1261,7 +1261,7 @@ Replace lines 466–488:
         {finalizeError && (
           <p
             role="alert"
-            className="mb-4 border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
+            className="mb-4 rounded-sharp border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
           >
             Something went wrong finalizing your budget. Your answers are still here — please try again.
           </p>
@@ -2051,6 +2051,44 @@ describe("quiz chrome drift guards", () => {
     expect(page).not.toContain('className="min-h-screen px-4"');
   });
 
+  it("keeps the two skip links identical", () => {
+    // Phase 1 and phase 2 render byte-identical nav rows, and only phase 1 is
+    // mounted by any test. This is a structural pin, deliberately chosen over
+    // extracting a <QuestionNav> component: the props interface would be as
+    // long as the JSX it replaced, and `quiz-flow.spec.ts` drives these rows
+    // by accessible name.
+    const quizFlow = quizSources.find((s) => s.name === "QuizFlow.tsx")!.text;
+    const skips = [
+      ...quizFlow.matchAll(/className="([^"]*)"\s*>\s*\n\s*Skip this question/g),
+    ];
+
+    expect(skips).toHaveLength(2);
+    expect(skips[0][1]).toBe(skips[1][1]);
+  });
+
+  it("pins the replaced values on screens nothing mounts", () => {
+    // Six value-for-value replacements from Task 4 that a seven-way mutation
+    // proved leave the whole suite green. Source greps rather than rendered
+    // mounts: the screens are awkward to reach (the finalize alert needs
+    // `encodeResponses` to throw; the resume screen needs mid-quiz
+    // sessionStorage), and Step 5's manual walk reaches none of them either.
+    const quizFlow = quizSources.find((s) => s.name === "QuizFlow.tsx")!.text;
+    const computing = quizSources.find((s) => s.name === "ComputingMessages.tsx")!.text;
+
+    // Renders only when encodeResponses throws. No test, no sweep, no human.
+    expect(quizFlow).toMatch(/rounded-sharp border-l-2 border-warning bg-warning-bg/);
+    // `label`, not `label-nav`. The four mono roles differ ONLY in tracking
+    // (0.14/0.12/0.10/0.02em), so at 11px the wrong one is invisible on screen
+    // — and `classes()`'s own comment warns that a substring check would pass
+    // on either.
+    expect(quizFlow).toMatch(/className="label text-text-label mb-2">\s*\n?\s*Phase 1 of 3/);
+    expect(quizFlow).toMatch(/className="display-entry text-text-primary mb-2">\s*\n?\s*Welcome back/);
+    expect(quizFlow).toMatch(/className="caption-italic mb-8"/);
+    // 12px sans tertiary -> 13.5px/1.6 secondary, on screen for 1800ms before
+    // the redirect fires.
+    expect(computing).toMatch(/text-\[13\.5px\] leading-\[1\.6\] text-text-secondary/);
+  });
+
   it("holds the 11px type floor across the quiz", () => {
     // Every explicit size in the quiz sits at or above the delta's floor.
     const sizes = quizSources.flatMap(({ name, text }) =>
@@ -2116,6 +2154,14 @@ At `http://localhost:3100/quiz`, in **both** colour schemes and at **390, 560, 7
 - The selected dilemma shows the `Selected` marker and an ink border that is visible on the dark ground.
 - `Up next` on the transition screen is legible in dark mode.
 - The budget's sticky confirm bar reaches both gutter edges at 390px and goes static at 560px.
+
+Four restyled screens are deliberately **not** on this list — the resume
+prompt, `UnrecoverableState`, the computing spinner, and the finalize alert.
+Reaching them by hand means seeding mid-quiz sessionStorage, corrupting saved
+state, catching an 1800ms window, and forcing `encodeResponses` to throw. They
+are covered by the source guards in Step 1 instead. That is a real trade — the
+guards pin class strings, not appearance — so if you are already in the browser
+with a mid-quiz session, look at the resume screen while you are there.
 - The budget instruction line does not run past three lines at 390px.
 
 Stop the server when done.
