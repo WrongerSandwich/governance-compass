@@ -19,6 +19,7 @@ Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Butt
 
 - **`text-text-label`, never `text-text-tertiary`, for the mono label layer.** Stone 500 measures 2.73:1 on the light page ground and fails WCAG AA; `--text-label` steps Stone 700 / Stone 500 by mode. Spec decision D7.
 - **`--text-label` and `--text-secondary` are the SAME colour in light mode.** Both resolve to `#6e5a48` (`--text-label` → `--stone-700`); they diverge only in dark, where label steps to Stone 500 and secondary to `#cdbfb2`. So swapping one for the other is invisible in light mode — and therefore invisible to mutation testing, since the mutant and the original render identically. Never use `text-text-label` to express *de-emphasis* against `text-text-secondary`; it expresses nothing. Dim with `opacity-60 hover:opacity-100`, the idiom `ForcedChoiceCard` uses. `text-text-label` is for the mono label layer only — every one of its nine other call sites in the quiz sits beside a `label`/`label-nav` role.
+- **The `text-text-tertiary` → `text-text-label` swap is LIGHT-MODE-ONLY.** `--text-tertiary` is `#9d8b78` in both modes, and dark `--text-label` is `var(--stone-500)` = `#9d8b78` too — so in dark mode the swap is pixel-identical. That is correct per D7 (Stone 500 fails AA on the *light* ground specifically), but do not read "no dark-mode difference" as evidence the swap did not take. Verify it in light.
 - **The `text-text-tertiary` sweep for the quiz happens here.** D6 defers *layout* on undrawn screens, not the label layer. Every `text-text-tertiary` in `src/components/quiz/` moves to `text-text-label` when it dresses a label and `text-text-secondary` when it dresses prose. Nothing in the quiz directory keeps `text-text-tertiary` after this phase; a guardrail in Task 8 pins that.
 - **`className` does NOT override variant classes on `Button`/`ButtonLink`.** Appending does not win; Tailwind's emitted order does, and the variant utilities land later in the sheet. `className` is only for properties no variant sets — margin, width, position. `w-full` is the verified conflict-free way to go full-width. Never pass `block`, `px-*`, or a text colour.
 - **Typography roles** (`display-s`, `display-entry`, `body-lead`, `label`, `label-nav`, `label-eyebrow`, `label-tight`, `control`, `caption-italic`) are single self-contained classes. Do not layer a built-in utility over one to vary a property the role already sets. Layering a property the role does **not** set is safe — `label` declares no `font-weight`, so `label font-medium` is fine, and `caption-italic` declares `color`, so a colour class next to it is not.
@@ -2170,6 +2171,35 @@ describe("quiz chrome drift guards", () => {
       [...text.matchAll(/className="([^"]*\btext-\[13\.5px\][^"]*)"/g)]
         .filter(([, classes]) => !classes.includes("leading-[1.6]"))
         .map(([, classes]) => `${name}: ${classes}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("uses text-text-label only on the mono label layer", () => {
+    // Task 6 shipped a real defect by reaching for this token to express
+    // de-emphasis: `--text-label` and `--text-secondary` are BOTH #6e5a48 in
+    // light mode, so it expressed nothing — and rendered identically, which is
+    // why no mutation could observe it. The token belongs to the mono label
+    // layer only; dim with `opacity-60` instead.
+    //
+    // Line-scoped, and comments are skipped, because the explanatory comments
+    // in ScaledQuestionCard name the token without using it.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      text
+        .split("\n")
+        .map((line, index) => ({ line, number: index + 1 }))
+        .filter(({ line }) => {
+          const t = line.trimStart();
+          return !t.startsWith("//") && !t.startsWith("*");
+        })
+        .filter(({ line }) => line.includes("text-text-label"))
+        // A mono role token must sit on the same element. Strip the colour
+        // class first so its own trailing "label" cannot satisfy the check.
+        .filter(({ line }) => !/\blabel(?:-nav|-eyebrow|-tight)?\s/.test(
+          line.replace(/text-text-label/g, ""),
+        ))
+        .map(({ name: _n, number, line }) => `${name}:${number}: ${line.trim()}`),
     );
 
     expect(offenders).toEqual([]);
