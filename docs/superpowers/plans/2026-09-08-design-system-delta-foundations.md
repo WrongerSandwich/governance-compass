@@ -385,6 +385,13 @@ git commit -m "feat(design): add radius, button, and typography tokens for the d
 
 - [ ] **Step 1: Write the failing guardrail test**
 
+> **Shipped differently.** The regexes below were widened in `7197bcf` after
+> review: they banned `rounded-[8px]`/`[12px]` but not `rounded-lg`/`rounded-xl`,
+> which are Tailwind's own names for those same 8px and 12px radii, nor
+> directional variants, nor the unquoted `borderRadius: 8` form this repo
+> already uses. Offender output also became actionable (relative path, matched
+> text, replacement). See `tests/unit/design-system-tokens.test.ts`.
+
 Merge `readdirSync` into the existing `node:fs` import at the top of
 `tests/unit/design-system-tokens.test.ts` so it reads:
 
@@ -595,6 +602,13 @@ established that the migrating phases would otherwise rediscover the hard way:
    call site moves, so it belongs at the end.
 
 - [ ] **Step 1: Write the failing test**
+
+> **Shipped differently.** The `toContain` class assertions below were replaced
+> in `1c41363` with a `hasClass` whole-token helper: `bg-button-primary` is a
+> substring of `hover:bg-button-primary-hover` and `border-b` of
+> `border-border-primary`, so the originals passed against a primary that never
+> filled at rest and a tertiary with no underline. `2eae9ea` then added a
+> `type="button"` default and `aria-disabled` coverage.
 
 Create `tests/unit/button.test.ts`:
 
@@ -1205,3 +1219,52 @@ Deliberately deferred, each to its own plan (see the spec's phasing table):
 - `CLAUDE.md` and `docs/system_proposal/governance_compass_design_spec.md`
   updates, including the filled-button rule rewrite from spec decision D1 —
   Phase 6, so the docs describe what actually shipped.
+
+---
+
+## Outcome
+
+Phase 1 shipped in 24 commits on `feat/design-delta-foundations`. The unit
+suite went from 543 to 582; typecheck, lint at `--max-warnings=0`, and the
+production build are clean.
+
+**What the plan got right:** the six-task sequence, the token mechanism
+(`@utility` over `--text-*`), and the decision to build the button primitive
+before any call site needed it. No task had to be reordered or split.
+
+**What review changed.** Every task produced at least one finding, and most
+were defects in this plan rather than in the implementations:
+
+| Task | Finding |
+| --- | --- |
+| 1 | The token test passed even with the light and dark button values swapped — whole-file `toContain` is block-blind. Rewritten to brace-match each block and assert on parsed declaration maps, plus a structural invariant requiring every `--button-*` token to carry a dark override and a theme mapping. |
+| 1 | `--radius-panel` was a misnomer (55 of 89 sweep targets are badges and inputs, not panels) and `--color-button-primary-bg` compiled to the stuttering `bg-button-primary-bg`. Renamed to `--radius-sharp` and `--button-primary`/`-hover`/`-fg` while it was a 2-line change. |
+| 2 | The radius guardrail banned `rounded-[8px]`/`[12px]` but not `rounded-lg`/`rounded-xl` — Tailwind's own names for the same values, and the spelling a contributor would actually type. Also missed the unquoted `borderRadius: 8` form the repo already uses, and never scanned `globals.css`. |
+| 2 | A class-only grep missed `CompareView.tsx:533`, an 8px panel radius set inline. |
+| 3 | `Button` had no `type` default, so it was `type="submit"` — any migrated action button inside a form would have submitted it. |
+| 3 | A test *name* claimed appended `className` overrides variant classes. It does not; Tailwind's emitted order decides. Verified by byte offset: `.block` (4660) loses to `.inline-block` (4695). Migrating `page.tsx`'s CTA verbatim would have silently shrunk it from a 320px block to content width while still looking centred. |
+| 4 | The 54px bar left the dropdown panel overlapping the nav's bottom rule by 7.3px and the active underline floating 11.3px off it. Fixed by letting link boxes span the bar, which also restored tap-target height. |
+| 5 | The footer test never asserted the licence `href` or the row's justification, so repointing the licence link and re-centring the row both passed. |
+
+**Two findings were declined,** with reasons recorded: disabled-state button
+tokens (the primitive's mode-agnostic `disabled:opacity-50` is correct under
+inversion; the defect is `BudgetSimulator`'s hardcoded classes, routed to
+Phase 3), and stripping `caption-italic`'s colour (it is part of the role;
+the real defect was the inaccurate contract comment). A third — eight filled
+buttons reported as `CLAUDE.md` violations — was simply wrong: the rule is
+category-based, not a count of two, and all eight fall inside it.
+
+**Two findings exceeded the plan's scope and were fixed anyway:**
+
+- **The app-wide focus ring never painted.** All 25 occurrences of
+  `focus:outline-none focus-visible:outline-2 …` computed `outline-style:
+  none`, because `outline-none` sets `--tw-outline-style: none` and `:focus`
+  always matches when `:focus-visible` does. Confirmed in Chromium. Replaced
+  with a `focus-ring` utility using the `outline` shorthand.
+- **The label colour cannot be mode-independent.** Stone 500 measures 2.73:1
+  on the light ground. `--text-label` steps Stone 700 / Stone 500 — spec
+  decision D7.
+
+**Deferred:** the bare-`rounded` sweep and radius namespace lockdown (#139),
+the 17 remaining sub-11px component literals, a shared `vi.resetModules()`
+setup file, and aligning page shells to the chrome's gutter (Phase 2).
