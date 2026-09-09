@@ -565,6 +565,35 @@ which advances within the assessment rather than beginning, resuming, or
 confirming. That is spec decision D1, and Phase 6 (#137) rewrites the rule to
 cover it. Nothing in Phase 1 depends on the rewrite.
 
+**Notes for the Phase 2–5 migrations.** Three things the Task 3 review
+established that the migrating phases would otherwise rediscover the hard way:
+
+1. **`className` does not override variant classes.** Appending does not win —
+   Tailwind's emitted order decides, and the variant utilities land later in
+   the sheet than common ones. Verified by byte offset: `.block` at 4660 loses
+   to BASE's `.inline-block` at 4695, and `.px-6` at 4973 loses to
+   `.px-[34px]` at 5033. So `className` is only for properties no variant sets
+   — margin, width, position. The concrete trap: `src/app/page.tsx:26-30` is
+   currently `block mx-auto max-w-xs`, and migrating it verbatim silently
+   shrinks the app's flagship CTA from a 320px block to content width. The
+   working spelling is `className="w-full max-w-xs"`, which is conflict-free
+   and centres via the hero's existing `text-center`. Anything needing
+   different padding or display needs a variant, not a class.
+
+2. **The tertiary variant's intended sites.** It is uppercase mono
+   (`label-nav`) by design, so it is *not* for prose links or the
+   `no-underline` breadcrumb kickers. Mock `5a` uses it for the "Methodology"
+   link beside the hero primary (Phase 2); mock `7a` uses it for "Learn more"
+   in the archetype panel (Phase 4). Applying it to a sentence-case prose link
+   would uppercase the text.
+
+3. **Worth adding once migrations finish (Phase 5, #136):** a source-scanning
+   guardrail in the `tests/unit/design-system-tokens.test.ts` idiom asserting
+   no `.tsx` outside `Button.tsx` hand-rolls a filled-button recipe. Class
+   assertions protect the primitive; only a source scan protects the
+   invariant across five phases of migration. It cannot pass until the last
+   call site moves, so it belongs at the end.
+
 - [ ] **Step 1: Write the failing test**
 
 Create `tests/unit/button.test.ts`:
@@ -1113,9 +1142,17 @@ git log --oneline main..HEAD
 git diff main..HEAD -- src tests
 ```
 
-Known drift to fix: Task 2's Step 1 still shows the pre-hardening guardrail
-block (narrow regexes, bare-path offender output) rather than the widened
-patterns and actionable messages in `tests/unit/design-system-tokens.test.ts`.
+Known drift to fix:
+
+- Task 2's Step 1 still shows the pre-hardening guardrail block (narrow
+  regexes, bare-path offender output) rather than the widened patterns and
+  actionable messages in `tests/unit/design-system-tokens.test.ts`.
+- Task 3's Step 1 still shows `toContain` class assertions. Those were
+  replaced with a `hasClass` whole-token helper, because `bg-button-primary`
+  is a substring of `hover:bg-button-primary-hover` and `border-b` of
+  `border-border-primary` — so the original assertions passed against a
+  primary that never filled at rest and a tertiary with no underline. Both
+  are now proven by mutation.
 
 - [ ] **Step 6: Commit any fixes and open the PR**
 
