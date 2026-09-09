@@ -45,9 +45,11 @@ afterEach(() => {
     try {
       act(() => entry.root.unmount());
     } finally {
-      // In a `finally` so a throwing unmount cannot both strand this container
-      // and abort the loop, leaving every remaining entry mounted for the next
-      // test.
+      // In a `finally` so a throwing unmount cannot strand THIS container.
+      // The throw still propagates — `finally` without `catch` rethrows — so
+      // the loop does abort and any remaining entries wait for the next
+      // `afterEach`. That drains on entry, so they are cleaned up one test
+      // late rather than never. Verified by forcing a throwing unmount.
       entry.container.remove();
     }
   }
@@ -149,7 +151,10 @@ describe("ProgressBar", () => {
     );
     const fills = [...container.querySelectorAll("[data-progress-fill]")] as HTMLElement[];
 
-    // Without the `totalInPhase > 0` guard this is "Infinity%". A rewrite that
+    // Without the `totalInPhase > 0` guard the width computes to "Infinity%",
+    // which jsdom's style setter rejects outright, so the observed value is ""
+    // rather than "Infinity%". Either way this assertion fails — but don't
+    // write the comment as if "Infinity%" is what you'd see. A rewrite that
     // claims to preserve a guard should pin the guard.
     expect(fills[0].style.width).toBe("0%");
   });
