@@ -546,7 +546,24 @@ tracked as issue #139 rather than smuggled into this phase.
 **Interfaces:**
 - Produces: `buttonClasses(variant)`, `Button` (renders `<button>`), `ButtonLink` (renders a `next/link` anchor), and the `ButtonVariant` type.
 - Consumes: `control`, `label-nav`, `rounded-sharp`, and the `button-primary-*` colours from Task 1.
-- Consumed by: Task 4 (`NavBar` has no buttons, but Phases 2–5 replace all nine inline button call sites with these).
+- Consumed by: Task 4 (`NavBar` has no buttons, but Phases 2–5 replace the inline button call sites with these).
+
+**The eight existing filled buttons are compliant — do not "fix" them.**
+Task 2's review flagged them as violating `CLAUDE.md`, reading its rule as a
+count of two. It is not a count. Line 83 reserves filled buttons for "primary
+assessment actions (beginning or resuming the assessment and confirming the
+budget)", and all eight fall inside that category: `page.tsx:28`
+("Begin assessment"), `axes:184` / `questions:338` / `references:61`
+("Take the assessment"), `methodology:194` ("Begin the assessment"),
+`QuizFlow:236` ("Continue where I left off"), `QuizFlow:280` ("Begin"), and
+`BudgetSimulator:192` ("Confirm budget"). Three further `bg-stone-600` uses —
+`QuizFlow:498`, `ProgressBar:46`, `ArchetypeCard:162` — are progress fills and
+a rule, which delta 03 explicitly keeps as Stone 600's remaining jobs.
+
+What actually conflicts with that rule is mock `6b`'s ink-filled quiz `Next`,
+which advances within the assessment rather than beginning, resuming, or
+confirming. That is spec decision D1, and Phase 6 (#137) rewrites the rule to
+cover it. Nothing in Phase 1 depends on the rewrite.
 
 - [ ] **Step 1: Write the failing test**
 
