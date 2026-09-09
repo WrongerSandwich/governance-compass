@@ -228,6 +228,13 @@ describe("ForcedChoiceCard", () => {
       // has twice got wrong by reaching for a fixed ramp value instead.
       expect(tokens).toContain("bg-surface-1");
       expect(tokens).toContain("p-6");
+      // `transition-colors` does NOT cover opacity, so the dimmed sibling's
+      // `hover:opacity-100` snapped while its border eased. jsdom computes no
+      // transitions, so the class token is the only observable — but the
+      // failure is silent and nothing else catches it, and the negative names
+      // the value this replaced.
+      expect(tokens).toContain("transition-[border-color,opacity]");
+      expect(tokens).not.toContain("transition-colors");
       expect(tokens).toContain("focus-ring-child");
       // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
       // ring stops painting the moment the sr-only control is not a DIRECT

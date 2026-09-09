@@ -614,6 +614,13 @@ describe("ForcedChoiceCard", () => {
       // has twice got wrong by reaching for a fixed ramp value instead.
       expect(tokens).toContain("bg-surface-1");
       expect(tokens).toContain("p-6");
+      // `transition-colors` does NOT cover opacity, so the dimmed sibling's
+      // `hover:opacity-100` snapped while its border eased. jsdom computes no
+      // transitions, so the class token is the only observable — but the
+      // failure is silent and nothing else catches it, and the negative names
+      // the value this replaced.
+      expect(tokens).toContain("transition-[border-color,opacity]");
+      expect(tokens).not.toContain("transition-colors");
       expect(tokens).toContain("focus-ring-child");
       // `focus-ring-child` is scoped to `:has(> button:focus-visible)`, so the
       // ring stops painting the moment the sr-only control is not a DIRECT
@@ -680,6 +687,12 @@ describe("ForcedChoiceCard", () => {
     );
   });
 
+  // NOTE for a later phase: `bg-surface-1`, `p-6` and the transition are pinned
+  // in the unanswered-pair test only. That reaches them because `base` is one
+  // shared string across all three state branches — if a task ever splits
+  // `base` per state, move these into the selected-state loop below too.
+  // Duplicating them now would be a pure mirror in a second place.
+  //
   // The three `mb-`/`mt-` assertions in this describe are the weakest in the
   // file: pure mirrors of a class name, with no negative counterpart and no
   // failure mode beyond "someone edited this line". They are kept because all
