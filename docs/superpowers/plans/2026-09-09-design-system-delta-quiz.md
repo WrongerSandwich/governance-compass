@@ -18,6 +18,7 @@
 Phases 1 (#132, PR #140) and 2 (#133, PR #143) landed the token layer, the `Button` primitive, and the page idiom. Use them rather than re-spelling values.
 
 - **`text-text-label`, never `text-text-tertiary`, for the mono label layer.** Stone 500 measures 2.73:1 on the light page ground and fails WCAG AA; `--text-label` steps Stone 700 / Stone 500 by mode. Spec decision D7.
+- **`--text-label` and `--text-secondary` are the SAME colour in light mode.** Both resolve to `#6e5a48` (`--text-label` → `--stone-700`); they diverge only in dark, where label steps to Stone 500 and secondary to `#cdbfb2`. So swapping one for the other is invisible in light mode — and therefore invisible to mutation testing, since the mutant and the original render identically. Never use `text-text-label` to express *de-emphasis* against `text-text-secondary`; it expresses nothing. Dim with `opacity-60 hover:opacity-100`, the idiom `ForcedChoiceCard` uses. `text-text-label` is for the mono label layer only — every one of its nine other call sites in the quiz sits beside a `label`/`label-nav` role.
 - **The `text-text-tertiary` sweep for the quiz happens here.** D6 defers *layout* on undrawn screens, not the label layer. Every `text-text-tertiary` in `src/components/quiz/` moves to `text-text-label` when it dresses a label and `text-text-secondary` when it dresses prose. Nothing in the quiz directory keeps `text-text-tertiary` after this phase; a guardrail in Task 8 pins that.
 - **`className` does NOT override variant classes on `Button`/`ButtonLink`.** Appending does not win; Tailwind's emitted order does, and the variant utilities land later in the sheet. `className` is only for properties no variant sets — margin, width, position. `w-full` is the verified conflict-free way to go full-width. Never pass `block`, `px-*`, or a text colour.
 - **Typography roles** (`display-s`, `display-entry`, `body-lead`, `label`, `label-nav`, `label-eyebrow`, `label-tight`, `control`, `caption-italic`) are single self-contained classes. Do not layer a built-in utility over one to vary a property the role already sets. Layering a property the role does **not** set is safe — `label` declares no `font-weight`, so `label font-medium` is fine, and `caption-italic` declares `color`, so a colour class next to it is not.
@@ -1531,6 +1532,14 @@ describe("ScaledQuestionCard", () => {
     expect(classes(buttons[2])).not.toContain("bg-stone-200");
     expect(classes(buttons[0])).toContain("bg-surface-1");
     expect(classes(buttons[0])).not.toContain("bg-button-primary");
+    // The dimmed sibling carries its de-emphasis in opacity. The NEGATIVE is
+    // the assertion that matters: `text-text-label` resolves to the same
+    // #6e5a48 as `text-text-secondary` in light mode, so a revert to it would
+    // render identically and no mutation could observe the difference.
+    expect(classes(buttons[0])).toContain("opacity-60");
+    expect(classes(buttons[0])).not.toContain("text-text-label");
+    // The segmented wrapper must not clip its children's focus outlines.
+    expect(classes(desktop)).not.toContain("overflow-hidden");
   });
 
   it("mirrors the choice card's border states in the mobile list", () => {
@@ -1606,8 +1615,11 @@ In `src/components/quiz/ScaledQuestionCard.tsx`, replace `buttonClasses` and `mo
     const isSelected = selectedValue === value;
     const hasSelection = selectedValue !== undefined;
 
+    // `transition-[...]` names opacity explicitly: `transition-colors` does not
+    // cover it, so the dimmed segment's `hover:opacity-100` would snap while
+    // its background eased. Same trap Task 3 hit on the choice card.
     const base =
-      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring focus-visible:z-10";
+      "flex flex-1 items-center justify-center px-3 py-3 text-center text-[13px] font-medium transition-[color,background-color,opacity] duration-150 cursor-pointer focus-ring focus-visible:z-10";
 
     // The segmented bar has no per-item border to carry state, so the chosen
     // segment takes the ink fill — the same token pair as the primary button,
@@ -1615,8 +1627,13 @@ In `src/components/quiz/ScaledQuestionCard.tsx`, replace `buttonClasses` and `mo
     if (isSelected) {
       return `${base} bg-button-primary text-button-primary-fg`;
     }
+    // Dim with opacity, NOT with `text-text-label`. That token resolves to the
+    // same #6e5a48 as `text-text-secondary` in light mode, so using it here
+    // would delete the de-emphasis outright — and invisibly, since the two
+    // render identically. `opacity-60` is the idiom the mobile branch and
+    // `ForcedChoiceCard` already use.
     if (hasSelection) {
-      return `${base} bg-surface-1 text-text-label hover:bg-surface-2`;
+      return `${base} bg-surface-1 text-text-secondary opacity-60 hover:opacity-100 hover:bg-surface-2`;
     }
     return `${base} bg-surface-1 text-text-secondary hover:bg-surface-2 hover:text-text-primary`;
   }
@@ -1653,7 +1670,7 @@ Replace the returned JSX (lines 97–150):
       {/* Desktop: horizontal segmented bar */}
       <div
         data-scale-segments
-        className="mt-4 hidden min-[560px]:flex overflow-hidden rounded-sharp border border-border-secondary divide-x divide-border-secondary"
+        className="mt-4 hidden min-[560px]:flex rounded-sharp border border-border-secondary divide-x divide-border-secondary"
         role="group"
         aria-label="Response options"
       >
@@ -2223,6 +2240,7 @@ At `http://localhost:3100/quiz`, in **both** colour schemes and at **390, 560, 7
 - The selected dilemma shows the `Selected` marker and an ink border that is visible on the dark ground.
 - `Up next` on the transition screen is legible in dark mode.
 - The budget's sticky confirm bar reaches both gutter edges at 390px and goes static at 560px.
+- **Tab through the phase-2 scale at 1280px and watch the focus ring on segments 1, 3 and 5.** The full 2px outline must be visible on all four sides of each. The wrapper used to carry `overflow-hidden`, which clipped every segment's outline — the same defect class as Task 1, one file over. Task 6 removed it; this confirms nothing else clips, and that dropping it left the 2px corners intact.
 
 Four restyled screens are deliberately **not** on this list — the resume
 prompt, `UnrecoverableState`, the computing spinner, and the finalize alert.
