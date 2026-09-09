@@ -49,7 +49,7 @@ export function NavBar() {
       <div className="max-w-shell mx-auto flex items-center justify-between h-[54px]">
         <Link
           href="/"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-150"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-150 focus-ring"
           aria-current={pathname === "/" ? "page" : undefined}
         >
           <GovernanceCompassMark size={22} />

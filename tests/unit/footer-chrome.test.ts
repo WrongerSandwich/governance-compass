@@ -49,6 +49,15 @@ describe("footer chrome", () => {
     expect(row.className.split(/\s+/)).toContain("justify-between");
   });
 
+  it("gives both links the designed focus ring", () => {
+    const container = renderFooter();
+    const missing = [...container.querySelectorAll("a")]
+      .filter((el) => !el.className.split(/\s+/).includes("focus-ring"))
+      .map((el) => el.textContent?.trim() ?? "");
+
+    expect(missing).toEqual([]);
+  });
+
   it("keeps both external links attributed and safe", () => {
     const container = renderFooter();
     const anchors = [...container.querySelectorAll("a")];

@@ -86,6 +86,21 @@ describe("nav bar chrome", () => {
     expect(container.querySelectorAll(".label-nav")).toHaveLength(2);
   });
 
+  it("gives every interactive element in the nav the designed focus ring", async () => {
+    // The brand link was missed the first time and fell back to the browser
+    // default ring, which is exactly the kind of gap a per-element assertion
+    // does not catch. Enumerate instead.
+    const container = await renderNav();
+    const trigger = container.querySelector("button[aria-haspopup='menu']")!;
+    act(() => trigger.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    const missing = [...container.querySelectorAll("a, button")]
+      .filter((el) => !el.className.split(/\s+/).includes("focus-ring"))
+      .map((el) => el.textContent?.trim() ?? el.tagName);
+
+    expect(missing).toEqual([]);
+  });
+
   it("keeps the Research dropdown rather than hoisting its children", async () => {
     const container = await renderNav();
     const trigger = container.querySelector("button[aria-haspopup='menu']")!;
