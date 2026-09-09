@@ -1101,8 +1101,8 @@ Deliberately deferred, each to its own plan (see the spec's phasing table):
   keep working on their current classes until each screen's phase reaches them;
   the primitive exists first so no phase has to invent it.
 - The 14 `rounded-[3px]`, three `rounded-[6px]`, and one `rounded-[4px]`
-  literals, plus the 36 inline `borderRadius` marks at 1–6px in
-  `src/components/study/`. The 3px ones are score-bar and budget-bar tracks
+  literals, plus the 38 inline `borderRadius` marks at 1–6px in
+  `src/components/study/` (35 quoted, three unquoted numeric). The 3px ones are score-bar and budget-bar tracks
   that Phase 4 replaces outright with the paired axis scale's 2px track.
 - The seven bare `rounded` classes (Tailwind's default 4px) and the
   `--radius-*: initial` namespace lockdown that would make off-system radii
