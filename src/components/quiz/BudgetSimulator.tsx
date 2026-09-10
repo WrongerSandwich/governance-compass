@@ -169,6 +169,10 @@ export function BudgetSimulator({
         <span data-budget-counter-label className="label text-text-label">
           Points remaining
         </span>
+        {/* Hand-spelled deliberately: the numerals are data, and the mono
+            scale's only role is `mono-meta` at 11px, far too small for the
+            figure this screen is built around. Don't "fix" these into a label
+            role — mint a numeral role first if the set ever grows. */}
         <span className="text-[16px] font-mono font-medium text-text-primary tabular-nums">
           {remaining}
           {canFinalize && (

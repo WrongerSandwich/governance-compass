@@ -250,7 +250,7 @@ describe("near-square corners (design delta 02)", () => {
 });
 
 describe("focus ring", () => {
-  it("bans the broken outline-none focus spellings", () => {
+  it("routes every focus ring through the focus-ring utilities", () => {
     // The hand-rolled spelling this replaced was silently broken:
     // `focus:outline-none` emits `--tw-outline-style: none`, and :focus always
     // matches when :focus-visible does, so `outline-style: var(...)` resolved
@@ -264,6 +264,13 @@ describe("focus ring", () => {
     // later rule wins. Verified by compiling both classes against this repo's
     // Tailwind, not inferred from the :focus/:focus-visible case.
     expect(offenders(/focus-within:outline-none/, "focus-ring-child")).toEqual([]);
+    // And the spelling that *works* but bypasses the utility. This assertion was
+    // deliberately absent until `account/page.tsx` was swept: it hand-rolled a
+    // ring that painted correctly but hardcoded `stone-600` instead of reading
+    // `var(--focus-ring)`, so the title's "every" was an overclaim. With that
+    // gone, `focus-ring` and `focus-ring-child` are the only way a ring is drawn
+    // anywhere in src, and the claim is now literally true.
+    expect(offenders(/focus-visible:outline-/, "focus-ring")).toEqual([]);
   });
 
   it("paints a real outline off the focus-ring token", () => {
