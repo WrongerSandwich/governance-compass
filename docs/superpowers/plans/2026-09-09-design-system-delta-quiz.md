@@ -2401,53 +2401,61 @@ Two things this phase touched that the results page will want:
 `QuizProvider.tsx` was left alone deliberately — it holds the reducer and the
 storage lifecycle and renders no markup of its own.
 
-## Follow-up found in this phase, out of its scope
+## Follow-up found in this phase — triaged and cleared
 
-**`text-[13.5px] leading-[1.6]` deserves a named role.** The delta minted a role
-for every other size on these screens — `display-s` at 17px, `caption-italic` at
-13.5px serif — but left the most-used sans size as an arbitrary-value pair
-repeated eight times across five files, which must travel together by
-convention. Minting `body-s` in `globals.css` and sweeping the call sites is the
-right fix; it is deliberately NOT done here, because it would touch files from
-Tasks 3, 4 and 5 after they were reviewed. Task 8 guardrails the pairing
-instead. Phase 6 (#137) owns the design-system docs and is the natural home.
+Every item below was found by this phase and recorded rather than silently
+dropped. All are now either fixed, handed to the phase that owns the decision,
+or filed.
 
-**`Button`'s disabled state snaps.** `Button.tsx` expresses disabled as
-`disabled:opacity-50`, but its base transition is `transition-colors`, which
-does not cover opacity. The budget screen is where this shows worst: the
-confirm button enables at the exact moment the last point lands, alongside the
-"All allocated" `fade-in-up`, so one animates and the other jumps. It is a
-primitive-level property shared by every call site, so it was not fixed
-unilaterally here — `transition-[color,background-color,opacity]` on
-`Button.tsx:16` is the fix.
+**Fixed here** (commit `96c74b5`):
 
-**The budget track fill is a hard-coded ramp value at half opacity.**
-`BudgetSimulator.tsx` styles it inline as `var(--stone-600)` at `opacity: 0.5`,
-which no class guardrail can see. Composited it measures ~1.69:1 against the
-track in both modes. The numeral beside it carries the value redundantly, so
-WCAG 1.4.11 arguably does not bite — but the brief reserves Stone 600 *for*
-data marks, and at 50% opacity it is no longer Stone 600. The `data-budget-track`
-hook now exists to make this testable.
+- **`Button`'s disabled state snapped.** `disabled:opacity-50` under a
+  `transition-colors` base, which excludes opacity. Now
+  `transition-[color,background-color,opacity]` — the named list covers every
+  property the three variants actually animate and deliberately drops
+  `outline-color`, which had been fading the focus ring in over 150ms and making
+  every measurement of it read `currentColor` for the first frame.
+- **`--warning-border` was unreachable.** The only member of the warning family
+  declared with a dark inversion but never exported to `@theme`, so
+  `border-warning-border` could not compile. Now exported.
+- **`account/page.tsx:236` hand-rolled a focus ring.** It painted, but hardcoded
+  `stone-600` instead of reading `var(--focus-ring)`. With it swept,
+  `focus-ring`/`focus-ring-child` are the only way a ring is drawn anywhere in
+  `src`, so Task 1's guardrail is retitled back to *routes every focus ring
+  through the focus-ring utilities* and now asserts it — mutation-proven.
+- **`GlossaryTerm`'s trigger relied on the UA default ring.** The one
+  interactive control not routed through the utility, and invisible to the
+  guardrail because it never opted out. Now carries `focus-ring`, which also
+  completes Task 1: the card rings for its own control, the term rings for
+  itself.
+- **The budget's two mono numerals** are now a commented decision rather than an
+  oversight — hand-spelled because the mono scale's only role is `mono-meta` at
+  11px, far too small for the figure the screen is built around.
 
-**Two mono numerals are the last hand-spelled type in the quiz.**
-`text-[16px] font-mono font-medium` and `text-[14px] font-mono font-medium` in
-`BudgetSimulator.tsx`. `mono-meta` is 11px so it does not apply and no numeral
-role exists, so leaving them is probably right — but they are the only values in
-that file with no comment explaining the choice.
+**Handed to phase 4 (#135), which owns the decision** — see the comment there:
 
-**`--warning-border` is a token no utility can reach.** `globals.css` defines it
-(`#fde68a`, inverted to `#92400e`) but never exports it in the `@theme` block,
-so `border-warning-border` does not compile. Task 4 correctly used
-`border-warning`, the only spelling that works. An inverting border token that
-cannot be reached is the setup for the bug class that has now shipped three
-times in this project.
+- **`text-[13.5px] leading-[1.6]` needs a `body-s` role.** Nine call sites
+  across five files; Task 8's pairing guard is vacuous where the size is deleted
+  outright (measured: only three of the nine redden). Phase 4 is the next phase
+  to add call sites, so minting it there stops the convention growing; #137 then
+  documents it.
+- **The budget track fill** is an inline `var(--stone-600)` at 50% opacity,
+  ~1.69:1 against its track in both schemes. Phase 4 settles the canonical
+  data-mark treatment when `ScoreBar`/`ComparisonScoreBar` converge on
+  `PairedAxisScale`; the `data-budget-track` hook exists to make applying it a
+  one-line change.
 
-`src/app/account/page.tsx:236` hand-rolls a focus ring —
-`focus-visible:outline-2 focus-visible:outline-stone-600
-focus-visible:outline-offset-2`. It *paints*, so it is not the broken spelling
-the guardrail bans, but it hardcodes Stone 600 instead of reading
-`var(--focus-ring)` and bypasses the utility entirely. The account pages are
-phase 5's territory (#136), not this phase's; the fix is to swap those three
-classes for `focus-ring`. Until then, the guardrail's honest claim is that it
-bans the broken spellings, not that every ring routes through a utility — which
-is why Task 1 retitles it.
+**Filed:**
+
+- **#146** — `ProgressBar` conveys progress to sighted users only. No
+  `role="progressbar"` or value attributes. Not urgent (the `aria-live` region
+  already announces position) but the value attributes would also give the tests
+  a better anchor than `data-progress-fill` + a CSS width string.
+- **#147** — `DevRandomResults` overlays the budget's confirm bar on preview
+  deploys. Gated on `production` only, so it renders on every preview at
+  `fixed bottom-4 right-4 z-50`, directly over the final screen's primary action
+  at 390px.
+
+**Pre-existing, already tracked:** #139 covers the bare-`rounded` sweep and
+locking the radius namespace. Retiring this phase's two `rounded-[3px]` literals
+did not close it; twelve more live outside the quiz.
