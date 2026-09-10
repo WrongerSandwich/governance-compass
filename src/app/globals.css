@@ -209,6 +209,11 @@
   --color-warning:      var(--warning);
   --color-warning-text: var(--warning-text);
   --color-warning-bg:   var(--warning-bg);
+  /* Exported so `border-warning-border` compiles. It was the only member of the
+     warning family declared (with a dark inversion) but never exposed, which is
+     the setup for the bug this project has shipped three times: reaching for a
+     ramp literal because the inverting token appears not to exist. */
+  --color-warning-border: var(--warning-border);
   --color-info:         var(--info);
 
   --color-button-primary: var(--button-primary);
@@ -457,8 +462,9 @@ body {
    Chromium across all 25 former call sites.
 
    Using the `outline` shorthand here sets style explicitly, so it cannot be
-   undone by a custom property. This is also the only consumer of
-   `--focus-ring`, which was previously declared and never used.
+   undone by a custom property. This and its scoped sibling `focus-ring-child`
+   are the only consumers of `--focus-ring`, which before them was declared and
+   never used.
    ============================================ */
 
 @utility focus-ring {
@@ -466,6 +472,33 @@ body {
     outline: none;
   }
   &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* The choice card's sibling of `focus-ring`. The ring belongs on the card, but
+   the focusable element is the sr-only button inside it, so the selector has to
+   reach downward.
+
+   `:focus-visible` rather than `:focus-within`, because :focus-within matches a
+   plain :focus too — a mouse click on a dilemma would leave a ring behind,
+   which is exactly the behaviour `focus-ring` exists to avoid.
+
+   Scoped to a DIRECT BUTTON child rather than any descendant. The card's prose
+   runs through AnnotatedText into GlossaryTerm, whose trigger is a focusable
+   `span[role="button"][tabindex="0"]` carrying no ring of its own — fifteen
+   glossary terms match text in the forced-choice bank. An unscoped
+   `:has(:focus-visible)` would ring the entire card while focus sat on an
+   inline term, pointing the only affordance on screen at the wrong control.
+
+   The spelling this replaces was broken the same way `focus:outline-none` was.
+   Tailwind 4.3.3 emits `.focus-within\:outline-none:focus-within` — which sets
+   `outline-style: none` outright — after `.focus-within\:outline-2:focus-within`,
+   and both match at once, so the later rule won and the ring never painted.
+   Verified by compiling the four classes against this repo's Tailwind. */
+@utility focus-ring-child {
+  &:has(> button:focus-visible) {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }

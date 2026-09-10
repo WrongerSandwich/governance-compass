@@ -6,6 +6,7 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from "react";
 import { AnnotatedText } from "@/components/AnnotatedText";
+import { Button } from "@/components/Button";
 import { getConsequenceText } from "@/data/ministries";
 import { Shield, Heart, TrendingUp, GraduationCap, Leaf, Scale, Globe } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -148,19 +149,35 @@ export function BudgetSimulator({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Instruction text */}
-      <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium text-center">
+      {/* Instruction text. NOT the mono label role, despite 6b putting the
+          question-screen instruction there: 6b's is 43 characters and fits one
+          line, this is 85 and needs ~672px at 11px/0.12em — so it wrapped to two
+          all-caps lines at EVERY width, and sat directly above `Points remaining`
+          in the identical role, size and colour, which inverted the hierarchy.
+          Prose, per the visual sweep. Precedent: QuizFlow.tsx's glossary hint. */}
+      <p data-budget-instruction className="text-[12.5px] leading-[1.6] text-text-secondary text-center">
         You have {TOTAL_BUDGET} points to fund {ministries.length} ministries — there is not enough to fund everything well
       </p>
 
-      {/* Sticky points remaining counter */}
-      <div className="sticky top-0 z-10 bg-surface-2 rounded-sharp px-4 py-3 flex items-center justify-between">
-        <span className="text-sm text-text-secondary">Points remaining</span>
+      {/* Sticky points-remaining counter. Delta 04: a card's own header sits
+          over a 1px ink rule rather than inside a filled panel, and the quiz
+          has already spent its two surface switches on ground and cards. */}
+      <div
+        data-budget-counter
+        className="sticky top-0 z-10 -mx-[18px] flex items-center justify-between border-b border-rule-strong bg-surface-3 px-[18px] py-3 min-[560px]:mx-0 min-[560px]:px-0"
+      >
+        <span data-budget-counter-label className="label text-text-label">
+          Points remaining
+        </span>
+        {/* Hand-spelled deliberately: the numerals are data, and the mono
+            scale's only role is `mono-meta` at 11px, far too small for the
+            figure this screen is built around. Don't "fix" these into a label
+            role — mint a numeral role first if the set ever grows. */}
         <span className="text-[16px] font-mono font-medium text-text-primary tabular-nums">
           {remaining}
           {canFinalize && (
             <span
-              className="ml-2 text-xs font-sans font-medium text-stone-600"
+              className="ml-2 label text-text-label"
               style={{ animation: "fade-in-up 200ms ease-out both" }}
             >
               All allocated
@@ -183,16 +200,15 @@ export function BudgetSimulator({
         ))}
       </div>
 
-      {/* Confirm button — a primary assessment action */}
-      <div className="sticky bottom-0 z-10 -mx-4 border-t border-border-secondary bg-surface-1 px-4 py-4 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-        <button
-          type="button"
-          onClick={onFinalize}
-          disabled={!canFinalize}
-          className="w-full rounded-sharp bg-stone-600 px-6 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 focus-ring disabled:cursor-not-allowed disabled:bg-stone-400 disabled:text-stone-200"
-        >
+      {/* Confirm button — a primary assessment action. The bleed matches the
+          page's own gutter (src/app/quiz/page.tsx), not Tailwind's px-4. */}
+      <div
+        data-budget-confirm
+        className="sticky bottom-0 z-10 -mx-[18px] border-t border-rule-strong bg-surface-3 px-[18px] py-4 min-[560px]:static min-[560px]:mx-0 min-[560px]:border-0 min-[560px]:bg-transparent min-[560px]:px-0 min-[560px]:py-0"
+      >
+        <Button className="w-full" onClick={onFinalize} disabled={!canFinalize}>
           Confirm budget
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -254,11 +270,17 @@ function MinistrySlider({
   return (
     <div className="bg-surface-1 rounded-sharp border border-border-secondary p-4">
       <div className="mb-1">
-        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium">
+        <p
+          data-ministry-name
+          className="flex items-center gap-1.5 label font-medium text-text-primary"
+        >
           {(() => { const Icon = MINISTRY_ICONS[ministry.id]; return Icon ? <Icon size={13} strokeWidth={1.5} className="shrink-0" /> : null; })()}
           {ministry.name}
         </p>
-        <p className="text-xs text-text-tertiary mt-0.5">
+        <p
+          data-ministry-description
+          className="text-[12.5px] leading-[1.6] text-text-secondary mt-1"
+        >
           {ministry.description}
         </p>
       </div>
@@ -280,13 +302,14 @@ function MinistrySlider({
         </button>
 
         <div className="flex-1 relative">
-          {/* Track */}
+          {/* Track — square, per delta 05's data marks. */}
           <div
-            className="w-full h-[6px] rounded-[3px] overflow-hidden"
+            data-budget-track
+            className="w-full h-[6px] overflow-hidden"
             style={{ backgroundColor: 'var(--border-secondary)' }}
           >
             <div
-              className="h-full rounded-[3px] transition-all duration-100"
+              className="h-full transition-all duration-100"
               style={{
                 width: `${Math.min(100, ((value - MIN_ALLOCATION) / (MAX_ALLOCATION - MIN_ALLOCATION)) * 100)}%`,
                 backgroundColor: 'var(--stone-600)',
@@ -315,11 +338,12 @@ function MinistrySlider({
         </button>
       </div>
 
-      {/* Consequence text — Newsreader italic */}
+      {/* Consequence text — the serif italic caption role */}
       {hasInteracted && (
         <p
           key={consequenceText}
-          className="text-xs font-serif italic text-text-secondary leading-relaxed mt-2"
+          data-ministry-consequence
+          className="caption-italic mt-2"
           style={{ animation: "fade-in-up 200ms ease-out both" }}
         >
           <AnnotatedText text={consequenceText} />

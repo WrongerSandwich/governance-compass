@@ -1,6 +1,7 @@
 "use client";
 
 import { GovernanceCompassMark } from "../GovernanceCompassMark";
+import { Button } from "@/components/Button";
 
 interface PhaseTransitionProps {
   completedPhase: number;
@@ -26,36 +27,27 @@ export function PhaseTransition({
         <GovernanceCompassMark size={32} className="mx-auto mb-4" animate />
 
         {/* Completion message */}
-        <p className="text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
-          Phase {completedPhase} complete
-        </p>
-        <p className="text-text-tertiary text-sm mb-6">
+        <p className="label text-text-label mb-2">Phase {completedPhase} complete</p>
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-6">
           Your {completedCount} responses have been recorded.
         </p>
 
         {/* Divider */}
         <div className="border-t border-border-secondary mb-6" />
 
-        {/* Next phase info */}
-        <p className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
-          Up next
+        {/* Next phase info. `text-stone-800` used to sit here — a fixed ramp
+            value on an inverting surface, so it went near-invisible in dark. */}
+        <p className="label text-text-label mb-2">Up next</p>
+        <h3 className="display-s text-text-primary mb-2">{nextPhaseTitle}</h3>
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-4">
+          {nextPhaseDescription}
         </p>
-        <h3 className="text-[18px] font-serif font-medium text-text-primary mb-2">
-          {nextPhaseTitle}
-        </h3>
-        <p className="text-[13px] text-text-secondary mb-4">{nextPhaseDescription}</p>
-        <p className="text-xs font-serif italic text-text-tertiary mb-8">
-          Estimated time: {estimatedTime}
-        </p>
+        <p className="caption-italic mb-8">Estimated time: {estimatedTime}</p>
 
-        {/* CTA — ghost button (not one of the two filled buttons) */}
-        <button
-          type="button"
-          onClick={onContinue}
-          className="w-full rounded-sharp border border-stone-600 py-3 px-6 text-sm font-medium text-stone-600 hover:bg-stone-100 transition-colors duration-150 focus-ring"
-        >
+        {/* The same forward action as Next, so the same ink fill (spec D1). */}
+        <Button className="w-full" onClick={onContinue}>
           Continue
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -12,8 +12,16 @@ import type { ComponentProps } from "react";
  */
 export type ButtonVariant = "primary" | "secondary" | "tertiary";
 
+// `transition-colors` would not animate `disabled:opacity-50` below — Tailwind's
+// colour set excludes opacity — so the disabled state snapped while hovers
+// eased. Worst on the budget screen, where the button enables at the instant the
+// last point lands, alongside the "All allocated" fade. The named list covers
+// every property the three variants actually animate (background-color on
+// primary/secondary, color on tertiary) plus opacity, and deliberately drops
+// `outline-color`: with it in the list the focus ring faded in over 150ms, which
+// made every measurement of it read `currentColor` for the first frame.
 const BASE =
-  "inline-block text-center transition-colors duration-150 " +
+  "inline-block text-center transition-[color,background-color,opacity] duration-150 " +
   "focus-ring " +
   "disabled:opacity-50 disabled:cursor-not-allowed " +
   "aria-disabled:opacity-50 aria-disabled:cursor-not-allowed";

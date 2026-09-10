@@ -39,80 +39,88 @@ export function ForcedChoiceCard({
 
   const firstPole = swapped ? "B" : "A";
   const secondPole = swapped ? "A" : "B";
-  const firstHeadline = swapped ? headlineB : headlineA;
-  const firstBody = swapped ? bodyB : bodyA;
-  const secondHeadline = swapped ? headlineA : headlineB;
-  const secondBody = swapped ? bodyA : bodyB;
 
   function cardClasses(logicalPole: "A" | "B"): string {
     const isSelected = selectedPole === logicalPole;
     const hasSelection = selectedPole !== undefined;
 
+    // 1px border in every state — the state is carried by the border's tone,
+    // not its weight, so the border itself never changes the card's metrics.
+    // (The card does grow on selection: the `Selected` marker below adds a
+    // line. That is mock 6b's design, not an accident of the border.)
+    //
+    // `transition-[border-color,opacity]`, not `transition-colors`: Tailwind's
+    // colour set covers color/background-color/border-color/fill/stroke and
+    // NOT opacity, so `hover:opacity-100` on the dimmed sibling would snap
+    // while its border eased. Two `transition-*` classes cannot both apply —
+    // they collide on `transition-property` — so name both properties on one
+    // utility. Verified to compile: `transition-property: border-color,opacity`.
     const base =
-      "rounded-sharp p-6 border-2 cursor-pointer transition-colors duration-150 focus-within:outline-none focus-within:outline-2 focus-within:outline-stone-600 focus-within:outline-offset-2";
+      "rounded-sharp p-6 border bg-surface-1 cursor-pointer transition-[border-color,opacity] duration-150 focus-ring-child";
 
     if (isSelected) {
-      return `${base} border-stone-600 bg-surface-1`;
+      // --rule-strong is the ink/hairline pair's strong end, so it inverts with
+      // the surface. `border-stone-900` would go near-invisible in dark mode.
+      return `${base} border-rule-strong`;
     }
     if (hasSelection) {
-      return `${base} border-transparent bg-surface-1 opacity-60`;
+      return `${base} border-border-secondary opacity-60 hover:opacity-100 hover:border-stone-600`;
     }
-    return `${base} border-transparent bg-surface-1 hover:border-border-primary`;
+    return `${base} border-border-secondary hover:border-stone-600`;
+  }
+
+  /** Takes only the pole; the copy is derived. Passing `(pole, headline, body)`
+   *  ends in two adjacent `string` parameters, so a call site can transpose one
+   *  card's headline with the other's body — it type-checks, renders plausibly,
+   *  and the whole suite stays green. Deriving here makes that unrepresentable
+   *  and retires the four `first*`/`second*` copy variables. */
+  function renderOption(pole: "A" | "B") {
+    const isSelected = selectedPole === pole;
+    const headline = pole === "A" ? headlineA : headlineB;
+    const body = pole === "A" ? bodyA : bodyB;
+    return (
+      <div
+        data-choice-card
+        onClick={() => onSelect(pole)}
+        className={cardClasses(pole)}
+      >
+        <button
+          type="button"
+          aria-pressed={isSelected}
+          aria-label={`Select ${headline}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect(pole);
+          }}
+          className="sr-only"
+        />
+        <p className="display-s text-text-primary mb-2.5">
+          <AnnotatedText text={headline} />
+        </p>
+        <p className="text-[13.5px] leading-[1.6] text-text-secondary">
+          <AnnotatedText text={body} />
+        </p>
+        {isSelected && (
+          // `label` declares no font-weight, so `font-medium` layers over it
+          // safely — the roles only conflict on properties they both set.
+          <p data-selected-marker className="mt-3.5 label font-medium text-text-primary">
+            Selected
+          </p>
+        )}
+      </div>
+    );
   }
 
   return (
     <div>
-      <p className="mb-4 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium">
+      <p className="mb-[18px] label text-text-label">
         {questionType === "PT"
           ? "Which person\u2019s view is closer to your own?"
           : "Select the position closer to your own view"}
       </p>
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        <div
-          data-choice-card
-          onClick={() => onSelect(firstPole)}
-          className={cardClasses(firstPole)}
-        >
-          <button
-            type="button"
-            aria-pressed={selectedPole === firstPole}
-            aria-label={`Select ${firstHeadline}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(firstPole);
-            }}
-            className="sr-only"
-          />
-          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            <AnnotatedText text={firstHeadline} />
-          </p>
-          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            <AnnotatedText text={firstBody} />
-          </p>
-        </div>
-
-        <div
-          data-choice-card
-          onClick={() => onSelect(secondPole)}
-          className={cardClasses(secondPole)}
-        >
-          <button
-            type="button"
-            aria-pressed={selectedPole === secondPole}
-            aria-label={`Select ${secondHeadline}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(secondPole);
-            }}
-            className="sr-only"
-          />
-          <p className="text-left text-[15px] font-medium text-text-primary leading-snug">
-            <AnnotatedText text={secondHeadline} />
-          </p>
-          <p className="text-left text-[13px] text-text-secondary leading-relaxed mt-1.5">
-            <AnnotatedText text={secondBody} />
-          </p>
-        </div>
+        {renderOption(firstPole)}
+        {renderOption(secondPole)}
       </div>
     </div>
   );

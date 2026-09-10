@@ -73,7 +73,7 @@ export function GlossaryTerm({ entry, children }: GlossaryTermProps) {
               sessionStorage.setItem("glossary-hint-seen", "1");
             }
           }}
-          className="font-medium cursor-help"
+          className="font-medium cursor-help focus-ring"
           style={{
             color: "inherit",
             textDecoration: "underline",

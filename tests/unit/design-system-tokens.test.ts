@@ -54,7 +54,7 @@ const utilities = [...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{/g)].map(
 
 // Utilities that are deliberately not typography roles. A new utility must
 // be listed here or in TYPE_SCALE, or the type-scale test fails on it.
-const NON_TYPOGRAPHY_UTILITIES = ["focus-ring"];
+const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child"];
 
 const typographyUtilities = () =>
   utilities.filter(
@@ -250,22 +250,60 @@ describe("near-square corners (design delta 02)", () => {
 });
 
 describe("focus ring", () => {
-  it("routes every focus ring through the focus-ring utility", () => {
+  it("routes every focus ring through the focus-ring utilities", () => {
     // The hand-rolled spelling this replaced was silently broken:
     // `focus:outline-none` emits `--tw-outline-style: none`, and :focus always
     // matches when :focus-visible does, so `outline-style: var(...)` resolved
     // to `none`. Width and colour applied; the ring never painted. Confirmed
     // in Chromium before the sweep, across all 25 former call sites.
     expect(offenders(/focus:outline-none/, "focus-ring")).toEqual([]);
+    // Same defect, different variant. Tailwind 4.3.3 emits
+    // `.focus-within\:outline-none:focus-within` (which sets
+    // `outline-style: none` outright) AFTER
+    // `.focus-within\:outline-2:focus-within`; both match at once, so the
+    // later rule wins. Verified by compiling both classes against this repo's
+    // Tailwind, not inferred from the :focus/:focus-visible case.
+    expect(offenders(/focus-within:outline-none/, "focus-ring-child")).toEqual([]);
+    // And the spelling that *works* but bypasses the utility. This assertion was
+    // deliberately absent until `account/page.tsx` was swept: it hand-rolled a
+    // ring that painted correctly but hardcoded `stone-600` instead of reading
+    // `var(--focus-ring)`, so the title's "every" was an overclaim. With that
+    // gone, `focus-ring` and `focus-ring-child` are the only way a ring is drawn
+    // anywhere in src, and the claim is now literally true.
+    expect(offenders(/focus-visible:outline-/, "focus-ring")).toEqual([]);
   });
 
-  it("is the only consumer of the focus-ring token, and paints a real outline", () => {
+  it("paints a real outline off the focus-ring token", () => {
     const utility = utilities.find((entry) => entry.name === "focus-ring");
 
     expect(utility, "focus-ring utility is missing").toBeDefined();
     // The `outline` shorthand sets style explicitly, so it cannot be undone by
     // a custom property the way `outline-style: var(--tw-outline-style)` was.
     expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
+    // The offset is the one declaration that could drift silently — deleting it
+    // left the suite green before this assertion existed.
+    expect(utility!.body).toMatch(/outline-offset:\s*2px/);
     expect(light["--focus-ring"]).toBe("var(--stone-600)");
+  });
+
+  it("draws the card ring on the wrapper, for its own control only", () => {
+    const utility = utilities.find((entry) => entry.name === "focus-ring-child");
+
+    expect(utility, "focus-ring-child utility is missing").toBeDefined();
+    // `:focus-visible` rather than `:focus-within`: the ring belongs to the
+    // card, but the focusable element is the sr-only button inside it, and a
+    // mouse click on a card must not leave a ring behind.
+    expect(utility!.body).not.toMatch(/&:focus-within/);
+    // Scoped to a DIRECT BUTTON child, not any descendant. The card's prose
+    // runs through AnnotatedText -> GlossaryTerm, whose trigger is a
+    // `span[role=button][tabindex=0]` — focusable, and carrying no ring of its
+    // own. An unscoped `:has(:focus-visible)` rings the whole card while focus
+    // sits on an inline glossary term, which points the only affordance on
+    // screen at the wrong control.
+    expect(utility!.body).toMatch(/:has\(\s*>\s*button:focus-visible\s*\)/);
+    // The `outline` shorthand sets style explicitly, so it cannot be undone by
+    // a custom property the way `outline-style: var(--tw-outline-style)` was.
+    expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
+    expect(utility!.body).toMatch(/outline-offset:\s*2px/);
   });
 });
