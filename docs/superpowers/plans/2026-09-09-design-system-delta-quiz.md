@@ -1750,6 +1750,15 @@ git commit -m "feat(design): restyle the scaled question card"
 **Interfaces:**
 - Props unchanged. `useStepper`, the `aria-disabled` bound handling, `aria-label={\`Increase ${ministry.name} allocation\`}`, and the `hasInteracted` latch are load-bearing — `tests/unit/budget-simulator-stepper.test.ts` has eleven tests on them and `tests/e2e/quiz-flow.spec.ts:76` selects `/^Increase /`. Do not touch the logic; this task is classes only.
 
+**One sanctioned edit to a "must not change" file.** `budget-simulator-stepper.test.ts:267` finds the consequence lines with `container.querySelectorAll("p.italic")` — the class token the old className carried. `caption-italic` sets `font-style` in CSS, and jsdom applies no stylesheet, so that selector matches nothing and two of its eleven tests read 0 lines instead of 7. Retarget the lookup, and only the lookup:
+
+```ts
+  const consequenceLines = () =>
+    container.querySelectorAll("[data-ministry-consequence]").length;
+```
+
+Every behavioural assertion (0 / 7 / 7) stays untouched. The "pass unmodified" rule protects *behaviour*; `p.italic` is the incidental structural coupling to a class name that a restyle is entitled to break, and `[data-ministry-consequence]` is the stable hook this task introduces. The alternative — adding a redundant `italic` beside `caption-italic` — restates a property the role already sets, which the Global Constraints ban, and nothing would pin it, so the next cleanup reds the same two tests again. It is the only `.italic` selector in the repo.
+
 **Three fixes ride along with the restyle:**
 
 1. **The sticky footer's gutter bleed.** `-mx-4 px-4` assumed `main`'s `px-4`, which Task 4 changed to `px-[18px]`. It becomes `-mx-[18px] px-[18px]`.
@@ -1801,6 +1810,24 @@ describe("BudgetSimulator", () => {
     expect(classes(bar)).toContain("px-[18px]");
     // The codebase's single breakpoint is 560px, not Tailwind's sm (640px).
     expect(classes(bar)).toContain("min-[560px]:static");
+    // `sticky bottom-0 z-10` is behaviour, not decoration: below 560px this bar
+    // is the only way to reach Confirm without scrolling past seven ministry
+    // cards. Removing it outright left the full suite green, and the e2e run is
+    // at 1280px where the bar is `static` anyway — so nothing else can catch it.
+    expect(classes(bar)).toContain("sticky");
+    expect(classes(bar)).toContain("bottom-0");
+    expect(classes(bar)).toContain("z-10");
+    // The `sm:`-absence assertion below catches a MISSED conversion but not a
+    // dropped or mistyped one — all five of the others could vanish silently.
+    // Pin the set rather than the members.
+    expect(classes(bar).filter((t) => t.startsWith("min-[560px]:")).sort()).toEqual([
+      "min-[560px]:bg-transparent",
+      "min-[560px]:border-0",
+      "min-[560px]:mx-0",
+      "min-[560px]:px-0",
+      "min-[560px]:py-0",
+      "min-[560px]:static",
+    ]);
     expect(classes(bar).some((token) => token.startsWith("sm:"))).toBe(false);
   });
 
