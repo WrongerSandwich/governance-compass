@@ -4,6 +4,8 @@
  * The quiz's delta-01/03/04 treatment (design delta phase 3, mock 6b), and the
  * behaviour that must survive it.
  */
+import { readdirSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -732,5 +734,190 @@ describe("BudgetSimulator", () => {
     const consequence = container.querySelector("[data-ministry-consequence]")!;
 
     expect(classes(consequence)).toContain("caption-italic");
+  });
+});
+
+const quizSources = readdirSync(resolve(process.cwd(), "src/components/quiz"))
+  .filter((name) => name.endsWith(".tsx"))
+  .map((name) => ({
+    name,
+    text: readFileSync(resolve(process.cwd(), "src/components/quiz", name), "utf8"),
+  }));
+
+describe("quiz chrome drift guards", () => {
+  it("has no source left in the quiz directory unswept", () => {
+    // A sanity check on the sweep itself: if a component is added or renamed,
+    // the guards below silently stop covering it.
+    expect(quizSources.map((s) => s.name).sort()).toEqual([
+      "BudgetSimulator.tsx",
+      "ComputingMessages.tsx",
+      "ForcedChoiceCard.tsx",
+      "PhaseTransition.tsx",
+      "ProgressBar.tsx",
+      "QuizFlow.tsx",
+      "QuizProvider.tsx",
+      "ScaledQuestionCard.tsx",
+    ]);
+  });
+
+  it("retires text-text-tertiary from the quiz", () => {
+    // Stone 500 measures 2.73:1 on the page ground and 3.28:1 on the cards —
+    // under AA for small text either way. D7 routes the label layer through
+    // --text-label; prose moves to --text-secondary. D6 defers layout on
+    // undrawn screens, not this.
+    const offenders = quizSources
+      .filter(({ text }) => text.includes("text-text-tertiary"))
+      .map(({ name }) => name);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps Stone 600 to the two progress marks, its one remaining job", () => {
+    // Delta 03 moved the primary off Stone 600 onto the ink token pair. Two
+    // progress marks keep it as a fill — the three-segment bar, and the
+    // computing screen's animated line — and nothing else in the quiz may.
+    // Pinned as exact counts rather than an allowlist, so a second hand-rolled
+    // fill in QuizFlow does not slip through on the file's name alone.
+    // `hover:border-stone-600` on the choice states is a border, not a fill,
+    // and does not match.
+    const counts = Object.fromEntries(
+      quizSources
+        .map(({ name, text }) => [name, text.split("bg-stone-600").length - 1] as const)
+        .filter(([, count]) => count > 0),
+    );
+
+    expect(counts).toEqual({ "ProgressBar.tsx": 1, "QuizFlow.tsx": 1 });
+  });
+
+  it("puts the quiz gutters on the page, matching the nav", () => {
+    // BudgetSimulator's sticky bar bleeds against these exact values; if they
+    // move, its -mx has to move with them.
+    const page = readFileSync(resolve(process.cwd(), "src/app/quiz/page.tsx"), "utf8");
+
+    expect(page).toContain("px-[18px] min-[560px]:px-7");
+    expect(page).not.toContain('className="min-h-screen px-4"');
+  });
+
+  it("keeps the two skip links identical", () => {
+    // Phase 1 and phase 2 render byte-identical nav rows, and only phase 1 is
+    // mounted by any test. This is a structural pin, deliberately chosen over
+    // extracting a <QuestionNav> component: the props interface would be as
+    // long as the JSX it replaced, and `quiz-flow.spec.ts` drives these rows
+    // by accessible name.
+    const quizFlow = quizSources.find((s) => s.name === "QuizFlow.tsx")!.text;
+    const skips = [
+      ...quizFlow.matchAll(/className="([^"]*)"\s*>\s*\n\s*Skip this question/g),
+    ];
+
+    expect(skips).toHaveLength(2);
+    expect(skips[0][1]).toBe(skips[1][1]);
+  });
+
+  it("pins the replaced values on screens nothing mounts", () => {
+    // Six value-for-value replacements from Task 4 that a seven-way mutation
+    // proved leave the whole suite green. Source greps rather than rendered
+    // mounts: the screens are awkward to reach (the finalize alert needs
+    // `encodeResponses` to throw; the resume screen needs mid-quiz
+    // sessionStorage), and Step 5's manual walk reaches none of them either.
+    const quizFlow = quizSources.find((s) => s.name === "QuizFlow.tsx")!.text;
+    const computing = quizSources.find((s) => s.name === "ComputingMessages.tsx")!.text;
+
+    // Renders only when encodeResponses throws. No test, no sweep, no human.
+    expect(quizFlow).toMatch(/rounded-sharp border-l-2 border-warning bg-warning-bg/);
+    // `label`, not `label-nav`. The four mono roles differ ONLY in tracking
+    // (0.14/0.12/0.10/0.02em), so at 11px the wrong one is invisible on screen
+    // — and `classes()`'s own comment warns that a substring check would pass
+    // on either.
+    expect(quizFlow).toMatch(/className="label text-text-label mb-2">\s*\n?\s*Phase 1 of 3/);
+    expect(quizFlow).toMatch(/className="display-entry text-text-primary mb-2">\s*\n?\s*Welcome back/);
+    expect(quizFlow).toMatch(/className="caption-italic mb-8"/);
+    // 12px sans tertiary -> 13.5px/1.6 secondary, on screen for 1800ms before
+    // the redirect fires.
+    expect(computing).toMatch(/text-\[13\.5px\] leading-\[1\.6\] text-text-secondary/);
+  });
+
+  it("never layers a colour over a self-contained role", () => {
+    // `caption-italic` declares its own `color`. Layering `text-*` beside it
+    // is banned — whether the custom rule wins depends on Tailwind's emitted
+    // order, which is too subtle to rely on. A review mutation proved this
+    // offence had NO net anywhere in the repo, in any file.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      [...text.matchAll(/className="([^"]*\bcaption-italic\b[^"]*)"/g)]
+        .filter(([, classNames]) => /\btext-(?!\[)[a-z-]+\b/.test(classNames))
+        .map(([, classNames]) => `${name}: ${classNames}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the delta's prose size and its line-height together", () => {
+    // `text-[13.5px] leading-[1.6]` is the quiz's most-repeated literal — nine
+    // occurrences across five files — and it is the one size in the delta with
+    // no named role, so the pair travels by convention alone. A `text-[13.5px]`
+    // that loses its `leading-[1.6]` drifts silently. Minting a `body-s` role
+    // is the better fix and is recorded as a follow-up; this holds the line
+    // until then.
+    //
+    // Known limitation, measured rather than assumed: this passes VACUOUSLY
+    // where the size is deleted outright, because it only inspects the matches
+    // it finds. It guards the pairing, not the presence. Deleting the pair at
+    // each of the nine call sites in turn reddens the suite at only three of
+    // them — ForcedChoiceCard:100 and ScaledQuestionCard:155 (rendered
+    // assertions) and ComputingMessages:25 (the source pin above).
+    // PhaseTransition's two prose lines and QuizFlow's four (Unrecoverable,
+    // resume, intro, finalize alert) have no presence guard at all. That is
+    // accepted, not overlooked: a missing size class falls back to the 16px
+    // browser default, which is loud enough to catch by opening the page —
+    // the pinning rule's own exemption. Silent DRIFT within the pair is the
+    // failure this test exists for.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      [...text.matchAll(/className="([^"]*\btext-\[13\.5px\][^"]*)"/g)]
+        .filter(([, classNames]) => !classNames.includes("leading-[1.6]"))
+        .map(([, classNames]) => `${name}: ${classNames}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("uses text-text-label only on the mono label layer", () => {
+    // Task 6 shipped a real defect by reaching for this token to express
+    // de-emphasis: `--text-label` and `--text-secondary` are BOTH #6e5a48 in
+    // light mode, so it expressed nothing — and rendered identically, which is
+    // why no mutation could observe it. The token belongs to the mono label
+    // layer only; dim with `opacity-60` instead.
+    //
+    // Line-scoped, and comments are skipped, because the explanatory comments
+    // in ScaledQuestionCard name the token without using it.
+    const offenders = quizSources.flatMap(({ name, text }) =>
+      text
+        .split("\n")
+        .map((line, index) => ({ line, number: index + 1 }))
+        .filter(({ line }) => {
+          const t = line.trimStart();
+          return !t.startsWith("//") && !t.startsWith("*");
+        })
+        .filter(({ line }) => line.includes("text-text-label"))
+        // A mono role token must sit on the same element. Strip the colour
+        // class first so its own trailing "label" cannot satisfy the check.
+        .filter(({ line }) => !/\blabel(?:-nav|-eyebrow|-tight)?\s/.test(
+          line.replace(/text-text-label/g, ""),
+        ))
+        .map(({ number, line }) => `${name}:${number}: ${line.trim()}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("holds the 11px type floor across the quiz", () => {
+    // Every explicit size in the quiz sits at or above the delta's floor.
+    const sizes = quizSources.flatMap(({ name, text }) =>
+      [...text.matchAll(/text-\[(\d+(?:\.\d+)?)px\]/g)].map((match) => ({
+        name,
+        px: Number(match[1]),
+      })),
+    );
+
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(sizes.filter((entry) => entry.px < 11)).toEqual([]);
   });
 });
