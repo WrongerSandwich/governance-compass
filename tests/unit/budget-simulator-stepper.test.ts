@@ -264,7 +264,7 @@ describe("BudgetSimulator steppers", () => {
  */
 describe("consequence text visibility", () => {
   const consequenceLines = () =>
-    container.querySelectorAll("p.italic").length;
+    container.querySelectorAll("[data-ministry-consequence]").length;
 
   it("hides consequence lines on a fresh budget screen", () => {
     mount(flat(), () => {});

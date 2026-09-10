@@ -7,6 +7,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { BudgetSimulator } from "@/components/quiz/BudgetSimulator";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { PhaseTransition } from "@/components/quiz/PhaseTransition";
 import { ProgressBar } from "@/components/quiz/ProgressBar";
@@ -14,6 +15,7 @@ import { ScaledQuestionCard } from "@/components/quiz/ScaledQuestionCard";
 // Type-only, so it is erased at compile time and adds no runtime import of
 // QuizFlow — which must stay dynamic, behind the `next/navigation` mock.
 import type { QuizFlowProps } from "@/components/quiz/QuizFlow";
+import { ministries } from "@/data/ministries";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -618,5 +620,100 @@ describe("ScaledQuestionCard", () => {
     expect(classes(prose)).toContain("text-[13.5px]");
     expect(classes(prose)).toContain("leading-[1.6]");
     expect(classes(prose)).not.toContain("leading-relaxed");
+  });
+});
+
+describe("BudgetSimulator", () => {
+  function renderBudget(allocations: Record<number, number>) {
+    return render(
+      createElement(BudgetSimulator, {
+        ministries,
+        allocations,
+        onAllocate: () => {},
+        onFinalize: () => {},
+      }),
+    );
+  }
+
+  const fresh = Object.fromEntries(ministries.map((m) => [m.id, 1]));
+
+  it("rules the sticky counter instead of floating it on a third surface", () => {
+    const container = renderBudget(fresh);
+    const counter = container.querySelector("[data-budget-counter]")!;
+
+    expect(classes(counter)).toContain("sticky");
+    expect(classes(counter)).toContain("border-b");
+    expect(classes(counter)).toContain("border-rule-strong");
+    expect(classes(counter)).not.toContain("bg-surface-2");
+    expect(classes(counter.querySelector("[data-budget-counter-label]")!)).toContain("label");
+  });
+
+  it("bleeds the sticky confirm bar to the page's own gutter", () => {
+    const container = renderBudget(fresh);
+    const bar = container.querySelector("[data-budget-confirm]")!;
+
+    // main is px-[18px] below the breakpoint (Task 4); -mx-4 would leave a 2px
+    // strip of ground either side of the bar.
+    expect(classes(bar)).toContain("-mx-[18px]");
+    expect(classes(bar)).toContain("px-[18px]");
+    // The codebase's single breakpoint is 560px, not Tailwind's sm (640px).
+    expect(classes(bar)).toContain("min-[560px]:static");
+    // `sticky bottom-0 z-10` is behaviour, not decoration: below 560px this bar
+    // is the only way to reach Confirm without scrolling past seven ministry
+    // cards. Removing it outright left the full suite green, and the e2e run is
+    // at 1280px where the bar is `static` anyway — so nothing else can catch it.
+    expect(classes(bar)).toContain("sticky");
+    expect(classes(bar)).toContain("bottom-0");
+    expect(classes(bar)).toContain("z-10");
+    // The `sm:`-absence assertion below catches a MISSED conversion but not a
+    // dropped or mistyped one — all five of the others could vanish silently.
+    // Pin the set rather than the members.
+    expect(classes(bar).filter((t) => t.startsWith("min-[560px]:")).sort()).toEqual([
+      "min-[560px]:bg-transparent",
+      "min-[560px]:border-0",
+      "min-[560px]:mx-0",
+      "min-[560px]:px-0",
+      "min-[560px]:py-0",
+      "min-[560px]:static",
+    ]);
+    expect(classes(bar).some((token) => token.startsWith("sm:"))).toBe(false);
+  });
+
+  it("confirms the budget on the ink primary", () => {
+    const container = renderBudget(fresh);
+    const confirm = [...container.querySelectorAll("button")].find(
+      (b) => b.textContent?.trim() === "Confirm budget",
+    )!;
+
+    expect(classes(confirm)).toContain("bg-button-primary");
+    expect(classes(confirm)).toContain("control");
+    expect(classes(confirm)).toContain("w-full");
+    expect(confirm.disabled).toBe(true);
+  });
+
+  it("squares the allocation track", () => {
+    const container = renderBudget(fresh);
+    const track = container.querySelector("[data-budget-track]")!;
+
+    expect(classes(track)).not.toContain("rounded-[3px]");
+    expect(classes(track.firstElementChild!)).not.toContain("rounded-[3px]");
+  });
+
+  it("labels each ministry in the mono role and its description in prose", () => {
+    const container = renderBudget(fresh);
+    const name = container.querySelector("[data-ministry-name]")!;
+    const description = container.querySelector("[data-ministry-description]")!;
+
+    expect(classes(name)).toContain("label");
+    expect(classes(name)).toContain("text-text-primary");
+    expect(classes(description)).toContain("text-text-secondary");
+    expect(classes(description)).not.toContain("text-text-tertiary");
+  });
+
+  it("sets the consequence line in the caption role once the user has moved something", () => {
+    const container = renderBudget({ ...fresh, 1: 12 });
+    const consequence = container.querySelector("[data-ministry-consequence]")!;
+
+    expect(classes(consequence)).toContain("caption-italic");
   });
 });
