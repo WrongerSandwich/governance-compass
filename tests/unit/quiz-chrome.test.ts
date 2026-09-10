@@ -653,7 +653,22 @@ describe("BudgetSimulator", () => {
     // bleeding through mid-scroll. Dropping the class entirely is silent on
     // first paint and only shows once the user scrolls.
     expect(classes(counter)).toContain("bg-surface-3");
+    // Both sticky bars bleed to the viewport edge below 560px, so their ink
+    // rules run edge to edge and read as one bracket around the list. Without
+    // this the counter's rule stopped at 18/372 while the confirm bar's ran
+    // 0/390 — measured in the sweep, invisible to every test.
+    expect(classes(counter)).toContain("-mx-[18px]");
+    expect(classes(counter)).toContain("px-[18px]");
+    expect(classes(counter)).toContain("min-[560px]:mx-0");
+    expect(classes(counter)).toContain("min-[560px]:px-0");
     expect(classes(counter.querySelector("[data-budget-counter-label]")!)).toContain("label");
+    // The instruction above the counter is prose, not the mono label role —
+    // at 85 characters that role wrapped to two all-caps lines at every width
+    // and outweighed this label, which is the real structural one.
+    const instruction = container.querySelector("[data-budget-instruction]")!;
+    expect(classes(instruction)).toContain("text-[12.5px]");
+    expect(classes(instruction)).toContain("leading-[1.6]");
+    expect(classes(instruction)).not.toContain("label");
   });
 
   it("bleeds the sticky confirm bar to the page's own gutter", () => {

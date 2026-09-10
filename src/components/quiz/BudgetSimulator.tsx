@@ -149,9 +149,13 @@ export function BudgetSimulator({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Instruction text — 6b puts the question-screen instruction in the mono
-          label layer, and this is the phase-3 equivalent of that line. */}
-      <p className="label text-text-label text-center">
+      {/* Instruction text. NOT the mono label role, despite 6b putting the
+          question-screen instruction there: 6b's is 43 characters and fits one
+          line, this is 85 and needs ~672px at 11px/0.12em — so it wrapped to two
+          all-caps lines at EVERY width, and sat directly above `Points remaining`
+          in the identical role, size and colour, which inverted the hierarchy.
+          Prose, per the visual sweep. Precedent: QuizFlow.tsx's glossary hint. */}
+      <p data-budget-instruction className="text-[12.5px] leading-[1.6] text-text-secondary text-center">
         You have {TOTAL_BUDGET} points to fund {ministries.length} ministries — there is not enough to fund everything well
       </p>
 
@@ -160,7 +164,7 @@ export function BudgetSimulator({
           has already spent its two surface switches on ground and cards. */}
       <div
         data-budget-counter
-        className="sticky top-0 z-10 flex items-center justify-between border-b border-rule-strong bg-surface-3 py-3"
+        className="sticky top-0 z-10 -mx-[18px] flex items-center justify-between border-b border-rule-strong bg-surface-3 px-[18px] py-3 min-[560px]:mx-0 min-[560px]:px-0"
       >
         <span data-budget-counter-label className="label text-text-label">
           Points remaining
