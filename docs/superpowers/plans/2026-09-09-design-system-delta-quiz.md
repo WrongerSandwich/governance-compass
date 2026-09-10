@@ -1797,6 +1797,12 @@ describe("BudgetSimulator", () => {
     expect(classes(counter)).toContain("border-b");
     expect(classes(counter)).toContain("border-rule-strong");
     expect(classes(counter)).not.toContain("bg-surface-2");
+    // The POSITIVE is the load-bearing half. `bg-surface-3` is byte-identical
+    // to the body ground (globals.css:231), which is what makes this read as a
+    // rule rather than a floating panel — and it is what stops ministry cards
+    // bleeding through mid-scroll. Dropping the class entirely is silent on
+    // first paint and only shows once the user scrolls.
+    expect(classes(counter)).toContain("bg-surface-3");
     expect(classes(counter.querySelector("[data-budget-counter-label]")!)).toContain("label");
   });
 
@@ -1808,6 +1814,13 @@ describe("BudgetSimulator", () => {
     // strip of ground either side of the bar.
     expect(classes(bar)).toContain("-mx-[18px]");
     expect(classes(bar)).toContain("px-[18px]");
+    // Below 560px BOTH sticky bars are pinned at once, so they must agree.
+    // The counter is `bg-surface-3` + an ink rule; a `bg-surface-1` +
+    // hairline footer would read as the floating panel delta 04 retires,
+    // bracketing one scroll with two different idioms. Only a code read
+    // catches this — no test renders below 560px and the e2e runs at 1280.
+    expect(classes(bar)).toContain("bg-surface-3");
+    expect(classes(bar)).toContain("border-rule-strong");
     // The codebase's single breakpoint is 560px, not Tailwind's sm (640px).
     expect(classes(bar)).toContain("min-[560px]:static");
     // `sticky bottom-0 z-10` is behaviour, not decoration: below 560px this bar
@@ -1858,6 +1871,10 @@ describe("BudgetSimulator", () => {
 
     expect(classes(name)).toContain("label");
     expect(classes(name)).toContain("text-text-primary");
+    // `label` declares no font-weight, so the old string's `font-medium` would
+    // silently drop to 400 without this. `ForcedChoiceCard` spells the same
+    // "mono label at primary emphasis" the same way.
+    expect(classes(name)).toContain("font-medium");
     expect(classes(description)).toContain("text-text-secondary");
     expect(classes(description)).not.toContain("text-text-tertiary");
   });
@@ -1931,7 +1948,7 @@ In `src/components/quiz/BudgetSimulator.tsx`, replace lines 149–198 (the retur
           page's own gutter (src/app/quiz/page.tsx), not Tailwind's px-4. */}
       <div
         data-budget-confirm
-        className="sticky bottom-0 z-10 -mx-[18px] border-t border-border-secondary bg-surface-1 px-[18px] py-4 min-[560px]:static min-[560px]:mx-0 min-[560px]:border-0 min-[560px]:bg-transparent min-[560px]:px-0 min-[560px]:py-0"
+        className="sticky bottom-0 z-10 -mx-[18px] border-t border-rule-strong bg-surface-3 px-[18px] py-4 min-[560px]:static min-[560px]:mx-0 min-[560px]:border-0 min-[560px]:bg-transparent min-[560px]:px-0 min-[560px]:py-0"
       >
         <Button className="w-full" onClick={onFinalize} disabled={!canFinalize}>
           Confirm budget
@@ -1959,14 +1976,14 @@ Replace lines 254–329 (the returned JSX of `MinistrySlider`):
       <div className="mb-1">
         <p
           data-ministry-name
-          className="flex items-center gap-1.5 label text-text-primary"
+          className="flex items-center gap-1.5 label font-medium text-text-primary"
         >
           {(() => { const Icon = MINISTRY_ICONS[ministry.id]; return Icon ? <Icon size={13} strokeWidth={1.5} className="shrink-0" /> : null; })()}
           {ministry.name}
         </p>
         <p
           data-ministry-description
-          className="text-[12.5px] leading-[1.5] text-text-secondary mt-1"
+          className="text-[12.5px] leading-[1.6] text-text-secondary mt-1"
         >
           {ministry.description}
         </p>
@@ -2344,7 +2361,9 @@ the budget, and the phase transitions, which the handoff does not draw.
 
 ## Unchanged
 
-Seeded shuffle, autosave/resume, skip, keyboard 1–5, `AnnotatedText`/`GlossaryTerm`, the reducer, and every disabled state. `tests/unit/quiz-interactions.test.ts`, `tests/unit/budget-simulator-stepper.test.ts`, and `tests/e2e/quiz-flow.spec.ts` all pass unmodified.
+Seeded shuffle, autosave/resume, skip, keyboard 1–5, `AnnotatedText`/`GlossaryTerm`, the reducer, and every disabled state. `tests/unit/quiz-interactions.test.ts` and `tests/e2e/quiz-flow.spec.ts` pass unmodified.
+
+`tests/unit/budget-simulator-stepper.test.ts` has **one changed line**, and it is worth stating precisely rather than glossing: its `consequenceLines` helper found the lines with `querySelectorAll("p.italic")`, coupling three tests to a class token that `caption-italic` replaces with a CSS property jsdom never applies. The lookup moved to `[data-ministry-consequence]`; all eleven tests and every assertion in the file are otherwise untouched. That is a stronger claim than "unmodified", because it is true.
 
 Roadmap — phase 3 of 6: #132 → #133 → **#134** → #135 → #136 → #137
 BODY
@@ -2373,6 +2392,29 @@ convention. Minting `body-s` in `globals.css` and sweeping the call sites is the
 right fix; it is deliberately NOT done here, because it would touch files from
 Tasks 3, 4 and 5 after they were reviewed. Task 8 guardrails the pairing
 instead. Phase 6 (#137) owns the design-system docs and is the natural home.
+
+**`Button`'s disabled state snaps.** `Button.tsx` expresses disabled as
+`disabled:opacity-50`, but its base transition is `transition-colors`, which
+does not cover opacity. The budget screen is where this shows worst: the
+confirm button enables at the exact moment the last point lands, alongside the
+"All allocated" `fade-in-up`, so one animates and the other jumps. It is a
+primitive-level property shared by every call site, so it was not fixed
+unilaterally here — `transition-[color,background-color,opacity]` on
+`Button.tsx:16` is the fix.
+
+**The budget track fill is a hard-coded ramp value at half opacity.**
+`BudgetSimulator.tsx` styles it inline as `var(--stone-600)` at `opacity: 0.5`,
+which no class guardrail can see. Composited it measures ~1.69:1 against the
+track in both modes. The numeral beside it carries the value redundantly, so
+WCAG 1.4.11 arguably does not bite — but the brief reserves Stone 600 *for*
+data marks, and at 50% opacity it is no longer Stone 600. The `data-budget-track`
+hook now exists to make this testable.
+
+**Two mono numerals are the last hand-spelled type in the quiz.**
+`text-[16px] font-mono font-medium` and `text-[14px] font-mono font-medium` in
+`BudgetSimulator.tsx`. `mono-meta` is 11px so it does not apply and no numeral
+role exists, so leaving them is probably right — but they are the only values in
+that file with no comment explaining the choice.
 
 **`--warning-border` is a token no utility can reach.** `globals.css` defines it
 (`#fde68a`, inverted to `#92400e`) but never exports it in the `@theme` block,
