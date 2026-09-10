@@ -1922,7 +1922,7 @@ In `src/components/quiz/BudgetSimulator.tsx`, replace lines 149–198 (the retur
           all-caps lines at EVERY width, and sat directly above `Points remaining`
           in the identical role, size and colour, which inverted the hierarchy.
           Prose, per the visual sweep. Precedent: QuizFlow.tsx's glossary hint. */}
-      <p className="text-[12.5px] leading-[1.6] text-text-secondary text-center">
+      <p data-budget-instruction className="text-[12.5px] leading-[1.6] text-text-secondary text-center">
         You have {TOTAL_BUDGET} points to fund {ministries.length} ministries — there is not enough to fund everything well
       </p>
 
