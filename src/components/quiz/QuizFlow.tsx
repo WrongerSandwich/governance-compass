@@ -72,7 +72,9 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
 
 /** Mock 6b's body column: 672px wide, 36px above, 52px below. Gutters are the
  *  page's — `src/app/quiz/page.tsx` sets them to the nav's 18/28px so the
- *  column lines up with the wordmark. Extracted so a metric change lands in one
+ *  column lines up with the wordmark below ~728px, above which the nav's wider
+ *  container and this centred column diverge by design. Extracted so a metric
+ *  change lands in one
  *  place rather than drifting across the question screens. */
 const QUESTION_SHELL = "mx-auto max-w-2xl pt-9 pb-[52px]";
 

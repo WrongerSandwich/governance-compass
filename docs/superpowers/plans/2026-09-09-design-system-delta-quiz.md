@@ -855,7 +855,7 @@ git commit -m "feat(design): restyle the forced-choice card onto mock 6b"
 
 **Mock 6b measurements.** Body column 672px (`max-w-2xl`), 36px above, 52px below, 28px gutters. Glossary hint 12.5px centred, 20px below, the highlighted term dotted-underlined in `#C4A84A` at 3px offset. Navigation 32px above the row: outlined `Previous` left, ink-filled `Next` right, both 12px mono uppercase — which is exactly `Button`'s `secondary` and `primary`.
 
-**Gutters move to the page.** The mock draws 28px gutters; `main` currently has `px-4` (16px). Putting the gutters on `main` at `px-[18px] min-[560px]:px-7` matches the nav bar exactly (`NavBar.tsx:47`), so the quiz column lines up with the wordmark at every width. **This is load-bearing for Task 7:** `BudgetSimulator`'s sticky footer bleeds to the gutter edge with `-mx-4`, which stops matching the moment this changes. Task 7 fixes it; between Task 4 and Task 7 the budget footer is 2px narrow on mobile. That is the only intentionally-transient state in this plan.
+**Gutters move to the page.** The mock draws 28px gutters; `main` currently has `px-4` (16px). Putting the gutters on `main` at `px-[18px] min-[560px]:px-7` matches the nav bar exactly (`NavBar.tsx:47`), so the quiz column lines up with the wordmark **below ~728px**. Above that the nav's wider container and the centred 672px column diverge by design — measured at 1280px the wordmark sits at x=120 and the column at x=304. Do not repeat "at every width" in the PR body; it is only true while the column is gutter-bound. **This is load-bearing for Task 7:** `BudgetSimulator`'s sticky footer bleeds to the gutter edge with `-mx-4`, which stops matching the moment this changes. Task 7 fixes it; between Task 4 and Task 7 the budget footer is 2px narrow on mobile. That is the only intentionally-transient state in this plan.
 
 **Decision — the ink-filled `Next` (spec D1).** Every one of 60 questions now shows a filled button, which breaks `CLAUDE.md`'s rule reserving filled buttons for beginning/resuming the assessment and confirming the budget. Resolved in favour of the mock; #137 (phase 6) rewrites the rule to describe the two-tier system rather than a count.
 
@@ -1803,7 +1803,22 @@ describe("BudgetSimulator", () => {
     // bleeding through mid-scroll. Dropping the class entirely is silent on
     // first paint and only shows once the user scrolls.
     expect(classes(counter)).toContain("bg-surface-3");
+    // Both sticky bars bleed to the viewport edge below 560px, so their ink
+    // rules run edge to edge and read as one bracket around the list. Without
+    // this the counter's rule stopped at 18/372 while the confirm bar's ran
+    // 0/390 — measured in the sweep, invisible to every test.
+    expect(classes(counter)).toContain("-mx-[18px]");
+    expect(classes(counter)).toContain("px-[18px]");
+    expect(classes(counter)).toContain("min-[560px]:mx-0");
+    expect(classes(counter)).toContain("min-[560px]:px-0");
     expect(classes(counter.querySelector("[data-budget-counter-label]")!)).toContain("label");
+    // The instruction above the counter is prose, not the mono label role —
+    // at 85 characters that role wrapped to two all-caps lines at every width
+    // and outweighed this label, which is the real structural one.
+    const instruction = container.querySelector("[data-budget-instruction]")!;
+    expect(classes(instruction)).toContain("text-[12.5px]");
+    expect(classes(instruction)).toContain("leading-[1.6]");
+    expect(classes(instruction)).not.toContain("label");
   });
 
   it("bleeds the sticky confirm bar to the page's own gutter", () => {
@@ -1901,9 +1916,13 @@ In `src/components/quiz/BudgetSimulator.tsx`, replace lines 149–198 (the retur
 ```tsx
   return (
     <div className="flex flex-col gap-6">
-      {/* Instruction text — 6b puts the question-screen instruction in the mono
-          label layer, and this is the phase-3 equivalent of that line. */}
-      <p className="label text-text-label text-center">
+      {/* Instruction text. NOT the mono label role, despite 6b putting the
+          question-screen instruction there: 6b's is 43 characters and fits one
+          line, this is 85 and needs ~672px at 11px/0.12em — so it wrapped to two
+          all-caps lines at EVERY width, and sat directly above `Points remaining`
+          in the identical role, size and colour, which inverted the hierarchy.
+          Prose, per the visual sweep. Precedent: QuizFlow.tsx's glossary hint. */}
+      <p className="text-[12.5px] leading-[1.6] text-text-secondary text-center">
         You have {TOTAL_BUDGET} points to fund {ministries.length} ministries — there is not enough to fund everything well
       </p>
 
@@ -1912,7 +1931,7 @@ In `src/components/quiz/BudgetSimulator.tsx`, replace lines 149–198 (the retur
           has already spent its two surface switches on ground and cards. */}
       <div
         data-budget-counter
-        className="sticky top-0 z-10 flex items-center justify-between border-b border-rule-strong bg-surface-3 py-3"
+        className="sticky top-0 z-10 -mx-[18px] flex items-center justify-between border-b border-rule-strong bg-surface-3 px-[18px] py-3 min-[560px]:mx-0 min-[560px]:px-0"
       >
         <span data-budget-counter-label className="label text-text-label">
           Points remaining
