@@ -196,7 +196,7 @@ export function BudgetSimulator({
           page's own gutter (src/app/quiz/page.tsx), not Tailwind's px-4. */}
       <div
         data-budget-confirm
-        className="sticky bottom-0 z-10 -mx-[18px] border-t border-border-secondary bg-surface-1 px-[18px] py-4 min-[560px]:static min-[560px]:mx-0 min-[560px]:border-0 min-[560px]:bg-transparent min-[560px]:px-0 min-[560px]:py-0"
+        className="sticky bottom-0 z-10 -mx-[18px] border-t border-rule-strong bg-surface-3 px-[18px] py-4 min-[560px]:static min-[560px]:mx-0 min-[560px]:border-0 min-[560px]:bg-transparent min-[560px]:px-0 min-[560px]:py-0"
       >
         <Button className="w-full" onClick={onFinalize} disabled={!canFinalize}>
           Confirm budget
@@ -264,14 +264,14 @@ function MinistrySlider({
       <div className="mb-1">
         <p
           data-ministry-name
-          className="flex items-center gap-1.5 label text-text-primary"
+          className="flex items-center gap-1.5 label font-medium text-text-primary"
         >
           {(() => { const Icon = MINISTRY_ICONS[ministry.id]; return Icon ? <Icon size={13} strokeWidth={1.5} className="shrink-0" /> : null; })()}
           {ministry.name}
         </p>
         <p
           data-ministry-description
-          className="text-[12.5px] leading-[1.5] text-text-secondary mt-1"
+          className="text-[12.5px] leading-[1.6] text-text-secondary mt-1"
         >
           {ministry.description}
         </p>

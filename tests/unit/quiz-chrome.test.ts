@@ -645,6 +645,12 @@ describe("BudgetSimulator", () => {
     expect(classes(counter)).toContain("border-b");
     expect(classes(counter)).toContain("border-rule-strong");
     expect(classes(counter)).not.toContain("bg-surface-2");
+    // The POSITIVE is the load-bearing half. `bg-surface-3` is byte-identical
+    // to the body ground (globals.css:231), which is what makes this read as a
+    // rule rather than a floating panel — and it is what stops ministry cards
+    // bleeding through mid-scroll. Dropping the class entirely is silent on
+    // first paint and only shows once the user scrolls.
+    expect(classes(counter)).toContain("bg-surface-3");
     expect(classes(counter.querySelector("[data-budget-counter-label]")!)).toContain("label");
   });
 
@@ -656,6 +662,13 @@ describe("BudgetSimulator", () => {
     // strip of ground either side of the bar.
     expect(classes(bar)).toContain("-mx-[18px]");
     expect(classes(bar)).toContain("px-[18px]");
+    // Below 560px BOTH sticky bars are pinned at once, so they must agree.
+    // The counter is `bg-surface-3` + an ink rule; a `bg-surface-1` +
+    // hairline footer would read as the floating panel delta 04 retires,
+    // bracketing one scroll with two different idioms. Only a code read
+    // catches this — no test renders below 560px and the e2e runs at 1280.
+    expect(classes(bar)).toContain("bg-surface-3");
+    expect(classes(bar)).toContain("border-rule-strong");
     // The codebase's single breakpoint is 560px, not Tailwind's sm (640px).
     expect(classes(bar)).toContain("min-[560px]:static");
     // `sticky bottom-0 z-10` is behaviour, not decoration: below 560px this bar
@@ -706,6 +719,10 @@ describe("BudgetSimulator", () => {
 
     expect(classes(name)).toContain("label");
     expect(classes(name)).toContain("text-text-primary");
+    // `label` declares no font-weight, so the old string's `font-medium` would
+    // silently drop to 400 without this. `ForcedChoiceCard` spells the same
+    // "mono label at primary emphasis" the same way.
+    expect(classes(name)).toContain("font-medium");
     expect(classes(description)).toContain("text-text-secondary");
     expect(classes(description)).not.toContain("text-text-tertiary");
   });
