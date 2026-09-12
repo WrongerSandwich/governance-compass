@@ -786,6 +786,9 @@ git commit -m "feat(design): describe the paired axis scale in words and step it
 **Files:**
 - Modify: `src/components/results/AxisBreakdownCard.tsx` (full rewrite)
 - Modify: `tests/unit/results-chrome.test.ts` — **create** the file here, with its harness
+- Modify: `src/app/globals.css` — adds the `body-xs` utility
+- Modify: `tests/unit/design-system-tokens.test.ts` — adds `body-xs` to `TYPE_SCALE`, plus a `body-xs` describe block
+- Modify: `src/components/PairedAxisScale.tsx` — comment-only correction
 
 **Interfaces:**
 - Consumes: `PairedAxisScale` (Task 3), `body-s` (Task 1).
@@ -796,7 +799,7 @@ git commit -m "feat(design): describe the paired axis scale in words and step it
 
 The mock's row is `grid-template-columns: 24px minmax(0,1fr) 210px`, gap 16px, `padding: 12px 0`, separated by a 1px Stone 200 rule — **no zebra fill and no card radius**. The tagline and the confidence label move out of the left stack into the third column. Below 560px the third column drops beneath the scale rather than squeezing it.
 
-- [ ] **Step 1: Create the spec file with its harness and the first assertions**
+- [x] **Step 1: Create the spec file with its harness and the first assertions**
 
 Create `tests/unit/results-chrome.test.ts`:
 
@@ -807,7 +810,7 @@ Create `tests/unit/results-chrome.test.ts`:
  * The results page's delta-01/03/04/05/06 treatment (design delta phase 4,
  * mocks 7a and 7b), and the behaviour that must survive it.
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { act, createElement, type ReactNode } from "react";
@@ -829,6 +832,10 @@ function render(element: ReactNode) {
   return container;
 }
 
+function click(target: EventTarget) {
+  act(() => target.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+}
+
 /** Class tokens. `toContain` on a raw className also matches substrings of
  *  other classes — `label` inside `label-tight`, `body-s` inside nothing but
  *  close enough to `body-lead` to matter — which has shipped three bugs in
@@ -846,6 +853,13 @@ const resultsDir = resolve(process.cwd(), "src/components/results");
 const resultsSources = readdirSync(resultsDir)
   .filter((name) => name.endsWith(".tsx"))
   .map((name) => ({ name, text: readFileSync(resolve(resultsDir, name), "utf8") }));
+
+// Hook convention for this file, which gets appended to across eight more
+// tasks: a `data-axis-*` attribute exists only to give an element identity
+// for a selector. It is never itself the thing under test — a class, a text
+// value, or another attribute read off the element it identifies is. The
+// hook count should grow only when a real assertion needs a name, not
+// whenever a selector feels awkward.
 
 afterEach(() => {
   while (mounted.length) {
@@ -869,7 +883,14 @@ const AXIS = {
   finalScore: -0.5,
   confidence: "high",
   tension: { detected: false, level: "none", direction: null, narrative: null },
-  components: { fc: -0.6, sc: -0.4, bg: -0.5 },
+  // Axis 3 is a no-budget axis: weights are { fc: 0.60, sc: 0.40, bg: 0.00 }.
+  // 0.60*(-0.6) + 0.40*(-0.35) + 0 = -0.50, matching finalScore exactly, and
+  // bg: null reflects that this axis carries no budget signal (the Budget
+  // cell renders "N/A" and the formula's bg term is suppressed). Because of
+  // that, the `weights.bg > 0` branch of the formula string is permanently
+  // unreachable from this fixture — a case on axis 1, 2 or 5 is needed to
+  // exercise it, and AXIS alone should not be assumed representative there.
+  components: { fc: -0.6, sc: -0.35, bg: null as number | null },
 };
 
 describe("AxisBreakdownCard", () => {
@@ -883,6 +904,13 @@ describe("AxisBreakdownCard", () => {
     // Below the breakpoint the meta column drops BENEATH the scale rather
     // than squeezing a 210px column into a 320px screen.
     expect(classes(grid)).toContain("grid-cols-[24px_minmax(0,1fr)]");
+    // `items-center` centres the middle cell while the index's `pt-1` pins
+    // to the track top, so the axis number floats above its own name on
+    // every row where the meta column outgrows the middle one (every tension
+    // row, since every tagline wraps in a 210px column). Divergence from the
+    // mock's `align-items:center` is deliberate — see the component comment.
+    expect(classes(grid)).toContain("items-start");
+    expect(classes(grid)).not.toContain("items-center");
   });
 
   it("separates rows by a rule instead of a zebra fill", () => {
@@ -905,6 +933,22 @@ describe("AxisBreakdownCard", () => {
     expect(container.querySelector("[data-axis-score]")!.textContent).toBe("-0.50");
   });
 
+  it("renders the tension flag in the reserved warning accent", () => {
+    // The AXIS fixture defaults to tension.detected: false, so the row's only
+    // use of the --warning accent never renders unless a case exercises it.
+    const container = render(
+      createElement(AxisBreakdownCard, {
+        ...AXIS,
+        tension: { detected: true, level: "moderate", direction: null, narrative: null },
+      }),
+    );
+    const flag = container.querySelector("[data-axis-tension]");
+
+    expect(flag).not.toBeNull();
+    expect(flag!.textContent).toBe("Tension detected");
+    expect(classes(flag!)).toContain("text-warning-text");
+  });
+
   it("moves the confidence label and tagline into the meta column", () => {
     const container = render(createElement(AxisBreakdownCard, AXIS));
     const meta = container.querySelector("[data-axis-meta]")!;
@@ -915,6 +959,23 @@ describe("AxisBreakdownCard", () => {
     // must start in column 2 when the third track does not exist.
     expect(classes(meta)).toContain("col-start-2");
     expect(classes(meta)).toContain("min-[560px]:col-start-3");
+
+    // Type role, not just visible text: `label` would visibly UPPERCASE the
+    // confidence line, a delta violation that a plain textContent check
+    // cannot see. Same shape as tests/unit/footer-chrome.test.ts:33-36.
+    const confidence = container.querySelector("[data-axis-confidence]")!;
+    expect(classes(confidence)).toContain("mono-meta");
+    expect(classes(confidence)).not.toContain("label");
+
+    // The tagline is the mock's 12px/1.5 role, named `body-xs` rather than
+    // carried as `text-xs leading-[1.5]` — reverting to that raw pair
+    // currently leaves every rendered assertion here green, which is exactly
+    // what globals.css documents an unnamed size/leading pair as unable to
+    // catch. `> p:last-child` is stable: the tagline is always the meta
+    // column's final paragraph.
+    const tagline = container.querySelector("[data-axis-meta] > p:last-child")!;
+    expect(classes(tagline)).toContain("body-xs");
+    expect(classes(tagline)).not.toContain("text-xs");
   });
 
   it("draws the scale through the shared primitive, described in words", () => {
@@ -927,6 +988,13 @@ describe("AxisBreakdownCard", () => {
       "Governance Structure: moderately toward Distributed Governance",
     );
     expect(container.querySelector("[data-respondent='b']")).toBeNull();
+
+    // `endpoints="below"`, pinned through DOM order rather than a class,
+    // since PairedAxisScale places the pole labels by render order, not by a
+    // toggled class: the track-bearing element is the scale's first child,
+    // and the endpoint row (which contains no [data-track]) is its last.
+    expect(scale.firstElementChild!.querySelector("[data-track]")).not.toBeNull();
+    expect(scale.lastElementChild!.querySelector("[data-track]")).toBeNull();
   });
 
   it("keeps the scoring disclosure behind the section toggle", () => {
@@ -936,15 +1004,74 @@ describe("AxisBreakdownCard", () => {
     const open = render(createElement(AxisBreakdownCard, { ...AXIS, showScoring: true }));
     expect(open.textContent).toContain("See how this was scored");
   });
+
+  it("expands the scoring disclosure on click, without reviving the retired card styling", () => {
+    const container = render(createElement(AxisBreakdownCard, { ...AXIS, showScoring: true }));
+    const button = container.querySelector("button")!;
+
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(button.textContent).toContain("See how this was scored");
+
+    click(button);
+
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(button.textContent).toContain("Hide scoring breakdown");
+
+    // The four bg-surface-2/bg-surface-1 + rounded-sharp card wrappers this
+    // task removed lived INSIDE this panel. Test 2's negative guards only
+    // ever render the collapsed default, so only an expanded render actually
+    // covers the place the cards were.
+    expect(container.querySelector(".bg-surface-2")).toBeNull();
+    expect(container.querySelector(".rounded-sharp")).toBeNull();
+
+    // The disclosure's whole reason to exist ("radical transparency") is
+    // that this string adds up. Pinned exactly: swapping which weight
+    // multiplies which component score (fc's weight against sc's value, say)
+    // renders a formula that visibly does not add up, and nothing else here
+    // would notice.
+    expect(container.textContent).toContain(
+      "(0.60 × -0.60) + (0.40 × -0.35) = -0.50",
+    );
+
+    // Scoped to the Budget cell specifically — the third of the three
+    // fc/sc/bg cells in the breakdown grid — not asserted against the whole
+    // row, where "N/A" would also pass if it turned up anywhere else.
+    const budgetCell = container.querySelector(".grid-cols-3")!.children[2];
+    expect(budgetCell.textContent).toContain("N/A");
+
+    // The disclosure's indent is unconditional, not `min-[560px]:pl-10`:
+    // below the breakpoint the meta column already sits at this same 40px
+    // indent (24px index + 16px gap), so the panel needs the same push there
+    // too, not none. Reverting to the conditional class is currently green
+    // everywhere else in this file.
+    const disclosure = button.parentElement!;
+    expect(classes(disclosure)).toContain("pl-10");
+    expect(classes(disclosure)).not.toContain("min-[560px]:pl-10");
+  });
+
+  it("no longer imports ScoreBar or getDomainColor600 from the retired axis-row primitives", () => {
+    // Task 4's Interfaces section promises both imports are dropped: the row
+    // now draws through PairedAxisScale, which owns the dot's colour-stepping
+    // via getDomainMarkVar internally — AxisBreakdownCard itself calls
+    // neither. Guarded on source text — this task is the first of ScoreBar's
+    // three call sites to move, and Task 5 cannot delete ScoreBar.tsx while
+    // any results component still imports it.
+    const card = resultsSources.find((f) => f.name === "AxisBreakdownCard.tsx");
+    expect(card).toBeDefined();
+    // Matches both the relative spelling and an aliased one
+    // (`@/components/results/ScoreBar`), not just `"./ScoreBar"`.
+    expect(card!.text).not.toMatch(/from\s+["'][^"']*\/ScoreBar["']/);
+    expect(card!.text).not.toContain("getDomainColor600");
+  });
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
 Expected: FAIL — no `[data-axis-row]`, and the zebra assertions find `bg-surface-2`/`rounded-sharp`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace `src/components/results/AxisBreakdownCard.tsx` in full:
 
@@ -1010,11 +1137,17 @@ export function AxisBreakdownCard({
 
   return (
     <div className="border-b border-border-secondary">
+      {/* `items-start`, not the mock's `align-items:center`: the mock's
+          fabricated taglines are one line, so centre and start look
+          identical there, but every real tagline in src/data/axes.ts wraps
+          in a 210px column, and centre detaches the axis number from the
+          name it labels by 11-15px. Deliberate divergence from a static
+          prototype, not an oversight. */}
       <div
         data-axis-row
-        className="grid grid-cols-[24px_minmax(0,1fr)] min-[560px]:grid-cols-[24px_minmax(0,1fr)_210px] items-center gap-4 py-3"
+        className="grid grid-cols-[24px_minmax(0,1fr)] min-[560px]:grid-cols-[24px_minmax(0,1fr)_210px] items-start gap-4 py-3"
       >
-        <p data-axis-index className="mono-meta text-text-label self-start pt-1">
+        <p data-axis-index className="mono-meta text-text-label pt-1">
           {String(axisId).padStart(2, "0")}
         </p>
 
@@ -1038,17 +1171,17 @@ export function AxisBreakdownCard({
         {/* Third cell on desktop, second on mobile — it drops beneath the
             scale rather than squeezing a 210px column onto a 320px screen. */}
         <div data-axis-meta className="col-start-2 min-[560px]:col-start-3">
-          <p className="mono-meta text-text-label">{confidenceText}</p>
+          <p data-axis-confidence className="mono-meta text-text-label">{confidenceText}</p>
           {tension.detected && (
-            <p className="mono-meta text-warning-text mt-1">Tension detected</p>
+            <p data-axis-tension className="mono-meta text-warning-text mt-1">Tension detected</p>
           )}
-          <p className="text-xs leading-[1.5] text-text-label mt-1">{tagline}</p>
+          <p className="body-xs text-text-label mt-1">{tagline}</p>
         </div>
       </div>
 
       {/* Scoring breakdown — only reachable when the section-level toggle is on */}
       {showScoring && (
-        <div className="pb-3 min-[560px]:pl-10">
+        <div className="pb-3 pl-10">
           <button
             type="button"
             onClick={() => setExpanded((prev) => !prev)}
@@ -1093,17 +1226,25 @@ export function AxisBreakdownCard({
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: PASS, six tests. `npm run typecheck` will still fail until Task 10 drops `alternateRow` from `ResultsView`'s call — that is expected and is fixed there.
+Expected: PASS, nine tests (two more than planned — see "As shipped" below). `npm run typecheck` will still fail until Task 10 drops `alternateRow` from `ResultsView`'s call — that is expected and is fixed there.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
-git add src/components/results/AxisBreakdownCard.tsx tests/unit/results-chrome.test.ts
+git add src/components/results/AxisBreakdownCard.tsx tests/unit/results-chrome.test.ts src/app/globals.css tests/unit/design-system-tokens.test.ts src/components/PairedAxisScale.tsx
 git commit -m "feat(design): rebuild the axis breakdown row on the mock's three-column grid"
 ```
+
+**As shipped.** Implementation and two rounds of review moved this task in five ways from the text above:
+
+1. **`items-start`, not `items-center`.** A deliberate divergence from mock 7a, which specifies `align-items:center`. The mock's fabricated taglines are one line so centre and start look identical there; every real tagline in `src/data/axes.ts` wraps in a 210px column, and centre then detaches the axis index from the name it labels by 11-15px (measured: index top 12px, name top 26.9px on a tension row). Same class of judgement as this plan's D12.
+2. **`body-xs` added.** The tagline is mock 7a's `font-size:12px;line-height:1.5`, which the plan carried as a raw `text-xs leading-[1.5]` pair. Named as a `@utility` for the same reason `body-s` was: a guard on the pair can catch drift within it but never a deleted size. Task 1 territory, added late because Task 4 is where the mock was actually read.
+3. **The `AXIS` fixture's arithmetic was wrong.** Axis 3's real profile is `{ fc: 0.60, sc: 0.40, bg: 0.00 }`, a no-budget axis, but the fixture supplied `components.bg: -0.5` and a `finalScore` that the weights do not produce. Now `{ fc: -0.6, sc: -0.35, bg: null }`, which yields exactly -0.50. Consequence for later tasks: the `weights.bg > 0` formula branch is unreachable from this fixture and needs a second one on axis 1, 2 or 5.
+4. **Two extra tests beyond the plan's six** — a tension-detected render and an expanded-disclosure render — plus a source guardrail, taking the file to nine tests. The expanded render matters because the negative `bg-surface-2`/`rounded-sharp` guards only ever saw the collapsed row, and the four card wrappers the rewrite removed live inside the panel.
+5. **`PairedAxisScale`'s comment was corrected twice.** It had claimed the axis-name prefix "buys nothing" while both call sites pass it. Resolution: keep the prefix (an `aria-label` on a `role="img"` that only parses against adjacent DOM is a contract nothing enforces) and fix the comment.
 
 ---
 
@@ -1341,7 +1482,7 @@ Expected: FAIL — no `[data-readout]`, two `[data-track]` elements, and the `ar
 
 - [ ] **Step 3: Implement**
 
-Replace `src/components/comparison/ComparisonScoreBar.tsx` in full:
+Replace `src/components/comparison/ComparisonScoreBar.tsx` in full. Note the tagline below uses `body-xs text-text-label`, not the raw `text-xs leading-[1.5]` pair — `body-xs` now exists (added in Task 4) precisely so this row does not reintroduce it:
 
 ```tsx
 "use client";
@@ -1398,7 +1539,7 @@ export function ComparisonScoreBar({
           {describeGap(delta)}
         </span>
       </div>
-      <p className="text-xs leading-[1.5] text-text-label mb-2">{tagline}</p>
+      <p className="body-xs text-text-label mb-2">{tagline}</p>
 
       <div className="flex flex-wrap gap-x-4 mb-1.5 mono-meta text-text-secondary tabular-nums">
         <span data-readout="a">
@@ -1458,6 +1599,11 @@ Expected: PASS. The two comparison suites are logic tests and must be green **un
 git add src/components/comparison/ComparisonScoreBar.tsx src/app/compare/page.tsx tests/unit/results-chrome.test.ts
 git commit -m "refactor(design): converge ComparisonScoreBar on PairedAxisScale"
 ```
+
+**Addenda from Task 4's code-quality review**, deliberately routed here rather than fixed in Task 4:
+
+- **Unshortened pole labels.** `AxisBreakdownCard` passes `poleALabel`/`poleBLabel` raw where `src/app/page.tsx` passes them through `shortPole(...)`. Between roughly 560 and 600px viewport width the widest pair wraps to two lines. This self-corrects above ~600px, and Task 10's 820px results container widens the axis row further still — but this component's middle column is narrower than the axis row's, so it will hit the wrap harder. Worth checking once this task's grid is in place.
+- **Two responsive conventions for the same pattern.** The home page uses a block that becomes `min-[560px]:grid` with `min-[560px]:contents` to re-parent at the breakpoint, while the axis row (Task 4) uses a 2-column grid at all widths with `col-start-2` / `min-[560px]:col-start-3`. Both are valid; settle on one before this task builds a third variant.
 
 ---
 
@@ -1830,6 +1976,11 @@ Expected: PASS. If the `Learn more` assertion on `label-nav` fails, the tertiary
 git add src/components/results/ArchetypeCard.tsx tests/unit/results-chrome.test.ts
 git commit -m "feat(design): rebuild the archetype panel on the mock's two-column grid"
 ```
+
+**Addenda from Task 4's code-quality review**, deliberately routed here rather than fixed in Task 4:
+
+- **Unshortened pole labels.** `AxisBreakdownCard` passes `poleALabel`/`poleBLabel` raw where `src/app/page.tsx` passes them through `shortPole(...)`. Between roughly 560 and 600px viewport width the widest pair wraps to two lines. This self-corrects above ~600px, and Task 10's 820px results container widens the axis row further still — but the group row this task's sibling touches has a narrower middle column and will hit the wrap harder. Worth checking once this task's grid is in place.
+- **Two responsive conventions for the same pattern.** The home page uses a block that becomes `min-[560px]:grid` with `min-[560px]:contents` to re-parent at the breakpoint, while the axis row (Task 4) uses a 2-column grid at all widths with `col-start-2` / `min-[560px]:col-start-3`. Both are valid; settle on one before this task builds a third variant.
 
 ---
 
@@ -2949,6 +3100,11 @@ git add src/components/results/ResultsView.tsx tests/unit/results-chrome.test.ts
 git commit -m "feat(design): restyle the results page shell onto mock 7a"
 ```
 
+**Addenda from Task 4's code-quality review**, deliberately routed here rather than fixed in Task 4, because both touch the `AxisDisplayData`/`AxisBreakdownCardProps` interface this task owns:
+
+- **Dead surface on `AxisBreakdownCardProps`.** A required `domain: string` is never destructured or used by the component; three `tension` sub-fields (`level`, `direction`, `narrative`) are accepted but never read; and the `AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback is unreachable in practice and its numbers match none of the three real weight profiles. These were left in Task 4 because the interface is shared with `ResultsView`'s `AxisDisplayData`, which this task owns — trim both together, along with the `alternateRow` removal already scheduled here.
+- **`confidence: string` is looser than its source type.** `src/lib/scoring-types.ts:32` defines `"high" | "moderate" | "low" | "conflicted"`, so an unrecognised value currently falls through to `AxisBreakdownCard`'s default branch and silently renders "Low confidence" instead of failing to typecheck. Narrowing it was deferred specifically because doing it in Task 4 would have added a second typecheck error during the Task 4-to-10 interval that this plan already flags as deliberately red (the `alternateRow` removal) — two simultaneous errors would have destroyed the "exactly one error, and it is the expected one" signal that makes that interval safe to leave red. Do this alongside the dead-surface trim above.
+
 ---
 
 ### Task 11: Drift guards for the results directory
@@ -3209,3 +3365,11 @@ Checked against `docs/superpowers/specs/2026-09-08-design-system-delta-design.md
 - **Type consistency.** `getDomainMarkVar(axisId: number): string` and `DOMAIN_MARK_VARS: Record<DomainKey, string>` (Task 1) are used under those exact names in Tasks 3, 4, 8 and 10. `describeGap(gap: number)` and `describePosition(score, poleA, poleB)` (Task 3) are used under those names in Task 6. `ArchetypeCardProps.actions?: ReactNode` (Task 7) is supplied in Task 10. `GroupScoreBarProps.axisId` (Task 5) is supplied at its one call site in the same task. `AxisBreakdownCardProps` loses `alternateRow` in Task 4 and the caller drops it in Task 10 — the one deliberately-red interval in the plan, flagged in both tasks.
 
 **Known gap, stated rather than papered over:** no unit test covers the *rendered* dark-mode appearance of anything in this phase. jsdom computes no custom properties, and Playwright's `colorScheme` option would give a screenshot diff this repo has no baseline infrastructure for. The tokens are asserted on both sides in the stylesheet (Task 1), the call sites are asserted to name the stepping token rather than a hex (Tasks 3, 7, 8, 9, 11), and the composition of the two is verified by hand in Task 12 Step 3. That is the seam, and it is why Step 3 is not optional.
+
+---
+
+## Deferred / non-blocking backlog
+
+Items consciously punted during the build. None block shipping. Listed here so they don't fall out of memory.
+
+- **`tests/unit/results-chrome.test.ts`'s render harness is a fifth near-verbatim copy.** The `render` helper, `classes`, and the `afterEach` cleanup block introduced in Task 4 duplicate the same trio already living in `tests/unit/quiz-chrome.test.ts`, `footer-chrome`, `home-page`, and `account-actions`. `vitest.config.ts` includes only `tests/**/*.test.ts`, so a `tests/helpers/react-dom.ts` module would not itself be collected as a suite and is a clean home for the shared code. Deferred because extracting it mid-phase touches five existing test files at once and makes a red suite ambiguous — whose change broke it. Worth doing after phase 4 lands.
