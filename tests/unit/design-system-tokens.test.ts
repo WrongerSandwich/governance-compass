@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getDomainMarkVar } from "@/lib/design-tokens";
 
 // Comments are stripped once, here, so every helper below sees declaration
 // text only. block() is the reason this belongs at the top rather than inside
@@ -69,6 +70,7 @@ const TYPE_SCALE = [
   "display-entry",
   "display-s",
   "body-lead",
+  "body-s",
   "label",
   "label-eyebrow",
   "label-nav",
@@ -305,5 +307,91 @@ describe("focus ring", () => {
     // a custom property the way `outline-style: var(--tw-outline-style)` was.
     expect(utility!.body).toMatch(/outline:\s*2px solid var\(--focus-ring\)/);
     expect(utility!.body).toMatch(/outline-offset:\s*2px/);
+  });
+});
+
+describe("data marks step by mode (design delta 06)", () => {
+  it("steps every domain mark from its 600 tone to its 400 tone in dark", () => {
+    // Domain 600 goes muddy on dark surfaces. DOMAIN_COLORS is a fixed-hex
+    // TypeScript object read at render time, so no call site can express this
+    // — it has to be a custom property. Asserted as an exhaustive pair map
+    // rather than four loose assertions, so adding a fifth domain without a
+    // dark step fails here rather than shipping a muddy mark.
+    expect({
+      economic: light["--domain-economic"],
+      power: light["--domain-power"],
+      society: light["--domain-society"],
+      world: light["--domain-world"],
+    }).toEqual({
+      economic: "var(--stone-600)",
+      power: "var(--slate-600)",
+      society: "var(--sage-600)",
+      world: "var(--clay-600)",
+    });
+    expect({
+      economic: dark["--domain-economic"],
+      power: dark["--domain-power"],
+      society: dark["--domain-society"],
+      world: dark["--domain-world"],
+    }).toEqual({
+      economic: "var(--stone-400)",
+      power: "var(--slate-400)",
+      society: "var(--sage-400)",
+      world: "var(--clay-400)",
+    });
+  });
+
+  it("steps the unified mark alongside the domains", () => {
+    // The radar polygons and the mini radar's user shape are one Stone mark,
+    // not a domain one, and they step on the same schedule.
+    expect(light["--mark-primary"]).toBe("var(--stone-600)");
+    expect(dark["--mark-primary"]).toBe("var(--stone-400)");
+  });
+
+  it("exports the marks so Tailwind compiles their colour utilities", () => {
+    // The setup for the bug this project has shipped three times: a token
+    // declared with a dark inversion but never exposed, so a call site reaches
+    // for a ramp literal because the inverting token appears not to exist.
+    for (const name of ["economic", "power", "society", "world"]) {
+      expect(theme[`--color-domain-${name}`]).toBe(`var(--domain-${name})`);
+    }
+    expect(theme["--color-mark-primary"]).toBe("var(--mark-primary)");
+  });
+
+  it("caps the results column at the mock's 820px", () => {
+    expect(theme["--container-results"]).toBe("820px");
+  });
+
+  it("maps each axis to its domain's mark variable", () => {
+    // Axis 1-2 economic, 3-6 power, 7-9 society, 10-12 world. Asserted across
+    // all twelve rather than one per domain, because an off-by-one in
+    // AXIS_TO_DOMAIN would put a Slate dot on an Economic row and nothing
+    // else would fail.
+    expect(Array.from({ length: 12 }, (_, i) => getDomainMarkVar(i + 1))).toEqual([
+      "var(--domain-economic)", "var(--domain-economic)",
+      "var(--domain-power)", "var(--domain-power)", "var(--domain-power)", "var(--domain-power)",
+      "var(--domain-society)", "var(--domain-society)", "var(--domain-society)",
+      "var(--domain-world)", "var(--domain-world)", "var(--domain-world)",
+    ]);
+  });
+});
+
+describe("body-s (design delta 01)", () => {
+  it("names the delta's most-used sans size so the pair cannot drift", () => {
+    // Nine call sites carried `text-[13.5px] leading-[1.6]` by convention
+    // alone, and phase 3's guard on the pairing passes vacuously where the
+    // size is deleted outright — measured, deleting the pair at each of the
+    // nine sites reddened the suite at only three.
+    const utility = utilities.find((entry) => entry.name === "body-s");
+
+    expect(utility, "body-s utility is missing").toBeDefined();
+    expect(utility!.body).toMatch(/font-size:\s*13\.5px/);
+    expect(utility!.body).toMatch(/line-height:\s*1\.6/);
+    expect(utility!.body).toMatch(/font-family:\s*var\(--font-sans\)/);
+    // Distinct from caption-italic, which is 13.5px SERIF italic and declares
+    // its own colour. body-s declares no colour: it is layered with a
+    // text-* class at every call site.
+    expect(utility!.body).not.toMatch(/color:/);
+    expect(utility!.body).not.toMatch(/font-style:/);
   });
 });

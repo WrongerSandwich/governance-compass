@@ -73,3 +73,25 @@ export function getDomainForAxis(axisId: number): DomainKey {
 export function getDomainColor600(axisId: number): string {
   return DOMAIN_COLORS[getDomainForAxis(axisId)][600];
 }
+
+/**
+ * Domain marks as CSS custom-property references, for inline styles and SVG
+ * fills.
+ *
+ * `getDomainColor600` returns a fixed hex, which is correct for the static
+ * reference pages but wrong for anything the respondent's own data draws:
+ * design delta 06 steps every mark to its 400 tone on a dark ground, and a
+ * hex cannot invert. Use this for dots, tracks, domain rules and domain
+ * labels; use `getDomainColor600` only where the 600 tone is genuinely
+ * intended in both modes.
+ */
+export const DOMAIN_MARK_VARS: Record<DomainKey, string> = {
+  economic: 'var(--domain-economic)',
+  power: 'var(--domain-power)',
+  society: 'var(--domain-society)',
+  world: 'var(--domain-world)',
+};
+
+export function getDomainMarkVar(axisId: number): string {
+  return DOMAIN_MARK_VARS[getDomainForAxis(axisId)];
+}

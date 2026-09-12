@@ -110,6 +110,24 @@
   --model-claude: #8c6e58;  /* Stone/Clay blend close to Stone 600 */
   --model-gemini: #7a8e96;  /* Cooler slate/sage tone */
 
+  /* --- Data marks (design delta 06) ---
+     Dots, tracks, domain rules and domain labels. Domain 600 goes muddy on a
+     dark ground, so each mark steps to its 400 tone below. This cannot be
+     spelled from DOMAIN_COLORS at the call site: that object holds fixed
+     hexes read at render time, and a fixed hex cannot invert. No new colour
+     value — every entry aliases a ramp token already declared above. */
+  --domain-economic: var(--stone-600);
+  --domain-power:    var(--slate-600);
+  --domain-society:  var(--sage-600);
+  --domain-world:    var(--clay-600);
+
+  /* The unified data mark: the radar's single polygon, the mini radar's user
+     shape, and the budget allocation fill. Value-identical to
+     --domain-economic in BOTH modes, because the Economic domain is the Stone
+     accent — so a swap between the two is undetectable by rendering. Guarded
+     by source assertion in tests/unit/results-chrome.test.ts instead. */
+  --mark-primary: var(--stone-600);
+
   /* --- Contextual (light mode) --- */
   --contour-opacity: 0.08;
 }
@@ -174,6 +192,13 @@
     --model-claude: #b09278;  /* Stone/Clay lifted */
     --model-gemini: #8aa0ac;  /* Slate/Sage lifted */
 
+    /* Design delta 06: the marks step to their 400 tones. */
+    --domain-economic: var(--stone-400);
+    --domain-power:    var(--slate-400);
+    --domain-society:  var(--sage-400);
+    --domain-world:    var(--clay-400);
+    --mark-primary:    var(--stone-400);
+
     --contour-opacity: 0.05;
   }
 }
@@ -220,12 +245,22 @@
   --color-button-primary-hover: var(--button-primary-hover);
   --color-button-primary-fg: var(--button-primary-fg);
 
+  --color-domain-economic: var(--domain-economic);
+  --color-domain-power:    var(--domain-power);
+  --color-domain-society:  var(--domain-society);
+  --color-domain-world:    var(--domain-world);
+  --color-mark-primary:    var(--mark-primary);
+
   --radius-sharp: var(--radius);
 
   /* Chrome shell width. NavBar and Footer share it, and Phase 2's home
      page is the third consumer; the mock's own nav is edge-to-edge at a 28px
      gutter, so the cap is ours rather than the handoff's. */
   --container-shell: 1040px;
+
+  /* Results column width, from mock 7a. Narrower than the chrome shell above,
+     which NavBar and Footer keep. */
+  --container-results: 820px;
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -369,6 +404,19 @@ body {
   font-family: var(--font-sans);
   font-size: 17px;
   line-height: 1.62;
+}
+
+/* The delta's workhorse prose size, at 13.5px/1.6. Named here rather than
+   carried as `text-[13.5px] leading-[1.6]` because that pair travelled by
+   convention across nine call sites and its guard could only catch drift
+   WITHIN the pair, never a deleted size. Sans, and declaring no colour — it
+   is layered with a text-* class everywhere. Its serif italic counterpart at
+   the same size is `caption-italic`, which is a different role, not a
+   variant. */
+@utility body-s {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.6;
 }
 
 /* Mono label layer. Tracking is the only difference between the four:
