@@ -84,6 +84,7 @@ export default function GroupPage() {
             .map((as) => (
               <GroupScoreBar
                 key={as.axisId}
+                axisId={as.axisId}
                 axisName={as.axisName}
                 poleALabel={as.poleALabel}
                 poleBLabel={as.poleBLabel}

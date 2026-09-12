@@ -1,7 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getDomainMarkVar } from "@/lib/design-tokens";
+import { sourceFiles } from "../helpers/source-files";
 
 // Comments are stripped once, here, so every helper below sees declaration
 // text only. block() is the reason this belongs at the top rather than inside
@@ -183,15 +184,7 @@ describe("design delta token layer", () => {
   });
 });
 
-function tsxFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = resolve(dir, entry.name);
-    if (entry.isDirectory()) return tsxFiles(path);
-    return entry.name.endsWith(".tsx") ? [path] : [];
-  });
-}
-
-const sources = tsxFiles(resolve(process.cwd(), "src")).map((file) => ({
+const sources = sourceFiles(resolve(process.cwd(), "src"), [".tsx"]).map((file) => ({
   file,
   text: readFileSync(file, "utf8"),
 }));

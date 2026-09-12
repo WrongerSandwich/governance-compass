@@ -17,7 +17,14 @@ export interface PairedAxisScaleProps {
   scoreB?: number;
   /** Endpoints sit above the track on desktop, below it when stacked. */
   endpoints?: "above" | "below";
-  /** Names the axis in the generated description. Pass this, not `label`. */
+  /**
+   * Names the axis in the generated description. Pass this, not `label`.
+   *
+   * May also carry a qualifier appended after the axis name (e.g. "Power
+   * Distribution, group average") — this works only because the prefix
+   * built from it is the bare `${axisName}: `, so a future change to that
+   * prefix format could silently misread a qualifier as part of the name.
+   */
   axisName?: string;
   respondentALabel?: string;
   respondentBLabel?: string;
@@ -131,7 +138,7 @@ export function PairedAxisScale({
       }`}
     >
       <span>{poleALabel}</span>
-      <span>{poleBLabel}</span>
+      <span className="text-right">{poleBLabel}</span>
     </div>
   );
 

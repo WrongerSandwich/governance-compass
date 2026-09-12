@@ -1,8 +1,10 @@
 "use client";
 
-import { ScoreBar } from "@/components/results/ScoreBar";
+import { PairedAxisScale, scoreToTrackPercent } from "@/components/PairedAxisScale";
 
 interface GroupScoreBarProps {
+  /** 1-12; selects the domain colour for the average marker. */
+  axisId: number;
   axisName: string;
   poleALabel: string;
   poleBLabel: string;
@@ -11,6 +13,7 @@ interface GroupScoreBarProps {
 }
 
 export function GroupScoreBar({
+  axisId,
   axisName,
   poleALabel,
   poleBLabel,
@@ -21,10 +24,18 @@ export function GroupScoreBar({
     <div className="mb-5">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-text-primary">{axisName}</span>
+        {average !== null && (
+          <span className="text-xs font-mono tabular-nums text-text-secondary">
+            {average >= 0 ? "+" : ""}
+            {average.toFixed(2)}
+          </span>
+        )}
       </div>
 
-      {/* Member dots bar */}
+      {/* Member dots bar. Purely illustrative — the accessible position and
+          value both live in the PairedAxisScale below and the readout above. */}
       <div
+        aria-hidden="true"
         className="relative h-[6px] rounded-[3px] overflow-visible mb-3"
         style={{ backgroundColor: 'var(--border-tertiary)' }}
       >
@@ -41,7 +52,7 @@ export function GroupScoreBar({
 
         {/* Member score dots */}
         {memberScores.map((score, i) => {
-          const left = ((Math.max(-1, Math.min(1, score)) + 1) / 2) * 100;
+          const left = scoreToTrackPercent(score);
           return (
             <div
               key={i}
@@ -63,7 +74,7 @@ export function GroupScoreBar({
           <div
             className="absolute top-1/2 -translate-y-1/2 -translate-x-px"
             style={{
-              left: `${((Math.max(-1, Math.min(1, average)) + 1) / 2) * 100}%`,
+              left: `${scoreToTrackPercent(average)}%`,
               width: 1.5,
               height: 16,
               backgroundColor: 'var(--stone-600)',
@@ -74,13 +85,15 @@ export function GroupScoreBar({
         )}
       </div>
 
-      {/* ScoreBar for the group average */}
+      {/* PairedAxisScale for the group average */}
       {average !== null && (
-        <ScoreBar
-          score={average}
+        <PairedAxisScale
+          axisId={axisId}
           poleALabel={poleALabel}
           poleBLabel={poleBLabel}
-          height={6}
+          scoreA={average}
+          endpoints="below"
+          axisName={`${axisName}, group average`}
         />
       )}
       {average === null && (

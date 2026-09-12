@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ScoreBar } from "@/components/results/ScoreBar";
+import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { AnnotationEditor } from "@/components/annotations/AnnotationEditor";
 
 function getScaledOptionDisplay(
@@ -87,11 +87,20 @@ export default async function AxisDetailPage({
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">{axis.name}</h1>
 
         <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
-          <ScoreBar
-            score={axisScore.finalScore}
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-[11px] text-text-label">Composite score</span>
+            <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
+              {axisScore.finalScore >= 0 ? "+" : ""}
+              {axisScore.finalScore.toFixed(2)}
+            </span>
+          </div>
+          <PairedAxisScale
+            axisId={axisId}
             poleALabel={axis.poleALabel}
             poleBLabel={axis.poleBLabel}
-            height={12}
+            scoreA={axisScore.finalScore}
+            endpoints="below"
+            axisName={axis.name}
           />
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
