@@ -134,7 +134,7 @@ export default function Home() {
                     scoreA={a.axis_scores[axis.id - 1]}
                     scoreB={b.axis_scores[axis.id - 1]}
                     endpoints="below"
-                    label={`${axis.name}: ${axis.poleALabel} to ${axis.poleBLabel}`}
+                    axisName={axis.name}
                   />
                 </div>
               </div>
