@@ -28,7 +28,7 @@ export function PhaseTransition({
 
         {/* Completion message */}
         <p className="label text-text-label mb-2">Phase {completedPhase} complete</p>
-        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-6">
+        <p className="body-s text-text-secondary mb-6">
           Your {completedCount} responses have been recorded.
         </p>
 
@@ -39,7 +39,7 @@ export function PhaseTransition({
             value on an inverting surface, so it went near-invisible in dark. */}
         <p className="label text-text-label mb-2">Up next</p>
         <h3 className="display-s text-text-primary mb-2">{nextPhaseTitle}</h3>
-        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-4">
+        <p className="body-s text-text-secondary mb-4">
           {nextPhaseDescription}
         </p>
         <p className="caption-italic mb-8">Estimated time: {estimatedTime}</p>

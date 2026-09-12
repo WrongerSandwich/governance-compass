@@ -90,7 +90,7 @@ function UnrecoverableState({ onReset }: { onReset: () => void }) {
     <div className="mx-auto max-w-[640px] py-12 text-center">
       <GovernanceCompassMark size={36} className="mx-auto mb-4" />
       <h1 className="display-entry text-text-primary mb-2">We lost your place</h1>
-      <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-8">
+      <p className="body-s text-text-secondary mb-8">
         Your saved progress doesn&apos;t match the current assessment, so we can&apos;t pick
         it back up. Starting over takes about 16 minutes.
       </p>
@@ -229,7 +229,7 @@ export function QuizFlow({
       <div className="mx-auto max-w-[640px] py-12 text-center">
         <GovernanceCompassMark size={36} className="mx-auto mb-4" />
         <h1 className="display-entry text-text-primary mb-2">Welcome back</h1>
-        <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-8">
+        <p className="body-s text-text-secondary mb-8">
           You have an assessment in progress — {answeredCount} responses recorded, currently in the {phaseLabel} phase.
         </p>
         <div className="flex flex-col items-center gap-3 max-w-xs mx-auto">
@@ -259,7 +259,7 @@ export function QuizFlow({
 
           <p className="label text-text-label mb-2">Phase 1 of 3</p>
           <h1 className="display-s text-text-primary mb-2">Governance dilemmas</h1>
-          <p className="text-[13.5px] leading-[1.6] text-text-secondary mb-4">
+          <p className="body-s text-text-secondary mb-4">
             This first section presents pairs of statements about how a society
             should be governed. For each pair, choose the statement that comes
             closer to your view — even if neither is a perfect match. There are
@@ -450,7 +450,7 @@ export function QuizFlow({
         {finalizeError && (
           <p
             role="alert"
-            className="mb-4 rounded-sharp border-l-2 border-warning bg-warning-bg px-4 py-3 text-[13.5px] leading-[1.6] text-warning-text"
+            className="mb-4 rounded-sharp border-l-2 border-warning bg-warning-bg px-4 py-3 body-s text-warning-text"
           >
             Something went wrong finalizing your budget. Your answers are still here — please try again.
           </p>

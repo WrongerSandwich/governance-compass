@@ -319,10 +319,10 @@ describe("ForcedChoiceCard", () => {
     expect(classes(headline)).toContain("display-s");
     // 10px between the headline and the body, per the mock.
     expect(classes(headline)).toContain("mb-2.5");
-    expect(classes(body)).toContain("text-[13.5px]");
-    // This replaced `leading-relaxed` (1.625), which still reads as correct to
-    // a reviewer — the case the pinning rule exists for.
-    expect(classes(body)).toContain("leading-[1.6]");
+    // `text-[13.5px] leading-[1.6]` (phase 3) is now the `body-s` role
+    // (phase 4) — a single token, so there is no pairing left to drift.
+    expect(classes(body)).toContain("body-s");
+    expect(classes(body)).not.toContain("text-[13.5px]");
     expect(classes(body)).not.toContain("leading-relaxed");
     expect(classes(body)).toContain("text-text-secondary");
     expect(classes(body)).not.toContain("text-text-tertiary");
@@ -614,13 +614,12 @@ describe("ScaledQuestionCard", () => {
     // `mt-4` replaced `mt-3` on the live region. 4px is invisible and the old
     // value still reads as correct, so nothing else catches a revert.
     expect(classes(detail.parentElement!)).toContain("mt-4");
-    // The prose pair replaced `text-[13px] leading-relaxed`. Task 8 guards the
-    // 13.5px/1.6 PAIRING but not its presence — reverting BOTH halves passes
-    // that guard vacuously, because a file with no `text-[13.5px]` has no
-    // offender to report.
+    // The prose pair (`text-[13px] leading-relaxed`, then `text-[13.5px]
+    // leading-[1.6]`) is now the `body-s` role, minted in phase 4 precisely so
+    // its presence — not just its pairing — is a single token to check for.
     const prose = detail.querySelector("p")!;
-    expect(classes(prose)).toContain("text-[13.5px]");
-    expect(classes(prose)).toContain("leading-[1.6]");
+    expect(classes(prose)).toContain("body-s");
+    expect(classes(prose)).not.toContain("text-[13.5px]");
     expect(classes(prose)).not.toContain("leading-relaxed");
   });
 });
@@ -846,9 +845,24 @@ describe("quiz chrome drift guards", () => {
     expect(quizFlow).toMatch(/className="label text-text-label mb-2">\s*\n?\s*Phase 1 of 3/);
     expect(quizFlow).toMatch(/className="display-entry text-text-primary mb-2">\s*\n?\s*Welcome back/);
     expect(quizFlow).toMatch(/className="caption-italic mb-8"/);
-    // 12px sans tertiary -> 13.5px/1.6 secondary, on screen for 1800ms before
-    // the redirect fires.
-    expect(computing).toMatch(/text-\[13\.5px\] leading-\[1\.6\] text-text-secondary/);
+    // 12px sans tertiary -> body-s secondary, on screen for 1800ms before the
+    // redirect fires. The class named here is the replacement, so the negative
+    // below is what carries the information.
+    expect(computing).toMatch(/body-s text-text-secondary/);
+    expect(computing).not.toMatch(/text-\[13\.5px\]/);
+  });
+
+  it("draws the budget allocation fill as a real data mark", () => {
+    // Phase 3 left this as var(--stone-600) at opacity 0.5, which measures
+    // ~1.69:1 against its own track and is, at half opacity, no longer Stone
+    // 600 — while the brief reserves Stone 600 *for* data marks. Phase 4
+    // settles what a data mark is, so the fill takes the token at full
+    // opacity. The negative is the load-bearing half: the old spelling still
+    // looks correct to a reviewer.
+    const budget = quizSources.find((s) => s.name === "BudgetSimulator.tsx")!.text;
+
+    expect(budget).toMatch(/var\(--mark-primary\)/);
+    expect(budget).not.toMatch(/opacity:\s*0?\.5/);
   });
 
   it("never layers a colour over a self-contained role", () => {
@@ -865,33 +879,30 @@ describe("quiz chrome drift guards", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("keeps the delta's prose size and its line-height together", () => {
-    // `text-[13.5px] leading-[1.6]` is the quiz's most-repeated literal — nine
-    // occurrences across five files — and it is the one size in the delta with
-    // no named role, so the pair travels by convention alone. A `text-[13.5px]`
-    // that loses its `leading-[1.6]` drifts silently. Minting a `body-s` role
-    // is the better fix and is recorded as a follow-up; this holds the line
-    // until then.
+  it("routes the delta's prose size through body-s, not an arbitrary pair", () => {
+    // `text-[13.5px] leading-[1.6]` was this directory's most-repeated literal
+    // — nine occurrences across five files — and the only size in the delta
+    // with no named role, so the pair travelled by convention alone.
     //
-    // Known limitation, measured rather than assumed: this passes VACUOUSLY
-    // where the size is deleted outright, because it only inspects the matches
-    // it finds. It guards the pairing, not the presence. Deleting the pair at
-    // each of the nine call sites in turn reddens the suite at only three of
-    // them — ForcedChoiceCard:100 and ScaledQuestionCard:155 (rendered
-    // assertions) and ComputingMessages:25 (the source pin above).
-    // PhaseTransition's two prose lines and QuizFlow's four (Unrecoverable,
-    // resume, intro, finalize alert) have no presence guard at all. That is
-    // accepted, not overlooked: a missing size class falls back to the 16px
-    // browser default, which is loud enough to catch by opening the page —
-    // the pinning rule's own exemption. Silent DRIFT within the pair is the
-    // failure this test exists for.
-    const offenders = quizSources.flatMap(({ name, text }) =>
-      [...text.matchAll(/className="([^"]*\btext-\[13\.5px\][^"]*)"/g)]
-        .filter(([, classNames]) => !classNames.includes("leading-[1.6]"))
-        .map(([, classNames]) => `${name}: ${classNames}`),
-    );
+    // The guard it replaces could only catch drift WITHIN the pair: it
+    // inspected the matches it found, so deleting the size outright passed
+    // vacuously. Measured, deleting the pair at each of the nine call sites in
+    // turn reddened the suite at only three. `body-s` makes the size a single
+    // token, so a deletion is a deletion and this assertion sees it.
+    //
+    // Scoped to the 13.5px literal specifically, not a bare `leading-[1.6]`:
+    // BudgetSimulator.tsx and QuizFlow.tsx both carry an unrelated
+    // `text-[12.5px] leading-[1.6]` role (the budget instruction copy) that
+    // this sweep does not touch, and a bare line-height check would flag it
+    // forever.
+    const offenders = quizSources
+      .filter(({ text }) => /text-\[13\.5px\]/.test(text))
+      .map(({ name }) => name);
 
     expect(offenders).toEqual([]);
+    // And the positive: the role is actually in use, so the test above cannot
+    // pass by the class having been dropped everywhere.
+    expect(quizSources.filter(({ text }) => text.includes("body-s"))).toHaveLength(5);
   });
 
   it("uses text-text-label only on the mono label layer", () => {

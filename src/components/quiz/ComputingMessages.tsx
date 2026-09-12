@@ -22,7 +22,7 @@ export function ComputingMessages() {
 
   return (
     <p
-      className="text-[13.5px] leading-[1.6] text-text-secondary transition-opacity duration-200"
+      className="body-s text-text-secondary transition-opacity duration-200"
       key={index}
     >
       {MESSAGES[index]}

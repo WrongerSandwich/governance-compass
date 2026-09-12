@@ -246,8 +246,13 @@ describe("BudgetSimulator steppers", () => {
     initial[ministries[1].id] = MAX_ALLOCATION;
     mount(initial, vi.fn());
 
+    // Keys off the fill's own hook rather than its inline style, so a
+    // data-mark token rename doesn't recouple this selector to an
+    // implementation detail — and rather than `[data-budget-track] > div`,
+    // so adding a second child to the track (a tick, an overlay) misaligns
+    // nothing here.
     const fills = Array.from(
-      container.querySelectorAll<HTMLElement>("[style*='--stone-600']"),
+      container.querySelectorAll<HTMLElement>("[data-budget-fill]"),
     ).map((el) => el.style.width);
 
     // 13 of 25 is halfway; only 25 fills the track.

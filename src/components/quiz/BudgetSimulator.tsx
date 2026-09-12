@@ -309,11 +309,11 @@ function MinistrySlider({
             style={{ backgroundColor: 'var(--border-secondary)' }}
           >
             <div
+              data-budget-fill
               className="h-full transition-all duration-100"
               style={{
                 width: `${Math.min(100, ((value - MIN_ALLOCATION) / (MAX_ALLOCATION - MIN_ALLOCATION)) * 100)}%`,
-                backgroundColor: 'var(--stone-600)',
-                opacity: 0.5,
+                backgroundColor: "var(--mark-primary)",
               }}
             />
           </div>
