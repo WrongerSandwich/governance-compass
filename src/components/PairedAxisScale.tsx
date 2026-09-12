@@ -93,9 +93,12 @@ export function describeScale({
 }): string {
   // Dropped rather than defaulted when absent. The previous fallback named
   // the poles, which the position phrase then names again: "Distributed to
-  // Centralized: moderately toward Distributed". The axis name is rendered
-  // OUTSIDE this component's role="img" subtree at every call site, so it is
-  // already in the accessibility tree and repeating it buys nothing.
+  // Centralized: moderately toward Distributed" — a synthesized pole-pair
+  // prefix that reads worse than no prefix at all. More generally: an
+  // aria-label on a role="img" only parses correctly against whatever DOM
+  // happens to sit next to it, and nothing enforces that adjacency. Callers
+  // name the axis explicitly rather than lean on that, even where it means
+  // repeating a heading already visible beside the scale.
   const prefix = axisName ? `${axisName}: ` : "";
   const a = describePosition(scoreA, poleALabel, poleBLabel);
   if (scoreB === undefined) return `${prefix}${a}`;

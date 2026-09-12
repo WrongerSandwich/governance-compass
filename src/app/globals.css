@@ -419,6 +419,16 @@ body {
   line-height: 1.6;
 }
 
+/* The meta column's subordinate prose, at 12px/1.5 — mock 7a's axis-row
+   tagline and the comparison row's. One step below `body-s`, which the axis
+   NAME uses on the same row; the pair is what keeps the name and its tagline
+   distinct by size rather than by colour alone. Sans, declaring no colour. */
+@utility body-xs {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* Mono label layer. Tracking is the only difference between the four:
    0.14em on eyebrows, 0.12em inside panels, 0.10em on nav links, and 0.02em
    where the label sits under a data mark (axis endpoints, the A/B legend) and

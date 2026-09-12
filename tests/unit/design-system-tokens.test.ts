@@ -71,6 +71,7 @@ const TYPE_SCALE = [
   "display-s",
   "body-lead",
   "body-s",
+  "body-xs",
   "label",
   "label-eyebrow",
   "label-nav",
@@ -393,5 +394,21 @@ describe("body-s (design delta 01)", () => {
     // text-* class at every call site.
     expect(utility!.body).not.toMatch(/color:/);
     expect(utility!.body).not.toMatch(/font-style:/);
+  });
+});
+
+describe("body-xs (design delta 04)", () => {
+  it("names the meta column's subordinate prose so its line-height cannot drift unseen", () => {
+    // The 11px type-floor test above only reads font-size, so a line-height
+    // regression on any role — this one included — passes it vacuously. This
+    // block is body-s's, mirrored, because that is what actually pins 1.5.
+    const utility = utilities.find((entry) => entry.name === "body-xs");
+
+    expect(utility, "body-xs utility is missing").toBeDefined();
+    expect(utility!.body).toMatch(/font-size:\s*12px/);
+    expect(utility!.body).toMatch(/line-height:\s*1\.5/);
+    expect(utility!.body).toMatch(/font-family:\s*var\(--font-sans\)/);
+    // Declares no colour: it is layered with a text-* class at every call site.
+    expect(utility!.body).not.toMatch(/color:/);
   });
 });
