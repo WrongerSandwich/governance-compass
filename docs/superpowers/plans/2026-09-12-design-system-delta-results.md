@@ -101,7 +101,7 @@ Phases 1 (#132, PR #140), 2 (#133, PR #143) and 3 (#134, PR #145) landed the tok
 
 **Why this is first.** Nothing else in the phase can be dark-mode correct without it, and the issue calls the dark pass "where this phase earns its keep". `DOMAIN_COLORS[key][600]` is a fixed hex read at render time; there is no call-site spelling that inverts.
 
-- [ ] **Step 1: Write the failing stylesheet guardrails**
+- [x] **Step 1: Write the failing stylesheet guardrails**
 
 The file already parses `globals.css` into `light`, `dark` and `utilities`. Append these two blocks at the end of `tests/unit/design-system-tokens.test.ts`:
 
@@ -182,12 +182,12 @@ describe("body-s (design delta 01)", () => {
 
 If `theme` is not already a parsed record of the `@theme inline` block in this file, add it beside the existing `light`/`dark` parsers using the same `decls(block(globalsCss, "@theme inline"))` shape those use.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/design-system-tokens.test.ts`
 Expected: FAIL — five new tests, reporting `undefined` for each token and `body-s utility is missing`.
 
-- [ ] **Step 3: Add the tokens to `globals.css`**
+- [x] **Step 3: Add the tokens to `globals.css`**
 
 In the light `:root` block, immediately **before** the `/* --- Contextual (light mode) --- */` comment:
 
@@ -240,7 +240,7 @@ And immediately **after** the `--container-shell: 1040px;` declaration and its c
   --container-results: 820px;
 ```
 
-- [ ] **Step 4: Add the `body-s` role**
+- [x] **Step 4: Add the `body-s` role**
 
 In `globals.css`, immediately **after** the `body-lead` utility:
 
@@ -259,7 +259,7 @@ In `globals.css`, immediately **after** the `body-lead` utility:
 }
 ```
 
-- [ ] **Step 5: Add the accessor to `design-tokens.ts`**
+- [x] **Step 5: Add the accessor to `design-tokens.ts`**
 
 Append to `src/lib/design-tokens.ts`:
 
@@ -287,7 +287,7 @@ export function getDomainMarkVar(axisId: number): string {
 }
 ```
 
-- [ ] **Step 6: Cover the accessor**
+- [x] **Step 6: Cover the accessor**
 
 Append to `tests/unit/design-system-tokens.test.ts`, inside the `data marks step by mode` describe:
 
@@ -308,12 +308,12 @@ Append to `tests/unit/design-system-tokens.test.ts`, inside the `data marks step
 
 Add `getDomainMarkVar` to the file's imports from `@/lib/design-tokens`.
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/design-system-tokens.test.ts`
 Expected: PASS, six new tests.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/app/globals.css src/lib/design-tokens.ts tests/unit/design-system-tokens.test.ts
