@@ -463,7 +463,7 @@ git commit -m "refactor(design): sweep the quiz onto body-s and the canonical da
 
 **Why now.** `role="img"` makes the whole subtree presentational, so the visible endpoint text is removed from the accessibility tree and replaced wholesale by the `aria-label`. Today that label names only the axis and its poles, so **everything the component exists to communicate — where each respondent sits, and whether they agree — reaches a screen-reader user through two `aria-hidden` dots and nothing else.** That was tolerable on the home page, where surrounding copy carries the meaning. It stops being tolerable the moment this primitive renders a respondent's own twelve axes, which is Task 6. Raised independently by phase 2's implementer, its spec reviewer, and the phase 4 planning note (issue #135, comment 1).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `tests/unit/paired-axis-scale.test.ts`, replace the existing test titled `"describes the scale for assistive tech rather than leaving bare dots"` — its name overstates what it verifies, since it confirms the poles are *named*, not that the scale is *described* — with:
 
@@ -485,7 +485,7 @@ In `tests/unit/paired-axis-scale.test.ts`, replace the existing test titled `"de
     expect(label).toContain("Governance Structure");
     expect(label).toContain("Respondent A moderately toward Distributed");
     expect(label).toContain("Respondent B strongly toward Distributed");
-    expect(label).toContain("close agreement");
+    expect(label).toContain("some distance");
   });
 
   it("names the respondents as the caller does", () => {
@@ -514,7 +514,7 @@ In `tests/unit/paired-axis-scale.test.ts`, replace the existing test titled `"de
 
     expect(label).toBe("Governance Structure: moderately toward Distributed");
     // No second respondent, so no gap phrase to append.
-    expect(label).not.toContain("—");
+    expect(label).not.toContain(";");
   });
 
   it("keeps the label prop as the escape hatch", () => {
@@ -564,7 +564,7 @@ describe("describeGap", () => {
     // computation and cannot drift apart.
     expect(describeGap(0.2)).toBe("close agreement");
     expect(describeGap(0.5)).toBe("some distance");
-    expect(describeGap(1.0)).toBe("a significant gap");
+    expect(describeGap(1.0)).toBe("significant gap");
     expect(describeGap(1.5)).toBe("far apart");
   });
 
@@ -576,12 +576,12 @@ describe("describeGap", () => {
 
 Add `describeGap, describePosition` to the file's import from `@/components/PairedAxisScale`.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/paired-axis-scale.test.ts`
 Expected: FAIL — `describePosition is not a function`, plus the label and dot assertions.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace `src/components/PairedAxisScale.tsx` in full:
 
@@ -646,7 +646,7 @@ export function describePosition(score: number, poleALabel: string, poleBLabel: 
 export function describeGap(gap: number): string {
   if (gap <= 0.3) return "close agreement";
   if (gap <= 0.7) return "some distance";
-  if (gap <= 1.2) return "a significant gap";
+  if (gap <= 1.2) return "significant gap";
   return "far apart";
 }
 
@@ -659,7 +659,8 @@ export function describeScale({
   respondentALabel,
   respondentBLabel,
 }: {
-  axisName: string;
+  /** Omit to get the bare position, with no prefix. */
+  axisName?: string;
   poleALabel: string;
   poleBLabel: string;
   scoreA: number;
@@ -667,11 +668,12 @@ export function describeScale({
   respondentALabel: string;
   respondentBLabel: string;
 }): string {
+  const prefix = axisName ? `${axisName}: ` : "";
   const a = describePosition(scoreA, poleALabel, poleBLabel);
-  if (scoreB === undefined) return `${axisName}: ${a}`;
+  if (scoreB === undefined) return `${prefix}${a}`;
   const b = describePosition(scoreB, poleALabel, poleBLabel);
   const relation = describeGap(Math.abs(scoreA - scoreB));
-  return `${axisName}: ${respondentALabel} ${a}, ${respondentBLabel} ${b} — ${relation}`;
+  return `${prefix}${respondentALabel} ${a}, ${respondentBLabel} ${b}; ${relation}`;
 }
 
 export function PairedAxisScale({
@@ -701,7 +703,7 @@ export function PairedAxisScale({
   const description =
     label ??
     describeScale({
-      axisName: axisName ?? `${poleALabel} to ${poleBLabel}`,
+      axisName,
       poleALabel,
       poleBLabel,
       scoreA,
@@ -747,7 +749,7 @@ export function PairedAxisScale({
 }
 ```
 
-- [ ] **Step 4: Update the home page's call site**
+- [x] **Step 4: Update the home page's call site**
 
 In `src/app/page.tsx`, the `PairedAxisScale` element currently ends with:
 
@@ -765,12 +767,12 @@ Replace those two lines with:
 
 The home page's respondents are already anonymous `Respondent A` / `Respondent B` (spec D2), which is the component's default, so no respondent props are needed. The pole labels it passes are `shortPole(...)`-truncated; the description uses those same short forms, which stays meaningful.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/paired-axis-scale.test.ts tests/unit/home-page.test.ts`
 Expected: PASS. `home-page.test.ts` must be green **unmodified**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/PairedAxisScale.tsx src/app/page.tsx tests/unit/paired-axis-scale.test.ts
@@ -1257,15 +1259,19 @@ git commit -m "refactor(design): retire ScoreBar in favour of PairedAxisScale"
 
 **Files:**
 - Modify: `src/components/comparison/ComparisonScoreBar.tsx` (full rewrite)
-- Modify: `src/app/compare/page.tsx` — one line of legend copy
+- Modify: `src/app/compare/page.tsx` — one line of legend copy, and its duplicate `deltaLabel`
 - Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
 
 **Interfaces:**
 - Consumes: `PairedAxisScale` and `describeGap` (Task 3).
-- Removes: the component's `useState`, its two hover tooltips, and its local `deltaLabel` ladder.
+- Removes: the component's `useState`, its two hover tooltips, and its local `deltaLabel` ladder, **and the fourth copy of the same ladder at `src/app/compare/page.tsx:47`**.
 - Props are unchanged. `/compare`'s layout is untouched; only the bar converges. Phase 5 restyles the page.
 
 **Why the tooltips go (D10).** They were mouse-only — no keyboard path, no screen-reader path — and they showed exactly the information mock 7a puts permanently on the axis-name line. Two always-visible mono readouts replace them, and `describeGap` puts the same bucket thresholds into the scale's `aria-label`, so for the first time a screen-reader user on `/compare` gets both positions and the relationship.
+
+**There is a fourth copy of these buckets, and it is on the same page.** Task 3's code review found `src/app/compare/page.tsx:47` holds its own `deltaLabel` with the *pre-convergence* strings, rendered visibly at lines 162 and 171 in the "most aligned" / "furthest apart" lists. `describeGap` reworded one bucket — `very close` → `close agreement` — so without this, `/compare` would say `Governance Structure — very close` in its aligned list and `close agreement` on the bar for that same axis, a few hundred pixels apart: same thresholds, same data, two vocabularies. Delete the local function and call `describeGap` at both sites. This is five lines and stays inside "only the bar converges" — D10 defers `/compare`'s *layout* to phase 5, not its correctness. The other three buckets were kept verbatim precisely to keep this fold to one changed string.
+
+Note the two spans at lines 162 and 171 carry `text-text-tertiary`, which this phase's constraints ban. Leave them — `/compare`'s sweep is phase 5, and Task 11's guardrail is scoped to `src/components/results/`.
 
 **The dot roles swap, and the page's legend says so.** Today `ComparisonScoreBar` draws **A as a ring and B as a filled dot**. `PairedAxisScale` draws the reverse — delta 05 specifies respondent A as the filled domain dot and respondent B as the outlined one. `src/app/compare/page.tsx:186` reads *"Ring marker is you, filled dot is them."* and becomes wrong the moment this task lands. Fixing the copy is part of this task, not a follow-up.
 
@@ -1312,7 +1318,7 @@ describe("ComparisonScoreBar", () => {
 
     expect(container.querySelector("[role='img']")!.getAttribute("aria-label")).toBe(
       "Governance Structure: You moderately toward Distributed Governance, " +
-        "Them strongly toward Centralized Governance — far apart",
+        "Them strongly toward Centralized Governance; far apart",
     );
   });
 
