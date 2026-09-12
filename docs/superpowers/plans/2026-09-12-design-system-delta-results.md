@@ -335,7 +335,7 @@ git commit -m "feat(design): add mode-stepping data-mark tokens, body-s, and the
 
 **Why this is second.** Both items were deferred *to this phase* by name, and doing them before the results page grows new `text-[13.5px]` call sites is the whole point — otherwise the results page adds to a convention nobody can enforce. It also keeps the quiz diff out of the results-page tasks that follow.
 
-- [ ] **Step 1: Replace the pairing guard with a presence guard**
+- [x] **Step 1: Replace the pairing guard with a presence guard**
 
 In `tests/unit/quiz-chrome.test.ts`, replace the whole `it("keeps the delta's prose size and its line-height together", ...)` test with:
 
@@ -361,7 +361,7 @@ In `tests/unit/quiz-chrome.test.ts`, replace the whole `it("keeps the delta's pr
   });
 ```
 
-- [ ] **Step 2: Update the two source pins that spell the old literal**
+- [x] **Step 2: Update the two source pins that spell the old literal**
 
 Still in `tests/unit/quiz-chrome.test.ts`, inside `it("pins the replaced values on screens nothing mounts", ...)`:
 
@@ -397,12 +397,12 @@ Then add a guard for the budget track, in the same `describe("quiz chrome drift 
   });
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/quiz-chrome.test.ts`
 Expected: FAIL — the presence guard lists all five files, and the budget guard reports no `--mark-primary`.
 
-- [ ] **Step 4: Sweep the nine call sites**
+- [x] **Step 4: Sweep the nine call sites**
 
 In each of the five files, replace `text-[13.5px] leading-[1.6]` with `body-s`, leaving every other class in the string untouched and in place. The nine strings become:
 
@@ -426,7 +426,7 @@ grep -rn "text-\[13.5px\]\|leading-\[1.6\]" src/components/quiz/ || echo "clean"
 
 Expected: five files listed (`QuizFlow.tsx:4`, `PhaseTransition.tsx:2`, and 1 each for the other three), then `clean`.
 
-- [ ] **Step 5: Retire the budget track's half-opacity Stone**
+- [x] **Step 5: Retire the budget track's half-opacity Stone**
 
 In `src/components/quiz/BudgetSimulator.tsx`, find the allocation fill inside the element carrying `data-budget-track` and replace its inline style:
 
@@ -436,12 +436,12 @@ In `src/components/quiz/BudgetSimulator.tsx`, find the allocation fill inside th
 
 Delete the `opacity: 0.5` entry from that same style object. Leave the track element (`--border-secondary`) and both `rounded-sharp` corners alone.
 
-- [ ] **Step 6: Run the quiz suites to verify they pass**
+- [x] **Step 6: Run the quiz suites to verify they pass**
 
 Run: `npx vitest run tests/unit/quiz-chrome.test.ts tests/unit/quiz-interactions.test.ts tests/unit/budget-simulator-stepper.test.ts`
 Expected: PASS, all three files. `quiz-interactions` and `budget-simulator-stepper` are behaviour suites and must be green **unmodified** — if either reddens, the sweep touched behaviour and must be narrowed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/quiz tests/unit/quiz-chrome.test.ts
