@@ -1254,8 +1254,12 @@ git commit -m "feat(design): rebuild the axis breakdown row on the mock's three-
 - Modify: `src/components/groups/GroupScoreBar.tsx`
 - Modify: `src/app/groups/[groupId]/page.tsx` (1 line)
 - Modify: `src/app/results/[profileId]/[axisId]/page.tsx`
+- Modify: `src/components/PairedAxisScale.tsx` (doc widening plus `text-right` on the second endpoint span)
 - Delete: `src/components/results/ScoreBar.tsx`
 - Modify: `tests/unit/results-dead-code.test.ts`
+- Modify: `tests/unit/design-system-tokens.test.ts` (migrated onto the extracted helper)
+- Create: `tests/helpers/source-files.ts`
+- Create: `tests/unit/group-score-bar.test.ts`
 
 **Interfaces:**
 - Produces: `GroupScoreBarProps` gains a required `axisId: number`.
@@ -1263,7 +1267,7 @@ git commit -m "feat(design): rebuild the axis breakdown row on the mock's three-
 
 **Why now.** Task 4 took the last call site the mock redraws; these two are D6-deferred screens that keep their layout and only change primitive. Leaving `ScoreBar` in the tree would leave two components drawing the same thing, which is exactly what building `PairedAxisScale` was meant to end.
 
-- [ ] **Step 1: Write the failing guardrail**
+- [x] **Step 1: Write the failing guardrail**
 
 In `tests/unit/results-dead-code.test.ts`, extend the existing test:
 
@@ -1307,17 +1311,19 @@ function tsxFiles(dir: string): string[] {
 
 and add `readdirSync` to the `node:fs` import.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/unit/results-dead-code.test.ts`
 Expected: FAIL — `ScoreBar.tsx` still exists, and two importers are listed.
 
-- [ ] **Step 3: Move `GroupScoreBar` onto the primitive**
+- [x] **Step 3: Move `GroupScoreBar` onto the primitive**
 
-In `src/components/groups/GroupScoreBar.tsx`, change the import and the interface:
+Replace `src/components/groups/GroupScoreBar.tsx` in full:
 
 ```tsx
-import { PairedAxisScale } from "@/components/PairedAxisScale";
+"use client";
+
+import { PairedAxisScale, scoreToTrackPercent } from "@/components/PairedAxisScale";
 
 interface GroupScoreBarProps {
   /** 1-12; selects the domain colour for the average marker. */
@@ -1328,24 +1334,106 @@ interface GroupScoreBarProps {
   memberScores: number[];
   average: number | null;
 }
-```
 
-Add `axisId` to the destructured parameters, and replace the `<ScoreBar ... />` element with:
+export function GroupScoreBar({
+  axisId,
+  axisName,
+  poleALabel,
+  poleBLabel,
+  memberScores,
+  average,
+}: GroupScoreBarProps) {
+  return (
+    <div className="mb-5">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium text-text-primary">{axisName}</span>
+        {average !== null && (
+          <span className="text-xs font-mono tabular-nums text-text-secondary">
+            {average >= 0 ? "+" : ""}
+            {average.toFixed(2)}
+          </span>
+        )}
+      </div>
 
-```tsx
+      {/* Member dots bar. Purely illustrative — the accessible position and
+          value both live in the PairedAxisScale below and the readout above. */}
+      <div
+        aria-hidden="true"
+        className="relative h-[6px] rounded-[3px] overflow-visible mb-3"
+        style={{ backgroundColor: 'var(--border-tertiary)' }}
+      >
+        {/* Center line */}
+        <div
+          className="absolute left-1/2 -translate-x-px"
+          style={{
+            top: -3,
+            width: 0.5,
+            height: 12,
+            backgroundColor: 'var(--border-secondary)',
+          }}
+        />
+
+        {/* Member score dots */}
+        {memberScores.map((score, i) => {
+          const left = scoreToTrackPercent(score);
+          return (
+            <div
+              key={i}
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                left: `${left}%`,
+                width: 10,
+                height: 10,
+                border: '2px solid var(--stone-600)',
+                backgroundColor: 'var(--surface-1)',
+              }}
+              title={score.toFixed(2)}
+            />
+          );
+        })}
+
+        {/* Group average marker */}
+        {average !== null && (
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-px"
+            style={{
+              left: `${scoreToTrackPercent(average)}%`,
+              width: 1.5,
+              height: 16,
+              backgroundColor: 'var(--stone-600)',
+              opacity: 0.6,
+            }}
+            title={`Group avg: ${average.toFixed(2)}`}
+          />
+        )}
+      </div>
+
+      {/* PairedAxisScale for the group average */}
+      {average !== null && (
         <PairedAxisScale
           axisId={axisId}
           poleALabel={poleALabel}
           poleBLabel={poleBLabel}
           scoreA={average}
           endpoints="below"
-          axisName={`${axisName} — group average`}
+          axisName={`${axisName}, group average`}
         />
+      )}
+      {average === null && (
+        <div className="flex justify-between text-xs text-text-tertiary mt-1">
+          <span>{poleALabel}</span>
+          <span>No data</span>
+          <span>{poleBLabel}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
-Leave the member-dot strip above it, the `average === null` fallback, and every other class untouched — `/groups` is a D6-deferred screen and only its primitive changes here.
+The axis-name qualifier is `, group average`, a comma rather than the em dash originally drafted here — Task 3 deliberately dropped an em dash from exactly this position (`describeScale`'s separator) because most synthesizers speak nothing for U+2014 and don't reliably pause on it, and this plan's own line would have reintroduced it. `scoreToTrackPercent` (imported from `PairedAxisScale`, exported alongside it) replaces the two inline `((clamped + 1) / 2) * 100` mappings on the member dots and the average marker, and the average readout moves out of the (now `aria-hidden`) strip into a visible span above it — see "As shipped" below for why both of those are more than a primitive swap.
 
-- [ ] **Step 4: Pass `axisId` at the group call site**
+- [x] **Step 4: Pass `axisId` at the group call site**
 
 In `src/app/groups/[groupId]/page.tsx`, add one line to the `<GroupScoreBar>` element, immediately after `key={as.axisId}`:
 
@@ -1353,7 +1441,7 @@ In `src/app/groups/[groupId]/page.tsx`, add one line to the `<GroupScoreBar>` el
                 axisId={as.axisId}
 ```
 
-- [ ] **Step 5: Move the per-axis detail page onto the primitive**
+- [x] **Step 5: Move the per-axis detail page onto the primitive**
 
 In `src/app/results/[profileId]/[axisId]/page.tsx`, replace the `ScoreBar` import with:
 
@@ -1364,6 +1452,13 @@ import { PairedAxisScale } from "@/components/PairedAxisScale";
 and replace the `<ScoreBar ... />` element with:
 
 ```tsx
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-[11px] text-text-label">Composite score</span>
+            <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
+              {axisScore.finalScore >= 0 ? "+" : ""}
+              {axisScore.finalScore.toFixed(2)}
+            </span>
+          </div>
           <PairedAxisScale
             axisId={axisId}
             poleALabel={axis.poleALabel}
@@ -1374,25 +1469,33 @@ and replace the `<ScoreBar ... />` element with:
           />
 ```
 
-`axisId` is already in scope on this page — it is parsed from the route params at the top of the component. The `height={12}` prop has no equivalent and is dropped; `PairedAxisScale` is a fixed 14px-tall track by design.
+`axisId` is already in scope on this page — it is parsed from the route params at the top of the component. The `height={12}` prop has no equivalent and is dropped; `PairedAxisScale` is a fixed 14px-tall track by design. The `Composite score` readout above it is not part of the primitive swap `ScoreBar` was doing before — `ScoreBar` rendered the score itself in a positioned span, and this restores that display, which `PairedAxisScale` deliberately does not own. See "As shipped" below.
 
-- [ ] **Step 6: Delete the file**
+- [x] **Step 6: Delete the file**
 
 ```bash
 git rm src/components/results/ScoreBar.tsx
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-dead-code.test.ts && npx tsc --noEmit`
 Expected: the vitest run PASSes. `tsc` still reports the `alternateRow` prop on `ResultsView`'s `AxisBreakdownCard` call from Task 4 — that single error is expected until Task 10, and **no other error may appear**. If `tsc` reports anything else, a call site was missed.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A src/components/groups src/app/groups src/app/results src/components/results tests/unit/results-dead-code.test.ts
 git commit -m "refactor(design): retire ScoreBar in favour of PairedAxisScale"
 ```
+
+**As shipped.** Implementation and review moved this task in five ways from the text above:
+
+1. **A coordinate-mapping regression, caught in review.** `GroupScoreBar`'s member-dot strip mapped scores with `((clamped + 1) / 2) * 100` — a 0-100% track — while `PairedAxisScale` uses `scoreToTrackPercent`, `50 + clamped * 44`, a 6-94% track so a dot at a pole doesn't clip. The deleted `ScoreBar` used the strip's mapping, so the two agreed exactly before this task and diverged by roughly 41px at the poles after it, worst where a group has strong consensus. Both strip call sites now import and use `scoreToTrackPercent`.
+2. **The composite score vanished from two screens.** `ScoreBar` rendered the number in a positioned span; the primitive deliberately doesn't own a readout, and neither call site added one. The per-axis detail page lost its only display of `finalScore` while still printing the three operands it fuses — on the page whose whole job is showing how a score was produced. On `/groups` the average survived only as a `title` on a 1.5px-wide div: mouse-only, no keyboard or AT path. Both readouts restored, each matching its own screen's idiom rather than the phase's, since both are design-deferred.
+3. **`tsxFiles` was extracted** to `tests/helpers/source-files.ts` as `sourceFiles(dir, extensions = [".ts", ".tsx"])` rather than duplicated a second time, and the importer guard's regex widened to Task 4's `/from\s+["'][^"']*\/ScoreBar["']/` — the narrower original let a sibling's `from "./ScoreBar"` through, demonstrated by mutation. The helper prunes `node_modules`, `generated` and dot-directories internally: `src/generated` is 27 committed Prisma files, and `design-system-tokens.test.ts` drives token bans off the same helper, so the first `.ts` pattern ban would otherwise report machine-generated code as design violations.
+4. **An accessibility regression added and then fixed in review.** The restored detail-page label first used `text-text-tertiary` (`#9d8b78`, **3.28:1** on white — under AA at 11px) to match three pre-existing siblings on that screen. Changed to `text-text-label` (`#6e5a48`, **6.52:1**). The two tokens are byte-identical in dark mode, where `--text-label` resolves to `--stone-500`, so the fix is a no-op there and only diverges in light. Record the consequence: **no rendered assertion can distinguish these two tokens in dark mode**, so any future guard on this has to be a source assertion.
+5. **Five new tests** in `tests/unit/group-score-bar.test.ts` covering the `axisId` plumbing, the `, group average` label composition, and both track mappings — the commit's only new behaviour, previously untested.
 
 ---
 
@@ -3276,6 +3379,8 @@ git add tests/unit/results-chrome.test.ts
 git commit -m "test(design): guard the results page against design drift"
 ```
 
+**Addendum (reconciled after Task 5).** `resultsSources` is built from `readdirSync` scoped to `src/components/results/`, so every guard in this task only ever sees that one directory. Task 5 shipped the gap: its `text-text-tertiary` violation (see Task 5's "As shipped" note) landed at `src/app/results/[profileId]/[axisId]/page.tsx` — the same feature, under `src/app`, not `src/components/results` — and none of these guards would have caught it; it surfaced only because a human review pass happened to look at that file. The eventual guard here should also sweep `src/app/results/**`, not just `src/components/results/`. `tests/helpers/source-files.ts`, extracted in Task 5, already does a recursive extension-filtered sweep with `node_modules`/`generated`/dot-directory pruning built in, so it is the right tool for that recursive sweep rather than a second hand-rolled `readdirSync` walk. Left as an addendum rather than a rewrite of the guards above — this task's implementer should act on it.
+
 ---
 
 ### Task 12: Full verification and the two-mode visual check
@@ -3325,6 +3430,8 @@ Then, for each of `prefers-color-scheme: light` and `dark`, open a URL-encoded r
 4. **The compass square measures 300px** and its grid is visible-but-quiet in both modes.
 5. **Keyboard focus.** Tab through the jump nav, `Copy link`, `Compare with someone`, `Learn more`, `Show scoring details` and one row's scoring disclosure. Every one draws a 2px Stone 600 ring at 2px offset; none draws a ring on a mouse click.
 6. **Behaviour.** `Copy link` shows `Copied!` for 2s; `Compare with someone` opens the input and a pasted `?r=` URL routes to `/compare`; `Show scoring details` reveals twelve disclosures; each jump link scrolls to its section.
+7. **`PairedAxisScale`'s endpoint labels wrap correctly at narrow viewports.** Task 5 moved these to 11px uppercase mono via `label-tight`, replacing sentence-case sans; the longest pole pair may now wrap onto two lines at narrow widths. Task 5 also added `text-right` to the second endpoint span so a wrapped pole B stays right-aligned rather than ragged-left — confirm it actually does.
+8. **The per-axis detail page's restored "Composite score" label reads as hierarchy, not mismatch.** Task 5 restored it on `text-text-label`, which in light mode is visibly darker than the three sibling `text-text-tertiary` labels beside it (`Forced choice`, `Scaled`, `Budget`). Confirm that difference reads as intentional emphasis rather than a styling inconsistency; the two tokens are byte-identical in dark mode, so this is a light-mode-only check.
 
 Capture one screenshot per mode for the PR.
 
