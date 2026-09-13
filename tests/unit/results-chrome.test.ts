@@ -202,6 +202,32 @@ describe("AxisBreakdownCard", () => {
     expect(open.textContent).toContain("See how this was scored");
   });
 
+  it("names the disclosure with its visible label rather than instead of it", () => {
+    // WCAG 2.5.3, Label in Name. The retired aria-label read "Show scoring
+    // breakdown for {name}" against a visible "See how this was scored" —
+    // sharing no words, so it replaced the accessible name and the control
+    // stopped matching by voice. A visually-hidden suffix extends the name
+    // instead. State is not in the name: aria-expanded already carries it.
+    const container = render(createElement(AxisBreakdownCard, { ...AXIS, showScoring: true }));
+    const button = container.querySelector("button")!;
+
+    expect(button.getAttribute("aria-label")).toBeNull();
+    expect(button.textContent).toContain("See how this was scored");
+    // The twelve rows all label this control identically otherwise, which
+    // makes them indistinguishable in an AT control list.
+    expect(button.textContent).toContain("Governance Structure");
+    // Scoped to the button, not the container: RadarChart.tsx already renders
+    // an .sr-only table and Task 8 rewrites it, so a container-wide lookup
+    // would start passing on the wrong node without ever reddening.
+    expect(button.querySelector(".sr-only")).not.toBeNull();
+
+    // The caret is decoration inside that same accessible name, and the space
+    // after it has to survive JSX whitespace collapsing.
+    const caret = button.querySelector("[aria-hidden='true']")!;
+    expect(caret.textContent).toBe("▸");
+    expect(button.textContent).toContain("▸ See how this was scored");
+  });
+
   it("expands the scoring disclosure on click, without reviving the retired card styling", () => {
     const container = render(createElement(AxisBreakdownCard, { ...AXIS, showScoring: true }));
     const button = container.querySelector("button")!;

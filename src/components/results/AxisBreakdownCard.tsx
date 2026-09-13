@@ -104,9 +104,27 @@ export function AxisBreakdownCard({
             onClick={() => setExpanded((prev) => !prev)}
             className="label-nav text-text-secondary hover:text-text-primary transition-colors duration-150 focus-ring"
             aria-expanded={expanded}
-            aria-label={expanded ? `Hide scoring breakdown for ${name}` : `Show scoring breakdown for ${name}`}
           >
-            {expanded ? "▾ Hide scoring breakdown" : "▸ See how this was scored"}
+            {/* WCAG 2.5.3 (Label in Name): the accessible name has to CONTAIN
+                the visible label. The retired aria-label shared no words with
+                "See how this was scored", so it replaced the name outright and
+                the control stopped matching by voice. The axis name is still
+                worth carrying — twelve identically-labelled disclosures are
+                indistinguishable in a control list — so it moves to a
+                visually-hidden suffix that extends the name instead. The
+                expanded/collapsed state is dropped entirely: aria-expanded
+                already carries it, and ARIA practice keeps state out of the
+                name. */}
+            {/* The caret is decoration sitting inside the accessible name, and
+                AT announces U+25B8 by its Unicode name. Every other disclosure
+                caret in the repo is already aria-hidden (NavBar, PersonaModal,
+                PersonasPageClient, the archetype reference); this was the last
+                one that was not. The leading space stays inside the string
+                literal — JSX collapses whitespace between an element and an
+                adjacent expression container to nothing. */}
+            <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+            {expanded ? " Hide scoring breakdown" : " See how this was scored"}
+            <span className="sr-only"> for {name}</span>
           </button>
 
           {expanded && (
