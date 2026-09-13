@@ -1504,12 +1504,18 @@ git commit -m "refactor(design): retire ScoreBar in favour of PairedAxisScale"
 **Files:**
 - Modify: `src/components/comparison/ComparisonScoreBar.tsx` (full rewrite)
 - Modify: `src/app/compare/page.tsx` — one line of legend copy, and its duplicate `deltaLabel`
+- Modify: `src/app/compare/[profileId1]/[profileId2]/page.tsx` — second call site, also stops passing `delta`
+- Modify: `src/components/results/AxisBreakdownCard.tsx` — moves onto the shared formatter
+- Modify: `src/lib/comparison-radar-data.ts` — drops its own `formatScore`
+- Modify: `src/components/comparison/ComparisonRadar.tsx` — imports the shared formatter instead
+- Create: `src/lib/format-score.ts`
 - Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
+- Modify: `tests/unit/comparison-radar-data.test.ts` — moves its pinned formatter test onto the shared import
 
 **Interfaces:**
 - Consumes: `PairedAxisScale` and `describeGap` (Task 3).
 - Removes: the component's `useState`, its two hover tooltips, and its local `deltaLabel` ladder, **and the fourth copy of the same ladder at `src/app/compare/page.tsx:47`**.
-- Props are unchanged. `/compare`'s layout is untouched; only the bar converges. Phase 5 restyles the page.
+- `delta` is removed from `ComparisonScoreBarProps`. The component derives it as `Math.abs(scoreA - scoreB)` from the two scores it already receives. `/compare`'s layout is untouched; only the bar converges. Phase 5 restyles the page.
 
 **Why the tooltips go (D10).** They were mouse-only — no keyboard path, no screen-reader path — and they showed exactly the information mock 7a puts permanently on the axis-name line. Two always-visible mono readouts replace them, and `describeGap` puts the same bucket thresholds into the scale's `aria-label`, so for the first time a screen-reader user on `/compare` gets both positions and the relationship.
 
@@ -1519,7 +1525,7 @@ Note the two spans at lines 162 and 171 carry `text-text-tertiary`, which this p
 
 **The dot roles swap, and the page's legend says so.** Today `ComparisonScoreBar` draws **A as a ring and B as a filled dot**. `PairedAxisScale` draws the reverse — delta 05 specifies respondent A as the filled domain dot and respondent B as the outlined one. `src/app/compare/page.tsx:186` reads *"Ring marker is you, filled dot is them."* and becomes wrong the moment this task lands. Fixing the copy is part of this task, not a follow-up.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/unit/results-chrome.test.ts`:
 
@@ -1533,7 +1539,6 @@ describe("ComparisonScoreBar", () => {
     scoreB: 0.9,
     poleALabel: "Distributed Governance",
     poleBLabel: "Centralized Governance",
-    delta: 1.4,
     labelA: "You",
     labelB: "Them",
   };
@@ -1566,24 +1571,118 @@ describe("ComparisonScoreBar", () => {
     );
   });
 
-  it("labels the gap from the shared buckets, not a local ladder", () => {
-    // The thresholds moved into PairedAxisScale so the visible label and the
-    // accessible description are one computation. A local copy would drift.
-    const container = render(createElement(ComparisonScoreBar, { ...PAIR, delta: 0.2 }));
+  it("derives the gap badge from the same two scores as the scale, not an independent prop", () => {
+    // `delta` used to arrive as a prop the caller computed separately from
+    // scoreA/scoreB. A fixture that set delta inconsistently with the scores
+    // could make the visible badge and the aria-label's trailing clause
+    // disagree; deriving delta inside the component from scoreA/scoreB makes
+    // that impossible rather than merely untested. This pair (-0.5, -0.3) is
+    // close enough to land in the "close agreement" bucket.
+    const container = render(
+      createElement(ComparisonScoreBar, { ...PAIR, scoreA: -0.5, scoreB: -0.3 }),
+    );
 
-    expect(container.querySelector("[data-gap]")!.textContent).toBe("close agreement");
+    const ariaLabel = container.querySelector("[role='img']")!.getAttribute("aria-label")!;
+    const trailingClause = ariaLabel.slice(ariaLabel.lastIndexOf("; ") + 2);
+
+    expect(container.querySelector("[data-gap]")!.textContent).toBe(trailingClause);
+    expect(trailingClause).toBe("close agreement");
+
+    // And again on a WIDE pair. The close fixture alone cannot see a dropped
+    // Math.abs: (-0.5, -0.3) signed is -0.2, which buckets as "close
+    // agreement" exactly like +0.2, so badge and clause still agree. On PAIR
+    // the same mutation prints "close agreement" beside an aria-label saying
+    // "far apart" — the precise divergence this test exists to forbid.
+    const wide = render(createElement(ComparisonScoreBar, PAIR));
+    const wideLabel = wide.querySelector("[role='img']")!.getAttribute("aria-label")!;
+    const wideClause = wideLabel.slice(wideLabel.lastIndexOf("; ") + 2);
+
+    expect(wide.querySelector("[data-gap]")!.textContent).toBe(wideClause);
+    expect(wideClause).toBe("far apart");
+  });
+
+  it("hides the gap badge from the accessibility tree, since the aria-label already says it", () => {
+    // The badge's text is byte-identical to the aria-label's trailing clause
+    // (proven by the previous test). Left exposed, a screen-reader user would
+    // hear the same relationship twice per row, twelve times down the page.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    expect(container.querySelector("[data-gap]")!.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("marks each readout with the same dot vocabulary the scale itself uses", () => {
+    // The tooltips this replaced were the only thing tying a respondent's
+    // name to a specific dot. `/compare/[id]/[id]` has no legend at all, so
+    // the mapping has to live on the readout itself. The colour must be the
+    // mode-stepping custom property the primitive uses for its own dot, not
+    // a fixed hex, or the swatch would desync from the real dot in dark mode.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    const markA = container.querySelector("[data-mark='a']")! as HTMLElement;
+    const markB = container.querySelector("[data-mark='b']")! as HTMLElement;
+
+    expect(markA.getAttribute("aria-hidden")).toBe("true");
+    expect(markB.getAttribute("aria-hidden")).toBe("true");
+
+    // A is the filled dot: same custom property as the primitive's own
+    // respondent-A mark, not a literal hex.
+    expect(markA.style.backgroundColor).toBe(getDomainMarkVar(PAIR.axisId));
+    // B is the outlined dot: a border, not a fill.
+    expect(classes(markB)).toContain("border-text-label");
+    expect(classes(markB)).not.toContain("bg-text-label");
+  });
+
+  it("uses the design system's named type roles, not the pre-commit raw utility pairs", () => {
+    // `text-text-label` and `text-text-secondary` resolve to the identical
+    // hex in light mode, so only a class assertion (never a computed style)
+    // can tell the named role from the retired one.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    const gap = container.querySelector("[data-gap]")!;
+    const axisNameSpan = gap.previousElementSibling!;
+    expect(classes(axisNameSpan)).toContain("body-s");
+    expect(classes(axisNameSpan)).not.toContain("text-sm");
+
+    expect(classes(gap)).toContain("text-text-label");
+    expect(classes(gap)).not.toContain("text-text-tertiary");
+    // Long axis names must not be allowed to squeeze the badge into wrapping.
+    expect(classes(gap)).toContain("shrink-0");
+
+    const tagline = container.querySelector("p")!;
+    expect(classes(tagline)).toContain("body-xs");
+    expect(classes(tagline)).not.toContain("text-xs");
+
+    const readoutRow = container.querySelector("[data-readout='a']")!.parentElement!;
+    expect(classes(readoutRow)).toContain("mono-meta");
+    expect(classes(readoutRow)).toContain("text-text-secondary");
+    expect(classes(readoutRow)).not.toContain("text-text-tertiary");
+    // A long user-supplied name wrapping the row to two lines needs row gap,
+    // or its 11px lines butt against each other at line-height 1.4.
+    expect(classes(readoutRow)).toContain("gap-y-0.5");
+  });
+
+  it("keeps the pole endpoints below the track, not above it", () => {
+    // Pinned through DOM order rather than a class, since PairedAxisScale
+    // places the pole labels by render order: the track-bearing element is
+    // the scale's first child only when `endpoints="below"` is actually
+    // passed through, and its last child otherwise.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+    const scale = container.querySelector("[role='img']")!;
+
+    expect(scale.firstElementChild!.querySelector("[data-track]")).not.toBeNull();
+    expect(scale.lastElementChild!.querySelector("[data-track]")).toBeNull();
   });
 });
 ```
 
-Add `import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";` to the file's imports.
+Add `import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";` and `import { getDomainMarkVar } from "@/lib/design-tokens";` to the file's imports.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
 Expected: FAIL — no `[data-readout]`, two `[data-track]` elements, and the `aria-label` still names only the poles.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace `src/components/comparison/ComparisonScoreBar.tsx` in full. Note the tagline below uses `body-xs text-text-label`, not the raw `text-xs leading-[1.5]` pair — `body-xs` now exists (added in Task 4) precisely so this row does not reintroduce it:
 
@@ -1591,6 +1690,8 @@ Replace `src/components/comparison/ComparisonScoreBar.tsx` in full. Note the tag
 "use client";
 
 import { PairedAxisScale, describeGap } from "@/components/PairedAxisScale";
+import { getDomainMarkVar } from "@/lib/design-tokens";
+import { formatScore } from "@/lib/format-score";
 
 interface ComparisonScoreBarProps {
   axisId: number;
@@ -1600,15 +1701,9 @@ interface ComparisonScoreBarProps {
   scoreB: number;
   poleALabel: string;
   poleBLabel: string;
-  delta: number;
   labelA: string;
   labelB: string;
   alternateRow?: boolean;
-}
-
-function formatScore(score: number): string {
-  const clamped = Math.max(-1, Math.min(1, score));
-  return (clamped > 0 ? "+" : "") + clamped.toFixed(2);
 }
 
 /**
@@ -1620,6 +1715,14 @@ function formatScore(score: number): string {
  * component's former ones: respondent A is the FILLED domain dot and
  * respondent B the outlined one, which is the reverse of what shipped. The
  * legend on `/compare` names them in that order.
+ *
+ * `delta` is not a prop: it is derived here from the same two scores the
+ * scale draws, so the visible gap badge and the scale's `aria-label` can
+ * never disagree by construction. (An earlier version of this task kept
+ * `delta` as an incoming prop, mirroring `compareProfiles`'s own field of the
+ * same name — but that gave the badge and the scale two independent code
+ * paths for one number, which is exactly the kind of duplication this
+ * convergence exists to remove.)
  */
 export function ComparisonScoreBar({
   axisId,
@@ -1629,26 +1732,47 @@ export function ComparisonScoreBar({
   scoreB,
   poleALabel,
   poleBLabel,
-  delta,
   labelA,
   labelB,
   alternateRow = false,
 }: ComparisonScoreBarProps) {
+  const delta = Math.abs(scoreA - scoreB);
+
   return (
     <div className={`rounded-sharp px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}>
       <div className="flex items-baseline justify-between gap-3 mb-0.5">
         <span className="body-s text-text-primary">{axisName}</span>
-        <span data-gap className="mono-meta text-text-label">
+        {/* aria-hidden: byte-identical to the scale's aria-label trailing
+            clause below, so a screen reader would otherwise hear it twice
+            per row, twelve times down the page. */}
+        <span data-gap aria-hidden="true" className="mono-meta text-text-label shrink-0">
           {describeGap(delta)}
         </span>
       </div>
       <p className="body-xs text-text-label mb-2">{tagline}</p>
 
-      <div className="flex flex-wrap gap-x-4 mb-1.5 mono-meta text-text-secondary tabular-nums">
-        <span data-readout="a">
+      {/* The tooltips this replaced were the only thing mapping a
+          respondent's name to a specific dot. `/compare/[id]/[id]` has no
+          legend at all (it passes real user names), so each readout carries
+          its own swatch in the primitive's own mark vocabulary — the
+          mode-stepping custom property, not a fixed hex — rather than
+          relying on a legend elsewhere on the page. */}
+      <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1.5 mono-meta text-text-secondary tabular-nums">
+        <span data-readout="a" className="inline-flex items-center gap-1">
+          <span
+            data-mark="a"
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full shrink-0"
+            style={{ backgroundColor: getDomainMarkVar(axisId) }}
+          />
           {labelA} {formatScore(scoreA)}
         </span>
-        <span data-readout="b">
+        <span data-readout="b" className="inline-flex items-center gap-1">
+          <span
+            data-mark="b"
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full border-[1.5px] border-text-label bg-surface-1 shrink-0"
+          />
           {labelB} {formatScore(scoreB)}
         </span>
       </div>
@@ -1669,7 +1793,7 @@ export function ComparisonScoreBar({
 }
 ```
 
-- [ ] **Step 4: Correct the legend copy**
+- [x] **Step 4: Correct the legend copy**
 
 In `src/app/compare/page.tsx`, line 186, replace:
 
@@ -1686,17 +1810,17 @@ with:
 Then confirm nothing else describes the old order:
 
 ```bash
-grep -rn "Ring marker\|ring marker" src/ || echo "clean"
+grep -rn "Ring marker is you" src/ || echo "clean"
 ```
 
 Expected: `clean`.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts tests/unit/comparison.test.ts tests/unit/comparison-radar-data.test.ts`
 Expected: PASS. The two comparison suites are logic tests and must be green **unmodified**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/comparison/ComparisonScoreBar.tsx src/app/compare/page.tsx tests/unit/results-chrome.test.ts
@@ -1707,6 +1831,15 @@ git commit -m "refactor(design): converge ComparisonScoreBar on PairedAxisScale"
 
 - **Unshortened pole labels.** `AxisBreakdownCard` passes `poleALabel`/`poleBLabel` raw where `src/app/page.tsx` passes them through `shortPole(...)`. Between roughly 560 and 600px viewport width the widest pair wraps to two lines. This self-corrects above ~600px, and Task 10's 820px results container widens the axis row further still — but this component's middle column is narrower than the axis row's, so it will hit the wrap harder. Worth checking once this task's grid is in place.
 - **Two responsive conventions for the same pattern.** The home page uses a block that becomes `min-[560px]:grid` with `min-[560px]:contents` to re-parent at the breakpoint, while the axis row (Task 4) uses a 2-column grid at all widths with `col-start-2` / `min-[560px]:col-start-3`. Both are valid; settle on one before this task builds a third variant.
+
+**As shipped.** Implementation and review moved this task in six ways from the text above:
+
+1. **The `delta` prop was removed outright**, where the plan kept it as an incoming prop alongside the scores. The Step 1 fixture as drafted passed `delta: 0.2` on a "labels the gap" test while `scoreA`/`scoreB` sat 1.4 apart — a state `compareProfiles` cannot actually produce, since `src/lib/comparison.ts:40` defines `delta` as exactly `Math.abs(scoreA - scoreB)`. Review flagged that the fixture only worked because it never checked the two numbers agreed, and making the component compute the gap itself turned that gap into a reddening test rather than a merely-tolerated one: the test did not just tolerate two code paths landing on one number, its fixture required them to. Deriving `delta` internally makes the visible badge and the `aria-label`'s trailing gap phrase the same number by construction, not by fixture discipline.
+2. **The styling half of the rewrite shipped with no guard at all.** Five mutations restored the pre-commit appearance exactly with the whole suite green — including reverting `body-xs` back to the raw `text-xs leading-[1.5]` pair that `body-xs` exists to prevent drifting apart. Guards were added mirroring the ones Task 4 put on this same file one `describe` block above.
+3. **The gap badge is now `aria-hidden`.** Its text is byte-identical to the scale's `aria-label` trailing clause, so left exposed a screen-reader user hears the same relationship twice per row, twelve times down the page. This was only safe to do once `delta` stopped being an independent prop — while two code paths existed for the same number, hiding the visible one risked telling sighted and AT users two different things.
+4. **Each readout gained its own `aria-hidden` mark swatch** — respondent A filled via `getDomainMarkVar(axisId)`, respondent B outlined with the primitive's own border recipe. The removed hover tooltips were the only thing mapping a respondent's name to a specific dot, and `src/app/compare/[profileId1]/[profileId2]/page.tsx` carries no legend at all, so on that route the mapping had been lost entirely, not just made less accessible.
+5. **`formatScore` was consolidated into `src/lib/format-score.ts`**, which the plan's Step 3 still declared as a local function. Three near-identical copies existed; two (this component and `AxisBreakdownCard`) agreed byte-for-byte, but the third, in `comparison-radar-data.ts`, signed an exact zero as `"+0.00"`. That third copy was first kept separate under the name `formatSignedScore`, on the theory that always signing kept decimal points aligned down a `<td>` column — which review found to be wrong: the table at `ComparisonRadar.tsx:139` is `className="sr-only"`, so there is no visible column to align, and the sign on a zero only made a screen reader say "plus zero point zero zero". All three now share `src/lib/format-score.ts`, in a follow-up commit (`966e851`) after this task's own commit (`07e08e4`). `src/components/results/RadarChart.tsx` carries the same inlined `>= 0` convention in its own sr-only table; Task 8 owns that file and its own consolidation.
+6. **The badge/label agreement test initially ran only on a close pair.** On `(-0.5, -0.3)` a dropped `Math.abs` yields `-0.2`, which buckets identically to `+0.2` — "close agreement" either way — so that fixture alone could not see the very mutation the test exists to catch. It now also runs on the wide `PAIR` fixture, where that mutation prints "close agreement" beside an `aria-label` reading "far apart".
 
 ---
 
@@ -2488,6 +2621,8 @@ git add src/components/results/RadarChart.tsx tests/unit/results-chrome.test.ts
 git commit -m "feat(design): reduce the radar to one polygon and twelve domain dots"
 ```
 
+**Addendum from Task 6.** The sr-only score table above still inlines its own always-signed formatter (`axis.finalScore >= 0 ? "+" : ""` against `axis.finalScore.toFixed(2)`) — a fourth instance of the pattern Task 6 found three copies of and consolidated into `src/lib/format-score.ts`. Task 6 deliberately left this one alone, since it owns `ComparisonScoreBar.tsx`, `AxisBreakdownCard.tsx`, and `comparison-radar-data.ts`, not this file. Fold this one onto `formatScore` from `@/lib/format-score` as part of this task's rewrite; doing so also picks up the shared helper's `-1..1` clamping and its `null` → `"N/A"` handling, neither of which the inline version has.
+
 ---
 
 ### Task 9: `CompassPlot` — the 300px square
@@ -3207,6 +3342,7 @@ git commit -m "feat(design): restyle the results page shell onto mock 7a"
 
 - **Dead surface on `AxisBreakdownCardProps`.** A required `domain: string` is never destructured or used by the component; three `tension` sub-fields (`level`, `direction`, `narrative`) are accepted but never read; and the `AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback is unreachable in practice and its numbers match none of the three real weight profiles. These were left in Task 4 because the interface is shared with `ResultsView`'s `AxisDisplayData`, which this task owns — trim both together, along with the `alternateRow` removal already scheduled here.
 - **`confidence: string` is looser than its source type.** `src/lib/scoring-types.ts:32` defines `"high" | "moderate" | "low" | "conflicted"`, so an unrecognised value currently falls through to `AxisBreakdownCard`'s default branch and silently renders "Low confidence" instead of failing to typecheck. Narrowing it was deferred specifically because doing it in Task 4 would have added a second typecheck error during the Task 4-to-10 interval that this plan already flags as deliberately red (the `alternateRow` removal) — two simultaneous errors would have destroyed the "exactly one error, and it is the expected one" signal that makes that interval safe to leave red. Do this alongside the dead-surface trim above.
+- **Orphaned `"use client"` on `ComparisonScoreBar.tsx`, found in Task 6's review.** With the `useState` and mouse handlers gone, the component has no hooks, no event handlers, and no browser APIs — nothing that needs the client boundary — while `PairedAxisScale`, the primitive it now wraps, carries no directive at all. `src/app/compare/[profileId1]/[profileId2]/page.tsx` is a server component, so the directive needlessly pushes its twelve `ComparisonScoreBar` rows across the client boundary and hydrates them for nothing. Routed here rather than fixed in Task 6 because verifying the removal properly needs `npm run build`, which cannot pass until this task clears the `alternateRow` typecheck error.
 
 ---
 
@@ -3480,3 +3616,4 @@ Checked against `docs/superpowers/specs/2026-09-08-design-system-delta-design.md
 Items consciously punted during the build. None block shipping. Listed here so they don't fall out of memory.
 
 - **`tests/unit/results-chrome.test.ts`'s render harness is a fifth near-verbatim copy.** The `render` helper, `classes`, and the `afterEach` cleanup block introduced in Task 4 duplicate the same trio already living in `tests/unit/quiz-chrome.test.ts`, `footer-chrome`, `home-page`, and `account-actions`. `vitest.config.ts` includes only `tests/**/*.test.ts`, so a `tests/helpers/react-dom.ts` module would not itself be collected as a suite and is a clean home for the shared code. Deferred because extracting it mid-phase touches five existing test files at once and makes a red suite ambiguous — whose change broke it. Worth doing after phase 4 lands.
+- **`/compare`'s legend sentence is unguarded copy that is about to go stale on purpose.** `src/app/compare/page.tsx:180` ("Filled dot is you, ring marker is them.") has no test pinning word order — reverting it to the wrong order leaves the whole suite green. Now that Task 6 gives each readout its own swatch, the sentence is close to redundant; deleting it in phase 5 is preferable to writing a guard for copy that phase 5 is going to remove anyway.
