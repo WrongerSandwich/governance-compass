@@ -130,7 +130,6 @@ export default async function ComparePage({
                   scoreB={d.scoreB}
                   poleALabel={axis.poleALabel}
                   poleBLabel={axis.poleBLabel}
-                  delta={d.delta}
                   labelA={labelA}
                   labelB={labelB}
                 />

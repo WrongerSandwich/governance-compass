@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { AXIS_WEIGHT_PROFILES } from "@/lib/scoring-types";
+import { formatScore } from "@/lib/format-score";
 
 export interface AxisBreakdownCardProps {
   axisId: number;
@@ -25,12 +26,6 @@ export interface AxisBreakdownCardProps {
     bg: number | null;
   };
   showScoring?: boolean;
-}
-
-function formatScore(val: number | null): string {
-  if (val === null) return "N/A";
-  const clamped = Math.max(-1, Math.min(1, val));
-  return (clamped > 0 ? "+" : "") + clamped.toFixed(2);
 }
 
 export function AxisBreakdownCard({

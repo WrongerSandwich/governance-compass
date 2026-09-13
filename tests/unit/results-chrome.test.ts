@@ -10,6 +10,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
+import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
+import { getDomainMarkVar } from "@/lib/design-tokens";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -256,5 +258,137 @@ describe("AxisBreakdownCard", () => {
     // (`@/components/results/ScoreBar`), not just `"./ScoreBar"`.
     expect(card!.text).not.toMatch(/from\s+["'][^"']*\/ScoreBar["']/);
     expect(card!.text).not.toContain("getDomainColor600");
+  });
+});
+
+describe("ComparisonScoreBar", () => {
+  const PAIR = {
+    axisId: 3,
+    axisName: "Governance Structure",
+    tagline: "Where should decisions be made?",
+    scoreA: -0.5,
+    scoreB: 0.9,
+    poleALabel: "Distributed Governance",
+    poleBLabel: "Centralized Governance",
+    labelA: "You",
+    labelB: "Them",
+  };
+
+  it("draws both respondents through the shared primitive", () => {
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    expect(container.querySelector("[data-respondent='a']")).not.toBeNull();
+    expect(container.querySelector("[data-respondent='b']")).not.toBeNull();
+    // It must not draw its own track. A second implementation of the same
+    // thing is the defect this convergence exists to remove.
+    expect(container.querySelectorAll("[data-track]")).toHaveLength(1);
+  });
+
+  it("replaces the mouse-only tooltips with permanent readouts", () => {
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    // The tooltips they replace had no keyboard or screen-reader path, so
+    // this is a strict accessibility gain, not a like-for-like restyle.
+    expect(container.querySelector("[data-readout='a']")!.textContent).toBe("You -0.50");
+    expect(container.querySelector("[data-readout='b']")!.textContent).toBe("Them +0.90");
+  });
+
+  it("names the respondents inside the scale's description", () => {
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    expect(container.querySelector("[role='img']")!.getAttribute("aria-label")).toBe(
+      "Governance Structure: You moderately toward Distributed Governance, " +
+        "Them strongly toward Centralized Governance; far apart",
+    );
+  });
+
+  it("derives the gap badge from the same two scores as the scale, not an independent prop", () => {
+    // `delta` used to arrive as a prop the caller computed separately from
+    // scoreA/scoreB. A fixture that set delta inconsistently with the scores
+    // could make the visible badge and the aria-label's trailing clause
+    // disagree; deriving delta inside the component from scoreA/scoreB makes
+    // that impossible rather than merely untested. This pair (-0.5, -0.3) is
+    // close enough to land in the "close agreement" bucket.
+    const container = render(
+      createElement(ComparisonScoreBar, { ...PAIR, scoreA: -0.5, scoreB: -0.3 }),
+    );
+
+    const ariaLabel = container.querySelector("[role='img']")!.getAttribute("aria-label")!;
+    const trailingClause = ariaLabel.slice(ariaLabel.lastIndexOf("; ") + 2);
+
+    expect(container.querySelector("[data-gap]")!.textContent).toBe(trailingClause);
+    expect(trailingClause).toBe("close agreement");
+  });
+
+  it("hides the gap badge from the accessibility tree, since the aria-label already says it", () => {
+    // The badge's text is byte-identical to the aria-label's trailing clause
+    // (proven by the previous test). Left exposed, a screen-reader user would
+    // hear the same relationship twice per row, twelve times down the page.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    expect(container.querySelector("[data-gap]")!.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("marks each readout with the same dot vocabulary the scale itself uses", () => {
+    // The tooltips this replaced were the only thing tying a respondent's
+    // name to a specific dot. `/compare/[id]/[id]` has no legend at all, so
+    // the mapping has to live on the readout itself. The colour must be the
+    // mode-stepping custom property the primitive uses for its own dot, not
+    // a fixed hex, or the swatch would desync from the real dot in dark mode.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    const markA = container.querySelector("[data-mark='a']")! as HTMLElement;
+    const markB = container.querySelector("[data-mark='b']")! as HTMLElement;
+
+    expect(markA.getAttribute("aria-hidden")).toBe("true");
+    expect(markB.getAttribute("aria-hidden")).toBe("true");
+
+    // A is the filled dot: same custom property as the primitive's own
+    // respondent-A mark, not a literal hex.
+    expect(markA.style.backgroundColor).toBe(getDomainMarkVar(PAIR.axisId));
+    // B is the outlined dot: a border, not a fill.
+    expect(classes(markB)).toContain("border-text-label");
+    expect(classes(markB)).not.toContain("bg-text-label");
+  });
+
+  it("uses the design system's named type roles, not the pre-commit raw utility pairs", () => {
+    // `text-text-label` and `text-text-secondary` resolve to the identical
+    // hex in light mode, so only a class assertion (never a computed style)
+    // can tell the named role from the retired one.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+
+    const gap = container.querySelector("[data-gap]")!;
+    const axisNameSpan = gap.previousElementSibling!;
+    expect(classes(axisNameSpan)).toContain("body-s");
+    expect(classes(axisNameSpan)).not.toContain("text-sm");
+
+    expect(classes(gap)).toContain("text-text-label");
+    expect(classes(gap)).not.toContain("text-text-tertiary");
+    // Long axis names must not be allowed to squeeze the badge into wrapping.
+    expect(classes(gap)).toContain("shrink-0");
+
+    const tagline = container.querySelector("p")!;
+    expect(classes(tagline)).toContain("body-xs");
+    expect(classes(tagline)).not.toContain("text-xs");
+
+    const readoutRow = container.querySelector("[data-readout='a']")!.parentElement!;
+    expect(classes(readoutRow)).toContain("mono-meta");
+    expect(classes(readoutRow)).toContain("text-text-secondary");
+    expect(classes(readoutRow)).not.toContain("text-text-tertiary");
+    // A long user-supplied name wrapping the row to two lines needs row gap,
+    // or its 11px lines butt against each other at line-height 1.4.
+    expect(classes(readoutRow)).toContain("gap-y-0.5");
+  });
+
+  it("keeps the pole endpoints below the track, not above it", () => {
+    // Pinned through DOM order rather than a class, since PairedAxisScale
+    // places the pole labels by render order: the track-bearing element is
+    // the scale's first child only when `endpoints="below"` is actually
+    // passed through, and its last child otherwise.
+    const container = render(createElement(ComparisonScoreBar, PAIR));
+    const scale = container.querySelector("[role='img']")!;
+
+    expect(scale.firstElementChild!.querySelector("[data-track]")).not.toBeNull();
+    expect(scale.lastElementChild!.querySelector("[data-track]")).toBeNull();
   });
 });

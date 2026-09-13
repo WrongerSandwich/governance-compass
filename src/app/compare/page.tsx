@@ -6,6 +6,7 @@ import { decodeResponses } from "@/lib/response-codec";
 import { computeFullResults } from "@/lib/scoring";
 import { compareProfiles } from "@/lib/comparison";
 import { axes } from "@/data/axes";
+import { describeGap } from "@/components/PairedAxisScale";
 import { ComparisonRadar } from "@/components/comparison/ComparisonRadar";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { AlignmentScore } from "@/components/comparison/AlignmentScore";
@@ -43,13 +44,6 @@ function CopyLinkButton() {
 }
 
 const DOMAIN_KEYS: DomainKey[] = ["economic", "power", "society", "world"];
-
-function deltaLabel(delta: number): string {
-  if (delta <= 0.3) return "very close";
-  if (delta <= 0.7) return "some distance";
-  if (delta <= 1.2) return "significant gap";
-  return "far apart";
-}
 
 function CompareResults() {
   const searchParams = useSearchParams();
@@ -159,7 +153,7 @@ function CompareResults() {
                 {comparison.closestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="text-xs text-text-tertiary">{deltaLabel(d.delta)}</span>
+                    <span className="text-xs text-text-tertiary">{describeGap(d.delta)}</span>
                   </div>
                 ))}
               </div>
@@ -168,7 +162,7 @@ function CompareResults() {
                 {comparison.furthestAxes.map((d) => (
                   <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="text-xs text-text-tertiary">{deltaLabel(d.delta)}</span>
+                    <span className="text-xs text-text-tertiary">{describeGap(d.delta)}</span>
                   </div>
                 ))}
               </div>
@@ -183,7 +177,7 @@ function CompareResults() {
               Axis breakdown
             </h2>
             <p className="text-xs font-serif italic text-text-tertiary mb-6">
-              Each bar shows both profiles. Ring marker is you, filled dot is them.
+              Each bar shows both profiles. Filled dot is you, ring marker is them.
             </p>
 
             <div className="space-y-5">
@@ -214,7 +208,6 @@ function CompareResults() {
                             scoreB={d.scoreB}
                             poleALabel={axis.poleALabel}
                             poleBLabel={axis.poleBLabel}
-                            delta={d.delta}
                             labelA="You"
                             labelB="Them"
                             alternateRow={i % 2 === 1}
