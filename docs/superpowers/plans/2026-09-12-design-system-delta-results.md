@@ -1246,6 +1246,8 @@ git commit -m "feat(design): rebuild the axis breakdown row on the mock's three-
 4. **Two extra tests beyond the plan's six** — a tension-detected render and an expanded-disclosure render — plus a source guardrail, taking the file to nine tests. The expanded render matters because the negative `bg-surface-2`/`rounded-sharp` guards only ever saw the collapsed row, and the four card wrappers the rewrite removed live inside the panel.
 5. **`PairedAxisScale`'s comment was corrected twice.** It had claimed the axis-name prefix "buys nothing" while both call sites pass it. Resolution: keep the prefix (an `aria-label` on a `role="img"` that only parses against adjacent DOM is a contract nothing enforces) and fix the comment.
 
+**Amended after Task 7 (commit `39b79ac`).** The scoring disclosure this task shipped carried a WCAG 2.5.3 (Label in Name) defect — a visible `▸ See how this was scored` under `aria-label="Show scoring breakdown for {name}"`, which shares no words with it, so the accessible name replaced the visible label and the control stopped matching by voice. Task 7 hit the identical defect in its own draft, and fixed both: the `aria-label` is gone, the axis name moves to a `sr-only` suffix that *extends* the name, the expanded state is dropped (`aria-expanded` already carries it), and the `▸`/`▾` caret is wrapped in `aria-hidden` to match every other disclosure caret in the repo. The code block in Step 3 above therefore no longer matches `src/components/results/AxisBreakdownCard.tsx` at that one `<button>`; see Task 7's out-of-plan note for the shipped form.
+
 ---
 
 ### Task 5: Retire `ScoreBar`
@@ -1847,20 +1849,20 @@ git commit -m "refactor(design): converge ComparisonScoreBar on PairedAxisScale"
 
 **Files:**
 - Modify: `src/components/results/ArchetypeCard.tsx` (full rewrite)
-- Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
+- Modify: `tests/unit/results-chrome.test.ts` — append two `describe` blocks (as shipped; the plan drafted one)
 
 **Interfaces:**
-- Produces: `ArchetypeCardProps` gains `actions?: ReactNode`, rendered at the foot of the left column.
-- Consumes: `Button` (phase 1), `body-s`, `--mark-primary` (Task 1).
+- Produces: `ArchetypeCardProps` gains `actions?: ReactNode`, rendered at the foot of the left column in **both** branches (as shipped — the plan placed it only on the archetype branch).
+- Consumes: `Button` and `ButtonLink` (phase 1), `body-s`, `--mark-primary` (Task 1).
 - Task 10 passes `<CopyLinkButton />` and `<CompareInput />` into the new slot and stops rendering its own action bar.
 
 **Why the slot, not a move (D13).** `CopyLinkButton` owns a 2s timer and `CompareInput` owns the router and the `encoded` prop. Moving them into `ArchetypeCard` would drag `useRouter` into a presentational card and hand it a prop it has no other use for. A `ReactNode` slot puts them where the mock draws them without moving what they own.
 
 Mock 7a's panel: `grid-template-columns: minmax(0,1fr) 220px`, 28px gap. Left column — `Primary archetype` in 11px mono eyebrow with **12px padding-bottom over a 1px Stone 900 rule**, then the match percentage at `display-l`, the archetype name at `display-s`, a 13.5px summary, then the action row. Below the grid, a 1px Stone 50 rule and `Adjacent · <name> — NN% match` in 11px mono. Right column — the 200px mini radar and its two-item legend.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
-Append to `tests/unit/results-chrome.test.ts`:
+Append two `describe` blocks to `tests/unit/results-chrome.test.ts` — the component's own, and this phase's first drift guard:
 
 ```ts
 describe("ArchetypeCard", () => {
@@ -1929,10 +1931,13 @@ describe("ArchetypeCard", () => {
     const learnMore = container.querySelector("[data-archetype-expand]") as HTMLButtonElement;
 
     expect(classes(learnMore)).toContain("label-nav");
+    // WCAG 2.5.3: the accessible name EXTENDS the visible label rather than
+    // replacing it, so "Learn more" still matches by voice.
+    expect(learnMore.textContent).toContain("about The Social Democrat");
     expect(learnMore.getAttribute("aria-expanded")).toBe("false");
     expect(container.textContent).not.toContain("A longer description.");
 
-    act(() => learnMore.click());
+    click(learnMore);
 
     expect(learnMore.getAttribute("aria-expanded")).toBe("true");
     expect(container.textContent).toContain("A longer description.");
@@ -1958,6 +1963,51 @@ describe("ArchetypeCard", () => {
     // which is why this asserts the declaration.
     expect(user.style.fill).toBe("var(--mark-primary)");
     expect(user.getAttribute("fill-opacity")).toBe("0.12");
+    // The stroke, not the fill, is what the eye reads here: the fill sits at
+    // 12% while the stroke has no opacity at all. Guarding only `fill` leaves
+    // the load-bearing half of the declaration free to revert to Stone 600.
+    expect(user.style.stroke).toBe("var(--mark-primary)");
+
+    // Same token, same component, same inversion requirement.
+    const swatch = container.querySelector("[data-mini-legend-you]") as HTMLElement;
+    expect(swatch.style.backgroundColor).toBe("var(--mark-primary)");
+
+    // The <svg> is aria-hidden, so an exposed legend describes a chart AT
+    // cannot perceive — a bare "You Prototype" with no referent.
+    const legend = container.querySelector("[data-mini-legend]")!;
+    expect(legend.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("places the radar's vertices where the score and the radius put them", () => {
+    // The geometry is otherwise unpinned: miniRadarPoints can be rescaled, have
+    // its sign mapping inverted, or lose its -90 degree offset, and ringPoints
+    // can ignore its radius argument, all without reddening a single class or
+    // token assertion. Hand-computed from the fixture: every userScore is -0.1,
+    // so r = ((-0.1 + 1) / 2) * 80 = 36 for all twelve vertices, about the
+    // (100, 100) centre. Vertex 0 sits at -90 degrees, i.e. straight up.
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const parse = (el: Element) =>
+      el.getAttribute("points")!.split(" ").map((pair) => pair.split(",").map(Number));
+
+    const user = parse(container.querySelector("[data-mini-user]")!);
+    expect(user).toHaveLength(12);
+    for (const [x, y] of user) {
+      expect(Math.hypot(x - 100, y - 100)).toBeCloseTo(36, 6);
+    }
+    expect(user[0][0]).toBeCloseTo(100, 6);
+    expect(user[0][1]).toBeCloseTo(64, 6);
+    // A second, non-zero vertex: the radius assertions above are blind to
+    // angular error (radius is a function of score alone, and every fixture
+    // score is equal), and at vertex 0 the `/ MINI_AXES` divisor cancels. At
+    // i = 3 the angle is exactly 0, so an off-by-one divisor moves this point
+    // to [135.63, 105.12].
+    expect(user[3][0]).toBeCloseTo(136, 6);
+    expect(user[3][1]).toBeCloseTo(100, 6);
+
+    // ringPoints must honour the radius it is handed, not close over MINI_R:
+    // the two rings differ only by that argument.
+    expect(parse(container.querySelector("[data-mini-ring='outer']")!)[0]).toEqual([100, 20]);
+    expect(parse(container.querySelector("[data-mini-ring='mid']")!)[0]).toEqual([100, 60]);
   });
 
   it("still describes a distinctive profile without an archetype", () => {
@@ -1968,17 +2018,66 @@ describe("ArchetypeCard", () => {
     expect(container.textContent).toContain("Distinctive profile");
     expect(container.textContent).toContain("The Social Democrat — 74% match");
   });
+
+  it("declines to draw a radar from an axis list that is not twelve long", () => {
+    // `userScores` is `axisData.map((a) => a.finalScore)` at the call site, so
+    // its length tracks the caller's axis list; `primary.prototype` is a
+    // 12-element literal for all twelve archetypes and cannot vary. Guarding
+    // the prototype alone is a tautology, and a short userScores reaches
+    // miniRadarPoints unchecked and draws a plausible wrong polygon.
+    const container = render(
+      createElement(ArchetypeCard, { ...ARCHETYPE, userScores: [0.1, -0.2, 0.3] }),
+    );
+
+    expect(container.querySelector("[data-mini-user]")).toBeNull();
+  });
+
+  it("offers the same actions slot on the distinctive branch", () => {
+    // One contract for the slot, not two: Task 10 passes the same node
+    // whichever branch renders, so the branch that skips the archetype must
+    // still place it.
+    const container = render(
+      createElement(ArchetypeCard, {
+        ...ARCHETYPE,
+        isDistinctive: true,
+        actions: createElement("button", { type: "button" }, "Copy link"),
+      }),
+    );
+
+    expect(container.textContent).toContain("Copy link");
+  });
+});
+
+describe("results chrome drift guards", () => {
+  it("keeps the migrated results components off the sub-AA tertiary token", () => {
+    // Stone 500 measures 3.28:1 on the card ground — under AA for small text.
+    // Phase 4 routes the label layer through --text-label and prose through
+    // --text-secondary, but nothing in the per-component tests notices a
+    // revert: every `text-text-label` this phase introduces can go back to
+    // `text-text-tertiary` with the whole suite green. Mirrors the quiz's
+    // guard at tests/unit/quiz-chrome.test.ts.
+    //
+    // `.sort()` because readdirSync order is not guaranteed, and an unsorted
+    // toEqual against an array literal is a flaky test, not a strict one.
+    const offenders = resultsSources
+      .filter(({ text }) => text.includes("text-text-tertiary"))
+      .map(({ name }) => name)
+      .sort();
+
+    // Shrinks to [] at Task 10, which owns ResultsView.tsx.
+    expect(offenders).toEqual(["ResultsView.tsx"]);
+  });
 });
 ```
 
-Add `ArchetypeCard` to the file's imports.
+Add `ArchetypeCard` to the file's imports, and reword the hook-convention comment near the top of the file from `data-axis-*` to `data-*` — the hooks this task adds are not axis-scoped.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: FAIL — eight new tests, none of the `data-archetype-*` hooks exist.
+Expected: FAIL — the eleven `ArchetypeCard` tests, none of the `data-archetype-*` hooks exist. The twelfth, in the new `results chrome drift guards` block, passes from the outset by design: it pins a pre-existing fact (`ResultsView.tsx` is already the only file in the directory naming `text-text-tertiary`) so that Task 10 cannot quietly change it. See "As shipped" note 8.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace `src/components/results/ArchetypeCard.tsx` in full:
 
@@ -1986,8 +2085,7 @@ Replace `src/components/results/ArchetypeCard.tsx` in full:
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
-import { Button } from "@/components/Button";
+import { Button, ButtonLink } from "@/components/Button";
 
 interface ArchetypeCardProps {
   primary: {
@@ -2026,26 +2124,50 @@ function ringPoints(radius: number): string {
 }
 
 function miniRadarPoints(scores: number[]): string {
-  return scores.map((score, i) => {
-    const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
-    const r = ((score + 1) / 2) * MINI_R;
-    return `${MINI_CX + r * Math.cos(angle)},${MINI_CY + r * Math.sin(angle)}`;
-  }).join(" ");
+  return scores
+    .map((score, i) => {
+      const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
+      const r = ((score + 1) / 2) * MINI_R;
+      return `${MINI_CX + r * Math.cos(angle)},${MINI_CY + r * Math.sin(angle)}`;
+    })
+    .join(" ");
 }
 
-function MiniRadar({ userScores, prototypeScores }: { userScores: number[]; prototypeScores: number[] }) {
+function MiniRadar({
+  userScores,
+  prototypeScores,
+}: {
+  userScores: number[];
+  prototypeScores: number[];
+}) {
   return (
-    <svg viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`} className="w-full max-w-[200px] mx-auto" aria-hidden="true">
-      <polygon points={ringPoints(MINI_R)} fill="none" style={{ stroke: 'var(--border-secondary)' }} strokeWidth={0.6} />
+    <svg
+      viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`}
+      className="w-full max-w-[200px] mx-auto"
+      aria-hidden="true"
+    >
       <polygon
+        data-mini-ring="outer"
+        points={ringPoints(MINI_R)}
+        fill="none"
+        style={{ stroke: 'var(--border-secondary)' }}
+        strokeWidth={0.6}
+      />
+      <polygon
+        data-mini-ring="mid"
         points={ringPoints(MINI_R * 0.5)}
-        fill="none" style={{ stroke: 'var(--border-secondary)' }}
-        strokeWidth={0.5} strokeDasharray="2 2"
+        fill="none"
+        style={{ stroke: 'var(--border-secondary)' }}
+        strokeWidth={0.5}
+        strokeDasharray="2 2"
       />
       <polygon
         points={miniRadarPoints(prototypeScores)}
-        fill="none" style={{ stroke: 'var(--stone-500)' }}
-        strokeWidth={1} strokeDasharray="3 2" opacity={0.5}
+        fill="none"
+        style={{ stroke: 'var(--stone-500)' }}
+        strokeWidth={1}
+        strokeDasharray="3 2"
+        opacity={0.5}
       />
       {/* --mark-primary, not var(--stone-600): mock 7b paints this shape Stone
           400 on a dark ground. Deliberately NOT --domain-economic, which holds
@@ -2054,7 +2176,8 @@ function MiniRadar({ userScores, prototypeScores }: { userScores: number[]; prot
         data-mini-user
         points={miniRadarPoints(userScores)}
         style={{ fill: 'var(--mark-primary)', stroke: 'var(--mark-primary)' }}
-        fillOpacity={0.12} strokeWidth={1.4}
+        fillOpacity={0.12}
+        strokeWidth={1.4}
         strokeLinejoin="round"
       />
     </svg>
@@ -2085,7 +2208,9 @@ export function ArchetypeCard({
           positions that cross traditional ideological lines.
         </p>
 
-        {actions}
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2.5 mb-4">{actions}</div>
+        )}
 
         <p className="label-tight text-text-label mt-[18px] pt-3.5 border-t border-rule-hairline mb-1">
           Nearest archetypes
@@ -2100,7 +2225,7 @@ export function ArchetypeCard({
     );
   }
 
-  const showMiniRadar = userScores && primary.prototype.length === 12;
+  const showMiniRadar = userScores?.length === 12 && primary.prototype.length === 12;
 
   return (
     <div>
@@ -2144,9 +2269,9 @@ export function ArchetypeCard({
               data-archetype-expand
               onClick={() => setExpanded((prev) => !prev)}
               aria-expanded={expanded}
-              aria-label={expanded ? "Hide archetype details" : "Show archetype details"}
             >
               {expanded ? "Hide details" : "Learn more"}
+              <span className="sr-only"> about {primary.name}</span>
             </Button>
           </div>
 
@@ -2159,27 +2284,44 @@ export function ArchetypeCard({
                   <p className="body-s text-text-secondary">{primary.tension}</p>
                 </div>
               )}
-              <Link
-                href={`/archetypes#${primary.id}`}
-                className="label-nav text-text-secondary border-b border-border-primary pb-[3px] inline-block hover:text-text-primary transition-colors duration-150 focus-ring"
-              >
+              {/* ButtonLink, not a hand-copied class string: the plan spelled
+                  the tertiary variant out inline, which forks it from
+                  Button.tsx and loses the named transition list that file
+                  documents as a deliberate fix over `transition-colors`. */}
+              <ButtonLink variant="tertiary" href={`/archetypes#${primary.id}`}>
                 Read in the archetype reference →
-              </Link>
+              </ButtonLink>
             </div>
           )}
         </div>
 
         {showMiniRadar && (
           <div className="flex flex-col items-center justify-center">
-            <MiniRadar userScores={userScores!} prototypeScores={primary.prototype} />
-            <div className="flex justify-center gap-3.5 mt-1.5 mono-meta text-text-label">
+            <MiniRadar userScores={userScores} prototypeScores={primary.prototype} />
+            <div
+              data-mini-legend
+              aria-hidden="true"
+              className="flex justify-center gap-3.5 mt-1.5 mono-meta text-text-label"
+            >
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-0.5" style={{ backgroundColor: 'var(--mark-primary)' }} />
+                <span
+                  data-mini-legend-you
+                  className="inline-block w-3 h-0.5"
+                  style={{ backgroundColor: 'var(--mark-primary)' }}
+                />
                 You
               </span>
               <span className="flex items-center gap-1.5">
                 <svg width="12" height="2" aria-hidden="true">
-                  <line x1="0" y1="1" x2="12" y2="1" stroke="var(--stone-500)" strokeWidth="1" strokeDasharray="3 2" />
+                  <line
+                    x1="0"
+                    y1="1"
+                    x2="12"
+                    y2="1"
+                    stroke="var(--stone-500)"
+                    strokeWidth="1"
+                    strokeDasharray="3 2"
+                  />
                 </svg>
                 Prototype
               </span>
@@ -2199,24 +2341,39 @@ export function ArchetypeCard({
 }
 ```
 
-Note: `Button` forwards unknown props to the underlying `<button>`, so `data-archetype-expand` reaches the DOM. Do **not** pass a `className` carrying colour or padding — the tertiary variant already sets both, and appending does not win (see Global Constraints).
+Note: `Button` forwards unknown props to the underlying `<button>`, so `data-archetype-expand` reaches the DOM. Do **not** pass a `className` carrying colour or padding — the tertiary variant already sets both, and appending does not win (see Global Constraints). The archetype-reference link goes through `ButtonLink variant="tertiary"` for the same reason in reverse: an earlier draft of this step spelled the tertiary classes out inline, forking them from `Button.tsx` — see "As shipped" note 2.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
 Expected: PASS. If the `Learn more` assertion on `label-nav` fails, the tertiary variant was overridden — re-read the `className` constraint rather than adding the class by hand.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/results/ArchetypeCard.tsx tests/unit/results-chrome.test.ts
 git commit -m "feat(design): rebuild the archetype panel on the mock's two-column grid"
 ```
 
-**Addenda from Task 4's code-quality review**, deliberately routed here rather than fixed in Task 4:
+Shipped as `55ec6e3`. A second commit, `39b79ac`, followed it — an out-of-plan fix to `AxisBreakdownCard`, recorded at the end of this section.
 
-- **Unshortened pole labels.** `AxisBreakdownCard` passes `poleALabel`/`poleBLabel` raw where `src/app/page.tsx` passes them through `shortPole(...)`. Between roughly 560 and 600px viewport width the widest pair wraps to two lines. This self-corrects above ~600px, and Task 10's 820px results container widens the axis row further still — but the group row this task's sibling touches has a narrower middle column and will hit the wrap harder. Worth checking once this task's grid is in place.
-- **Two responsive conventions for the same pattern.** The home page uses a block that becomes `min-[560px]:grid` with `min-[560px]:contents` to re-parent at the breakpoint, while the axis row (Task 4) uses a 2-column grid at all widths with `col-start-2` / `min-[560px]:col-start-3`. Both are valid; settle on one before this task builds a third variant.
+**Addenda from Task 4's code-quality review**, routed here and now resolved:
+
+- **Unshortened pole labels — investigated, and the original premise was wrong. Do not adopt `shortPole`.** The addendum as written claimed the group row would "hit the wrap harder" because of a narrower middle column. `GroupScoreBar` has no column structure at all: it calls `PairedAxisScale` with `endpoints="below"` at full row width, inside `max-w-3xl` + `px-4` on the page and `p-6` on the section, which leaves ~480px at a 560px viewport for a 301px label pair. It is the *least* squeezed of the three rows, not the most. Measured at spec (11px mono, `letter-spacing: 0.02em`, uppercase): `Distributed Governance` + `Centralized Governance` = 301.1px; `Progressive Change` + `Continuity and Tradition` = 287.4px. The row that *does* wrap is the **axis row**: `AxisBreakdownCard`'s middle column is `min(V − 32, 768) − 266` (24px index + 210px meta + two 16px gaps), which clears 301.1px only at V ≥ 599px, while the 3-column layout engages at `min-[560px]` — so the wrap band is exactly **V ∈ [560, 599)**. Task 10's 820px container does **not** close it: at a 560px viewport the container is viewport-limited, not max-width-limited. And `shortPole` is the wrong instrument regardless — it is a private one-liner at `src/app/page.tsx:16` (not in `src/lib/design-tokens.ts`, as the addendum assumed) and it is lossy, `label.split(" ")[0]` rendering `Continuity and Tradition` as `Continuity` and `Market Allocation` as `Market`. The home page can afford that in a 158px teaser column; the results breakdown, whose whole job is precision, cannot. **If the 39px band is judged worth fixing at all, the fix is a one-token change in `AxisBreakdownCard.tsx` moving the 3-column breakpoint from `min-[560px]` to `min-[600px]`** — routed to Task 10 as optional.
+- **Two responsive conventions — resolved: converge on shape C.** Three shapes exist in the tree. **A** — `src/app/page.tsx:112-118`: `min-[560px]:grid` on the row plus a child that goes `min-[560px]:contents` to dissolve and re-parent its own children. **B** — `AxisBreakdownCard.tsx:65,90`: a 2-column grid at all widths with `col-start-2 min-[560px]:col-start-3` on the cell that moves. **C** — this task: `grid` at all widths with `grid-cols-1` stepping to `min-[560px]:grid-cols-[minmax(0,1fr)_220px]`. **The rule, recorded for Tasks 8-11: use C by default; use B only when a child changes column index between breakpoints; reserve A for genuine DOM re-parenting.** B is C plus an explicit column-placement fixup, needed only because the axis row reflows a child *between* columns rather than stacking it. A is genuinely different in kind — `contents` is the only way to change nesting at a breakpoint, and it is load-bearing on the home page because that row reorders across the dissolve (`min-[560px]:order-last` on the name). **A is not gratuitous and must not be flattened into C.** No refactor was made to either file: both are already the right shape under this rule.
+
+**As shipped.** Implementation and two rounds of review moved this task in eight ways from the text above:
+
+1. **`showMiniRadar` guards the *length* of `userScores`, not its presence.** The plan's `userScores && primary.prototype.length === 12` has both halves backwards. `primary.prototype.length === 12` is a tautology — all twelve prototypes in `src/data/archetypes.ts` are 12-element array literals and none can vary — while `userScores` arrives as `axisData.map((a) => a.finalScore)` at `src/components/results/ResultsView.tsx:227`, i.e. at whatever length the caller's axis list happens to be. A short array therefore passed the plan's guard, reached `miniRadarPoints` unchecked, and drew a plausible-looking but wrong polygon against a full 12-vertex prototype. Shipped as `userScores?.length === 12 && primary.prototype.length === 12`, with the tautological half kept as documentation of the pairing and a test pinning the short-array case. The optional-chain form also lets TypeScript narrow `userScores` through the aliased const, so the plan's `userScores!` non-null assertion is gone.
+2. **The archetype-reference link is `ButtonLink variant="tertiary"` — and the plan's version was a defect, not just a divergence.** The plan hand-copied `"label-nav text-text-secondary border-b border-border-primary pb-[3px] inline-block hover:text-text-primary transition-colors duration-150 focus-ring"`, a verbatim fork of `VARIANTS.tertiary` in `src/components/Button.tsx` — and in forking it reintroduced `transition-colors`, which that file's own header comment documents as the bug the named `transition-[color,background-color,opacity]` list exists to fix (`transition-colors` does not animate `disabled:opacity-50`, so disabled states snapped while hovers eased). **The plan specified a regression.** `ButtonLink` gets the same rendering from the single source; `Link` is no longer imported by this file.
+3. **The `isDistinctive` branch wraps `{actions}`** in `flex flex-wrap items-center gap-2.5 mb-4`, guarded by `{actions && …}`, where the plan rendered the slot bare. Reason: one contract for the slot in both branches, so Task 10 does not have to satisfy two. Spacing is unchanged — the wrapper's `mb-4` (16px) collapses against the following paragraph's `mt-[18px]`, leaving 18px exactly as before.
+4. **The expand control's `aria-label` was removed — the plan specified an accessibility violation.** The plan's `aria-label={expanded ? "Hide archetype details" : "Show archetype details"}` is a **WCAG 2.5.3 (Label in Name) failure**: the visible text is `Learn more` / `Hide details`, and an accessible name that contains neither *replaces* the visible label rather than extending it, so a voice-control user saying "click Learn more" gets no match. It also put state in the name, which `aria-expanded` already carries and which ARIA practice keeps out of the name. Shipped instead as `<span className="sr-only"> about {primary.name}</span>` inside the button: a visually-hidden suffix *extends* the accessible name to "Learn more about The Social Democrat", keeping the visible label as a prefix and still distinguishing the control from its siblings.
+5. **`aria-hidden="true"` on the mini-radar legend wrapper** (`data-mini-legend`). The `<svg>` was already `aria-hidden`, so an exposed legend left AT reading a bare "You Prototype" describing a chart it could not perceive.
+6. **Four `data-*` hooks beyond the plan's:** `data-mini-legend-you`, `data-mini-legend`, `data-mini-ring="outer"`, `data-mini-ring="mid"`. Each exists because a real assertion is read off it, which is this file's stated hook convention. The convention comment near the top of the test file was reworded from `data-axis-*` to `data-*` at the same time, since the hooks are no longer axis-scoped.
+7. **The test block grew from the plan's 8 tests to 12** — eleven in `describe("ArchetypeCard")` and one in a new `describe("results chrome drift guards")`. The three added to the component block closed mutations that survived code-quality review: the mark-token guard covered only `fill` when the **stroke** is the visible shape (the fill sits at 12% opacity, the stroke has none, so guarding `fill` alone left the load-bearing half free to revert to Stone 600); the geometry was entirely unpinned, so `miniRadarPoints` could be rescaled, sign-inverted, or lose its −90° offset and `ringPoints` could ignore its radius argument with every class and token assertion still green; and the `{actions}` slot on the distinctive branch was unenforced, which is what item 3 above fixes.
+8. **A new `describe("results chrome drift guards")` block**, carrying one ratcheting sub-AA guard: it scans `resultsSources` for `text-text-tertiary` and asserts the sorted offender list equals `["ResultsView.tsx"]`. Stone 500 measures 3.28:1 on the card ground, under AA for small text, and nothing in the per-component tests notices a revert — every `text-text-label` this phase introduces can go back to `text-text-tertiary` with the whole suite green. It mirrors the quiz's guard in `tests/unit/quiz-chrome.test.ts`. **The literal is load-bearing for Tasks 10 and 11** — see the addenda on both.
+
+**Out-of-plan fix shipped alongside, in commit `39b79ac`.** `src/components/results/AxisBreakdownCard.tsx` — a Task 4 artifact — carried the same WCAG 2.5.3 defect as note 4 above: a visible `▸ See how this was scored` under `aria-label="Show scoring breakdown for {name}"`, which shares no words with it. Fixed the same way: the `aria-label` is gone, the axis name moves to `<span className="sr-only"> for {name}</span>`, and the expanded/collapsed state is dropped because `aria-expanded` already carries it. The `▸`/`▾` caret was wrapped in `<span aria-hidden="true">` in the same change — every other disclosure caret in the repo is already `aria-hidden` (`src/components/study/PersonasPageClient.tsx:380`, `src/app/archetypes/page.tsx:315`, `src/components/NavBar.tsx:152`, `src/components/study/PersonaModal.tsx:1888`), so this was the sole outlier and AT was announcing U+25B8 by its Unicode name inside the button's name. The leading space moved inside the adjacent string literal, because JSX collapses whitespace between an element and an adjacent expression container to nothing. One test was added to the existing `AxisBreakdownCard` `describe` — thirteen new tests across the two commits, not twelve. Cross-referenced from Task 4.
 
 ---
 
@@ -2622,6 +2779,14 @@ git commit -m "feat(design): reduce the radar to one polygon and twelve domain d
 ```
 
 **Addendum from Task 6.** The sr-only score table above still inlines its own always-signed formatter (`axis.finalScore >= 0 ? "+" : ""` against `axis.finalScore.toFixed(2)`) — a fourth instance of the pattern Task 6 found three copies of and consolidated into `src/lib/format-score.ts`. Task 6 deliberately left this one alone, since it owns `ComparisonScoreBar.tsx`, `AxisBreakdownCard.tsx`, and `comparison-radar-data.ts`, not this file. Fold this one onto `formatScore` from `@/lib/format-score` as part of this task's rewrite; doing so also picks up the shared helper's `-1..1` clamping and its `null` → `"N/A"` handling, neither of which the inline version has.
+
+**Addenda from Task 7.** Task 7 shipped a second radar in this repo — `MiniRadar`, inside `src/components/results/ArchetypeCard.tsx` — and it duplicates this chart's geometry rather than sharing it. Fold that in here, since this is the task that rewrites `RadarChart`:
+
+- **Extract `src/lib/radar-geometry.ts`**, exporting `spokeAngle(i, total)`, `scoreToRadius(score, maxRadius)`, `polarToCart(angle, r, cx, cy)`, `ringPoints(radius, total, cx, cy)`, and a `padAndSortByAxisId(axisScores)` normaliser; have **both** `MiniRadar` and `RadarChart` consume all five. `MiniRadar` currently re-inlines `spokeAngle` twice, `polarToCart` twice and `scoreToRadius` once, and its `MINI_AXES = 12` duplicates this file's `TOTAL_AXES = 12`.
+- **Trap to avoid when merging the ring helpers.** `ArchetypeCard`'s `ringPoints(radius)` takes an **absolute radius** (`ringPoints(MINI_R)`, `ringPoints(MINI_R * 0.5)`); `RadarChart`'s `ringPolygonPoints(radiusFraction)` takes a **fraction** of `MAX_RADIUS`. Unifying them by name without reconciling the argument convention silently rescales every ring in one of the two charts, and both still render plausibly.
+- **A latent axis-ordering misalignment goes with it.** `RadarChart` sorts by `axisId` and pads to twelve; `MiniRadar` consumes `userScores` in whatever order it arrives and overlays a prototype vector that is fixed axis-1-through-12. `src/app/results/page.tsx:77` maps in pipeline order while `src/app/results/[profileId]/page.tsx:20` orders by `axis.order` — the two agree **only** because `order === id` for all twelve rows in `src/data/axes.ts`. Not live today, but if it ever fires, the mini radar's two polygons misalign against *each other*, which is the one comparison the chart exists to make. `padAndSortByAxisId` is the fix, applied in both charts.
+- **Pin the radius mapping as a pure function.** A test asserting `scoreToRadius(-1) === 0`, `scoreToRadius(0) === R / 2` and `scoreToRadius(1) === R` kills the rescale / sign-flip / offset class of mutation for **both** charts permanently, and does it without a mount. Task 7's `places the radar's vertices where the score and the radius put them` does this the hard way, off rendered `points` attributes, because no shared function existed to test.
+- **Do not loosen `results-chrome.test.ts`'s `.sr-only` lookup.** The assertion added in commit `39b79ac` is scoped to the button (`button.querySelector(".sr-only")`) precisely because `RadarChart.tsx:106` already renders an `.sr-only` table that this task relocates. A container-wide lookup would start passing on the wrong node without ever reddening.
 
 ---
 
@@ -3344,6 +3509,13 @@ git commit -m "feat(design): restyle the results page shell onto mock 7a"
 - **`confidence: string` is looser than its source type.** `src/lib/scoring-types.ts:32` defines `"high" | "moderate" | "low" | "conflicted"`, so an unrecognised value currently falls through to `AxisBreakdownCard`'s default branch and silently renders "Low confidence" instead of failing to typecheck. Narrowing it was deferred specifically because doing it in Task 4 would have added a second typecheck error during the Task 4-to-10 interval that this plan already flags as deliberately red (the `alternateRow` removal) — two simultaneous errors would have destroyed the "exactly one error, and it is the expected one" signal that makes that interval safe to leave red. Do this alongside the dead-surface trim above.
 - **Orphaned `"use client"` on `ComparisonScoreBar.tsx`, found in Task 6's review.** With the `useState` and mouse handlers gone, the component has no hooks, no event handlers, and no browser APIs — nothing that needs the client boundary — while `PairedAxisScale`, the primitive it now wraps, carries no directive at all. `src/app/compare/[profileId1]/[profileId2]/page.tsx` is a server component, so the directive needlessly pushes its twelve `ComparisonScoreBar` rows across the client boundary and hydrates them for nothing. Routed here rather than fixed in Task 6 because verifying the removal properly needs `npm run build`, which cannot pass until this task clears the `alternateRow` typecheck error.
 
+**Addenda from Task 7**, all in files this task owns:
+
+- **The drift guard's literal must shrink to `[]`.** Task 7 added `describe("results chrome drift guards")` to `tests/unit/results-chrome.test.ts` with one test asserting that the sorted list of files in `src/components/results/` naming `text-text-tertiary` equals `["ResultsView.tsx"]`. `ResultsView.tsx` is the last file in the directory still on that sub-AA token (12 occurrences). This task rewrites it; when it does, the expected array becomes `[]`. The guard fails closed in **both** directions — an unexpected offender reddens it, and so does the expected offender disappearing — so this task **cannot** land without updating the literal. That is deliberate, not a nuisance.
+- **`secondary.summary` is declared required on `ArchetypeCardProps` and never read.** Only `.name` and `.matchPercentage` are used, in both branches. `src/components/results/ResultsView.tsx:223` dutifully supplies it today. Drop it from both sides. Note that the Step 3 block above already passes `secondary={archetype.secondary}` wholesale rather than rebuilding the object, so only the interface side needs the trim — TypeScript's excess-property check does not apply to a variable reference.
+- **`lowMatch`'s `< 55` is an unnamed literal whose named form already exists.** `src/lib/scoring-types.ts:121` exports `LOW_MATCH_THRESHOLD_PCT = 55` beside its siblings `DISTINCTIVE_MATCH_CEILING = 72` and `DISTINCTIVE_STDDEV_FLOOR = 0.4`, and `tests/unit/scoring-archetypes.test.ts` pins it — but `ArchetypeCard` spells the number out instead of importing it. Correct and reachable, just undiscoverable, and it can now drift from the scoring engine silently. Import the constant. (The addendum as routed here said "hoist it beside its siblings"; the constant is already hoisted — the component simply does not use it.)
+- **Optional: close the pole-label wrap band.** Task 7's investigation of the Task 4 addendum (see that section) found the axis row's endpoint labels wrap over exactly `V ∈ [560, 599)`, and that this task's 820px container does not close it, because at a 560px viewport the container is viewport-limited. If it is judged worth fixing, the fix is one token in `AxisBreakdownCard.tsx` — `min-[560px]` to `min-[600px]` on the 3-column breakpoint — and **not** `shortPole`, which is lossy. Explicitly optional.
+
 ---
 
 ### Task 11: Drift guards for the results directory
@@ -3516,6 +3688,11 @@ git commit -m "test(design): guard the results page against design drift"
 ```
 
 **Addendum (reconciled after Task 5).** `resultsSources` is built from `readdirSync` scoped to `src/components/results/`, so every guard in this task only ever sees that one directory. Task 5 shipped the gap: its `text-text-tertiary` violation (see Task 5's "As shipped" note) landed at `src/app/results/[profileId]/[axisId]/page.tsx` — the same feature, under `src/app`, not `src/components/results` — and none of these guards would have caught it; it surfaced only because a human review pass happened to look at that file. The eventual guard here should also sweep `src/app/results/**`, not just `src/components/results/`. `tests/helpers/source-files.ts`, extracted in Task 5, already does a recursive extension-filtered sweep with `node_modules`/`generated`/dot-directory pruning built in, so it is the right tool for that recursive sweep rather than a second hand-rolled `readdirSync` walk. Left as an addendum rather than a rewrite of the guards above — this task's implementer should act on it.
+
+**Addendum (reconciled after Task 7).** The `describe("results chrome drift guards")` block in the Step 1 draft above **already exists** in `tests/unit/results-chrome.test.ts` — Task 7 opened it, to hold one guard it needed early. Two consequences for this task:
+
+- **Do not write a second sub-AA guard.** Task 7's `keeps the migrated results components off the sub-AA tertiary token` is the same check as this draft's `retires text-text-tertiary from the results page`, differing only in that Task 7 pinned the then-current offender list (`["ResultsView.tsx"]`) rather than `[]`, and sorted it because `readdirSync` order is not guaranteed. Task 10 shrinks that literal to `[]`. Extend or simply keep the existing test — do not append a duplicate under a new name.
+- **Do not re-open the `describe`.** Append the remaining guards into the block Task 7 created rather than declaring a second `describe` of the same name; two same-named blocks run, but they make the reporter ambiguous and hide which one a failure came from.
 
 ---
 
