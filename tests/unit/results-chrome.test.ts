@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { getDomainMarkVar } from "@/lib/design-tokens";
@@ -51,7 +52,7 @@ const resultsSources = readdirSync(resultsDir)
   .map((name) => ({ name, text: readFileSync(resolve(resultsDir, name), "utf8") }));
 
 // Hook convention for this file, which gets appended to across eight more
-// tasks: a `data-axis-*` attribute exists only to give an element identity
+// tasks: a `data-*` attribute exists only to give an element identity
 // for a selector. It is never itself the thing under test — a class, a text
 // value, or another attribute read off the element it identifies is. The
 // hook count should grow only when a real assertion needs a name, not
@@ -402,5 +403,209 @@ describe("ComparisonScoreBar", () => {
 
     expect(scale.firstElementChild!.querySelector("[data-track]")).not.toBeNull();
     expect(scale.lastElementChild!.querySelector("[data-track]")).toBeNull();
+  });
+});
+
+describe("ArchetypeCard", () => {
+  const ARCHETYPE = {
+    primary: {
+      id: "social-democrat",
+      name: "The Social Democrat",
+      matchPercentage: 74,
+      summary: "Collective provision through democratic institutions.",
+      description: "A longer description.",
+      tension: "A characteristic tension.",
+      prototype: Array.from({ length: 12 }, () => 0.2),
+    },
+    secondary: { name: "The Communitarian Steward", matchPercentage: 61, summary: "" },
+    isBlended: false,
+    isDistinctive: false,
+    userScores: Array.from({ length: 12 }, () => -0.1),
+  };
+
+  it("lays the panel out as text beside a 220px radar column", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const grid = container.querySelector("[data-archetype-grid]")!;
+
+    expect(classes(grid)).toContain("min-[560px]:grid-cols-[minmax(0,1fr)_220px]");
+  });
+
+  it("puts the section label over a hard ink rule", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const label = container.querySelector("[data-archetype-label]")!;
+
+    expect(label.textContent).toBe("Primary archetype");
+    // border-rule-strong, NOT border-stone-900: the Stone ramp is fixed across
+    // modes, so the literal would vanish into a dark ground. This exact
+    // mistake has shipped twice in this migration.
+    expect(classes(label)).toContain("border-rule-strong");
+    expect(classes(label)).not.toContain("border-stone-900");
+  });
+
+  it("anchors on the match percentage at display-l, with the name below it", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const match = container.querySelector("[data-archetype-match]")!;
+
+    expect(match.textContent).toBe("74%");
+    // Was a bare text-[36px]. display-l is 34px and carries the serif family,
+    // weight and tracking with it.
+    expect(classes(match)).toContain("display-l");
+    expect(classes(container.querySelector("h2")!)).toContain("display-s");
+  });
+
+  it("renders the caller's actions inside the panel", () => {
+    const container = render(
+      createElement(ArchetypeCard, {
+        ...ARCHETYPE,
+        actions: createElement("button", { type: "button" }, "Copy link"),
+      }),
+    );
+    const grid = container.querySelector("[data-archetype-grid]")!;
+
+    // Inside the grid, not appended after the card: mock 7a draws the action
+    // row in the left column, under the summary.
+    expect(grid.textContent).toContain("Copy link");
+  });
+
+  it("offers Learn more as a tertiary control and keeps the disclosure working", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const learnMore = container.querySelector("[data-archetype-expand]") as HTMLButtonElement;
+
+    expect(classes(learnMore)).toContain("label-nav");
+    // WCAG 2.5.3: the accessible name EXTENDS the visible label rather than
+    // replacing it, so "Learn more" still matches by voice.
+    expect(learnMore.textContent).toContain("about The Social Democrat");
+    expect(learnMore.getAttribute("aria-expanded")).toBe("false");
+    expect(container.textContent).not.toContain("A longer description.");
+
+    click(learnMore);
+
+    expect(learnMore.getAttribute("aria-expanded")).toBe("true");
+    expect(container.textContent).toContain("A longer description.");
+    // The reference link moves into the expanded block, beside the full
+    // description it continues.
+    expect(container.querySelector("a[href='/archetypes#social-democrat']")).not.toBeNull();
+  });
+
+  it("closes the panel with the adjacent line over a hairline rule", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const adjacent = container.querySelector("[data-archetype-adjacent]")!;
+
+    expect(adjacent.textContent).toBe("Adjacent · The Communitarian Steward — 61% match");
+    expect(classes(adjacent)).toContain("border-rule-hairline");
+  });
+
+  it("draws the mini radar off the stepping mark, not a fixed Stone", () => {
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const user = container.querySelector("[data-mini-user]") as SVGPolygonElement;
+
+    // Mock 7b paints this shape Stone 400 on dark. A var(--stone-600) literal
+    // would stay muddy there, and in LIGHT mode the two are pixel-identical —
+    // which is why this asserts the declaration.
+    expect(user.style.fill).toBe("var(--mark-primary)");
+    expect(user.getAttribute("fill-opacity")).toBe("0.12");
+    // The stroke, not the fill, is what the eye reads here: the fill sits at
+    // 12% while the stroke has no opacity at all. Guarding only `fill` leaves
+    // the load-bearing half of the declaration free to revert to Stone 600.
+    expect(user.style.stroke).toBe("var(--mark-primary)");
+
+    // Same token, same component, same inversion requirement.
+    const swatch = container.querySelector("[data-mini-legend-you]") as HTMLElement;
+    expect(swatch.style.backgroundColor).toBe("var(--mark-primary)");
+
+    // The <svg> is aria-hidden, so an exposed legend describes a chart AT
+    // cannot perceive — a bare "You Prototype" with no referent.
+    const legend = container.querySelector("[data-mini-legend]")!;
+    expect(legend.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("places the radar's vertices where the score and the radius put them", () => {
+    // The geometry is otherwise unpinned: miniRadarPoints can be rescaled, have
+    // its sign mapping inverted, or lose its -90 degree offset, and ringPoints
+    // can ignore its radius argument, all without reddening a single class or
+    // token assertion. Hand-computed from the fixture: every userScore is -0.1,
+    // so r = ((-0.1 + 1) / 2) * 80 = 36 for all twelve vertices, about the
+    // (100, 100) centre. Vertex 0 sits at -90 degrees, i.e. straight up.
+    const container = render(createElement(ArchetypeCard, ARCHETYPE));
+    const parse = (el: Element) =>
+      el.getAttribute("points")!.split(" ").map((pair) => pair.split(",").map(Number));
+
+    const user = parse(container.querySelector("[data-mini-user]")!);
+    expect(user).toHaveLength(12);
+    for (const [x, y] of user) {
+      expect(Math.hypot(x - 100, y - 100)).toBeCloseTo(36, 6);
+    }
+    expect(user[0][0]).toBeCloseTo(100, 6);
+    expect(user[0][1]).toBeCloseTo(64, 6);
+    // A second, non-zero vertex: the radius assertions above are blind to
+    // angular error (radius is a function of score alone, and every fixture
+    // score is equal), and at vertex 0 the `/ MINI_AXES` divisor cancels. At
+    // i = 3 the angle is exactly 0, so an off-by-one divisor moves this point
+    // to [135.63, 105.12].
+    expect(user[3][0]).toBeCloseTo(136, 6);
+    expect(user[3][1]).toBeCloseTo(100, 6);
+
+    // ringPoints must honour the radius it is handed, not close over MINI_R:
+    // the two rings differ only by that argument.
+    expect(parse(container.querySelector("[data-mini-ring='outer']")!)[0]).toEqual([100, 20]);
+    expect(parse(container.querySelector("[data-mini-ring='mid']")!)[0]).toEqual([100, 60]);
+  });
+
+  it("still describes a distinctive profile without an archetype", () => {
+    const container = render(
+      createElement(ArchetypeCard, { ...ARCHETYPE, isDistinctive: true }),
+    );
+
+    expect(container.textContent).toContain("Distinctive profile");
+    expect(container.textContent).toContain("The Social Democrat — 74% match");
+  });
+
+  it("declines to draw a radar from an axis list that is not twelve long", () => {
+    // `userScores` is `axisData.map((a) => a.finalScore)` at the call site, so
+    // its length tracks the caller's axis list; `primary.prototype` is a
+    // 12-element literal for all twelve archetypes and cannot vary. Guarding
+    // the prototype alone is a tautology, and a short userScores reaches
+    // miniRadarPoints unchecked and draws a plausible wrong polygon.
+    const container = render(
+      createElement(ArchetypeCard, { ...ARCHETYPE, userScores: [0.1, -0.2, 0.3] }),
+    );
+
+    expect(container.querySelector("[data-mini-user]")).toBeNull();
+  });
+
+  it("offers the same actions slot on the distinctive branch", () => {
+    // One contract for the slot, not two: Task 10 passes the same node
+    // whichever branch renders, so the branch that skips the archetype must
+    // still place it.
+    const container = render(
+      createElement(ArchetypeCard, {
+        ...ARCHETYPE,
+        isDistinctive: true,
+        actions: createElement("button", { type: "button" }, "Copy link"),
+      }),
+    );
+
+    expect(container.textContent).toContain("Copy link");
+  });
+});
+
+describe("results chrome drift guards", () => {
+  it("keeps the migrated results components off the sub-AA tertiary token", () => {
+    // Stone 500 measures 3.28:1 on the card ground — under AA for small text.
+    // Phase 4 routes the label layer through --text-label and prose through
+    // --text-secondary, but nothing in the per-component tests notices a
+    // revert: every `text-text-label` this phase introduces can go back to
+    // `text-text-tertiary` with the whole suite green. Mirrors the quiz's
+    // guard at tests/unit/quiz-chrome.test.ts.
+    //
+    // `.sort()` because readdirSync order is not guaranteed, and an unsorted
+    // toEqual against an array literal is a flaky test, not a strict one.
+    const offenders = resultsSources
+      .filter(({ text }) => text.includes("text-text-tertiary"))
+      .map(({ name }) => name)
+      .sort();
+
+    // Shrinks to [] at Task 10, which owns ResultsView.tsx.
+    expect(offenders).toEqual(["ResultsView.tsx"]);
   });
 });
