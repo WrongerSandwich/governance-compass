@@ -4,9 +4,9 @@ import {
   buildAxisNames,
   buildComparableScores,
   buildScoreRuns,
-  formatScore,
   type AxisScoreEntry,
 } from "@/lib/comparison-radar-data";
+import { formatScore } from "@/lib/format-score";
 import { axes as axesDef } from "@/data/axes";
 
 const entry = (axisId: number, finalScore: number): AxisScoreEntry => ({
@@ -148,9 +148,14 @@ describe("buildAxisNames", () => {
 });
 
 describe("formatScore", () => {
-  it("signs and fixes to two decimals", () => {
-    expect(formatScore(0)).toBe("+0.00");
+  it("signs and fixes to two decimals, leaving an exact zero unsigned", () => {
+    // Was "+0.00" while the radar carried its own copy. The only consumers of
+    // that copy were an sr-only table and an SVG hover string, so the sign on
+    // a zero bought no column alignment — it only made a screen reader say
+    // "plus zero point zero zero". Folded onto the shared helper.
+    expect(formatScore(0)).toBe("0.00");
     expect(formatScore(0.5)).toBe("+0.50");
     expect(formatScore(-0.256)).toBe("-0.26");
+    expect(formatScore(null)).toBe("N/A");
   });
 });

@@ -318,6 +318,18 @@ describe("ComparisonScoreBar", () => {
 
     expect(container.querySelector("[data-gap]")!.textContent).toBe(trailingClause);
     expect(trailingClause).toBe("close agreement");
+
+    // And again on a WIDE pair. The close fixture alone cannot see a dropped
+    // Math.abs: (-0.5, -0.3) signed is -0.2, which buckets as "close
+    // agreement" exactly like +0.2, so badge and clause still agree. On PAIR
+    // the same mutation prints "close agreement" beside an aria-label saying
+    // "far apart" — the precise divergence this test exists to forbid.
+    const wide = render(createElement(ComparisonScoreBar, PAIR));
+    const wideLabel = wide.querySelector("[role='img']")!.getAttribute("aria-label")!;
+    const wideClause = wideLabel.slice(wideLabel.lastIndexOf("; ") + 2);
+
+    expect(wide.querySelector("[data-gap]")!.textContent).toBe(wideClause);
+    expect(wideClause).toBe("far apart");
   });
 
   it("hides the gap badge from the accessibility tree, since the aria-label already says it", () => {
