@@ -2,6 +2,13 @@
 
 import { useState, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/Button";
+import {
+  TOTAL_AXES,
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+} from "@/lib/radar-geometry";
 
 interface ArchetypeCardProps {
   primary: {
@@ -30,21 +37,24 @@ const MINI_SIZE = 200;
 const MINI_CX = MINI_SIZE / 2;
 const MINI_CY = MINI_SIZE / 2;
 const MINI_R = 80;
-const MINI_AXES = 12;
 
-function ringPoints(radius: number): string {
-  return Array.from({ length: MINI_AXES }, (_, i) => {
-    const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
-    return `${MINI_CX + radius * Math.cos(angle)},${MINI_CY + radius * Math.sin(angle)}`;
-  }).join(" ");
-}
-
+/** Vertex `i` is axis `i + 1`, so this mapping is positional. `userScores`
+ *  arrives as a bare `number[]` (`axisData.map((a) => a.finalScore)` at the
+ *  call site), which carries no axis id, so `normaliseByAxisId` cannot be
+ *  applied here without widening `ArchetypeCard`'s `userScores` prop to carry
+ *  ids — a change to the public prop shape, made at ResultsView. `RadarChart`
+ *  normalises because its prop already carries `axisId`. See the report note
+ *  on addendum D. */
 function miniRadarPoints(scores: number[]): string {
   return scores
     .map((score, i) => {
-      const angle = (i / MINI_AXES) * 2 * Math.PI - Math.PI / 2;
-      const r = ((score + 1) / 2) * MINI_R;
-      return `${MINI_CX + r * Math.cos(angle)},${MINI_CY + r * Math.sin(angle)}`;
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(score, MINI_R),
+        MINI_CX,
+        MINI_CY,
+      );
+      return `${x},${y}`;
     })
     .join(" ");
 }
@@ -64,14 +74,14 @@ function MiniRadar({
     >
       <polygon
         data-mini-ring="outer"
-        points={ringPoints(MINI_R)}
+        points={ringPoints(MINI_R, TOTAL_AXES, MINI_CX, MINI_CY)}
         fill="none"
         style={{ stroke: 'var(--border-secondary)' }}
         strokeWidth={0.6}
       />
       <polygon
         data-mini-ring="mid"
-        points={ringPoints(MINI_R * 0.5)}
+        points={ringPoints(MINI_R * 0.5, TOTAL_AXES, MINI_CX, MINI_CY)}
         fill="none"
         style={{ stroke: 'var(--border-secondary)' }}
         strokeWidth={0.5}
@@ -141,7 +151,8 @@ export function ArchetypeCard({
     );
   }
 
-  const showMiniRadar = userScores?.length === 12 && primary.prototype.length === 12;
+  const showMiniRadar =
+    userScores?.length === TOTAL_AXES && primary.prototype.length === TOTAL_AXES;
 
   return (
     <div>

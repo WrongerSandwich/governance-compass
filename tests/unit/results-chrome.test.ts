@@ -11,6 +11,7 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
+import { RadarChart } from "@/components/results/RadarChart";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { getDomainMarkVar } from "@/lib/design-tokens";
 
@@ -612,6 +613,190 @@ describe("ArchetypeCard", () => {
     );
 
     expect(container.textContent).toContain("Copy link");
+  });
+});
+
+describe("RadarChart", () => {
+  const SCORES = Array.from({ length: 12 }, (_, i) => ({
+    axisId: i + 1,
+    name: `Axis ${i + 1}`,
+    poleALabel: `Pole A ${i + 1}`,
+    poleBLabel: `Pole B ${i + 1}`,
+    domain: "Economic Organization",
+    finalScore: 0.2,
+    confidence: "high",
+  }));
+
+  it("draws exactly one user polygon, off the stepping mark", () => {
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const user = container.querySelector("[data-radar-user]") as SVGPolygonElement;
+
+    // Was four domain-coloured stroke SEGMENTS over twelve domain-tinted
+    // triangle fills — a second colour system layered on the first. Mock 7a
+    // draws one shape and lets the dots carry domain.
+    expect(container.querySelectorAll("[data-radar-user]")).toHaveLength(1);
+    expect(container.querySelectorAll("path")).toHaveLength(0);
+    // NOT --domain-economic, which holds the identical value in both modes.
+    expect(user.style.fill).toBe("var(--mark-primary)");
+    expect(user.getAttribute("fill-opacity")).toBe("0.1");
+    // The stroke, not the fill, is what the eye reads: the fill sits at 10%
+    // while the 1.6px stroke has no opacity at all. Guarding only `fill`
+    // leaves the load-bearing half free to revert to a fixed Stone 600, which
+    // in light mode is pixel-identical and only shows up on a dark ground.
+    expect(user.style.stroke).toBe("var(--mark-primary)");
+  });
+
+  it("marks each axis with a domain dot", () => {
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const dots = [...container.querySelectorAll("[data-radar-dot]")] as SVGCircleElement[];
+
+    expect(dots).toHaveLength(12);
+    expect(dots[0].getAttribute("r")).toBe("4");
+    // Axis 1 is Economic, axis 3 is Power, axis 7 Society, axis 10 World.
+    expect(dots[0].getAttribute("fill")).toBe("var(--domain-economic)");
+    expect(dots[2].getAttribute("fill")).toBe("var(--domain-power)");
+    expect(dots[6].getAttribute("fill")).toBe("var(--domain-society)");
+    expect(dots[9].getAttribute("fill")).toBe("var(--domain-world)");
+  });
+
+  it("reduces to two rings and twelve spokes", () => {
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+
+    // Four concentric rings became an outer ring plus a dashed mid-ring.
+    expect(container.querySelectorAll("[data-radar-ring]")).toHaveLength(2);
+    // Six full-diameter lines became twelve spokes from the centre, so a
+    // spoke is present even where the mapping puts a vertex at the origin.
+    const spokes = [...container.querySelectorAll("[data-radar-spoke]")];
+    expect(spokes).toHaveLength(12);
+    // Counting alone cannot tell twelve spokes from twelve diameters. Each
+    // one starts AT the centre, which is the whole point of the change: a
+    // diameter through the middle draws no spoke for an axis whose vertex
+    // lands on the origin.
+    expect(spokes[0].getAttribute("x1")).toBe("290");
+    expect(spokes[0].getAttribute("y1")).toBe("290");
+  });
+
+  it("draws the rings and labels at absolute radii, not fractions of one", () => {
+    // The ring helper is shared with MiniRadar and takes an ABSOLUTE radius,
+    // where this chart's old local helper took a fraction of MAX_RADIUS.
+    // Passing the old 1 / 0.5 through collapses both rings onto the centre,
+    // and counting rings — which is all the test above does — still sees two.
+    // Vertex 0 of each ring is straight up from the (290, 290) centre.
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const vertex0 = (el: Element) =>
+      el.getAttribute("points")!.split(" ")[0].split(",").map(Number);
+    const [outer, mid] = [...container.querySelectorAll("[data-radar-ring]")];
+
+    expect(vertex0(outer)).toEqual([290, 290 - 170]);
+    expect(vertex0(mid)).toEqual([290, 290 - 85]);
+
+    // And the labels sit at r+22, the tightened radius the test below names
+    // but does not otherwise measure. At r+38 this would read 62.
+    const label = container.querySelector("[data-radar-label]")!;
+    expect(Number(label.getAttribute("y"))).toBeCloseTo(290 - (170 + 22), 6);
+  });
+
+  it("keeps the score-to-radius mapping the chart has always used", () => {
+    // ((score + 1) / 2) * MAX_RADIUS, with the first spoke pointing straight
+    // up. A score of 0.2 puts vertex 0 at 60% of the radius above centre.
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const first = container.querySelector("[data-radar-dot]") as SVGCircleElement;
+
+    expect(Number(first.getAttribute("cx"))).toBeCloseTo(290, 4);
+    expect(Number(first.getAttribute("cy"))).toBeCloseTo(290 - 0.6 * 170, 4);
+  });
+
+  it("labels each spoke in mono, numbered, at the tightened radius", () => {
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const labels = [...container.querySelectorAll("[data-radar-label]")];
+
+    expect(labels).toHaveLength(12);
+    expect(labels[0].textContent).toContain("01");
+    expect(labels[0].textContent).toContain("Pole B 1");
+    // Was domain-coloured at r+38. The mono label layer is monochrome, and
+    // --text-label is the one token that steps for AA in both modes.
+    expect((labels[0] as SVGTextElement).style.fill).toBe("var(--text-label)");
+  });
+
+  it("keeps the visually hidden score table", () => {
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const table = container.querySelector("table")!;
+
+    // The SVG is aria-hidden, so this table is the entire accessible chart.
+    expect(classes(table)).toContain("sr-only");
+    expect(table.querySelectorAll("tbody tr")).toHaveLength(12);
+    // That premise is stated in three comments and was asserted nowhere.
+    // Drop the attribute and twelve SVG labels plus the tooltip become a
+    // second, duplicate reading of the same twelve axes.
+    expect(container.querySelector("svg")!.getAttribute("aria-hidden")).toBe("true");
+    // Column headers, so a row cell is announced with the column it sits in.
+    // `toEqual` against a literal rather than `.every(...)`: every() is TRUE on
+    // an empty array, so a <th> -> <td> change emptied the selector and the
+    // assertion passed on nothing. This form also pins the column count.
+    const headers = [...table.querySelectorAll("thead th")];
+    expect(headers.map((th) => th.getAttribute("scope"))).toEqual(["col", "col", "col", "col"]);
+  });
+
+  it("names each axis's domain in the table and hides the legend that repeats it", () => {
+    // This task made domain the job of the twelve dots. A screen reader sees
+    // no dots, so without a column here the one variable the chart gained is
+    // the one assistive tech loses.
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const table = container.querySelector("table")!;
+    const domainCell = (row: number) =>
+      [...table.querySelectorAll("tbody tr")][row].querySelectorAll("td")[1].textContent;
+
+    expect([...table.querySelectorAll("thead th")].map((th) => th.textContent)).toEqual([
+      "Axis",
+      "Domain",
+      "Score",
+      "Confidence",
+    ]);
+    // Derived from the axis id, exactly as the dot beside it is. The fixture
+    // sets `domain: "Economic Organization"` on all twelve, so reading the
+    // field instead would label axis 3 Economic while its dot renders
+    // --domain-power — the table and the chart disagreeing about the same axis.
+    expect(domainCell(0)).toBe("Economic Organization");
+    expect(domainCell(2)).toBe("Power and Authority");
+    expect(domainCell(6)).toBe("Society and Identity");
+    expect(domainCell(9)).toBe("The State in the World");
+
+    // The legend annotates an aria-hidden <svg>. Exposed, it reads as four
+    // loose domain names with no referent — the defect Task 7 fixed on the
+    // mini radar's twin legend one task ago.
+    const legend = container.querySelector("[data-radar-legend]")!;
+    expect(legend.getAttribute("aria-hidden")).toBe("true");
+
+    // The swatches are data marks: a fixed hex cannot step to the 400 tone on
+    // a dark ground, and reverting them was previously undetectable.
+    const swatches = [...container.querySelectorAll("[data-radar-legend-swatch]")] as HTMLElement[];
+    expect(swatches).toHaveLength(4);
+    expect(swatches.map((s) => s.style.backgroundColor)).toEqual([
+      "var(--domain-economic)",
+      "var(--domain-power)",
+      "var(--domain-society)",
+      "var(--domain-world)",
+    ]);
+  });
+
+  it("reads the score table through the shared formatter", () => {
+    // The table used to inline `>= 0 ? "+" : ""`, a fourth copy of the pattern
+    // Task 6 consolidated into format-score.ts. That copy signed an exact
+    // zero. A padded axis scores exactly 0, so this is reachable: the sole
+    // consumer is a screen reader, which would say "plus zero point zero zero"
+    // for an axis carrying no signal at all.
+    const container = render(
+      createElement(RadarChart, { axisScores: [SCORES[0], { ...SCORES[1], finalScore: -0.4 }] }),
+    );
+    const cells = [...container.querySelectorAll("tbody tr")].map(
+      (row) => row.querySelectorAll("td")[2].textContent,
+    );
+
+    expect(cells[0]).toBe("+0.20");
+    expect(cells[1]).toBe("-0.40");
+    // Axes 3-12 are absent from the input and pad to a neutral, unsigned zero.
+    expect(cells[2]).toBe("0.00");
+    expect(cells).toHaveLength(12);
   });
 });
 
