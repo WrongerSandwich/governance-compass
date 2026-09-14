@@ -2933,24 +2933,28 @@ Shipped as `067888f`, one commit over five files. Verified final state: **750 te
 
 **Files:**
 - Modify: `src/components/results/CompassPlot.tsx`
-- Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
+- Modify: `tests/unit/results-chrome.test.ts` — append a `describe`, and (as shipped; the plan drafted the `describe` alone) a `stripComments` helper plus two guards inside the existing `results chrome drift guards` block
 
 **Interfaces:**
 - Props are unchanged (`economic`, `cultural`, `primaryArchetypeId?`).
-- Removes: the four quadrant tint rects, the dashed moderate-zone rect, the four whisper quadrant labels, the two pulse rings, and the background rect's `rx={6}`.
+- Removes: the four quadrant tint rects, the dashed moderate-zone rect, the four whisper quadrant labels, the two pulse rings, the background rect's `rx={6}` — and (as shipped) the four outside-the-square cardinal labels, which the pole labels replace rather than supplement; see "As shipped" note 4.
 - Keeps (D11): the four contour paths, the twelve archetype reference markers with their collision suppression, the leader line and the coordinate readout.
+- Consumes (as shipped): `formatScore` from `@/lib/format-score`, the fifth and sixth inlined copies of that formatter — see "As shipped" note 1.
 
 **Geometry.** `PADDING` moves from 76 to **50** so `INNER` becomes exactly **300**, giving the mock's 300px square inside the existing 400-unit viewBox, with room for the four mono pole labels *inside* the square at an 8px inset. The contour path formulas are already written in terms of `PADDING` and `INNER` and adapt with no edit. The wrapper's `max-w-sm` becomes `max-w-[400px]` so the square renders at 300px rather than 288px.
 
 **The vertical axis keeps its meaning (D12).** Mock 7a labels the vertical axis `Open` / `Traditional`; the shipped plot labels it `TRADITIONAL` (top) / `PROGRESSIVE` (bottom), and `toY()` maps cultural `+1` to the top. Adopting the mock's labels would invert the meaning of every plotted point without touching `SD_CULTURAL_WEIGHTS`. Keep the existing four names in their existing positions; take only the mono treatment.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/unit/results-chrome.test.ts`:
 
 ```ts
 describe("CompassPlot", () => {
   const PLOT = { economic: -0.4, cultural: 0.3, primaryArchetypeId: "social-democrat" };
+  // toX/toY map [-1,+1] across PADDING..SIZE-PADDING, so the origin of both
+  // axes is the centre of the 400-unit viewBox.
+  const CENTRE = 200;
 
   it("draws a 300px plot square with a 50px grid", () => {
     const container = render(createElement(CompassPlot, PLOT));
@@ -2960,11 +2964,29 @@ describe("CompassPlot", () => {
     expect(frame.getAttribute("height")).toBe("300");
     // Squared off with the rest of the system: this rect carried rx={6}.
     expect(frame.getAttribute("rx")).toBeNull();
-    // Five interior lines each way at 50px spacing.
-    expect(container.querySelectorAll("[data-compass-grid]")).toHaveLength(10);
+    // The frame's own origin, so the grid below is pinned to the square and not
+    // merely to the viewBox. Offset the frame by 10 and the lines stop dividing
+    // it, with a size-and-count assertion none the wiser.
+    expect(frame.getAttribute("x")).toBe("50");
+    expect(frame.getAttribute("y")).toBe("50");
+
+    // Five interior lines each way -- and WHERE they fall, not just how many.
+    // A step of 40 leaves exactly ten lines that no longer divide a 300px
+    // square into six columns.
+    const grid = [...container.querySelectorAll("[data-compass-grid]")];
+    expect(grid).toHaveLength(10);
+    const verticals = grid.filter((l) => l.getAttribute("x1") === l.getAttribute("x2"));
+    const horizontals = grid.filter((l) => l.getAttribute("y1") === l.getAttribute("y2"));
+    expect(verticals.map((l) => l.getAttribute("x1"))).toEqual(["100", "150", "200", "250", "300"]);
+    expect(horizontals.map((l) => l.getAttribute("y1"))).toEqual(["100", "150", "200", "250", "300"]);
+
+    // Those are viewBox units, which are only 300 *px* because the 400-unit
+    // viewBox renders 400px wide. max-w-sm is 384px, which would draw the
+    // square at 288px and the grid at 48px with every assertion above green.
+    expect(classes(container.querySelector("svg")!)).toContain("max-w-[400px]");
   });
 
-  it("plots the respondent as a 12px ink dot that inverts", () => {
+  it("plots the respondent as a 12px ink dot the engine positions", () => {
     const container = render(createElement(CompassPlot, PLOT));
     const dot = container.querySelector("[data-compass-dot]") as SVGCircleElement;
 
@@ -2973,11 +2995,24 @@ describe("CompassPlot", () => {
     // ground is invisible, and --text-primary is already the ink pair that
     // inverts (#3d2e1f / #efe9e3).
     expect(dot.style.fill).toBe("var(--text-primary)");
+
+    // Nothing else in this file reads cx/cy against the inputs, so without
+    // these an inverted toY -- cultural +1 rendering at the BOTTOM, every point
+    // and all twelve archetype markers mirrored -- is entirely invisible.
+    // PLOT is economic -0.4 (left of centre) and cultural +0.3 (above it).
+    expect(Number(dot.getAttribute("cx"))).toBeLessThan(CENTRE);
+    expect(Number(dot.getAttribute("cy"))).toBeLessThan(CENTRE);
+    // Exact, so no sign error can hide inside a "less than".
+    expect(dot.getAttribute("cx")).toBe("140");
+    expect(dot.getAttribute("cy")).toBe("155");
   });
 
   it("keeps the compass pointing the way the scoring engine does", () => {
     const container = render(createElement(CompassPlot, PLOT));
-    const poles = [...container.querySelectorAll("[data-compass-pole]")].map((p) => p.textContent);
+    const poleEls = [...container.querySelectorAll("[data-compass-pole]")];
+    const poles = poleEls.map((p) => p.textContent);
+    const poleY = (t: string) => Number(poleEls.find((p) => p.textContent === t)!.getAttribute("y"));
+    const poleX = (t: string) => Number(poleEls.find((p) => p.textContent === t)!.getAttribute("x"));
 
     // Mock 7a labels the vertical axis Open / Traditional, which would invert
     // the meaning of every plotted point. SD_CULTURAL_WEIGHTS maps +1 to the
@@ -2985,6 +3020,45 @@ describe("CompassPlot", () => {
     // prototype with fabricated coordinates; it does not outrank the engine.
     expect(poles).toEqual(["Collective", "Market", "Traditional", "Progressive"]);
     expect(poles).not.toContain("Open");
+    // The four 10px letterSpaced cardinal labels that used to sit OUTSIDE the
+    // square are replaced, not supplemented. They carry no [data-compass-pole]
+    // hook, so leaving them behind would sail past the assertions above while
+    // rendering each pole twice.
+    expect(container.textContent).not.toContain("COLLECTIVE");
+    expect(container.textContent).not.toContain("PROGRESSIVE");
+
+    // WHERE each label sits, not merely that it exists. Reading textContent in
+    // DOM order cannot tell Traditional-on-top from Traditional-on-the-bottom,
+    // so the array above leaves D12 -- the decision this plan spent a paragraph
+    // defending -- unguarded on its own.
+    expect(poleY("Traditional")).toBeLessThan(poleY("Progressive"));
+    expect(poleX("Collective")).toBeLessThan(poleX("Market"));
+    // And each straddles the axis it names rather than merely out-ordering its
+    // opposite somewhere off in a corner.
+    expect(poleY("Traditional")).toBeLessThan(CENTRE);
+    expect(poleY("Progressive")).toBeGreaterThan(CENTRE);
+
+    // INSIDE the square, which is the whole point of moving them off the
+    // outside. Every assertion above is relational -- Traditional above
+    // Progressive, Collective left of Market -- and a relational assertion is
+    // blind to a uniform outward shift: negating POLE_INSET puts all four
+    // labels outside the frame with their ordering, and the suite, intact.
+    // Bounds read off the frame rather than recomputed, as the dot test does.
+    const frameEl = container.querySelector("[data-compass-frame]")!;
+    const fx = Number(frameEl.getAttribute("x"));
+    const fy = Number(frameEl.getAttribute("y"));
+    const fr = fx + Number(frameEl.getAttribute("width"));
+    const fb = fy + Number(frameEl.getAttribute("height"));
+    for (const p of poleEls) {
+      expect(Number(p.getAttribute("x"))).toBeGreaterThanOrEqual(fx);
+      expect(Number(p.getAttribute("x"))).toBeLessThanOrEqual(fr);
+      expect(Number(p.getAttribute("y"))).toBeGreaterThanOrEqual(fy);
+      expect(Number(p.getAttribute("y"))).toBeLessThanOrEqual(fb);
+    }
+
+    // The mono face is a named deliverable of this task; flipping all six
+    // labels to `inherit` otherwise passes.
+    expect((poleEls[0] as SVGTextElement).style.fontFamily).toBe("var(--font-mono)");
   });
 
   it("keeps the contour lines and the archetype markers", () => {
@@ -2995,46 +3069,243 @@ describe("CompassPlot", () => {
     // respondent sits RELATIVE to the twelve archetypes.
     expect(container.querySelectorAll("[data-compass-contour]")).toHaveLength(4);
     expect(container.querySelectorAll("[data-compass-archetype]")).toHaveLength(12);
+
+    // All twelve are LABELLED. The MIN_DIST = 18 collision suppression has
+    // never fired against the shipped archetype data -- the closest pair is
+    // 23.05 units apart at PADDING = 50, and was 19.06 at the old 76, so this
+    // task moved the margin away from the threshold rather than toward it.
+    // Pinning the observable outcome beats contriving a fixture to force a
+    // branch real data does not reach, and this reds if a future prototype
+    // edit, or a smaller INNER, starts swallowing labels.
+    expect(container.querySelectorAll("[data-compass-archetype] text")).toHaveLength(12);
   });
 
   it("drops the decoration the mock is right to cut", () => {
     const container = render(createElement(CompassPlot, PLOT));
+    const svg = container.querySelector("svg")!;
 
-    expect(container.querySelector("[data-compass-moderate]")).toBeNull();
-    expect(container.querySelector("[data-compass-pulse]")).toBeNull();
     expect(container.textContent).not.toContain("Libertarian left");
+
+    // The obvious spelling of the rest of this -- querying
+    // [data-compass-moderate] and [data-compass-pulse] and expecting null -- is
+    // an absence assertion on a hook that never existed. It passes against the
+    // pre-task file, so it cannot tell "removed" from "never present", and it
+    // coins hooks that name nothing, against the convention at :56-61. These
+    // are positive and hold only after the removal.
+    //
+    // One rect: the frame. Before this task there were six -- the frame, the
+    // four quadrant tints and the dashed moderate-zone rect.
+    expect(svg.querySelectorAll("rect")).toHaveLength(1);
+    // One circle at the dot's own coordinates: the two pulse rings sat there
+    // too. Read off the dot rather than recomputing toX/toY in the test.
+    const dot = container.querySelector("[data-compass-dot]")!;
+    const atDot = [...svg.querySelectorAll("circle")].filter(
+      (c) =>
+        c.getAttribute("cx") === dot.getAttribute("cx") &&
+        c.getAttribute("cy") === dot.getAttribute("cy"),
+    );
+    expect(atDot).toHaveLength(1);
   });
 
   it("still reports the coordinates in words and in numbers", () => {
     const container = render(createElement(CompassPlot, PLOT));
+    const svg = container.querySelector("svg")!;
+    const readout = container.querySelector("[data-compass-readout]") as SVGTextElement;
 
-    expect(container.querySelector("svg")!.getAttribute("aria-label")).toBe(
-      "Political compass plot. Economic: -0.40, Cultural: +0.30",
+    // role="img" is what promotes the label to the accessible name of the whole
+    // plot; drop it and the label goes unannounced.
+    expect(svg.getAttribute("role")).toBe("img");
+    // Two bare numbers tell a screen-reader user nothing about which way either
+    // axis runs, so each carries the pole it leans toward.
+    expect(svg.getAttribute("aria-label")).toBe(
+      "Political compass plot. Economic: -0.40 (Collective), Cultural: +0.30 (Traditional)",
     );
-    expect(container.querySelector("[data-compass-readout]")!.textContent).toBe("-0.40, +0.30");
+    expect(readout.textContent).toBe("-0.40, +0.30");
+    expect(readout.style.fontFamily).toBe("var(--font-mono)");
+    // The leader starts clear of the dot it points away from -- LEADER_START
+    // must exceed DOT_R or the line is drawn through the ink it is labelling.
+    const leader = container.querySelector("[data-compass-leader]")!;
+    const dotEl = container.querySelector("[data-compass-dot]")!;
+    expect(
+      Math.abs(Number(leader.getAttribute("x1")) - Number(dotEl.getAttribute("cx"))),
+    ).toBeGreaterThan(Number(dotEl.getAttribute("r")));
+
+    // That bound is one-sided: it pins LEADER_START from below and says
+    // nothing at all about the far end or the label. Stretching LEADER_END to
+    // 160, flipping its sign so the leader runs backwards through the dot, or
+    // widening READOUT_GAP to 60 all drag the readout off the plot square with
+    // the assertion above still green. dotX is 140, so from the dot: start
+    // +16, end +28, readout +32.
+    expect(leader.getAttribute("x1")).toBe("156");
+    expect(leader.getAttribute("x2")).toBe("168");
+    expect(readout.getAttribute("x")).toBe("172");
+    // Sits on the dot's own baseline: this one is 45 units clear of the
+    // horizontal axis, so the collision nudge below must not fire.
+    expect(readout.getAttribute("y")).toBe(dotEl.getAttribute("cy"));
+  });
+
+  it("signs the readout through the shared formatter", () => {
+    // Fifth inlined copy of the always-signed formatter, folded onto
+    // src/lib/format-score.ts (Task 6 consolidated three, Task 8 a fourth).
+    // formatScore signs on `> 0`, so an exact zero loses its `+` -- which is
+    // what the axis table beside this plot already renders, and what a screen
+    // reader should hear. computeSuperDimensions bounds both outputs to
+    // [-1, +1], so formatScore's clamp is a no-op here.
+    const container = render(
+      createElement(CompassPlot, { economic: 0, cultural: -0.25 }),
+    );
+
+    expect(container.querySelector("[data-compass-readout]")!.textContent).toBe("0.00, -0.25");
+    // "(centre)", not "(Collective)": an exact zero leans to neither pole, and
+    // a fully-skipped assessment scores exactly 0 on both axes.
+    expect(container.querySelector("svg")!.getAttribute("aria-label")).toBe(
+      "Political compass plot. Economic: 0.00 (centre), Cultural: -0.25 (Progressive)",
+    );
+  });
+
+  it("keeps the readout clear of the pole labels when the dot sits on the axis", () => {
+    // Moving the pole labels inside the square opened a collision the
+    // outside-the-square labels could not have. The readout renders at
+    // dotX + 32 on the dot's own baseline and "Collective" begins at x=58 on
+    // the centre line, so an economic score below about -0.72 with a near-zero
+    // cultural score printed one straight through the other. Reachable by a
+    // consistent respondent, and trivially via a crafted ?r= URL.
+    const left = render(createElement(CompassPlot, { economic: -0.9, cultural: 0 }));
+    const collective = [...left.querySelectorAll("[data-compass-pole]")].find(
+      (p) => p.textContent === "Collective",
+    )!;
+    expect(Number(collective.getAttribute("y"))).toBe(CENTRE);
+    expect(
+      Math.abs(Number(left.querySelector("[data-compass-readout]")!.getAttribute("y")) - CENTRE),
+    ).toBeGreaterThanOrEqual(12);
+
+    // Symmetrically past +0.89 on "Market" -- and this dot sits just BELOW the
+    // axis, so the nudge has to carry it further down. A nudge that always went
+    // up would push the readout back across the centre line onto the very label
+    // it is avoiding.
+    const right = render(createElement(CompassPlot, { economic: 0.95, cultural: -0.05 }));
+    expect(
+      Number(right.querySelector("[data-compass-readout]")!.getAttribute("y")),
+    ).toBeGreaterThan(CENTRE + 11);
   });
 });
 ```
 
-Add `CompassPlot` to the file's imports.
+Add `CompassPlot` to the file's imports:
 
-- [ ] **Step 2: Run the tests to verify they fail**
+```ts
+import { CompassPlot } from "@/components/results/CompassPlot";
+```
+
+**And, beyond the plan, a source-scanning helper plus two guards inside the `describe("results chrome drift guards")` block Task 7 opened** — see "As shipped" notes 9 and 10. The helper:
+
+```ts
+/** `//` lines and block comments. The source-level guards below scan for token
+ *  spellings that also appear in deliberate "not this token" notes in prose --
+ *  RadarChart.tsx:141 and ArchetypeCard.tsx:98 both carry such notes today --
+ *  so a guard reading raw text reds on a comment documenting the very rule it
+ *  enforces.
+ *
+ *  The line arm is anchored to `^\s*` on purpose. An unanchored `\/\/.*$`
+ *  also eats the tail of any line containing a URL, which was verified to hide
+ *  a real `#abcdef` sitting after one. For a drift guard, under-detection is
+ *  the dangerous direction: a false green ships the defect, a false red merely
+ *  annoys. Known remaining gap, left because no realistic source triggers it:
+ *  the block arm still spans from a `"/*"` string literal to a `"*\/"` one. */
+function stripComments(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+}
+```
+
+The two guards, appended to the existing block rather than to a second one of the same name:
+
+```ts
+  it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {
+    // The class-name guard above is blind to this phase's four SVG charts.
+    // CompassPlot colours all six of its labels through inline
+    // style={{ fill: 'var(--...)' }} and carries no `text-` class at all, so
+    // dropping every one of them onto the 3.28:1 token passes it green. Same
+    // token, same failure, different spelling.
+    //
+    // Comments stripped, like the class guard above: this file family writes
+    // `// --mark-primary, not var(--stone-600)` as a matter of style, so the
+    // natural `// --text-label, not var(--text-tertiary): 3.28:1 fails AA`
+    // would otherwise red this guard on prose documenting compliance with it.
+    const varOffenders = resultsSources
+      .filter(({ text }) => stripComments(text).includes("var(--text-tertiary)"))
+      .map(({ name }) => name)
+      .sort();
+
+    expect(varOffenders).toEqual([]);
+  });
+
+  it("keeps raw colour hexes out of the results components", () => {
+    // CompassPlot's four quadrant tints were raw hexes (#6b7d8a, #85735e,
+    // #7a8b6e, #96716b); a fixed hex cannot invert, and Task 9 removed them.
+    // A DOM-level check on [fill] attributes looks like it guards this and does
+    // not: post-task the only fill attributes left are the contours'
+    // fill="none", so such a check runs over ["none","none","none","none"] and
+    // a tint re-added as style={{ fill: '#6b7d8a' }} sails straight through.
+    // Source level, so no spelling dodges it.
+    const hexOffenders = resultsSources
+      .filter(({ text }) => /#[0-9a-fA-F]{3,8}\b/.test(stripComments(text)))
+      .map(({ name }) => name)
+      .sort();
+
+    expect(hexOffenders).toEqual([]);
+  });
+```
+
+The existing sub-AA guard in that block is retrofitted onto the helper in the same change — its one filter line becomes `.filter(({ text }) => stripComments(text).includes("text-text-tertiary"))`. That is the only line this task deletes from the test file.
+
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: FAIL — six new tests; no `data-compass-*` hooks, `INNER` is 248, and the whisper labels are still present.
+Expected: FAIL — eight new `CompassPlot` tests (the plan drafted six; see notes 2, 3 and 6), because no `data-compass-*` hooks exist, `INNER` is 248 and the whisper labels are still present. **Both new guards also red before Step 3**, on this same file: `CompassPlot.tsx` held four `var(--text-tertiary)` whisper labels at `:127,130,133,136` and four raw-hex quadrant tints, and this task removes all eight. They are genuinely red-then-green, not guards written green.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
-In `src/components/results/CompassPlot.tsx`:
+In `src/components/results/CompassPlot.tsx` — the plan's six edits as shipped, then three the plan did not call for:
 
-1. Change the geometry constant:
+1. Change the geometry constants. The plan changed `PADDING` alone; what shipped extracts every geometry number the new markup needs, because the relationships were coincidental rather than expressed — the grid step `50` happened to equal both `INNER / 6` and `PADDING`, and a literal `50` would have drifted off its own frame the moment `PADDING` moved (note 7):
 
 ```tsx
 const SIZE = 400;
 // 300px plot square, per mock 7a, inside the existing 400-unit viewBox. The
-// 50px margin holds the four mono pole labels at an 8px inset.
+// margin holds nothing — the pole labels moved inside the square — but it
+// keeps the square off the container edge.
 const PADDING = 50;
 const INNER = SIZE - PADDING * 2;
+
+// The grid divides the square into six columns. At PADDING = 50 that step is
+// 50 units, which equals PADDING and puts a line under the centre crosshair —
+// both coincidences of this particular padding, not relationships. Expressing
+// the step as a fraction of INNER keeps the grid square and centred if PADDING
+// ever moves; a literal 50 would drift off its own frame.
+const GRID_STEP = INNER / 6;
+const GRID_LINES = [1, 2, 3, 4, 5];
+
+// 12px ink dot at the 400px render width.
+const DOT_R = 6;
+// Pole labels sit inside the square now, so they must clear a dot parked hard
+// against the frame: one dot radius plus 2 units of breath.
+const POLE_INSET = DOT_R + 2;
+const POLE_FONT = 11;
+// Baseline push for the TOP pole only: the other three centre on an axis or
+// sit above the bottom edge, while this one hangs off the frame's top edge and
+// would otherwise render its cap height outside the square. Hand-tuned by eye
+// against POLE_FONT = 11 and NOT derived from it -- move POLE_FONT and this
+// needs re-checking rather than recomputing itself.
+const POLE_CAP = 6;
+// The leader line has to start clear of the dot it points away from, so both
+// offsets exceed DOT_R.
+const LEADER_START = DOT_R + 10;
+const LEADER_END = DOT_R + 22;
+// And the readout sits just past the leader's far end.
+const READOUT_GAP = 4;
+// Nudge the readout clear of the horizontal axis when the dot sits on it —
+// see the collision note at the call site.
+const READOUT_NUDGE = 12;
 ```
 
 2. Replace the background rect and everything from the quadrant tints down to the cardinal axis labels (that is, the four tint `rect`s, the contour block, the moderate-zone `rect`, the two crosshair `line`s, the four whisper `text`s and the four cardinal `text`s) with:
@@ -3051,20 +3322,20 @@ const INNER = SIZE - PADDING * 2;
           strokeWidth={1}
         />
 
-        {/* 50px grid. --rule-hairline is the barely-there pair (Stone 50 /
-            Stone 900); a `stroke-stone-50` literal would read as near-white
-            hairlines on a dark ground. */}
-        {[1, 2, 3, 4, 5].map((k) => (
+        {/* Grid. --rule-hairline is the barely-there pair (Stone 50 / Stone
+            900); a `stroke-stone-50` literal would read as near-white hairlines
+            on a dark ground. */}
+        {GRID_LINES.map((k) => (
           <g key={k}>
             <line
               data-compass-grid
-              x1={PADDING + k * 50} y1={PADDING} x2={PADDING + k * 50} y2={SIZE - PADDING}
+              x1={PADDING + k * GRID_STEP} y1={PADDING} x2={PADDING + k * GRID_STEP} y2={SIZE - PADDING}
               style={{ stroke: 'var(--rule-hairline)' }}
               strokeWidth={1}
             />
             <line
               data-compass-grid
-              x1={PADDING} y1={PADDING + k * 50} x2={SIZE - PADDING} y2={PADDING + k * 50}
+              x1={PADDING} y1={PADDING + k * GRID_STEP} x2={SIZE - PADDING} y2={PADDING + k * GRID_STEP}
               style={{ stroke: 'var(--rule-hairline)' }}
               strokeWidth={1}
             />
@@ -3096,23 +3367,26 @@ const INNER = SIZE - PADDING * 2;
           strokeWidth={1}
         />
 
-        {/* Pole labels, inside the square at an 8px inset. The vertical pair
-            keeps the engine's orientation, not the mock's — see D12. */}
-        <text data-compass-pole x={PADDING + 8} y={CENTER_Y} fontSize={11} letterSpacing="0.02em" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+        {/* Pole labels, inside the square at a POLE_INSET gutter. Traditional
+            is TOP and Progressive is BOTTOM because toY maps cultural +1 to the
+            top and SD_CULTURAL_WEIGHTS is what defines +1 — mock 7a's Open /
+            Traditional pair would invert the meaning of every plotted point
+            without touching the engine. See D12. */}
+        <text data-compass-pole x={PADDING + POLE_INSET} y={CENTER_Y} fontSize={POLE_FONT} letterSpacing="0.02em" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
           Collective
         </text>
-        <text data-compass-pole x={SIZE - PADDING - 8} y={CENTER_Y} fontSize={11} letterSpacing="0.02em" textAnchor="end" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+        <text data-compass-pole x={SIZE - PADDING - POLE_INSET} y={CENTER_Y} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="end" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
           Market
         </text>
-        <text data-compass-pole x={CENTER_X} y={PADDING + 14} fontSize={11} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+        <text data-compass-pole x={CENTER_X} y={PADDING + POLE_INSET + POLE_CAP} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
           Traditional
         </text>
-        <text data-compass-pole x={CENTER_X} y={SIZE - PADDING - 8} fontSize={11} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+        <text data-compass-pole x={CENTER_X} y={SIZE - PADDING - POLE_INSET} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
           Progressive
         </text>
 ```
 
-Delete the now-unused `modInset` / `modX` / `modY` / `modW` / `modH` locals.
+The now-unused `modInset` / `modX` / `modY` / `modW` / `modH` locals are deleted.
 
 3. In the archetype-marker block, tag the group and put its label in mono:
 
@@ -3120,7 +3394,21 @@ Delete the now-unused `modInset` / `modX` / `modY` / `modW` / `modH` locals.
               <g key={a.id} data-compass-archetype opacity={isPrimary ? 0.75 : 0.4}>
 ```
 
-and on the marker's `<text>`, replace `fontFamily="inherit"` with `style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}` (dropping the separate `style` that set only `fill`).
+and on the marker's `<text>`, `fontFamily="inherit"` becomes the mono pair (the separate `style` that set only `fill` is dropped):
+
+```tsx
+                {showLabel && (
+                  <text
+                    x={ax}
+                    y={labelY}
+                    textAnchor="middle"
+                    fontSize={isPrimary ? 7.5 : 6.5}
+                    style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}
+                  >
+                    {a.shortLabel}
+                  </text>
+                )}
+```
 
 4. Replace the two pulse-ring circles and the respondent dot with a single dot:
 
@@ -3128,14 +3416,16 @@ and on the marker's `<text>`, replace `fontFamily="inherit"` with `style={{ fill
         {/* 12px ink dot. --text-primary, not var(--stone-900): Stone 900 ink
             on a Stone 900 ground is invisible, and this token is already the
             ink pair that inverts. */}
-        <circle data-compass-dot cx={dotX} cy={dotY} r={6} style={{ fill: 'var(--text-primary)' }} />
+        <circle data-compass-dot cx={dotX} cy={dotY} r={DOT_R} style={{ fill: 'var(--text-primary)' }} />
 ```
 
-5. Retag the leader line and the coordinate label onto the label colour:
+5. Retag the leader line and the coordinate label onto the label colour. As shipped both carry constants rather than literals, the leader carries a `data-compass-leader` hook — it is otherwise unfindable among thirteen `<line>` elements — and the readout's `y` is `readoutY`, not `dotY`, which is edit 9 (note 6):
 
 ```tsx
+        {/* Leader line */}
         <line
-          x1={flipLeader ? dotX - 16 : dotX + 16}
+          data-compass-leader
+          x1={flipLeader ? dotX - LEADER_START : dotX + LEADER_START}
           y1={dotY}
           x2={leaderEndX}
           y2={dotY}
@@ -3143,12 +3433,13 @@ and on the marker's `<text>`, replace `fontFamily="inherit"` with `style={{ fill
           strokeWidth={0.6}
         />
 
+        {/* Coordinate label */}
         <text
           data-compass-readout
           x={labelX}
-          y={dotY}
+          y={readoutY}
           textAnchor={labelAnchor}
-          fontSize={11}
+          fontSize={POLE_FONT}
           letterSpacing="0.02em"
           style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}
           dominantBaseline="middle"
@@ -3157,23 +3448,101 @@ and on the marker's `<text>`, replace `fontFamily="inherit"` with `style={{ fill
         </text>
 ```
 
-6. Widen the wrapper so the square renders at its stated size:
+6. Widen the wrapper so the square renders at its stated size. `gap-2` goes with it — inert on a single-child flex column (note 12) — and the `aria-label` gains a pole gloss per coordinate (note 5):
 
 ```tsx
+  return (
+    <div className="flex flex-col items-center">
+      <svg
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="w-full max-w-[400px]"
+        aria-label={`Political compass plot. Economic: ${economicLabel} (${poleGloss(economic, "Collective", "Market")}), Cultural: ${culturalLabel} (${poleGloss(cultural, "Progressive", "Traditional")})`}
+        role="img"
+      >
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+**Three edits beyond the plan's six.**
+
+7. Fold the file's two inlined score formatters onto the shared helper — the fifth and sixth copies of a pattern Task 6 consolidated three of and Task 8 a fourth (note 1):
+
+```tsx
+import { formatScore } from "@/lib/format-score";
+```
+
+```tsx
+  // The shared formatter, not a fifth inlined copy. It signs on `> 0`, so an
+  // exact zero reads "0.00" here — matching the axis table beside this plot,
+  // and sparing a screen reader "plus zero point zero zero". Its ±1 clamp is
+  // a no-op: computeSuperDimensions bounds both outputs to [-1, +1].
+  const economicLabel = formatScore(economic);
+  const culturalLabel = formatScore(cultural);
+```
+
+8. Gloss each coordinate with the pole it leans toward, for the SVG's accessible label — and gloss an exact zero as `centre` rather than as a pole (note 5):
+
+```tsx
+/**
+ * The pole a score leans toward, for the SVG's accessible label. An exact zero
+ * leans to neither: a fully-skipped assessment scores exactly 0 on both axes,
+ * so glossing 0 as "Collective" would tell a respondent who answered nothing
+ * that they lean collective-progressive.
+ */
+function poleGloss(v: number, negative: string, positive: string): string {
+  if (v === 0) return "centre";
+  return v > 0 ? positive : negative;
+}
+```
+
+9. Nudge the readout clear of the horizontal axis when the dot sits on it, signing the nudge away from centre. This is a real defect found in review, created by moving the pole labels inside the square (note 6):
+
+```tsx
+  const flipLeader = dotX > CENTER_X;
+  const leaderEndX = flipLeader ? dotX - LEADER_END : dotX + LEADER_END;
+  const labelX = flipLeader ? leaderEndX - READOUT_GAP : leaderEndX + READOUT_GAP;
+  const labelAnchor = flipLeader ? "end" as const : "start" as const;
+
+  // Moving the pole labels inside the square opened a collision the
+  // outside-the-square labels could not have: the readout renders on the dot's
+  // own baseline, so a dot sitting on the horizontal axis pushes it straight
+  // through "Collective" (economic below about -0.72) or "Market" (above about
+  // +0.89). Both are reachable by a consistent respondent. Nudge the readout
+  // off the axis, and always AWAY from centre, so the nudge can never carry it
+  // onto the label it is avoiding.
+  const readoutY =
+    Math.abs(dotY - CENTER_Y) < READOUT_NUDGE
+      ? dotY + (dotY <= CENTER_Y ? -READOUT_NUDGE : READOUT_NUDGE)
+      : dotY;
+```
+
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: PASS.
+Expected: PASS. `npm run typecheck` stays red on exactly one error — `ResultsView.tsx(339,23)`, the `alternateRow` mismatch Task 10 clears.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/results/CompassPlot.tsx tests/unit/results-chrome.test.ts
 git commit -m "feat(design): square the compass plot onto the mock's grid, keeping its contours"
 ```
+
+Shipped as `ad08639`, one commit over two files. Verified final state: **760 tests across 63 files**, lint clean at `--max-warnings=0`, and `npx tsc --noEmit` red on exactly one error — `ResultsView.tsx(339,23)`, the expected `alternateRow` mismatch that Task 10 clears. Ten tests added: eight in `describe("CompassPlot")` and two guards in the existing drift-guard block.
+
+**As shipped.** Implementation and review moved this task in thirteen ways from the text above:
+
+1. **A fifth inlined score formatter was folded onto `formatScore`, and the plan did not spot it.** `CompassPlot.tsx:54-55` held ``economic >= 0 ? `+${economic.toFixed(2)}` : economic.toFixed(2)`` and its cultural twin — the same always-signed pattern Task 6 consolidated three copies of into `src/lib/format-score.ts` and Task 8 a fourth. **The shared helper's ±1 clamp is provably a no-op here**, not merely harmless: `SD_ECONOMIC_WEIGHTS` (0.65 + 0.35) and `SD_CULTURAL_WEIGHTS` (0.30 + 0.20 + 0.20 + 0.15 + 0.15) each sum to exactly 1.0 against inputs bounded to [-1, +1], and `computeSuperDimensions` documents the resulting bound at `src/lib/scoring.ts:257-258`. The `+0.00` → `0.00` change is **visible on screen** here, unlike Task 8's sr-only case, and it also feeds the SVG's `aria-label`. It is correct because `AxisBreakdownCard`'s visible score column, on the same page, already renders an exact zero unsigned — signing one and not the other is the inconsistency. **Nuance worth recording:** because the compass is a weighted sum of five and two axes, an exact zero requires essentially every contributing axis to be zero. It is reachable — a fully-skipped assessment scores exactly 0 on both — but far rarer than "an axis scored zero", which is what made this the fifth copy rather than the first to be noticed.
+2. **The plan's 300px assertion was unfalsifiable without pinning the wrapper class — record this as a plan defect corrected.** `width="300"` is a *unitless viewBox* measurement. At the pre-task `max-w-sm` (384px) the very same green test describes a 288px square on a 48px grid, so the assertion the task is named for could not tell the shipped geometry from the one it replaced. Edit 6 widens the wrapper to `max-w-[400px]` and nothing in the plan verified it. The shipped test pins `max-w-[400px]` on the `<svg>`, and the grid test reads the five vertical and five horizontal line coordinates rather than only counting to ten. **General lesson for the remaining tasks: any assertion on SVG geometry in viewBox units must also pin the class that fixes the render width, or it measures nothing.**
+3. **Two plan-specified assertions were unfalsifiable in a second way — also a plan defect corrected.** `expect(container.querySelector("[data-compass-moderate]")).toBeNull()` and the `[data-compass-pulse]` equivalent assert the absence of hooks that **never existed on any version of this file**; both pass against the untouched pre-task code, so neither can tell "removed" from "never present", and both coin hooks that name nothing, against this file's stated hook convention. They were deleted and replaced with positive assertions that hold only after the removal: `svg.querySelectorAll("rect")` has length 1 (there were six — the frame, four quadrant tints and the moderate-zone rect), and exactly one `circle` sits at the dot's own `cx`/`cy` (the two pulse rings sat there too), read off the dot rather than recomputed.
+4. **The old cardinal labels carry no hook, so `toEqual` on the four poles could not see them.** `COLLECTIVE` / `MARKET` / `TRADITIONAL` / `PROGRESSIVE` sat outside the square with no `data-*` attribute; leaving them behind would have passed the plan's `expect(poles).toEqual([...])` verbatim while rendering every pole twice. `expect(container.textContent).not.toContain("COLLECTIVE")` and the `PROGRESSIVE` equivalent close it. The same test also gained position assertions — `poleY("Traditional") < poleY("Progressive")`, `poleX("Collective") < poleX("Market")`, each straddling its own axis, and all four inside the frame's measured bounds — because reading `textContent` in DOM order cannot tell Traditional-on-top from Traditional-on-the-bottom, which leaves D12, the decision this task spends a paragraph defending, unguarded.
+5. **The `aria-label` now glosses each coordinate with its pole, so the plan's specified string changed.** It reads `"Political compass plot. Economic: -0.40 (Collective), Cultural: +0.30 (Traditional)"`: two bare numbers tell a screen-reader user nothing about which way either axis runs, and the plot's `role="img"` label is the only description they get. **An exact zero glosses as `"centre"`, not as a pole.** A fully-skipped assessment scores exactly 0 on both axes, and glossing that as "Collective" would manufacture a political claim out of no data at all, in the one place where there is no visual to contradict it. This is the same zero-is-not-signed convention already settled for `formatScore` in note 1, applied to words instead of digits.
+6. **A real defect found in review and fixed: the readout could print straight through a pole label.** Moving the pole labels *inside* the square created a collision the outside-the-square labels could not have. The readout renders on the dot's own `y` at `dotX + 32`, and `Collective` begins at `x = 58` on the centre line, so past `economic < -0.72` with `cultural ≈ 0` the two overlap; symmetrically past `+0.89` on `Market`. Both are reachable by a consistent respondent and trivially via a crafted `?r=` URL. Fixed with a nudge that **signs away from centre**: a fixed upward nudge would push a dot at `cultural = -0.05` from y 207.5 to 195.5 — *onto* the label it was avoiding. The threshold is expressed geometrically, `Math.abs(dotY - CENTER_Y) < READOUT_NUDGE`, which is identical to `|cultural| < 0.08` at `INNER = 300` but survives a `PADDING` change; the equivalent literal would not. Pinned by a test that renders both the left and the right case.
+7. **Nine geometry constants extracted, because the relationships were coincidental rather than expressed.** `GRID_STEP = INNER / 6`, `GRID_LINES`, `DOT_R`, `POLE_INSET = DOT_R + 2`, `POLE_FONT`, `POLE_CAP`, `LEADER_START`, `LEADER_END`, `READOUT_GAP`, `READOUT_NUDGE`. The plan's markup spelled the grid step as a literal `50`, which at `PADDING = 50` happens to equal both `INNER / 6` and `PADDING` — three different quantities wearing the same number, and a `PADDING` change would have silently unhooked the grid from its own frame. The pole inset and both leader offsets are now derived from `DOT_R`, which is what they are actually about: clearing the ink. **Verified render-identical to the literal form across seven prop combinations** before the constants were adopted. One exception is documented as an exception: `POLE_CAP = 6` is hand-tuned by eye against `POLE_FONT = 11` and explicitly **not** derived from it, so moving the font size means re-checking it rather than trusting it to recompute.
+8. **New hooks.** `data-compass-leader`, beyond the plan's set, because the leader line is otherwise unfindable among thirteen `<line>` elements (ten grid, two crosshair, one leader). Plus `data-compass-frame`, `-grid`, `-pole`, `-contour`, `-archetype`, `-dot` and `-readout` from the plan itself. Each carries a real assertion, per the convention at the top of the test file.
+9. **Two new drift guards, and they belong to this task rather than to Task 11 because this task is what makes them green.** The existing sub-AA guard (Task 7) greps for the Tailwind class `text-text-tertiary` — but all four SVG charts in this phase colour through inline `style={{ fill: 'var(--…)' }}`, so that guard protected none of them, and `CompassPlot` carries no `text-` class at all. A `var(--text-tertiary)` source guard and a raw-hex source guard close both spellings. Neither was written green: pre-task `CompassPlot.tsx` held four `var(--text-tertiary)` whisper labels and four raw-hex quadrant tints (`#6b7d8a`, `#85735e`, `#7a8b6e`, `#96716b`), and a fixed hex cannot invert. Both lists are `[]` today. The hex guard is deliberately source-level rather than DOM-level: after this task the only `fill` *attributes* left are the contours' `fill="none"`, so a DOM check would run over `["none","none","none","none"]` and a tint re-added as `style={{ fill: '#6b7d8a' }}` would sail through.
+10. **`stripComments` was extracted for those guards, and it has a documented limitation.** Both new guards — and, retrofitted in the same change, the existing sub-AA one — scan source text through it, because this file family writes `// --mark-primary, not var(--stone-600)` as a matter of style and a raw-text guard reds on prose documenting the very rule it enforces. Two things about it are deliberate and recorded in its docstring. Its line arm is anchored to `^\s*`: an unanchored `\/\/.*$` also eats the tail of any line containing a URL, which was verified to hide a real `#abcdef` sitting after one. And its block arm still spans from a `"/*"` string literal to a `"*/"` one, hiding a real hex in between — left open deliberately, because under-detection is the dangerous direction (a false green ships the defect, a false red merely annoys) and no realistic source triggers it. **Task 11 inherits this helper**; see the addendum there.
+11. **The collision-suppression branch is unreachable against shipped data, so it is pinned by its outcome rather than by a contrived fixture.** Rendering all thirteen `primaryArchetypeId` cases (twelve ids plus `undefined`, which Task 10's `isDistinctive` branch passes) yields 12 labels every time, and the markup is byte-identical with the branch forced on. `MIN_DIST` is 18; the closest label pair measures **23.01** units at `PADDING = 50` and **19.02** at the old 76 — 22.70 and 18.72 respectively in the worst case over all thirteen primary selections, since the primary's label sits one unit higher than the rest. Task 9 therefore moved the margin *away* from the threshold. The guard is `[data-compass-archetype] text` → 12, which catches suppression *firing* — the only direction that can ever become observable. **Correction to the shipped code comment:** `tests/unit/results-chrome.test.ts:939-940` states these figures as 23.05 and 19.06; the measured values are 23.0068 and 19.0189. The conclusion is unaffected and the comment is otherwise correct; routed to Task 11 with the other one-line fixes to that file.
+12. **`gap-2` was dropped from the plot wrapper.** It was inert — a single-child flex column has no gaps — and left in place it would read as spacing that something depends on.
+13. **One stale line reference shipped in a comment, and this task created it.** The `drops the decoration the mock is right to cut` test cites "the convention at :56-61", which was where the hook-convention comment sat when that test was drafted; inserting `stripComments` and its docstring above it pushed the convention to `:72-77`, and `:56-61` now points at the docstring instead. Harmless to the suite and invisible to it — no test reads a comment — but exactly the kind of drift this reconciliation exists to catch. Routed to Task 11, which is the next task to edit this file.
 
 ---
 
@@ -3815,7 +4184,7 @@ A guard that passes vacuously is worse than no guard, and this phase's tokens ar
 | 4 | `AxisBreakdownCard.tsx`: re-add `bg-surface-2` to the row wrapper | `separates rows by a rule instead of a zebra fill` |
 | 5 | `PairedAxisScale.tsx`: `getDomainMarkVar(axisId)` → `domain[600]` on dot A | `steps respondent A's dot to its domain mark` |
 | 6 | `PairedAxisScale.tsx`: in `describePosition`, `0.45` → `0.5` | `puts each boundary in the bucket above it` |
-| 7 | `CompassPlot.tsx`: `var(--text-primary)` → `var(--stone-900)` on the dot | `plots the respondent as a 12px ink dot that inverts` **and** `keeps fixed ramp literals out of the ink and mark positions` |
+| 7 | `CompassPlot.tsx`: `var(--text-primary)` → `var(--stone-900)` on the dot | `plots the respondent as a 12px ink dot the engine positions` **and** `keeps fixed ramp literals out of the ink and mark positions` |
 | 8 | `CompassPlot.tsx`: swap the `Traditional` and `Progressive` label positions | `keeps the compass pointing the way the scoring engine does` |
 | 9 | `ResultsView.tsx`: `DOMAIN_MARK_VARS[key]` → `DOMAIN_COLORS[key][600]` on the domain rule | `heads each domain group with a 2px rule` **and** `routes every data mark through the stepping tokens` |
 | 10 | `globals.css`: dark `--domain-power` → `var(--slate-600)` | `steps every domain mark from its 600 tone to its 400 tone in dark` |
@@ -3843,6 +4212,14 @@ git commit -m "test(design): guard the results page against design drift"
 - **The two source-text guards red on comments, not on code — strip comments before scanning.** `never names --domain-economic where --mark-primary is meant` does `text.includes("--domain-economic")` over raw file text and expects `[]`; that string now appears in explanatory comments in **both** `RadarChart.tsx:142` and `ArchetypeCard.tsx:99`, each saying the token is deliberately *not* used there. `keeps fixed ramp literals out of the ink and mark positions` matches `/var\(--stone-(900|800|700|600|100|50)\)/` and expects `[]`; `var(--stone-600)` appears in comments in the same two files (`RadarChart.tsx:141`, `ArchetypeCard.tsx:98`). Task 7 introduced the pattern and Task 8 doubled it. **Strip `//` line comments and `/* */` blocks from each file's text before scanning.** Do not reword the comments to suit the guards: they are correct, they sit exactly where a future reader needs them, and a later implementer tempted to weaken a guard that exists to catch a defect this project has already shipped twice is much the worse outcome. (`CompassPlot.tsx:203-226` also holds five *real* `var(--stone-600)` uses; Task 9 removes them, and they must keep redding until it does.)
 - **`routes every data mark through the stepping tokens` has live work, and its positive count looks stale.** That half asserts `resultsSources.filter(/getDomainMarkVar|DOMAIN_MARK_VARS/)` has length **3**. Before Task 8 no file in `src/components/results/` matched at all; Task 8 made `RadarChart.tsx` the first, and Task 10's `DOMAIN_MARK_VARS[key]` domain rule makes `ResultsView.tsx` the second. `AxisBreakdownCard` draws no domain mark itself — its dots come from `src/components/PairedAxisScale.tsx`, outside the scanned directory — and `CompassPlot` has none, so the literal should be **2** unless Task 9 or 10 introduces a third. The negative half is live too: during Task 8, reverting the radar's legend swatch from `DOMAIN_MARK_VARS[key]` to a fixed 600 hex was undetectable by every test then in place, which is why that task added a local assertion on the four swatches. This guard is the general form of it.
 
+**Addendum (reconciled after Task 9).** Task 9 shipped part of this task's subject matter, because it is what turned two of these guards green. Five consequences:
+
+- **Step 1 says to "append" a `describe("results chrome drift guards")` that already exists — and it now holds three guards, not one.** Task 7 created the block; Task 9 added the two below. Followed literally, Step 1 produces a second same-named block whose `retires text-text-tertiary from the results page` (`[]`) contradicts the existing `keeps the migrated results components off the sub-AA tertiary token` (`["ResultsView.tsx"]`, shrinking to `[]` at Task 10). **Extend the existing block. Do not open a second one.**
+- **`stripComments` already exists**, at `tests/unit/results-chrome.test.ts:56-70` (Task 9), with the `^\s*` anchoring rationale and the `"/*"`-string-literal gap recorded in its docstring. Use it; do not write a second one. It is also the helper Task 8's addendum above says this task needs for the guards-redding-on-prose problem — that work is done, and the pre-existing sub-AA guard was retrofitted onto it in the same change.
+- **The `var(--…)` spelling guards already exist.** `keeps them off the sub-AA tertiary token in its OTHER spelling too` (`var(--text-tertiary)`) and `keeps raw colour hexes out of the results components` (`/#[0-9a-fA-F]{3,8}\b/`) both scan through `stripComments` and both assert `[]`. Extend them if this task widens the sweep; do not duplicate them under new names.
+- **Two notes above are now settled by Task 9.** The parenthetical about `CompassPlot.tsx:203-226` holding five real `var(--stone-600)` uses is resolved — all five are gone, and the file's only remaining ramp literal is `var(--stone-500)` on the contour strokes. Note that `keeps fixed ramp literals out of the ink and mark positions` justifies sparing `var(--stone-500)` as "the mini radar's prototype stroke"; it is now also the compass contours', so that comment wants a word when this guard is written. And `routes every data mark through the stepping tokens`: Task 9 introduced no domain mark, so the positive count stands at **2** after Task 10, exactly as the note above predicts.
+- **Three one-line fixes to this file, found during Task 9's reconciliation and deliberately not made there** (Task 9 was already at review sign-off and these change no behaviour): the `drops the decoration the mock is right to cut` test cites "the convention at :56-61", which `stripComments` displaced to `:72-77`; and `keeps the contour lines and the archetype markers` states the closest archetype label pair as 23.05 units at `PADDING = 50` and 19.06 at the old 76, where the measured values are **23.0068** and **19.0189** (22.70 and 18.72 in the worst case across all thirteen `primaryArchetypeId` selections, since the primary's label sits one unit higher). Every conclusion drawn from those numbers holds — see Task 9's "As shipped" note 11.
+
 ---
 
 ### Task 12: Full verification and the two-mode visual check
@@ -3862,7 +4239,7 @@ npm run build
 
 Expected: `npm test` reports **60 files** with **676 + the new tests** passing — `results-chrome.test.ts` is the 61st file, so expect 61 files. Lint runs at `--max-warnings=0`; a new warning is a fix, never a raised threshold.
 
-**Flagged, not fixed (reconciled after Task 8).** Those two numbers are stale and have been since Task 5. Three test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5) and `tests/unit/radar-geometry.test.ts` (Task 8) — `tests/helpers/source-files.ts` is a helper and is not collected. At `067888f` the suite reports **750 tests across 63 files**. Left for whoever reconciles this task to fold into the sentence above, together with whatever Tasks 9-11 add.
+**Flagged, not fixed (reconciled after Task 8).** Those two numbers are stale and have been since Task 5. Three test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5) and `tests/unit/radar-geometry.test.ts` (Task 8) — `tests/helpers/source-files.ts` is a helper and is not collected. At `ad08639` the suite reports **760 tests across 63 files** — Task 9 added ten and no new file. Left for whoever reconciles this task to fold into the sentence above, together with whatever Tasks 10-11 add.
 
 If the lockfile changed for any reason, run `npm ci` **before** re-running these — a stale `node_modules` makes a local green disagree with CI.
 
@@ -3947,4 +4324,5 @@ Items consciously punted during the build. None block shipping. Listed here so t
 - **`/compare`'s legend sentence is unguarded copy that is about to go stale on purpose.** `src/app/compare/page.tsx:180` ("Filled dot is you, ring marker is them.") has no test pinning word order — reverting it to the wrong order leaves the whole suite green. Now that Task 6 gives each readout its own swatch, the sentence is close to redundant; deleting it in phase 5 is preferable to writing a guard for copy that phase 5 is going to remove anyway.
 - **`ComparisonRadar.tsx` and `GroupRadar.tsx` are the last holders of the duplicated radar geometry.** Task 8 extracted `src/lib/radar-geometry.ts` and moved `RadarChart` and `MiniRadar` onto it; these two still carry their own `RING_FRACTIONS`, `ringPolygonPoints`, `spokeAngle`, `polarToCart` and `scoreToRadius`, plus — at `GroupRadar.tsx:57` — their own copy of the pad-to-twelve loop that `normaliseByAxisId` replaces. Both are still on the **fraction** convention (`ringPolygonPoints(0.5)`), which is exactly the hazard `ringPoints`' docstring warns about, so migrating them is a call-site audit rather than an import swap and wants its own task. Deliberately not folded into Tasks 9-12: neither file is on the results page, and both are D6-deferred to phase 5 already (see "Deferred to later phases", which defers `ComparisonRadar`'s `getDomainColor600` for the same reason).
 - **Two exported `TOTAL_AXES` now live in `src/lib/`** — `radar-geometry.ts:15` and `comparison-radar-data.ts:3` — the same value in two homes, with a third, unexported copy at `GroupRadar.tsx:16`. Re-export one from the other; the natural moment is the migration above.
+- **`src/components/PairedAxisScale.tsx` sits outside every guard's scan, and it is not Task 11's to fix.** It draws `AxisBreakdownCard`'s domain dots, but it lives in `src/components/`, while all three tertiary/hex/ramp guards — Task 7's, and the two Task 9 added — scan `src/components/results/` only. So the one file in this phase that actually routes a *domain* mark is the one file none of the guards see. **This deliberately does not belong to Task 11**, whose guardrail the plan scopes by directory (see its `routes every data mark through the stepping tokens` note, which excludes `PairedAxisScale` from the count for exactly this reason). `PairedAxisScale` is a shared primitive with three consumers across results, comparison and groups, so widening a results-scoped guard onto it changes what a failure there means for two other features. That is a phase-5 decision, alongside the already-deferred `/compare` sweep and the recursive `src/app/results/**` sweep flagged in Task 11's post-Task-5 addendum.
 - **`RadarChart`'s vertex tooltip is untested and keyboard-unreachable.** Inverting which pole it names (`score >= 0 ? axis.poleBLabel : axis.poleALabel`) passes the entire suite. It is driven by `onMouseEnter`/`onMouseLeave` on a `<circle>` inside an `aria-hidden` `<svg>`, so a sighted keyboard user cannot read an exact vertex value at all; no AT user loses information, because the sr-only table carries the same twelve numbers in rows. Both facts predate this phase — Task 8 changed only the tooltip's metrics (`fontSize` 10 → 11, `rx` 4 → 2) — so this is recorded rather than fixed here.
