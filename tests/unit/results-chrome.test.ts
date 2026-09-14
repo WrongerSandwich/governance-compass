@@ -4,8 +4,8 @@
  * The results page's delta-01/03/04/05/06 treatment (design delta phase 4,
  * mocks 7a and 7b), and the behaviour that must survive it.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -21,6 +21,7 @@ import {
   ROUTER_STUB,
   installIntersectionObserverStub,
 } from "../helpers/client-component-env";
+import { sourceFiles } from "../helpers/source-files";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -58,10 +59,52 @@ function classes(element: Element): string[] {
   return [...element.classList];
 }
 
-const resultsDir = resolve(process.cwd(), "src/components/results");
-const resultsSources = readdirSync(resultsDir)
-  .filter((name) => name.endsWith(".tsx"))
-  .map((name) => ({ name, text: readFileSync(resolve(resultsDir, name), "utf8") }));
+/** Every source file the results feature owns, as `{ path, text }` with
+ *  `path` repo-relative and POSIX-separated.
+ *
+ *  Both directories, not just `src/components/results`: Task 5's own sub-AA
+ *  violation landed at `src/app/results/[profileId]/[axisId]/page.tsx` -- the
+ *  same feature, under `src/app` -- and every guard here was scoped to the
+ *  components directory, so nothing caught it. It surfaced because a human
+ *  happened to open the file.
+ *
+ *  Repo-relative paths rather than bare basenames: the sweep is recursive now
+ *  and yields three different `page.tsx` files, so a basename no longer
+ *  identifies a file and an assertion naming one could pass against the wrong
+ *  one. `sourceFiles` (tests/helpers/source-files.ts) does the recursive walk
+ *  with `node_modules` / `generated` / dot-directory pruning, and defaults to
+ *  `.ts` as well as `.tsx` so a non-component helper dropped into either
+ *  directory is swept too -- the `unswept` guard below reds when one appears,
+ *  which is the point. */
+const RESULTS_DIRS = ["src/components/results", "src/app/results"];
+const resultsSources = RESULTS_DIRS.flatMap((dir) => {
+  let files: string[];
+  try {
+    files = sourceFiles(resolve(process.cwd(), dir));
+  } catch (cause) {
+    // Module scope, so a renamed or deleted directory would otherwise abort
+    // collection with a bare ENOENT and no hint that this file's RESULTS_DIRS
+    // is what needs updating.
+    throw new Error(`RESULTS_DIRS names a directory that does not exist: ${dir}`, { cause });
+  }
+  return files.map((file) => ({
+    path: relative(process.cwd(), file).split(sep).join("/"),
+    text: readFileSync(file, "utf8"),
+  }));
+});
+
+/** Per-file occurrence counts for `pattern`, as a `{ path: count }` object with
+ *  clean files omitted. `toEqual` against one of these fails closed in BOTH
+ *  directions: a new offending file reds it, and so does an existing offender
+ *  growing a ninth occurrence. A ratchet pinned to the file list alone does
+ *  not — it stays green while the file it names gets worse. */
+function offenceCounts(pattern: RegExp): Record<string, number> {
+  return Object.fromEntries(
+    resultsSources
+      .map(({ path, text }) => [path, (stripComments(text).match(pattern) ?? []).length] as const)
+      .filter(([, count]) => count > 0),
+  );
+}
 
 /** `//` lines and block comments. The source-level guards below scan for token
  *  spellings that also appear in deliberate "not this token" notes in prose --
@@ -312,7 +355,9 @@ describe("AxisBreakdownCard", () => {
     // neither. Guarded on source text — this task is the first of ScoreBar's
     // three call sites to move, and Task 5 cannot delete ScoreBar.tsx while
     // any results component still imports it.
-    const card = resultsSources.find((f) => f.name === "AxisBreakdownCard.tsx");
+    const card = resultsSources.find(
+      (f) => f.path === "src/components/results/AxisBreakdownCard.tsx",
+    );
     expect(card).toBeDefined();
     // Matches both the relative spelling and an aliased one
     // (`@/components/results/ScoreBar`), not just `"./ScoreBar"`.
@@ -1001,9 +1046,12 @@ describe("CompassPlot", () => {
     expect(container.querySelectorAll("[data-compass-archetype]")).toHaveLength(12);
 
     // All twelve are LABELLED. The MIN_DIST = 18 collision suppression has
-    // never fired against the shipped archetype data -- the closest pair is
-    // 23.05 units apart at PADDING = 50, and was 19.06 at the old 76, so this
-    // task moved the margin away from the threshold rather than toward it.
+    // never fired against the shipped archetype data -- the closest label pair
+    // is 23.0068 units apart at PADDING = 50, and was 19.0189 at the old 76,
+    // so this task moved the margin away from the threshold rather than toward
+    // it. Worst case across all thirteen primaryArchetypeId selections (the
+    // primary's label sits one unit higher than the rest) those become 22.70
+    // and 18.72 -- still clear of 18, so every conclusion here holds.
     // Pinning the observable outcome beats contriving a fixture to force a
     // branch real data does not reach, and this reds if a future prototype
     // edit, or a smaller INNER, starts swallowing labels.
@@ -1020,7 +1068,8 @@ describe("CompassPlot", () => {
     // [data-compass-moderate] and [data-compass-pulse] and expecting null -- is
     // an absence assertion on a hook that never existed. It passes against the
     // pre-task file, so it cannot tell "removed" from "never present", and it
-    // coins hooks that name nothing, against the convention at :56-61. These
+    // coins hooks that name nothing, against the hook convention at the top
+    // of this file (:103-108). These
     // are positive and hold only after the removal.
     //
     // One rect: the frame. Before this task there were six -- the frame, the
@@ -1437,16 +1486,28 @@ describe("results chrome drift guards", () => {
     // `text-text-tertiary` with the whole suite green. Mirrors the quiz's
     // guard at tests/unit/quiz-chrome.test.ts.
     //
-    // `.sort()` because readdirSync order is not guaranteed, and an unsorted
-    // toEqual against an array literal is a flaky test, not a strict one.
-    const offenders = resultsSources
-      .filter(({ text }) => stripComments(text).includes("text-text-tertiary"))
-      .map(({ name }) => name)
-      .sort();
+    // Counted per file, not just listed: see offenceCounts. An object also
+    // sidesteps the ordering problem a sorted array literal only papers over.
+    const offenders = offenceCounts(/\btext-text-tertiary\b/g);
 
-    // Shrank to [] at Task 10, which rewrote ResultsView.tsx — the last file
-    // in the directory still on the token, at 12 occurrences.
-    expect(offenders).toEqual([]);
+    // Shrank to [] across src/components/results at Task 10, which rewrote
+    // ResultsView.tsx — the last file in that directory still on the token, at
+    // 12 occurrences.
+    //
+    // RATCHET. This list must only ever shrink, and it must reach []. The one
+    // entry is what widening the sweep to src/app/results surfaced: eight
+    // occurrences in the per-axis detail page, at :108, :115, :122, :153,
+    // :158, :163, :168 and :200. They are not one mechanical substitution but
+    // three roles — 11px structural labels (-> --text-label), 13px prose
+    // (-> --text-secondary), and a DELIBERATE de-emphasis inside
+    // `r.selectedPole === "A" ? … : "text-text-tertiary"`, where the token is
+    // doing real work distinguishing an unselected pole from a selected one
+    // and the replacement has to preserve that contrast relationship. Eight
+    // per-line judgement calls want a design review and a contrast
+    // measurement in a real browser, which is Task 12's job, not a
+    // guards-only task's. Routed there; delete this entry with that fix, and
+    // with the one in the Tailwind-ramp guard below — both empty together.
+    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 8 });
   });
 
   it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {
@@ -1462,7 +1523,7 @@ describe("results chrome drift guards", () => {
     // would otherwise red this guard on prose documenting compliance with it.
     const varOffenders = resultsSources
       .filter(({ text }) => stripComments(text).includes("var(--text-tertiary)"))
-      .map(({ name }) => name)
+      .map(({ path }) => path)
       .sort();
 
     expect(varOffenders).toEqual([]);
@@ -1478,9 +1539,214 @@ describe("results chrome drift guards", () => {
     // Source level, so no spelling dodges it.
     const hexOffenders = resultsSources
       .filter(({ text }) => /#[0-9a-fA-F]{3,8}\b/.test(stripComments(text)))
-      .map(({ name }) => name)
+      .map(({ path }) => path)
       .sort();
 
     expect(hexOffenders).toEqual([]);
+  });
+
+  it("has no source left in the results feature unswept", () => {
+    // A sanity check on the sweep itself: if a component is added, renamed or
+    // moved, every guard in this block silently stops covering it and nothing
+    // else notices. ScoreBar's absence is pinned here as well as in
+    // results-dead-code, because this list is what a future author reads when
+    // adding a file.
+    //
+    // Repo-relative, because the sweep now spans two directories and three of
+    // the eight files are called `page.tsx`.
+    expect(resultsSources.map(({ path }) => path).sort()).toEqual([
+      "src/app/results/[profileId]/[axisId]/page.tsx",
+      "src/app/results/[profileId]/page.tsx",
+      "src/app/results/page.tsx",
+      "src/components/results/ArchetypeCard.tsx",
+      "src/components/results/AxisBreakdownCard.tsx",
+      "src/components/results/CompassPlot.tsx",
+      "src/components/results/RadarChart.tsx",
+      "src/components/results/ResultsView.tsx",
+    ]);
+  });
+
+  it("routes every data mark through the stepping tokens", () => {
+    // getDomainColor600 returns a fixed hex, which cannot invert. Delta 06
+    // steps every dot, track, rule and domain label to its 400 tone on a dark
+    // ground. The reference pages (/axes, /questions) keep the fixed accessor
+    // deliberately — they are D6-deferred and their 600 tone is intended in
+    // both modes — so this guard is scoped to this feature.
+    expect(offenceCounts(/getDomainColor600|DOMAIN_COLORS\[[^\]]+\]\[600\]/g)).toEqual({});
+
+    // The positive half, so the assertion above cannot pass by every domain
+    // colour having been dropped. During Task 8, reverting the radar's legend
+    // swatch from DOMAIN_MARK_VARS to a fixed 600 hex was undetectable by
+    // every test then in place; this is the general form of that catch.
+    //
+    // Matched at the CALL and the SUBSCRIPT — `getDomainMarkVar(`, not
+    // `getDomainMarkVar` — because the bare name is also on the import line.
+    // Replacing the only use in ResultsView with a literal string leaves the
+    // import behind, which satisfied an identifier-only regex and left this
+    // guard green while the mount test did all the work. (Lint would red the
+    // unused import, but that is a different gate than the one claiming this.)
+    //
+    // Counted per file for the same reason the ratchets are: RadarChart has
+    // TWO consumers (the domain dots and the legend swatches), and a file-list
+    // assertion survives one of them regressing while the other holds it on
+    // the list. A legitimate third consumer updates the number here.
+    //
+    // Two files, not three: RadarChart (Task 8) and ResultsView's domain rule
+    // (Task 10). AxisBreakdownCard draws no mark itself — its dots come from
+    // src/components/PairedAxisScale.tsx, outside both swept directories and
+    // deliberately left to phase 5, where paired-axis-scale.test.ts covers
+    // them — and CompassPlot has none.
+    expect(offenceCounts(/getDomainMarkVar\(|DOMAIN_MARK_VARS\[/g)).toEqual({
+      "src/components/results/RadarChart.tsx": 2,
+      "src/components/results/ResultsView.tsx": 1,
+    });
+  });
+
+  it("never names --domain-economic where --mark-primary is meant", () => {
+    // THE alias hazard of this phase, and the reason it is a source assertion
+    // rather than a rendered one. --mark-primary and --domain-economic hold
+    // the SAME value in BOTH modes (Stone 600 light, Stone 400 dark), because
+    // the Economic domain is the Stone accent. A mutation swapping one for the
+    // other renders pixel-identically in light AND dark, so no mount, no
+    // screenshot and no computed-style check can catch it. An earlier phase
+    // shipped a real defect exactly this way.
+    //
+    // The radar polygons and the mini radar are Stone marks, not Economic
+    // ones. Only AxisBreakdownCard's dots — drawn by PairedAxisScale, not
+    // here — are domain-scoped.
+    //
+    // Through stripComments: RadarChart.tsx and ArchetypeCard.tsx each carry a
+    // deliberate "--mark-primary, NOT --domain-economic" note at exactly the
+    // line where the distinction matters, so a raw scan reds on the prose
+    // documenting the rule it enforces. Strip the prose; never reword it.
+    const offenders = resultsSources
+      .filter(({ text }) => stripComments(text).includes("--domain-economic"))
+      .map(({ path }) => path)
+      .sort();
+
+    expect(offenders).toEqual([]);
+    expect(
+      resultsSources
+        .filter(({ text }) => stripComments(text).includes("var(--mark-primary)"))
+        .map(({ path }) => path)
+        .sort(),
+    ).toEqual([
+      "src/components/results/ArchetypeCard.tsx",
+      "src/components/results/RadarChart.tsx",
+    ]);
+  });
+
+  it("keeps fixed ramp literals out of the ink and mark positions", () => {
+    // The bug this project has shipped twice: a raw ramp literal where an
+    // inverting token belongs. All four ramps are fixed across modes, so
+    // var(--stone-900) as a fill reads as near-black ink on a near-black
+    // ground — and var(--slate-600), var(--sage-700) and var(--clay-800) are
+    // no less fixed than the Stone ones, so all four families are matched.
+    //
+    // Only `--stone-500` is spared, and only in this spelling: it is the same
+    // value in both modes and is the stroke of both the mini radar's prototype
+    // polygon (ArchetypeCard) and the compass contour lines (CompassPlot,
+    // Task 9), neither of which needs to step. The other three ramps have no
+    // such use, so their 500s stay closed.
+    //
+    // Through stripComments for the same reason as the guard above, and with
+    // one more offender than that one: CompassPlot's ink-dot note spells out
+    // "--text-primary, not var(--stone-900)".
+    const offenders = offenceCounts(
+      /var\(--stone-(?:50|100|200|300|400|600|700|800|900|950)\)|var\(--(?:slate|sage|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\)/g,
+    );
+
+    expect(offenders).toEqual({});
+  });
+
+  it("keeps the fixed ramp out of the Tailwind class spelling too", () => {
+    // Same defect, different spelling — `border-stone-900` is exactly as fixed
+    // across modes as `var(--stone-900)`, and the guard above sees neither it
+    // nor `bg-clay-100`.
+    //
+    // This is not hypothetical. ArchetypeCard's distinctive branch carries its
+    // own section rule, and `puts the section label over a hard ink rule` only
+    // ever mounts the PRIMARY branch: swapping that rule to `border-stone-900`
+    // was verified to survive the whole 69-test file. A browser pass would not
+    // have found it either — in light mode `border-stone-900` and
+    // `border-rule-strong` are near-identical, so it only shows in dark, on a
+    // branch that needs a contrived profile to render at all.
+    //
+    // stripComments is REQUIRED here, not merely tidy: CompassPlot.tsx:143
+    // carries a deliberate "a `stroke-stone-50` literal would read as
+    // near-white hairlines on a dark ground" note, and a raw scan reds on it.
+    const offenders = offenceCounts(
+      /\b(?:text|bg|border|fill|stroke|ring|divide|from|via|to)-(?:stone|slate|sage|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/g,
+    );
+
+    // RATCHET, the second in this block and the twin of the sub-AA one above:
+    // ten occurrences in the same un-migrated per-axis detail page, at :77
+    // (text-stone-600 and text-stone-800), :83, :142, :153 (bg-stone-100 and
+    // text-stone-800), :163 (the same pair), :182 and :196. Same reasoning for
+    // deferring the fix: the page is not in this phase's scope, the
+    // replacements are per-line judgement calls, and Task 12 can measure them
+    // in a real browser. Both ratchets should reach {} in that one commit.
+    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 10 });
+  });
+
+  it("never layers a colour over a self-contained role", () => {
+    // `caption-italic` declares its own `color`. Layering `text-*` beside it
+    // is banned — whether the custom rule wins depends on Tailwind's emitted
+    // order, which is too subtle to rely on. `text-[` is excluded: an
+    // arbitrary size (`text-[13px]`) is not a colour.
+    //
+    // Known gap: the regex reads static `className="..."` only, so a
+    // `className={`caption-italic ${cls}`}` evades it. No source in the swept
+    // set builds this role's class list dynamically today, and widening to
+    // template literals would mean matching an interpolation whose value is
+    // not in this file — a guard that cannot see its own subject. Left
+    // narrow and stated rather than made to look broader than it is.
+    const captioned = resultsSources.flatMap(({ path, text }) =>
+      [...stripComments(text).matchAll(/className="([^"]*\bcaption-italic\b[^"]*)"/g)].map(
+        ([, classNames]) => `${path}: ${classNames}`,
+      ),
+    );
+
+    expect(captioned.filter((entry) => /\btext-(?!\[)[a-z-]+\b/.test(entry))).toEqual([]);
+    // The role is actually in use, so the assertion above is not vacuous.
+    expect(captioned.length).toBeGreaterThan(0);
+  });
+
+  it("keeps the zebra fill retired", () => {
+    // Delta 04: rules carry structure, and a list separated by 1px Stone 200
+    // does not also need an alternating surface. The prop is gone from the
+    // interface, so this guard is about the idiom not creeping back in via
+    // an nth-child or an index modulo.
+    //
+    // Any identifier modulo two, not the literal `i % 2` the draft carried:
+    // `${axisId % 2 === 0 ? "bg-surface-2" : ""}` was verified to survive the
+    // whole file, since the rows here are mapped over `axisId`/`index`, never
+    // `i`, and the mount test only backstops this when the fixture's index
+    // happens to be even (AXIS.axisId is 3). Whitespace is optional on both
+    // sides because `axisId%2` is what a formatter-free edit produces.
+    const offenders = offenceCounts(
+      /\balternateRow\b|\b[A-Za-z_$][\w$]*\s*%\s*2\b|\bodd:bg-|\beven:bg-/g,
+    );
+
+    expect(offenders).toEqual({});
+  });
+
+  it("routes every focus ring and corner through the shared utilities", () => {
+    // A local copy of the repo-wide guardrails, kept because those scan `src`
+    // and would report a violation here as an anonymous path in a long list.
+    // This one names the file, which is what a reviewer of THIS phase needs.
+    //
+    // The corner arm is the repo-wide pattern verbatim
+    // (design-system-tokens.test.ts:210) rather than the phase plan's
+    // shorthand: the optional `-[a-z]{1,2}` side segment catches `rounded-t-lg`
+    // and `rounded-tl-[8px]`, which the shorthand misses entirely, and the
+    // `(?![\w-])` boundary stops `rounded-lg` matching inside a longer token.
+    // Copying the shorthand would have left a reviewer trusting a guard
+    // narrower than the one it claims to mirror.
+    const offenders = offenceCounts(
+      /outline-none|focus-visible:outline-|rounded(?:-[a-z]{1,2})?-(?:\[(?:12|8)px\]|lg|xl)(?![\w-])/g,
+    );
+
+    expect(offenders).toEqual({});
   });
 });
