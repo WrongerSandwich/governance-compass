@@ -1492,22 +1492,17 @@ describe("results chrome drift guards", () => {
 
     // Shrank to [] across src/components/results at Task 10, which rewrote
     // ResultsView.tsx — the last file in that directory still on the token, at
-    // 12 occurrences.
+    // 12 occurrences. Task 12 emptied the last entry: the per-axis detail
+    // page's eight occurrences were three roles, not one substitution — 11px
+    // structural labels to --text-label, 13px prose to --text-secondary, and
+    // the unselected arm of `r.selectedPole === … ? … : "text-text-tertiary"`
+    // to --text-secondary, which keeps it the weaker of the pair while
+    // clearing AA (measured in a browser: 3.28:1 -> 6.52:1 in light, unchanged
+    // in dark, where --text-label and --text-tertiary are the same value).
     //
-    // RATCHET. This list must only ever shrink, and it must reach []. The one
-    // entry is what widening the sweep to src/app/results surfaced: eight
-    // occurrences in the per-axis detail page, at :108, :115, :122, :153,
-    // :158, :163, :168 and :200. They are not one mechanical substitution but
-    // three roles — 11px structural labels (-> --text-label), 13px prose
-    // (-> --text-secondary), and a DELIBERATE de-emphasis inside
-    // `r.selectedPole === "A" ? … : "text-text-tertiary"`, where the token is
-    // doing real work distinguishing an unselected pole from a selected one
-    // and the replacement has to preserve that contrast relationship. Eight
-    // per-line judgement calls want a design review and a contrast
-    // measurement in a real browser, which is Task 12's job, not a
-    // guards-only task's. Routed there; delete this entry with that fix, and
-    // with the one in the Tailwind-ramp guard below — both empty together.
-    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 8 });
+    // NO RATCHET REMAINS. This is now a flat zero and must stay one; a new
+    // entry here is a regression, not a backlog item.
+    expect(offenders).toEqual({});
   });
 
   it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {
@@ -1679,14 +1674,20 @@ describe("results chrome drift guards", () => {
       /\b(?:text|bg|border|fill|stroke|ring|divide|from|via|to)-(?:stone|slate|sage|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/g,
     );
 
-    // RATCHET, the second in this block and the twin of the sub-AA one above:
-    // ten occurrences in the same un-migrated per-axis detail page, at :77
-    // (text-stone-600 and text-stone-800), :83, :142, :153 (bg-stone-100 and
-    // text-stone-800), :163 (the same pair), :182 and :196. Same reasoning for
-    // deferring the fix: the page is not in this phase's scope, the
-    // replacements are per-line judgement calls, and Task 12 can measure them
-    // in a real browser. Both ratchets should reach {} in that one commit.
-    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 10 });
+    // Emptied by Task 12 in the same commit as its twin above — the :153 and
+    // :163 pairs are two arms of one ternary and appeared in BOTH ratchets, so
+    // clearing one without the other would have left those rows half-migrated.
+    // The per-axis page's ten ramp classes were the last holders: the back
+    // link's 600/800 hover pair became --text-secondary/--text-primary, the
+    // three section headings became --text-primary (stone-800 measures 1.63:1
+    // on the dark panel ground, which is the actual defect), the selected
+    // pole's `bg-stone-100 text-stone-800` became `bg-surface-2
+    // text-text-primary` so the highlight inverts with the surface instead of
+    // staying a light beige box on a dark page, and the chosen scaled option
+    // moved off text-stone-600 (3.47:1 in dark) onto --text-primary.
+    //
+    // NO RATCHET REMAINS, the same as its twin. A new entry is a regression.
+    expect(offenders).toEqual({});
   });
 
   it("never layers a colour over a self-contained role", () => {
