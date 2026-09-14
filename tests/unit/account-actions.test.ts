@@ -239,6 +239,21 @@ describe("account and auth controls (design delta phase 5)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("gives the saved-group card a hover that is actually a change", () => {
+    const text = readFileSync(
+      resolve(process.cwd(), "src/app/account/page.tsx"),
+      "utf8",
+    );
+
+    // The card's resting ground is `bg-surface-2`. The pre-delta hover was
+    // `hover:bg-stone-100`, and the literal swap in the plan's Step 3 sent it
+    // to `hover:bg-surface-2` — the colour it already was. A hover state that
+    // resolves to the base is invisible, and nothing else in the suite looks
+    // at a `:hover` variant, so it would have shipped silently.
+    expect(text).toContain("bg-surface-2 rounded-sharp p-3 hover:bg-surface-1");
+    expect(text).not.toContain("hover:bg-surface-2 transition-colors");
+  });
+
   it("leaves no red utility anywhere in src", () => {
     // The six sites were spread across four features. A per-file list goes
     // stale; this one closes the class of defect rather than the instances.

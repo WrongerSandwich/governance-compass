@@ -257,7 +257,7 @@ export default function AccountPage() {
                 <Link
                   key={g.id}
                   href={`/groups/${g.id}`}
-                  className="block bg-surface-2 rounded-sharp p-3 hover:bg-surface-2 transition-colors duration-150"
+                  className="block bg-surface-2 rounded-sharp p-3 hover:bg-surface-1 transition-colors duration-150 focus-ring"
                 >
                   <div className="font-medium text-text-primary">{g.name}</div>
                   <div className="text-xs text-text-secondary">
