@@ -324,10 +324,10 @@ body {
 /* Archetype :target highlight — used when arriving from /results with #archetype-id.
    Pure CSS so the page stays a server component. Animation is a one-shot rail
    on the left edge, consistent with the restrained motion system. */
-.archetype-entry:target {
+[data-archetype-entry]:target {
   position: relative;
 }
-.archetype-entry:target::before {
+[data-archetype-entry]:target::before {
   content: "";
   position: absolute;
   left: 0;

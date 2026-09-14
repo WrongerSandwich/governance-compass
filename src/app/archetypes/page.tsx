@@ -11,6 +11,7 @@ import { axes } from "@/data/axes";
 import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { PageHeader, SpoilerNote } from "@/components/PageHeader";
+import { ReferenceCta } from "@/components/ReferenceCta";
 
 const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   empirical: "●",
@@ -341,41 +342,39 @@ export default function ArchetypesPage() {
         ))}
       </div>
 
-      {/* Footer — ghost CTA above a single inline row of tertiary nav links */}
-      <div className="border-t border-border-secondary mt-12 pt-6 text-center">
-        <Link
-          href="/quiz"
-          className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-sharp text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
-        >
-          Begin assessment
-        </Link>
-        <nav
-          aria-label="Page navigation"
-          className="mt-4 flex flex-wrap justify-center items-baseline gap-x-2 text-xs text-text-tertiary"
-        >
-          <Link
-            href="/references"
-            className="hover:text-text-secondary transition-colors duration-150"
-          >
-            back to references
-          </Link>
-          <span aria-hidden="true" className="text-text-tertiary/60">·</span>
-          <a
-            href="#top"
-            className="hover:text-text-secondary transition-colors duration-150"
-          >
-            ↑ back to top
-          </a>
-          <ReturningUserLink
-            as="span"
-            wrapperClassName="inline-flex items-baseline gap-x-2"
-            className="hover:text-text-secondary transition-colors duration-150"
-            label="← back to your results"
-            prefix={
-              <span aria-hidden="true" className="text-text-tertiary/60">·</span>
-            }
-          />
-        </nav>
+      <div className="mx-auto max-w-reference px-6">
+        <ReferenceCta
+          secondary={
+            <>
+              <Link
+                href="/references"
+                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+              >
+                Back to references
+              </Link>
+              <span aria-hidden="true" className="opacity-40 mx-2">
+                ·
+              </span>
+              <a
+                href="#top"
+                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+              >
+                ↑ Back to top
+              </a>
+              <ReturningUserLink
+                as="span"
+                wrapperClassName="inline"
+                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+                label="← Back to your results"
+                prefix={
+                  <span aria-hidden="true" className="opacity-40 mx-2">
+                    ·
+                  </span>
+                }
+              />
+            </>
+          }
+        />
       </div>
     </main>
   );

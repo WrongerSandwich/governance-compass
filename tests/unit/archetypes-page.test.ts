@@ -333,3 +333,40 @@ describe("/archetypes mode-stepping marks", () => {
     expect(shape.getAttribute("style")).not.toContain("var(--stone-600)");
   });
 });
+
+describe("/archetypes footer", () => {
+  it("closes with the filled primary assessment button", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const cta = container.querySelector("[data-reference-cta] a")!;
+    expect(cta.getAttribute("href")).toBe("/quiz");
+    expect(cta.textContent).toBe("Begin the assessment");
+    expect(classes(cta)).toContain("bg-button-primary");
+    // It shipped as an outlined ghost link. 7c draws ink, and CLAUDE.md
+    // reserves ink for exactly this action.
+    expect(classes(cta)).not.toContain("border-border-primary");
+  });
+
+  it("runs the footer nav as one mono row", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const nav = container.querySelector("[data-reference-secondary]")!;
+    expect(classes(nav)).toContain("mono-meta");
+    expect(classes(nav)).toContain("text-text-label");
+    expect(nav.textContent).toContain("Back to references");
+    expect(nav.textContent).toContain("Back to top");
+  });
+
+  it("points the back-to-top link at an anchor that exists", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const top = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>("[data-reference-secondary] a"),
+    ).find((a) => a.getAttribute("href") === "#top");
+
+    expect(top).toBeDefined();
+    // Task 3 moved `id="top"` from the deleted <article> onto <main>. If the
+    // move were missed the link would still render and still do nothing.
+    expect(container.querySelector("#top")).not.toBeNull();
+  });
+});
