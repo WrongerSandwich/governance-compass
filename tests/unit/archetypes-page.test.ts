@@ -315,3 +315,21 @@ describe("/archetypes entries", () => {
     expect(classes(container.querySelector("[data-archetype-entry]")!)).toContain("scroll-mt-20");
   });
 });
+
+describe("/archetypes mode-stepping marks", () => {
+  it("routes the glyph and the prototype shape through the stepping token", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const glyph = container.querySelector("[data-archetype-index] [role='img']")!;
+    expect(glyph.getAttribute("style")).toContain("var(--mark-primary)");
+    // `--stone-600` is one hex in both modes. Task 4 moved the legend glyph
+    // beside this one onto `text-mark-primary`, which steps 600 → 400 on a
+    // dark ground — so leaving these on the fixed value put two different
+    // browns on the same row, in a page that draws the same mark three times.
+    expect(glyph.getAttribute("style")).not.toContain("var(--stone-600)");
+
+    const shape = container.querySelector("[data-archetype-entry] [data-prototype-shape]")!;
+    expect(shape.getAttribute("style")).toContain("var(--mark-primary)");
+    expect(shape.getAttribute("style")).not.toContain("var(--stone-600)");
+  });
+});

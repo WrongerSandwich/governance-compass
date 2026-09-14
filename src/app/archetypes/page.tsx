@@ -37,7 +37,7 @@ function EmergenceGlyph({ emergence }: { emergence: ArchetypeEmergence }) {
       title={fullLabel}
       aria-label={fullLabel}
       className="text-[14px] leading-none cursor-help"
-      style={{ color: "var(--stone-600)" }}
+      style={{ color: "var(--mark-primary)" }}
     >
       {EMERGENCE_GLYPH[emergence]}
     </span>
@@ -95,7 +95,8 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
       />
       <polygon
         points={radarPoints(prototype)}
-        style={{ fill: "var(--stone-600)", stroke: "var(--stone-600)" }}
+        data-prototype-shape
+        style={{ fill: "var(--mark-primary)", stroke: "var(--mark-primary)" }}
         fillOpacity={0.14}
         strokeOpacity={0.6}
         strokeWidth={1}

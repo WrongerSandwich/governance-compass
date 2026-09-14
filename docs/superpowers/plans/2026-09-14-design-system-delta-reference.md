@@ -915,12 +915,15 @@ describe("/archetypes entries", () => {
       expect(classes(em)).not.toContain("label-nav");
     }
 
-    // Selecting every `em` in the entry instead would sweep in a different
-    // device: markdown emphasis inside the traditions prose. The first entry
-    // italicises `*Ujamaa*`, a Swahili term inside sans body copy, which
-    // `TraditionsProse` renders sans on purpose. Asserting `font-serif` over
-    // that set reds the suite on correct markup.
-    const bodyEm = Array.from(entry.querySelectorAll("em:not([data-lead-in])"));
+    // Selecting every `em` instead would sweep in a different device:
+    // markdown emphasis inside the traditions prose. Five of the twelve
+    // entries italicise a term that way — `*Ujamaa*`, `*Rerum Novarum*`,
+    // `*Neue Mitte*` — and `TraditionsProse` renders those sans on purpose.
+    // Scope to the band, not the page: `SpoilerNote` in the header renders a
+    // serif `em` of its own that carries no `data-lead-in`.
+    const bodyEm = Array.from(
+      container.querySelectorAll("[data-archetypes-band] em:not([data-lead-in])"),
+    );
     expect(bodyEm.length).toBeGreaterThan(0);
     expect(classes(bodyEm[0])).not.toContain("font-serif");
   });
@@ -1167,7 +1170,7 @@ Three things changed inside the disclosure beyond the token swaps, and each is d
 npx vitest run tests/unit/archetypes-page.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 18 tests; clean typecheck; clean lint. If lint still reports an unused binding, it is `numberFor` or `EmergenceGlyph` — both are used above, so a report means the edit landed in the wrong place.
+Expected: PASS, 22 tests; clean typecheck; clean lint. If lint still reports an unused binding, it is `numberFor` or `EmergenceGlyph` — both are used above, so a report means the edit landed in the wrong place.
 
 - [ ] **Step 6: Commit**
 
@@ -1175,6 +1178,45 @@ Expected: PASS, 18 tests; clean typecheck; clean lint. If lint still reports an 
 git add src/app/archetypes/page.tsx tests/unit/archetypes-page.test.ts
 git commit -m "feat(design): give the archetype entries a full-bleed zebra band"
 ```
+
+- [ ] **Step 7: Finish the mark sweep this task started**
+
+Step 3b moved the legend glyph to `text-mark-primary` and the axis-bar fill to
+`var(--mark-primary)`, but `EmergenceGlyph` and `MiniRadar` were left on
+`var(--stone-600)` — a fixed hex. That is now an inconsistency *this task
+introduced*: the index row draws the legend's stepping glyph and the entry's
+fixed one side by side, so on a dark ground the same mark renders in two
+browns. Close it.
+
+In `EmergenceGlyph`, `style={{ color: "var(--stone-600)" }}` →
+`style={{ color: "var(--mark-primary)" }}`. In `MiniRadar`, tag the data
+polygon `data-prototype-shape` and swap both of its channels:
+`style={{ fill: "var(--mark-primary)", stroke: "var(--mark-primary)" }}`. The
+two ring polygons already use `--border-secondary` and are unaffected.
+
+Append to `tests/unit/archetypes-page.test.ts`:
+
+```ts
+describe("/archetypes mode-stepping marks", () => {
+  it("routes the glyph and the prototype shape through the stepping token", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const glyph = container.querySelector("[data-archetype-index] [role='img']")!;
+    expect(glyph.getAttribute("style")).toContain("var(--mark-primary)");
+    // `--stone-600` is one hex in both modes. Task 4 moved the legend glyph
+    // beside this one onto `text-mark-primary`, which steps 600 → 400 on a
+    // dark ground — so leaving these on the fixed value put two different
+    // browns on the same row, in a page that draws the same mark three times.
+    expect(glyph.getAttribute("style")).not.toContain("var(--stone-600)");
+
+    const shape = container.querySelector("[data-archetype-entry] [data-prototype-shape]")!;
+    expect(shape.getAttribute("style")).toContain("var(--mark-primary)");
+    expect(shape.getAttribute("style")).not.toContain("var(--stone-600)");
+  });
+});
+```
+
+After this, `grep -n "stone-600" src/app/archetypes/page.tsx` returns nothing.
 
 ---
 
