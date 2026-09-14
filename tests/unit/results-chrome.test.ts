@@ -955,10 +955,24 @@ describe("CompassPlot", () => {
     expect(verticals.map((l) => l.getAttribute("x1"))).toEqual(["100", "150", "200", "250", "300"]);
     expect(horizontals.map((l) => l.getAttribute("y1"))).toEqual(["100", "150", "200", "250", "300"]);
 
-    // Those are viewBox units, which are only 300 *px* because the 400-unit
-    // viewBox renders 400px wide. max-w-sm is 384px, which would draw the
-    // square at 288px and the grid at 48px with every assertion above green.
-    expect(classes(container.querySelector("svg")!)).toContain("max-w-[400px]");
+    // Those are viewBox units, which are only 300 *px* if the 400-unit viewBox
+    // renders 400px wide. max-w-sm is 384px, which would draw the square at
+    // 288px and the grid at 48px with every assertion above green.
+    //
+    // The cap has to sit on the WRAPPER. Task 9 put `w-full max-w-[400px]` on
+    // the svg alone and this assertion read green, but the wrapper is a flex
+    // item of a `flex justify-center` panel, so it shrink-wrapped its child and
+    // the svg's percentage width resolved against a shrink-to-fit box — the
+    // square rendered at 225 CSS px, which Task 12 measured in Chromium. jsdom
+    // lays nothing out, so the size itself is not assertable here; what is
+    // assertable is that the cap and the width are on the same element, which
+    // is the part that was wrong.
+    const svg = container.querySelector("svg")!;
+    expect(classes(svg)).toContain("w-full");
+    expect(classes(svg)).not.toContain("max-w-[400px]");
+    expect(classes(svg.parentElement!)).toEqual(
+      expect.arrayContaining(["w-full", "max-w-[400px]"]),
+    );
   });
 
   it("plots the respondent as a 12px ink dot the engine positions", () => {

@@ -121,10 +121,17 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
       : dotY;
 
   return (
-    <div className="flex flex-col items-center">
+    /* `w-full max-w-[400px]` on the WRAPPER, not only on the svg. The wrapper
+       is a flex item of `${PANEL} … flex justify-center`, so without a width
+       of its own it shrink-wraps its child; the svg's `w-full` then resolved
+       against a shrink-to-fit box and settled on the 300px default width of a
+       replaced element. The plot square rendered at 225 CSS px rather than the
+       300 the mock and the guard both name — measured in Chromium on the
+       production build, which is the only place it shows. */
+    <div className="flex w-full max-w-[400px] flex-col items-center">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full max-w-[400px]"
+        className="w-full"
         aria-label={`Political compass plot. Economic: ${economicLabel} (${poleGloss(economic, "Collective", "Market")}), Cultural: ${culturalLabel} (${poleGloss(cultural, "Progressive", "Traditional")})`}
         role="img"
       >
