@@ -7,9 +7,9 @@ import {
   buildAxisNames,
   buildComparableScores,
   buildScoreRuns,
-  formatScore,
   type AxisScoreEntry,
 } from "@/lib/comparison-radar-data";
+import { formatScore } from "@/lib/format-score";
 
 interface ComparisonRadarProps {
   axisScoresA: AxisScoreEntry[];

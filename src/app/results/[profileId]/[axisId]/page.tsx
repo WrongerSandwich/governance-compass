@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ScoreBar } from "@/components/results/ScoreBar";
+import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { AnnotationEditor } from "@/components/annotations/AnnotationEditor";
 
 function getScaledOptionDisplay(
@@ -74,43 +74,52 @@ export default async function AxisDetailPage({
       <div className="max-w-2xl mx-auto">
         <Link
           href={`/results/${profileId}`}
-          className="text-sm text-stone-600 hover:text-stone-800 mb-4 inline-block"
+          className="text-sm text-text-secondary hover:text-text-primary mb-4 inline-block"
         >
           &larr; Back to full results
         </Link>
 
         <div className="mb-1">
-          <span className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium">
+          <span className="text-[11px] uppercase tracking-[0.08em] text-text-primary font-medium">
             {axis.domain}
           </span>
         </div>
         <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">{axis.name}</h1>
 
         <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
-          <ScoreBar
-            score={axisScore.finalScore}
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-[11px] text-text-label">Composite score</span>
+            <span className="font-mono text-sm font-medium text-text-primary tabular-nums">
+              {axisScore.finalScore >= 0 ? "+" : ""}
+              {axisScore.finalScore.toFixed(2)}
+            </span>
+          </div>
+          <PairedAxisScale
+            axisId={axisId}
             poleALabel={axis.poleALabel}
             poleBLabel={axis.poleBLabel}
-            height={12}
+            scoreA={axisScore.finalScore}
+            endpoints="below"
+            axisName={axis.name}
           />
 
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
             <div className="bg-surface-2 rounded-sharp p-3">
-              <div className="text-[11px] text-text-tertiary mb-1">Forced choice</div>
+              <div className="text-[11px] text-text-label mb-1">Forced choice</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.fcScore >= 0 ? "+" : ""}
                 {axisScore.fcScore.toFixed(2)}
               </div>
             </div>
             <div className="bg-surface-2 rounded-sharp p-3">
-              <div className="text-[11px] text-text-tertiary mb-1">Scaled</div>
+              <div className="text-[11px] text-text-label mb-1">Scaled</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.scScore >= 0 ? "+" : ""}
                 {axisScore.scScore.toFixed(2)}
               </div>
             </div>
             <div className="bg-surface-2 rounded-sharp p-3">
-              <div className="text-[11px] text-text-tertiary mb-1">Budget</div>
+              <div className="text-[11px] text-text-label mb-1">Budget</div>
               <div className="font-mono text-sm font-medium text-text-primary tabular-nums">
                 {axisScore.bgScore != null
                   ? (axisScore.bgScore >= 0 ? "+" : "") +
@@ -130,7 +139,7 @@ export default async function AxisDetailPage({
         {/* Forced-choice responses */}
         {fcResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-3">
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-primary font-medium border-b border-border-secondary pb-1.5 mb-3">
               Forced-choice responses
             </h2>
             <div className="space-y-3">
@@ -141,22 +150,22 @@ export default async function AxisDetailPage({
                 >
                   <div className="grid grid-cols-1 min-[560px]:grid-cols-2 gap-3 text-sm">
                     <div
-                      className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "A" ? "bg-surface-2 text-text-primary" : "text-text-secondary"}`}
                     >
                       <p className={`text-[15px] leading-snug ${r.selectedPole === "A" ? "font-medium" : ""}`}>
                         {r.item.headlineA}
                       </p>
-                      <p className="text-[13px] text-text-tertiary leading-relaxed mt-1">
+                      <p className="text-[13px] text-text-secondary leading-relaxed mt-1">
                         {r.item.bodyA}
                       </p>
                     </div>
                     <div
-                      className={`p-2 rounded-[6px] ${r.selectedPole === "B" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"}`}
+                      className={`p-2 rounded-[6px] ${r.selectedPole === "B" ? "bg-surface-2 text-text-primary" : "text-text-secondary"}`}
                     >
                       <p className={`text-[15px] leading-snug ${r.selectedPole === "B" ? "font-medium" : ""}`}>
                         {r.item.headlineB}
                       </p>
-                      <p className="text-[13px] text-text-tertiary leading-relaxed mt-1">
+                      <p className="text-[13px] text-text-secondary leading-relaxed mt-1">
                         {r.item.bodyB}
                       </p>
                     </div>
@@ -170,7 +179,7 @@ export default async function AxisDetailPage({
         {/* Calibrated scale responses */}
         {scResponses.length > 0 && (
           <section className="mt-6">
-            <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-3">
+            <h2 className="text-[11px] uppercase tracking-[0.08em] text-text-primary font-medium border-b border-border-secondary pb-1.5 mb-3">
               Calibrated scale responses
             </h2>
             <div className="space-y-3">
@@ -184,11 +193,11 @@ export default async function AxisDetailPage({
                     <p className="text-text-primary text-sm mb-2">
                       {r.item.questionStem}
                     </p>
-                    <p className="text-sm font-medium text-stone-600">
+                    <p className="text-sm font-medium text-text-primary">
                       {label}
                     </p>
                     {detail && (
-                      <p className="text-[13px] text-text-tertiary mt-1">
+                      <p className="text-[13px] text-text-secondary mt-1">
                         {detail}
                       </p>
                     )}

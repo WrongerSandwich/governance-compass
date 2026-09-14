@@ -97,7 +97,7 @@ export function ForcedChoiceCard({
         <p className="display-s text-text-primary mb-2.5">
           <AnnotatedText text={headline} />
         </p>
-        <p className="text-[13.5px] leading-[1.6] text-text-secondary">
+        <p className="body-s text-text-secondary">
           <AnnotatedText text={body} />
         </p>
         {isSelected && (

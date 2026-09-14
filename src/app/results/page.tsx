@@ -89,7 +89,6 @@ function EncodedResults() {
         detected: score.tension.detected,
         level: score.tension.level,
         direction: score.tension.direction,
-        narrative: null, // Only DB profiles have narratives
       },
       components: {
         fc: score.fcScore,
@@ -119,7 +118,6 @@ function EncodedResults() {
         secondary: {
           name: secondaryArchetype?.name ?? "Unknown",
           matchPercentage: quizResults.archetype.secondaryMatchPct,
-          summary: secondaryArchetype?.summary ?? "",
         },
         isBlended: quizResults.archetype.isBlended,
         isDistinctive: quizResults.archetype.isDistinctive,

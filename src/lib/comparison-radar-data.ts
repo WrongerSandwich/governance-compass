@@ -95,7 +95,3 @@ export function buildAxisNames(
     );
   });
 }
-
-export function formatScore(score: number): string {
-  return (score >= 0 ? "+" : "") + score.toFixed(2);
-}

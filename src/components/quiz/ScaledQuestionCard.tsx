@@ -152,7 +152,7 @@ export function ScaledQuestionCard({
       <div aria-live="polite" className="mt-4">
         {selectedDetail ? (
           <div data-scale-detail className="border-t border-border-secondary pt-3">
-            <p className="text-[13.5px] leading-[1.6] text-text-secondary">
+            <p className="body-s text-text-secondary">
               {selectedDetail}
             </p>
           </div>

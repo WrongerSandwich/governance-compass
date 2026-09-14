@@ -1,201 +1,172 @@
 "use client";
 
 import { useState } from "react";
-import { DOMAIN_COLORS, getDomainColor600, type DomainKey } from "@/lib/design-tokens";
-
-interface AxisScore {
-  axisId: number;
-  name: string;
-  poleALabel: string;
-  poleBLabel: string;
-  domain: string;
-  finalScore: number;
-  confidence: string;
-}
+import {
+  DOMAIN_COLORS,
+  DOMAIN_MARK_VARS,
+  getDomainForAxis,
+  getDomainMarkVar,
+  type DomainKey,
+} from "@/lib/design-tokens";
+import { formatScore } from "@/lib/format-score";
+import {
+  TOTAL_AXES,
+  normaliseByAxisId,
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+  type RadarAxisScore,
+} from "@/lib/radar-geometry";
 
 interface RadarChartProps {
-  axisScores: AxisScore[];
+  axisScores: RadarAxisScore[];
 }
 
-const TOTAL_AXES = 12;
 const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
 const MAX_RADIUS = 170;
-const LABEL_PADDING = 38;
+// Mock 7a puts the labels at r+22. The old r+38 was sized for two-line
+// domain-coloured labels; at 11px mono the ring can close up.
+const LABEL_PADDING = 22;
 
-const RING_FRACTIONS = [0.33, 0.5, 0.67, 1.0];
-
-// Domain segments in clockwise order, with start/end axis indices (0-based)
-const DOMAIN_SEGMENTS: { key: DomainKey; startIdx: number; endIdx: number }[] = [
-  { key: "economic", startIdx: 0, endIdx: 1 },
-  { key: "power", startIdx: 2, endIdx: 5 },
-  { key: "society", startIdx: 6, endIdx: 8 },
-  { key: "world", startIdx: 9, endIdx: 11 },
-];
-
-function scoreToRadius(score: number): number {
-  // Directional: center = strongest Pole A (-1), perimeter = strongest Pole B (+1)
-  return ((score + 1) / 2) * MAX_RADIUS;
+/** Split a long label at the space nearest its middle, so a perimeter label
+ *  stays inside the viewBox. Unchanged from the chart this replaces. */
+function splitLabel(label: string): string[] {
+  if (label.includes("/")) return label.split(/[/]/).map((p) => p.trim());
+  if (label.length <= 14) return [label];
+  const mid = Math.ceil(label.length / 2);
+  const spaceAfter = label.indexOf(" ", mid);
+  const spaceBefore = label.lastIndexOf(" ", mid);
+  const splitAt =
+    spaceAfter !== -1 && spaceAfter - mid < mid - spaceBefore ? spaceAfter : spaceBefore;
+  return splitAt > 0 ? [label.slice(0, splitAt), label.slice(splitAt + 1)] : [label];
 }
 
-function spokeAngle(index: number): number {
-  return (index / TOTAL_AXES) * 2 * Math.PI - Math.PI / 2;
-}
+export function RadarChart({ axisScores }: RadarChartProps) {
+  const paddedScores = normaliseByAxisId(axisScores);
 
-function polarToCart(angle: number, radius: number): [number, number] {
-  return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
-}
+  const userPolygon = paddedScores
+    .map((axis, i) => {
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(axis.finalScore, MAX_RADIUS),
+        CX,
+        CY,
+      );
+      return `${x},${y}`;
+    })
+    .join(" ");
 
-function ringPolygonPoints(radiusFraction: number): string {
-  const r = MAX_RADIUS * radiusFraction;
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const [x, y] = polarToCart(spokeAngle(i), r);
-    return `${x},${y}`;
-  }).join(" ");
-}
-
-/** Build an SVG path segment from one vertex to the next for a domain stroke */
-function buildDomainPath(scores: number[], startIdx: number, endIdx: number): string {
-  // Include one vertex before and after for continuous coverage at boundaries
-  const first = startIdx === 0 ? TOTAL_AXES - 1 : startIdx - 1;
-  const last = (endIdx + 1) % TOTAL_AXES;
-
-  const points: [number, number][] = [];
-
-  // Bridge from previous domain's last vertex
-  points.push(polarToCart(spokeAngle(first), scoreToRadius(scores[first])));
-
-  // This domain's vertices
-  for (let i = startIdx; i <= endIdx; i++) {
-    points.push(polarToCart(spokeAngle(i), scoreToRadius(scores[i])));
-  }
-
-  // Bridge to next domain's first vertex
-  points.push(polarToCart(spokeAngle(last), scoreToRadius(scores[last])));
-
-  return "M " + points.map(([x, y]) => `${x},${y}`).join(" L ");
-}
-
-export function RadarChart({
-  axisScores,
-}: RadarChartProps) {
-  const sorted = [...axisScores].sort((a, b) => a.axisId - b.axisId);
-
-  const paddedScores: AxisScore[] = Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = sorted.find((s) => s.axisId === i + 1);
-    return (
-      found ?? {
-        axisId: i + 1,
-        name: `Axis ${i + 1}`,
-        poleALabel: "",
-        poleBLabel: "",
-        domain: "",
-        finalScore: 0,
-        confidence: "low",
-      }
-    );
-  });
-
-  const userScoreValues = paddedScores.map((s) => s.finalScore);
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Visually hidden table for screen readers */}
+      {/* The SVG is aria-hidden, so this table is the entire accessible chart. */}
       <table className="sr-only" aria-label="12-axis governance profile scores">
         <thead>
-          <tr><th>Axis</th><th>Score</th><th>Confidence</th></tr>
+          <tr>
+            <th scope="col">Axis</th>
+            <th scope="col">Domain</th>
+            <th scope="col">Score</th>
+            <th scope="col">Confidence</th>
+          </tr>
         </thead>
         <tbody>
           {paddedScores.map((axis) => (
             <tr key={axis.axisId}>
               <td>{axis.name}: {axis.poleALabel} to {axis.poleBLabel}</td>
-              <td>{axis.finalScore >= 0 ? "+" : ""}{axis.finalScore.toFixed(2)}</td>
+              {/* This task made domain the job of the twelve dots, which a
+                  screen reader cannot see — so without this column the one
+                  variable the chart gained is the one AT loses.
+
+                  Derived from the axis id, exactly as `getDomainMarkVar`
+                  derives the dot beside it, rather than read off
+                  `axis.domain`. The two can disagree — a caller sets the
+                  string while the dot is computed — and a padded axis has no
+                  string at all, though its id still names its domain. */}
+              <td>{DOMAIN_COLORS[getDomainForAxis(axis.axisId)].name}</td>
+              {/* The shared formatter, not a fourth inline copy of
+                  `>= 0 ? "+" : ""`. It also clamps to -1..1, and it does not
+                  sign an exact zero — a padded axis reads "0.00", so a screen
+                  reader no longer says "plus zero point zero zero" for an
+                  axis that carries no signal at all. */}
+              <td>{formatScore(axis.finalScore)}</td>
               <td>{axis.confidence}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <svg
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full max-w-xl"
-        aria-hidden="true"
-      >
-        {/* Concentric 12-sided polygon rings */}
-        {RING_FRACTIONS.map((frac) => (
-          <polygon
-            key={frac}
-            points={ringPolygonPoints(frac)}
-            fill="none"
-            style={{ stroke: frac === 0.5 ? 'var(--stone-600)' : 'var(--border-tertiary)' }}
-            strokeWidth={frac === 0.5 ? 0.7 : 0.5}
-            strokeDasharray={frac === 0.5 ? "3 3" : undefined}
-            opacity={frac === 0.5 ? 0.35 : 0.4}
-          />
-        ))}
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-xl" aria-hidden="true">
+        {/* Outer ring and dashed mid-ring. Four concentric rings became two:
+            the mid-ring is the neutral mark the caption describes, and the
+            0.33/0.67 rings carried no meaning.
 
-        {/* 6 spoke lines (connecting opposing axis pairs) */}
-        {[0, 1, 2, 3, 4, 5].map((i) => {
-          const [x1, y1] = polarToCart(spokeAngle(i), MAX_RADIUS);
-          const [x2, y2] = polarToCart(spokeAngle(i + 6), MAX_RADIUS);
+            `ringPoints` takes an ABSOLUTE radius, where the local helper this
+            replaces took a fraction of MAX_RADIUS. Passing 1 and 0.5 here
+            would collapse both rings to the centre. */}
+        <polygon
+          data-radar-ring
+          points={ringPoints(MAX_RADIUS, TOTAL_AXES, CX, CY)}
+          fill="none"
+          style={{ stroke: 'var(--border-secondary)' }}
+          strokeWidth={0.8}
+        />
+        <polygon
+          data-radar-ring
+          points={ringPoints(MAX_RADIUS * 0.5, TOTAL_AXES, CX, CY)}
+          fill="none"
+          style={{ stroke: 'var(--border-primary)' }}
+          strokeWidth={0.8}
+          strokeDasharray="3 3"
+        />
+
+        {/* Twelve spokes from the centre, not six diameters: a spoke has to be
+            present even where the mapping puts its vertex at the origin. */}
+        {Array.from({ length: TOTAL_AXES }, (_, i) => {
+          const [x, y] = polarToCart(spokeAngle(i, TOTAL_AXES), MAX_RADIUS, CX, CY);
           return (
             <line
               key={i}
-              x1={x1} y1={y1} x2={x2} y2={y2}
-              style={{ stroke: 'var(--border-tertiary)' }}
-              strokeWidth={0.5}
-              opacity={0.25}
+              data-radar-spoke
+              x1={CX} y1={CY} x2={x} y2={y}
+              style={{ stroke: 'var(--border-secondary)' }}
+              strokeWidth={0.6}
             />
           );
         })}
 
-        {/* Domain-colored triangle fills (center → vertex[n] → vertex[n+1]) */}
-        {userScoreValues.map((_, i) => {
-          const next = (i + 1) % TOTAL_AXES;
-          const [x1, y1] = polarToCart(spokeAngle(i), scoreToRadius(userScoreValues[i]));
-          const [x2, y2] = polarToCart(spokeAngle(next), scoreToRadius(userScoreValues[next]));
-          const color = getDomainColor600(i + 1);
-          const opacity = i % 2 === 0 ? 0.06 : 0.08;
-          return (
-            <polygon
-              key={`fill-${i}`}
-              points={`${CX},${CY} ${x1},${y1} ${x2},${y2}`}
-              fill={color}
-              opacity={opacity}
-            />
-          );
-        })}
+        {/* One shape. --mark-primary, not var(--stone-600) and not
+            --domain-economic: it steps to Stone 400 on a dark ground, and the
+            domain token holds the identical value in both modes, which makes
+            a swap between them invisible. */}
+        <polygon
+          data-radar-user
+          points={userPolygon}
+          style={{ fill: 'var(--mark-primary)', stroke: 'var(--mark-primary)' }}
+          fillOpacity={0.1}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+        />
 
-        {/* Domain-colored stroke segments */}
-        {DOMAIN_SEGMENTS.map((seg) => (
-          <path
-            key={seg.key}
-            d={buildDomainPath(userScoreValues, seg.startIdx, seg.endIdx)}
-            fill="none"
-            stroke={DOMAIN_COLORS[seg.key][600]}
-            strokeWidth={1.8}
-            strokeOpacity={0.55}
-            strokeLinejoin="round"
-          />
-        ))}
-
-        {/* Center dot — rendered before vertex dots so it's underneath */}
-        <circle cx={CX} cy={CY} r={3} style={{ fill: 'var(--border-primary)' }} />
-
-        {/* Domain-colored vertex dots — interactive */}
         {paddedScores.map((axis, i) => {
-          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const [x, y] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            scoreToRadius(axis.finalScore, MAX_RADIUS),
+            CX,
+            CY,
+          );
           const isHovered = hoveredAxis === axis.axisId;
           return (
             <g key={axis.axisId}>
-              {/* Visible dot */}
               <circle
+                data-radar-dot
                 cx={x}
                 cy={y}
-                r={isHovered ? 5 : 3.5}
-                fill={getDomainColor600(axis.axisId)}
+                r={isHovered ? 5.5 : 4}
+                fill={getDomainMarkVar(axis.axisId)}
                 style={{ transition: "r 150ms ease-out" }}
               />
               {/* Larger invisible hit target */}
@@ -212,32 +183,26 @@ export function RadarChart({
           );
         })}
 
-        {/* Tooltip for hovered vertex */}
         {hoveredAxis != null && (() => {
           const axis = paddedScores[hoveredAxis - 1];
           const i = hoveredAxis - 1;
-          const [vx, vy] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const [vx, vy] = polarToCart(
+            angle,
+            scoreToRadius(axis.finalScore, MAX_RADIUS),
+            CX,
+            CY,
+          );
           const score = axis.finalScore;
-          const scoreStr = Math.abs(score).toFixed(2);
-          // Show the pole the score leans toward
           const poleName = score >= 0 ? axis.poleBLabel : axis.poleALabel;
-          const label = `${scoreStr}  ${poleName}`;
-          const charWidth = 5.5;
-          const textWidth = label.length * charWidth;
-          const padH = 8;
-          const padV = 5;
-          const boxW = textWidth + padH * 2;
-          const boxH = 18 + padV * 2;
+          const label = `${Math.abs(score).toFixed(2)}  ${poleName}`;
+          const boxW = label.length * 5.5 + 16;
+          const boxH = 28;
 
-          // Position tooltip to avoid overlapping the center
-          const angle = spokeAngle(i);
-          const offsetDist = 20;
-          let tx = vx + Math.cos(angle) * offsetDist;
-          let ty = vy + Math.sin(angle) * offsetDist;
-
-          // Clamp within viewBox
-          tx = Math.max(padH + 2, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
-          ty = Math.max(padV + 2, Math.min(SIZE - boxH - 2, ty - boxH / 2)) + boxH / 2;
+          let tx = vx + Math.cos(angle) * 20;
+          let ty = vy + Math.sin(angle) * 20;
+          tx = Math.max(10, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
+          ty = Math.max(7, Math.min(SIZE - boxH - 2, ty - boxH / 2)) + boxH / 2;
 
           return (
             <g style={{ pointerEvents: "none" }}>
@@ -246,7 +211,7 @@ export function RadarChart({
                 y={ty - boxH / 2}
                 width={boxW}
                 height={boxH}
-                rx={4}
+                rx={2}
                 style={{ fill: "var(--surface-1)", stroke: "var(--border-secondary)" }}
                 strokeWidth={0.5}
               />
@@ -255,7 +220,7 @@ export function RadarChart({
                 y={ty}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={10}
+                fontSize={11}
                 style={{ fill: "var(--text-primary)", fontFamily: "var(--font-mono)" }}
               >
                 {label}
@@ -264,66 +229,57 @@ export function RadarChart({
           );
         })()}
 
-        {/* Domain-colored perimeter labels */}
         {paddedScores.map((axis, i) => {
-          const angle = spokeAngle(i);
-          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING);
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING, CX, CY);
 
           let anchor: "start" | "middle" | "end" = "middle";
-          const normAngle = ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
+          const normAngle = (angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
           if (normAngle < Math.PI * 0.1 || normAngle > Math.PI * 1.9) anchor = "middle";
           else if (normAngle < Math.PI * 0.9) anchor = "start";
           else if (normAngle < Math.PI * 1.1) anchor = "middle";
           else anchor = "end";
 
-          const label = axis.poleBLabel || axis.name;
-          // Split long labels into two lines at a space near the middle
-          let parts: string[];
-          if (label.includes("/")) {
-            parts = label.split(/[/]/).map((p) => p.trim());
-          } else if (label.length > 14) {
-            const mid = Math.ceil(label.length / 2);
-            const spaceAfter = label.indexOf(" ", mid);
-            const spaceBefore = label.lastIndexOf(" ", mid);
-            const splitAt = spaceAfter !== -1 && (spaceAfter - mid) < (mid - spaceBefore) ? spaceAfter : spaceBefore;
-            parts = splitAt > 0 ? [label.slice(0, splitAt), label.slice(splitAt + 1)] : [label];
-          } else {
-            parts = [label];
-          }
+          const parts = splitLabel(
+            `${String(axis.axisId).padStart(2, "0")} ${axis.poleBLabel || axis.name}`,
+          );
 
           return (
             <text
               key={axis.axisId}
+              data-radar-label
               x={x}
               y={y}
               textAnchor={anchor}
               dominantBaseline="central"
-              fontSize={10}
-              fill={getDomainColor600(axis.axisId)}
-              opacity={0.8}
+              fontSize={11}
+              letterSpacing="0.02em"
+              style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}
             >
               {parts.map((part, pi) => (
-                <tspan
-                  key={pi}
-                  x={x}
-                  dy={pi === 0 ? (parts.length > 1 ? "-0.5em" : "0") : "1.1em"}
-                >
+                <tspan key={pi} x={x} dy={pi === 0 ? (parts.length > 1 ? "-0.5em" : "0") : "1.1em"}>
                   {part}
                 </tspan>
               ))}
             </text>
           );
         })}
-
       </svg>
 
-      {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-2">
+      {/* aria-hidden, like the <svg> it annotates: exposed, it reads as four
+          loose domain names with no referent, describing a chart AT cannot
+          perceive. The table above carries the same information in rows. */}
+      <div
+        data-radar-legend
+        aria-hidden="true"
+        className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-3"
+      >
         {(["economic", "power", "society", "world"] as DomainKey[]).map((key) => (
-          <div key={key} className="flex items-center gap-1.5 text-xs text-text-secondary">
+          <div key={key} className="flex items-center gap-1.5 mono-meta text-text-label">
             <span
+              data-radar-legend-swatch
               className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: DOMAIN_COLORS[key][600] }}
+              style={{ backgroundColor: DOMAIN_MARK_VARS[key] }}
             />
             {DOMAIN_COLORS[key].name}
           </div>

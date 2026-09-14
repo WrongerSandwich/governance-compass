@@ -1,7 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { getDomainColor600 } from "@/lib/design-tokens";
+import { PairedAxisScale, describeGap } from "@/components/PairedAxisScale";
+import { getDomainMarkVar } from "@/lib/design-tokens";
+import { formatScore } from "@/lib/format-score";
 
 interface ComparisonScoreBarProps {
   axisId: number;
@@ -11,12 +10,36 @@ interface ComparisonScoreBarProps {
   scoreB: number;
   poleALabel: string;
   poleBLabel: string;
-  delta: number;
   labelA: string;
   labelB: string;
   alternateRow?: boolean;
 }
 
+/**
+ * One axis for two respondents, as row chrome around `PairedAxisScale`.
+ *
+ * The hover tooltips this replaced were mouse-only — no keyboard path, no
+ * screen-reader path — and showed the same numbers the readouts below now
+ * show permanently. Note that the dot roles are the primitive's, not this
+ * component's former ones: respondent A is the FILLED domain dot and
+ * respondent B the outlined one, which is the reverse of what shipped. The
+ * legend on `/compare` names them in that order.
+ *
+ * No `"use client"`: with the hover tooltips gone this has no hooks, no event
+ * handlers and no browser APIs, and `PairedAxisScale` — the primitive it wraps
+ * — carries no directive either. `/compare/[id]/[id]` is a server component,
+ * so the directive was pushing twelve rows across the client boundary and
+ * hydrating them for nothing. `/compare` is a client page and renders it just
+ * the same; a directive is a boundary, not a requirement.
+ *
+ * `delta` is not a prop: it is derived here from the same two scores the
+ * scale draws, so the visible gap badge and the scale's `aria-label` can
+ * never disagree by construction. (An earlier version of this task kept
+ * `delta` as an incoming prop, mirroring `compareProfiles`'s own field of the
+ * same name — but that gave the badge and the scale two independent code
+ * paths for one number, which is exactly the kind of duplication this
+ * convergence exists to remove.)
+ */
 export function ComparisonScoreBar({
   axisId,
   axisName,
@@ -25,101 +48,62 @@ export function ComparisonScoreBar({
   scoreB,
   poleALabel,
   poleBLabel,
-  delta,
   labelA,
   labelB,
   alternateRow = false,
 }: ComparisonScoreBarProps) {
-  const [hovered, setHovered] = useState<"A" | "B" | null>(null);
-
-  const toPercent = (score: number) =>
-    ((Math.max(-1, Math.min(1, score)) + 1) / 2) * 100;
-
-  const leftA = toPercent(scoreA);
-  const leftB = toPercent(scoreB);
-  const domainColor = getDomainColor600(axisId);
-
-  const formatScore = (score: number) => Math.abs(score).toFixed(2);
-  const poleName = (score: number) => (score >= 0 ? poleBLabel : poleALabel);
-  const deltaLabel = delta <= 0.3 ? "very close" : delta <= 0.7 ? "some distance" : delta <= 1.2 ? "significant gap" : "far apart";
+  const delta = Math.abs(scoreA - scoreB);
 
   return (
     <div className={`rounded-sharp px-3 py-[9px] ${alternateRow ? "bg-surface-2" : ""}`}>
-      <div className="flex justify-between items-center mb-0.5">
-        <span className="text-sm font-medium text-text-primary">{axisName}</span>
-        <span className="text-[10px] text-text-tertiary">
-          {deltaLabel}
+      <div className="flex items-baseline justify-between gap-3 mb-0.5">
+        <span className="body-s text-text-primary">{axisName}</span>
+        {/* aria-hidden: byte-identical to the scale's aria-label trailing
+            clause below, so a screen reader would otherwise hear it twice
+            per row, twelve times down the page. */}
+        <span data-gap aria-hidden="true" className="mono-meta text-text-label shrink-0">
+          {describeGap(delta)}
         </span>
       </div>
-      <p className="text-[11px] text-text-tertiary mb-2">{tagline}</p>
+      <p className="body-xs text-text-label mb-2">{tagline}</p>
 
-      {/* Tooltip area */}
-      <div className="relative mb-1" style={{ height: 16 }}>
-        {hovered === "A" && (
+      {/* The tooltips this replaced were the only thing mapping a
+          respondent's name to a specific dot. `/compare/[id]/[id]` has no
+          legend at all (it passes real user names), so each readout carries
+          its own swatch in the primitive's own mark vocabulary — the
+          mode-stepping custom property, not a fixed hex — rather than
+          relying on a legend elsewhere on the page. */}
+      <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1.5 mono-meta text-text-secondary tabular-nums">
+        <span data-readout="a" className="inline-flex items-center gap-1">
           <span
-            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap z-20"
-            style={{ left: `${leftA}%` }}
-          >
-            {labelA}: {formatScore(scoreA)} {poleName(scoreA)}
-          </span>
-        )}
-        {hovered === "B" && (
-          <span
-            className="absolute text-[10px] font-mono text-text-primary bg-surface-1 border border-border-secondary rounded px-1.5 py-0.5 -translate-x-1/2 whitespace-nowrap z-20"
-            style={{ left: `${leftB}%` }}
-          >
-            {labelB}: {formatScore(scoreB)} {poleName(scoreB)}
-          </span>
-        )}
-      </div>
-
-      {/* Track — py-2 gives vertical room for dots, overflow-hidden clips horizontal only */}
-      <div className="overflow-hidden py-2">
-        <div
-          className="relative w-full rounded-[3px] overflow-visible"
-          style={{ height: 6, backgroundColor: 'var(--border-secondary)' }}
-        >
-          {/* Center marker */}
-          <div
-            className="absolute left-1/2 -translate-x-px"
-            style={{ top: -3, width: 0.5, height: 12, backgroundColor: 'var(--border-primary)' }}
+            data-mark="a"
             aria-hidden="true"
+            className="h-2 w-2 rounded-full shrink-0"
+            style={{ backgroundColor: getDomainMarkVar(axisId) }}
           />
-          {/* Profile A marker (ring) */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-default"
-            style={{
-              left: `${leftA}%`,
-              width: hovered === "A" ? 14 : 12,
-              height: hovered === "A" ? 14 : 12,
-              border: `2px solid ${domainColor}`,
-              backgroundColor: 'var(--surface-1)',
-              transition: 'width 150ms, height 150ms',
-            }}
-            onMouseEnter={() => setHovered("A")}
-            onMouseLeave={() => setHovered(null)}
+          {labelA} {formatScore(scoreA)}
+        </span>
+        <span data-readout="b" className="inline-flex items-center gap-1">
+          <span
+            data-mark="b"
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full border-[1.5px] border-text-label bg-surface-1 shrink-0"
           />
-          {/* Profile B marker (filled dot) */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-default"
-            style={{
-              left: `${leftB}%`,
-              width: hovered === "B" ? 12 : 10,
-              height: hovered === "B" ? 12 : 10,
-              backgroundColor: domainColor,
-              opacity: 0.55,
-              transition: 'width 150ms, height 150ms',
-            }}
-            onMouseEnter={() => setHovered("B")}
-            onMouseLeave={() => setHovered(null)}
-          />
-        </div>
+          {labelB} {formatScore(scoreB)}
+        </span>
       </div>
 
-      <div className="flex justify-between text-xs text-text-tertiary mt-1.5">
-        <span>{poleALabel}</span>
-        <span className="text-right">{poleBLabel}</span>
-      </div>
+      <PairedAxisScale
+        axisId={axisId}
+        poleALabel={poleALabel}
+        poleBLabel={poleBLabel}
+        scoreA={scoreA}
+        scoreB={scoreB}
+        endpoints="below"
+        axisName={axisName}
+        respondentALabel={labelA}
+        respondentBLabel={labelB}
+      />
     </div>
   );
 }

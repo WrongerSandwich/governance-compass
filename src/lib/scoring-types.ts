@@ -14,12 +14,71 @@ export interface PerModalityScores {
   };
 }
 
+/**
+ * The three enumerations the results page carries all the way from the
+ * scoring engine to rendered copy, plus the narrowings that let a value read
+ * back out of the database rejoin them.
+ *
+ * Each union is DERIVED from its list rather than spelled twice. A hand-kept
+ * pair drifts silently in one direction only — add a fifth grade to the type
+ * and the runtime guard quietly maps it to the fallback, which is the exact
+ * failure the narrowing exists to prevent. `satisfies`-free and `as const`, so
+ * the list is the single source and the type follows it.
+ *
+ * These live here, beside the engine that produces them, rather than at the
+ * page that reads them: `AxisScore.confidence`, `.tensionLevel` and
+ * `.tensionDirection` are all bare `String` columns, so every route out of the
+ * database needs the same three guards.
+ */
+export const AXIS_CONFIDENCES = ["high", "moderate", "low", "conflicted"] as const;
+export type AxisConfidence = (typeof AXIS_CONFIDENCES)[number];
+
+export const TENSION_LEVELS = ["none", "mild", "moderate", "strong"] as const;
+export type TensionLevel = (typeof TENSION_LEVELS)[number];
+
+export const TENSION_DIRECTIONS = [
+  "principles_A_but_budget_B",
+  "principles_B_but_budget_A",
+] as const;
+export type TensionDirection = (typeof TENSION_DIRECTIONS)[number];
+
+/**
+ * Narrows a stored confidence grade, falling back to the most conservative
+ * reading. The fallback is deliberate and visible here rather than hidden in
+ * `AxisBreakdownCard`'s trailing `else`, which is where it used to live.
+ */
+export function toAxisConfidence(value: string): AxisConfidence {
+  return (AXIS_CONFIDENCES as readonly string[]).includes(value)
+    ? (value as AxisConfidence)
+    : "low";
+}
+
+/** Narrows a stored tension grade. "none" is the no-tension reading, and is
+ *  what `detected` is derived from, so it is also the safe fallback. */
+export function toTensionLevel(value: string): TensionLevel {
+  return (TENSION_LEVELS as readonly string[]).includes(value)
+    ? (value as TensionLevel)
+    : "none";
+}
+
+/**
+ * Narrows a stored tension direction. `null` is a real value here, not an
+ * absence: a tension with no direction renders a titled panel and no
+ * explanation, which is the correct output for a grade the page cannot
+ * describe — and far better than describing it backwards.
+ */
+export function toTensionDirection(value: string | null): TensionDirection | null {
+  return value !== null && (TENSION_DIRECTIONS as readonly string[]).includes(value)
+    ? (value as TensionDirection)
+    : null;
+}
+
 // Tension/contradiction info
 export interface TensionInfo {
   detected: boolean;
   magnitude: number; // 0.0 to 2.0
-  level: "none" | "mild" | "moderate" | "strong";
-  direction: "principles_A_but_budget_B" | "principles_B_but_budget_A" | null;
+  level: TensionLevel;
+  direction: TensionDirection | null;
 }
 
 // Single axis result
@@ -29,7 +88,7 @@ export interface AxisScoreResult {
   scScore: number;
   bgScore: number | null;
   finalScore: number;
-  confidence: "high" | "moderate" | "low" | "conflicted";
+  confidence: AxisConfidence;
   tension: TensionInfo;
 }
 

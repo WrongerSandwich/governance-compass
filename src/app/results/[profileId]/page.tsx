@@ -2,8 +2,19 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { archetypes } from "@/data/archetypes";
 import { axes as axesDef } from "@/data/axes";
-import { DISTINCTIVE_MATCH_CEILING, DISTINCTIVE_STDDEV_FLOOR } from "@/lib/scoring-types";
+import {
+  DISTINCTIVE_MATCH_CEILING,
+  DISTINCTIVE_STDDEV_FLOOR,
+  toAxisConfidence,
+  toTensionDirection,
+  toTensionLevel,
+} from "@/lib/scoring-types";
 import { ResultsView } from "@/components/results/ResultsView";
+
+// `confidence`, `tensionLevel` and `tensionDirection` are all bare `String`
+// columns, so this component is the trust boundary for all three. The guards
+// live beside the unions in scoring-types, derived from the same lists, so a
+// grade added to one cannot silently miss the other.
 
 export default async function ResultsPage({
   params,
@@ -45,12 +56,11 @@ export default async function ResultsPage({
     tagline: axesDef.find((a) => a.id === s.axisId)?.tagline ?? "",
     domain: s.axis.domain,
     finalScore: s.finalScore,
-    confidence: s.confidence,
+    confidence: toAxisConfidence(s.confidence),
     tension: {
       detected: s.tensionLevel !== "none",
-      level: s.tensionLevel,
-      direction: s.tensionDirection,
-      narrative: s.tensionNarrative,
+      level: toTensionLevel(s.tensionLevel),
+      direction: toTensionDirection(s.tensionDirection),
     },
     components: {
       fc: s.fcScore,
@@ -79,7 +89,6 @@ export default async function ResultsPage({
         secondary: {
           name: secondaryArchetype?.name ?? "Unknown",
           matchPercentage: profile.archetypeResult.secondaryMatchPct,
-          summary: secondaryArchetype?.summary ?? "",
         },
         isBlended: profile.archetypeResult.isBlended,
         isDistinctive: (() => {
@@ -89,7 +98,6 @@ export default async function ResultsPage({
           return profile.archetypeResult.primaryMatchPct < DISTINCTIVE_MATCH_CEILING && stddev > DISTINCTIVE_STDDEV_FLOOR;
         })(),
       }}
-      profileId={profileId}
     />
   );
 }
