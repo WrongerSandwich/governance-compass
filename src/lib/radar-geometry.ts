@@ -65,25 +65,46 @@ export function scoreToRadius(score: number, maxRadius: number): number {
  * Node and Chromium do not agree to the last bit on `Math.sin`/`Math.cos` —
  * neither is required by ECMA-262 to be correctly rounded, and the two ship
  * different ports of the underlying routine — so the server and the client
- * compute vertices that differ in the ~14th significant digit. React's
- * hydration pass compares the serialised attribute against the client value,
- * finds `y="123.7231224733878"` against `y={123.72312247338783}`, and logs
- * "some attributes of the server rendered HTML didn't match the client
- * properties. This won't be patched up" — a console error on every load of
+ * compute vertices that differ by roughly one ulp. React's hydration pass
+ * compares the serialised attribute against the client value, finds
+ * `y="123.7231224733878"` against `y={123.72312247338783}`, and logs "some
+ * attributes of the server rendered HTML didn't match the client properties.
+ * This won't be patched up" — a console error on every load of
  * /results/[profileId], for a disagreement of 3e-14 SVG units.
  *
- * Nine places discards a disagreement of that size with four orders of
- * magnitude to spare, and is itself engine-independent: `toFixed` and numeric
- * parsing are both exactly specified, so the same double rounds to the same
- * string everywhere. It also stays far inside the 1e-6 tolerances the geometry
- * tests assert, so the pinned `MiniRadar` vertices do not move.
+ * Rounding collapses the two values onto one decimal grid point. `toFixed` and
+ * numeric parsing are both exactly specified, so the rounding itself is
+ * engine-independent.
  *
- * Rounding lives here rather than at each `points=`/`cx=`/`y=` site because
- * every coordinate on both charts comes through `polarToCart`, and a helper a
- * future call site can forget to apply is the exact duplication this module
+ * BUT THIS IS A PROBABILITY REDUCTION, NOT A PROOF, and the number was chosen
+ * on that basis. Two doubles an ulp apart can still land either side of a
+ * rounding boundary; the chance of that is about (ulp / grid). Measured at the
+ * magnitudes these charts actually use:
+ *
+ *   places  worst rounding error   headroom vs the 5e-7 test tolerance   residual per page render
+ *   6       4.6e-7                 1.2x  (too tight)                     4.0e-7
+ *   7       3.6e-8                 16x                                   4.0e-5
+ *   9       2.4e-10                2400x                                 4.0e-3
+ *
+ * Nine places was the first choice and was wrong: 2400x of tolerance headroom
+ * buys nothing, while the coarser grid leaves roughly one page render in 250
+ * still mismatching — not a rare edge case, a weekly one. Seven keeps 16x of
+ * headroom, which is ample, and pushes the residual to about one render in
+ * 25,000. Six is the first value that does not clear the tolerance and is the
+ * floor, not a candidate.
+ *
+ * The genuinely deterministic fix is a lookup table of the twelve spoke
+ * angles' sine and cosine as literal constants, so no trig runs at either end
+ * and the remaining arithmetic is IEEE-exact. That is a signature change to
+ * general-purpose helpers for a defect this closes to 4e-5, so it is recorded
+ * in the plan's backlog rather than taken here.
+ *
+ * Rounding lives in `polarToCart` rather than at each `points=`/`cx=`/`y=`
+ * site because every coordinate on both charts comes through it, and a helper
+ * a future call site can forget to apply is the exact duplication this module
  * was extracted to end.
  */
-export const COORD_PLACES = 9;
+export const COORD_PLACES = 7;
 
 /** Rounds one coordinate to `COORD_PLACES`. See the constant's note. */
 export function roundCoord(value: number): number {
@@ -96,6 +117,12 @@ export function roundCoord(value: number): number {
  * The rounding is not cosmetic — see `COORD_PLACES`. It is what keeps the
  * server's serialised SVG attribute byte-identical to the client's recomputed
  * one.
+ *
+ * NOT the only trig on the results page, despite what "every coordinate comes
+ * through it" would suggest: `RadarChart.tsx:202-203` calls `Math.cos`/
+ * `Math.sin` directly to offset the vertex tooltip. That one is safe for a
+ * different reason — the tooltip mounts on hover, so it never exists during
+ * hydration — but a future coordinate added beside it would not be.
  */
 export function polarToCart(
   angle: number,

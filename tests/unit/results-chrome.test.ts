@@ -1287,6 +1287,37 @@ describe("ResultsView", () => {
     expect(classes(main)).toContain("min-[560px]:px-7");
   });
 
+  it("names each section with the heading the e2e suite and the jump nav expect", () => {
+    // Written after Task 12's first e2e run went red on a string no unit test
+    // held. Task 10 retitled the radar section "12-axis radar" ->
+    // "Twelve-axis radar"; quiz-flow.spec.ts:93 still asserted the old name and
+    // nothing caught it for two commits. This file already mounted the whole
+    // view — what it did not do was assert a single section TITLE, only the
+    // structural classes around them. Playwright held these four strings alone,
+    // and Playwright ran once in twelve tasks.
+    //
+    // Deliberately by TEXT and not by [data-*]: the coupling being protected is
+    // to the words, because that is what `getByRole("heading", { name })` reads
+    // and what a reader of the page sees. A hook would let the copy drift while
+    // staying green, which is the exact failure this replaces.
+    const container = renderView();
+    const headings = [...container.querySelectorAll("h2")].map((h) => h.textContent);
+
+    for (const title of [
+      "Twelve-axis radar",
+      "Principles against priorities",
+      "Axis breakdown",
+      "Compass plot",
+    ]) {
+      expect(headings).toContain(title);
+    }
+
+    // The section IDS are deliberately NOT re-asserted here: `points every jump
+    // link at a section that is actually on the page` already pins all five, in
+    // order, across three prop variants. This test is only about the titles,
+    // which nothing held.
+  });
+
   it("leads with the eyebrow, the archetype at display-page, and the match sub", () => {
     const container = renderView();
 
@@ -1696,8 +1727,12 @@ describe("results chrome drift guards", () => {
     // clearing one without the other would have left those rows half-migrated.
     // The per-axis page's ten ramp classes were the last holders: the back
     // link's 600/800 hover pair became --text-secondary/--text-primary, the
-    // three section headings became --text-primary (stone-800 measures 1.78:1
-    // on the dark panel ground, which is the actual defect), the selected
+    // three section headings became --text-primary (stone-800 measures 2.09:1
+    // on the dark PAGE ground — body is --surface-3, and these three sit
+    // directly on it rather than inside a panel; the earlier 1.78 figure here
+    // was this colour against --surface-1, which is the wrong ground for these
+    // elements. globals.css:29-36 uses the page ground correctly and is the
+    // convention), the selected
     // pole's `bg-stone-100 text-stone-800` became `bg-surface-2
     // text-text-primary` so the highlight inverts with the surface instead of
     // staying a light beige box on a dark page, and the chosen scaled option
