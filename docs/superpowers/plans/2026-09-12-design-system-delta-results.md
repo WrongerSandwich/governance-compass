@@ -3550,22 +3550,36 @@ Shipped as `ad08639`, one commit over two files. Verified final state: **760 tes
 
 **Files:**
 - Modify: `src/components/results/ResultsView.tsx` (full rewrite)
-- Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
+- Modify: `tests/unit/results-chrome.test.ts` — append a `describe`, and (as shipped) one test inside the existing `describe("ArchetypeCard")` for the `userScores` addendum below
+- Modify (as shipped, for the nine addenda routed here): `src/components/results/ArchetypeCard.tsx`, `src/components/results/AxisBreakdownCard.tsx`, `src/components/comparison/ComparisonScoreBar.tsx`, `src/lib/scoring-types.ts`, `src/lib/radar-geometry.ts`, `src/app/results/page.tsx`, `src/app/results/[profileId]/page.tsx`, `tests/unit/radar-geometry.test.ts`
+- Create (as shipped): `tests/helpers/client-component-env.ts` — see "As shipped" note 13
+- Create (as shipped): `tests/unit/scoring-narrowing.test.ts` — see "As shipped" note 9
 
 **Interfaces:**
-- `ResultsViewProps` is unchanged.
-- Passes `actions` into `ArchetypeCard` (Task 7) and drops `alternateRow` from `AxisBreakdownCard` (Task 4). This is the task that clears the expected `tsc` error from Task 5.
+- `ResultsViewProps` is unchanged — **wrong as shipped, in three ways.** `profileId` is gone, `secondary.summary` is gone, and `confidence` / `tension.level` / `tension.direction` are narrowed onto the scoring engine's unions; `tension.narrative` is gone with them. See "As shipped" notes 10 and 12.
+- Passes `actions` into `ArchetypeCard` (Task 7) and drops `alternateRow` from `AxisBreakdownCard` (Task 4). This is the task that clears the expected `tsc` error from Task 4.
+- `ArchetypeCardProps.userScores` widens from `number[]` to `RadarAxisScore[]` (as shipped; Task 8's addendum below), and `RadarAxisScore` loses `domain` and narrows `confidence`.
+- Produces (as shipped): `AXIS_CONFIDENCES` / `TENSION_LEVELS` / `TENSION_DIRECTIONS` and their narrowings `toAxisConfidence` / `toTensionLevel` / `toTensionDirection`, all exported from `src/lib/scoring-types.ts` — see "As shipped" note 9.
 
 **Must not change.** URL-encoded results, `showScoring` toggling, per-card expansion, the copy-confirmation timer, the compare-input flow, `:target` behaviour, and every `FadeInSection` wrapper with its delays. Three Playwright assertions are coupled to copy and roles here and must keep passing verbatim: `getByText("Assessment results")`, `getByRole("button", { name: "Compare with someone" })`, and `getByPlaceholder("Paste their results link")`.
 
 **Layout, from mock 7a.** Body capped at `max-w-results` (820px) with the nav's gutters, 48px top padding. Header: eyebrow → `display-page` title → 16px/1.6 sub → jump nav at 11px mono with a rule above and below. Each section: 40px above, eyebrow → `display-m` → `caption-italic` at `max-w-[60ch]` → a white panel at `p-7`. Domain groups carry a 2px domain rule with the domain name in the domain colour and the axis count right-aligned.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
-Append to `tests/unit/results-chrome.test.ts`:
+Append to `tests/unit/results-chrome.test.ts` (as shipped — the plan drafted seven tests, twelve landed; see "As shipped" notes 1-8):
 
 ```ts
 describe("ResultsView", () => {
+  const TENSION_BY_INDEX: Record<number, {
+    detected: true;
+    level: "moderate" | "strong";
+    direction: "principles_A_but_budget_B" | "principles_B_but_budget_A";
+  }> = {
+    4: { detected: true, level: "moderate", direction: "principles_A_but_budget_B" },
+    7: { detected: true, level: "strong", direction: "principles_B_but_budget_A" },
+  };
+
   const AXES = Array.from({ length: 12 }, (_, i) => ({
     axisId: i + 1,
     name: `Axis ${i + 1}`,
@@ -3579,8 +3593,17 @@ describe("ResultsView", () => {
       "The State in the World", "The State in the World", "The State in the World",
     ][i],
     finalScore: 0.2,
-    confidence: "high",
-    tension: { detected: i === 4, level: "moderate", direction: "principles_A_but_budget_B", narrative: null },
+    // `as const` throughout, which the plan's fixture omitted: `confidence`,
+    // `tension.level` and `tension.direction` are all narrowed to the scoring
+    // engine's unions, and a widened `string` here would fail to compile.
+    confidence: "high" as const,
+    // TWO tension axes, with OPPOSITE directions. One is not enough: the two
+    // narrative arms are mirror images, so swapping their bodies leaves a
+    // single-direction fixture green while every panel on the page then tells
+    // the respondent the exact opposite of what they answered. Axis 5 is in
+    // the Power domain and axis 8 in Society, so the domain counts below are
+    // untouched by this.
+    tension: TENSION_BY_INDEX[i] ?? { detected: false as const, level: "none" as const, direction: null },
     components: { fc: 0.2, sc: 0.2, bg: 0.2 },
   }));
 
@@ -3597,15 +3620,47 @@ describe("ResultsView", () => {
         tension: "A tension.",
         prototype: Array.from({ length: 12 }, () => 0.2),
       },
-      secondary: { name: "The Communitarian Steward", matchPercentage: 61, summary: "" },
+      // No `summary`: `ArchetypeCard` never read it and the prop is gone from
+      // both interfaces, so supplying one would be inventing a consumer.
+      secondary: { name: "The Communitarian Steward", matchPercentage: 61 },
       isBlended: false,
       isDistinctive: false,
     },
     encoded: "abc123",
   };
 
+  /** The same respondent with every tension cleared. The interesting fixture:
+   *  it is the one under which the Tensions section used to disappear while
+   *  its jump link stayed. */
+  const NO_TENSION_PROPS = {
+    ...PROPS,
+    axisData: AXES.map((axis) => ({
+      ...axis,
+      tension: { detected: false as const, level: "none" as const, direction: null },
+    })),
+  };
+
+  const DISTINCTIVE_PROPS = {
+    ...PROPS,
+    archetype: { ...PROPS.archetype, isDistinctive: true },
+  };
+
+  /** `CompareInput` calls `useRouter`, which throws outright with no
+   *  `AppRouterContext` above it. The context is supplied rather than mocked:
+   *  this suite runs on `vmForks`, where a `vi.mock` of a module as widely
+   *  imported as `next/navigation` leaks into whichever file runs next. */
+  function renderView(props: ResultsViewProps = PROPS) {
+    return render(
+      createElement(
+        AppRouterContext.Provider,
+        { value: ROUTER_STUB },
+        createElement(ResultsView, props),
+      ),
+    );
+  }
+
   it("caps the column at the mock's width and takes the nav's gutters", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const main = container.querySelector("main")!;
     const column = container.querySelector("[data-results-column]")!;
 
@@ -3617,7 +3672,7 @@ describe("ResultsView", () => {
   });
 
   it("leads with the eyebrow, the archetype at display-page, and the match sub", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
 
     // The e2e suite locates the page by this exact string.
     expect(container.textContent).toContain("Assessment results");
@@ -3630,17 +3685,21 @@ describe("ResultsView", () => {
   });
 
   it("rules the jump nav above and below", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const nav = container.querySelector("nav")!;
 
     expect(classes(nav)).toContain("border-y");
     expect(classes(nav)).toContain("border-border-secondary");
     expect(classes(nav)).toContain("label-nav");
     expect(nav.querySelectorAll("a")).toHaveLength(5);
+    // The page also renders NavBar's <nav>. Without a name this is a second,
+    // unnamed landmark of the same role — and `querySelector("nav")` in any
+    // future full-page test then reads whichever comes first in the DOM.
+    expect(nav.getAttribute("aria-label")).toBe("Page sections");
   });
 
   it("heads each domain group with a 2px rule in the domain's own colour", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const groups = [...container.querySelectorAll("[data-domain-head]")] as HTMLElement[];
 
     expect(groups).toHaveLength(4);
@@ -3650,27 +3709,146 @@ describe("ResultsView", () => {
     const name = groups[1].querySelector("[data-domain-name]") as HTMLElement;
     expect(name.textContent).toBe("Power and Authority");
     expect(name.style.color).toBe("var(--domain-power)");
-    expect(groups[1].querySelector("[data-domain-count]")!.textContent).toBe("4 axes");
+
+    // ALL FOUR counts, not just this group's. Asserting one leaves the other
+    // three free to lose a row: the twelve axes split 2/4/3/3, and a filter
+    // that silently drops one renders eleven plausible rows under four
+    // plausible headings.
+    expect(groups.map((g) => g.querySelector("[data-domain-count]")!.textContent)).toEqual([
+      "2 axes",
+      "4 axes",
+      "3 axes",
+      "3 axes",
+    ]);
+    expect(groups.map((g) => g.querySelector("[data-domain-name]")!.textContent)).toEqual([
+      "Economic Organization",
+      "Power and Authority",
+      "Society and Identity",
+      "The State in the World",
+    ]);
   });
 
   it("draws a tension as a warning-ruled panel, not a badge", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const panels = [...container.querySelectorAll("[data-tension-panel]")];
 
-    expect(panels).toHaveLength(1);
+    expect(panels).toHaveLength(2);
     // Delta 04: a 2px domain-or-warning colour on a callout's left edge.
     expect(classes(panels[0])).toContain("border-l-2");
     expect(classes(panels[0])).toContain("border-l-warning");
-    expect(panels[0].querySelector("[data-tension-title]")!.textContent).toBe(
+    // Capitalised in JS, not by a `capitalize` class over the `label` role:
+    // `text-transform` leaves `textContent` alone, so a CSS-only capital is
+    // invisible to a screen reader and to a copy-paste.
+    expect(panels.map((p) => p.querySelector("[data-tension-title]")!.textContent)).toEqual([
       "Moderate tension · Axis 5",
-    );
+      "Strong tension · Axis 8",
+    ]);
     // The circled "!" glyph it replaced carried no information the title
-    // did not already carry.
-    expect(container.textContent).not.toContain("!");
+    // did not already carry. Scoped to the panel, not the whole page: the
+    // plan's `container.textContent` form also forbids `CopyLinkButton`'s
+    // "Copied!" state and every future exclamation anywhere on the results
+    // page, which is a tripwire for unrelated work rather than a guard.
+    expect(panels[0].textContent).not.toContain("!");
+  });
+
+  it("explains each tension in the direction the respondent actually answered", () => {
+    // The one assertion on this page whose failure mode is not cosmetic. The
+    // two narrative arms are mirror images of each other, so swapping their
+    // bodies compiles, renders, and tells every respondent with a tension the
+    // exact opposite of what they answered. Both directions are pinned by
+    // their pole names, which is the only thing that tells the arms apart.
+    const container = renderView();
+    const narratives = [...container.querySelectorAll("[data-tension-narrative]")].map(
+      (p) => p.textContent,
+    );
+
+    expect(narratives).toEqual([
+      // Axis 5, principles_A_but_budget_B: questionnaire toward A, budget B.
+      "Your questionnaire responses lean toward Pole A 5, but your budget priorities suggest Pole B 5.",
+      // Axis 8, principles_B_but_budget_A: the mirror. If this reads "Pole A 8
+      // ... Pole B 8", the two arms have been swapped.
+      "Your questionnaire responses lean toward Pole B 8, but your budget priorities suggest Pole A 8.",
+    ]);
+  });
+
+  it("records the absence of tension rather than dropping the section", () => {
+    const container = renderView(NO_TENSION_PROPS);
+
+    expect(container.querySelectorAll("[data-tension-panel]")).toHaveLength(0);
+    // The section still exists, so its jump link still resolves — see the
+    // anchor test below, which is what this exists to keep honest.
+    expect(container.querySelector("#tensions")).not.toBeNull();
+    expect(container.querySelector("[data-tension-empty]")!.textContent).toBe(
+      "No tensions recorded: your stated views and budget priorities point the same way on all twelve axes.",
+    );
+  });
+
+  it("points every jump link at a section that is actually on the page", () => {
+    // `toHaveLength(5)` alone passes with a link aimed at an id that does not
+    // exist: clicking sets the hash, scrolls nowhere, moves focus nowhere, and
+    // nothing distinguishes it from the four that work.
+    for (const props of [PROPS, NO_TENSION_PROPS, DISTINCTIVE_PROPS]) {
+      const container = renderView(props);
+      const targets = [...container.querySelectorAll('nav a[href^="#"]')].map((a) =>
+        a.getAttribute("href")!.slice(1),
+      );
+
+      expect(targets).toEqual(["archetype", "radar", "tensions", "breakdown", "compass"]);
+      for (const id of targets) {
+        expect(container.querySelector(`#${id}`)).not.toBeNull();
+      }
+    }
+  });
+
+  it("layers every section panel on the raised surface", () => {
+    // Mock 7a's central move: content sits on surface-1 panels over the
+    // surface-3 page ground. `PANEL` is one shared string, so one drifted
+    // token restyles five sections at once and nothing else notices.
+    const container = renderView();
+    const panels = [
+      container.querySelector("#archetype")!,
+      container.querySelector("#radar div")!,
+      container.querySelector("#compass div")!,
+      container.querySelector("[data-tension-panel]")!,
+    ];
+
+    for (const panel of panels) {
+      expect(classes(panel)).toContain("bg-surface-1");
+      expect(classes(panel)).toContain("border-border-secondary");
+      expect(classes(panel)).toContain("rounded-sharp");
+    }
+  });
+
+  it("tells a distinctive respondent there is no match, and marks no archetype", () => {
+    const container = renderView(DISTINCTIVE_PROPS);
+
+    expect(container.querySelector("h1")!.textContent).toBe("A distinctive profile");
+    expect(container.querySelector("[data-results-sub]")!.textContent).toBe(
+      "Your positions don't map to a single governance philosophy — nearest match is The Social Democrat at 74%.",
+    );
+
+    // The branch that matters. `primaryArchetypeId` is passed as `undefined`
+    // on this branch, which is what stops CompassPlot emphasising one of its
+    // twelve reference marks — at 0.75 opacity and r=3 against the others'
+    // 0.4 and r=2. Passing it unconditionally gives the compass a primary
+    // archetype mark for exactly the respondents the copy has just told there
+    // is no such match, and every other assertion on the page still passes.
+    const marks = [...container.querySelectorAll("[data-compass-archetype]")];
+    expect(marks).toHaveLength(12);
+    expect(marks.filter((g) => g.getAttribute("opacity") === "0.75")).toHaveLength(0);
+
+    // The control: the same page for a matched respondent emphasises exactly
+    // one, so the assertion above cannot pass by the marks having gone away.
+    const matched = renderView();
+    expect(
+      [...matched.querySelectorAll("[data-compass-archetype]")].filter(
+        (g) => g.getAttribute("opacity") === "0.75",
+      ),
+    ).toHaveLength(1);
   });
 
   it("hands the copy and compare controls to the archetype panel", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const grid = container.querySelector("[data-archetype-grid]")!;
 
     // Mock 7a draws them inside the panel; they used to sit in a bar below it.
@@ -3680,26 +3858,37 @@ describe("ResultsView", () => {
   });
 
   it("toggles the scoring disclosures for every row at once", () => {
-    const container = render(createElement(ResultsView, PROPS));
+    const container = renderView();
     const toggle = container.querySelector("[data-scoring-toggle]") as HTMLButtonElement;
+
+    // Every axis has a row before the toggle is touched. `aria-expanded` alone
+    // is a lower bound that still holds at eleven rows, because the archetype
+    // panel's own disclosure makes up the twelfth — so an axis can vanish from
+    // the breakdown with this test green.
+    expect(container.querySelectorAll("[data-axis-row]")).toHaveLength(12);
 
     expect(container.textContent).not.toContain("See how this was scored");
     act(() => toggle.click());
-    expect(container.querySelectorAll("[aria-expanded='false']").length).toBeGreaterThanOrEqual(12);
+    expect(container.querySelectorAll("[data-axis-row]")).toHaveLength(12);
+    expect(
+      [...container.querySelectorAll("[data-axis-row]")].filter(
+        (row) => row.parentElement!.textContent!.includes("See how this was scored"),
+      ),
+    ).toHaveLength(12);
   });
 });
 ```
 
-Add `ResultsView` to the file's imports.
+As shipped, the file's imports gain `ResultsView` and `type ResultsViewProps`, plus `AppRouterContext`, `ROUTER_STUB` and `installIntersectionObserverStub` from the new `tests/helpers/client-component-env.ts` (note 13). The plan's line here read "Add `ResultsView` to the file's imports", which is a third of what mounting this component actually needs.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: FAIL — eight new tests.
+Expected: FAIL — eight new tests. (The plan's own Step 1 drafts **seven**; nineteen landed across two files. See "As shipped" note 3.)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
-Replace `src/components/results/ResultsView.tsx` in full. Keep the `AxisDisplayData` and `ResultsViewProps` interfaces byte-identical to today's; only the body below `SECTION_IDS` changes, plus the two action components' classes.
+Replace `src/components/results/ResultsView.tsx` in full. The block below is the shipped file in its entirety. The plan drafted the imports and the body separately and said to copy `AxisDisplayData` and `ResultsViewProps` across verbatim — that is not what shipped, because the addenda routed here change both (notes 10 and 12).
 
 ```tsx
 "use client";
@@ -3713,11 +3902,58 @@ import { AxisBreakdownCard } from "./AxisBreakdownCard";
 import { Button } from "@/components/Button";
 import { DOMAIN_COLORS, DOMAIN_MARK_VARS, type DomainKey } from "@/lib/design-tokens";
 import { FadeInSection } from "@/components/FadeInSection";
-```
+import type {
+  AxisConfidence,
+  TensionDirection,
+  TensionLevel,
+} from "@/lib/scoring-types";
 
-(`AxisDisplayData` and `ResultsViewProps` are unchanged — copy them across verbatim.)
+export interface AxisDisplayData {
+  axisId: number;
+  name: string;
+  poleALabel: string;
+  poleBLabel: string;
+  tagline: string;
+  domain: string;
+  finalScore: number;
+  /** The scoring engine's unions, not bare `string`s. An unrecognised
+   *  confidence used to fall through to `AxisBreakdownCard`'s default branch
+   *  and render "Low confidence"; an unrecognised `direction` falls through
+   *  the narrative ladder below and renders a titled tension panel with no
+   *  explanation at all. Both are silent-wrong-output failures that only a
+   *  type can catch, since neither throws and both render plausibly. */
+  confidence: AxisConfidence;
+  tension: {
+    detected: boolean;
+    level: TensionLevel;
+    direction: TensionDirection | null;
+  };
+  components: { fc: number; sc: number; bg: number | null };
+}
 
-```tsx
+export interface ResultsViewProps {
+  axisData: AxisDisplayData[];
+  compass: { economic: number; cultural: number };
+  archetype: {
+    primary: {
+      id: string;
+      name: string;
+      matchPercentage: number;
+      summary: string;
+      description: string;
+      tension: string;
+      prototype: number[];
+    };
+    secondary: {
+      name: string;
+      matchPercentage: number;
+    };
+    isBlended: boolean;
+    isDistinctive: boolean;
+  };
+  encoded?: string;
+}
+
 function CopyLinkButton() {
   const [copied, setCopied] = useState(false);
 
@@ -3809,6 +4045,18 @@ function SectionHead({ eyebrow, title, caption }: { eyebrow: string; title: stri
   );
 }
 
+/** Sentence-cases a tension grade for display.
+ *
+ *  In JS rather than a `capitalize` class, for two reasons. `text-transform`
+ *  does not touch `textContent`, so a CSS-only capital is invisible to a
+ *  screen reader and to anything the respondent copies out of the page; and
+ *  the title carries the `label` role, which sets `text-transform` itself, so
+ *  layering a second one on it would leave the rendered case decided by
+ *  Tailwind's emitted order. */
+function sentenceCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function ResultsView({ axisData, compass, archetype, encoded }: ResultsViewProps) {
   const domainKeys: DomainKey[] = ["economic", "power", "society", "world"];
   const domains = domainKeys.map((key) => ({
@@ -3868,7 +4116,7 @@ export function ResultsView({ axisData, compass, archetype, encoded }: ResultsVi
               secondary={archetype.secondary}
               isBlended={archetype.isBlended}
               isDistinctive={archetype.isDistinctive}
-              userScores={axisData.map((a) => a.finalScore)}
+              userScores={axisData}
               actions={
                 <>
                   <CopyLinkButton />
@@ -3894,17 +4142,38 @@ export function ResultsView({ axisData, compass, archetype, encoded }: ResultsVi
           </section>
         </FadeInSection>
 
-        {/* 3. Tensions */}
-        {tensionAxes.length > 0 && (
-          <FadeInSection>
-            <section id={SECTION_IDS.tensions} className="mt-10">
-              <SectionHead
-                eyebrow="Detected tensions"
-                title="Principles against priorities"
-                caption="A tension is recorded when stated views and budget choices pull in different directions. It is common, and often the most informative part of a profile."
-              />
+        {/* 3. Tensions.
+            Rendered unconditionally, where the parent commit hid the whole
+            section when no tension was detected. The plan made the jump nav a
+            fixed five-item row and accepted that `Tensions` would then resolve
+            to nothing — but an inert item sitting in a rendered nav is not the
+            same as an unused `:target`: clicking it sets the hash, scrolls
+            nowhere and moves focus nowhere, and nothing distinguishes it from
+            the four links that work. The empty state also says something the
+            respondent wants to know. "Describe, don't prescribe": the absence
+            of tension is itself a result, not silence. */}
+        <FadeInSection>
+          <section id={SECTION_IDS.tensions} className="mt-10">
+            <SectionHead
+              eyebrow="Detected tensions"
+              title="Principles against priorities"
+              caption="A tension is recorded when stated views and budget choices pull in different directions. It is common, and often the most informative part of a profile."
+            />
+            {tensionAxes.length === 0 ? (
+              <div className={`${PANEL} px-[22px] py-5`}>
+                <p data-tension-empty className="body-s text-text-secondary">
+                  No tensions recorded: your stated views and budget priorities point the same way on all twelve axes.
+                </p>
+              </div>
+            ) : (
               <div className="space-y-3">
                 {tensionAxes.map((axis) => {
+                  // Exhaustive over TensionDirection, so the two arms cannot be
+                  // reached by a value the ladder does not describe. A drifted
+                  // direction used to fall through to "" and render a titled
+                  // panel with no explanation; a SWAPPED pair renders the exact
+                  // opposite of what the respondent answered, which is why both
+                  // arms are pinned by name in the suite.
                   let narrative = "";
                   if (axis.tension.direction === "principles_B_but_budget_A") {
                     narrative = `Your questionnaire responses lean toward ${axis.poleBLabel}, but your budget priorities suggest ${axis.poleALabel}.`;
@@ -3918,17 +4187,21 @@ export function ResultsView({ axisData, compass, archetype, encoded }: ResultsVi
                       data-tension-panel
                       className={`${PANEL} border-l-2 border-l-warning px-[22px] py-5`}
                     >
-                      <p data-tension-title className="label font-medium text-warning-text mb-1.5 capitalize">
-                        {axis.tension.level} tension · {axis.name}
+                      <p data-tension-title className="label font-medium text-warning-text mb-1.5">
+                        {sentenceCase(axis.tension.level)} tension · {axis.name}
                       </p>
-                      {narrative && <p className="body-s text-text-secondary">{narrative}</p>}
+                      {narrative && (
+                        <p data-tension-narrative className="body-s text-text-secondary">
+                          {narrative}
+                        </p>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            </section>
-          </FadeInSection>
-        )}
+            )}
+          </section>
+        </FadeInSection>
 
         {/* 4. Axis breakdown by domain */}
         <FadeInSection>
@@ -3996,38 +4269,59 @@ export function ResultsView({ axisData, compass, archetype, encoded }: ResultsVi
 
 Two notes for the implementer:
 
-- The jump nav's `Tensions` link is now unconditional, where it used to be hidden when no tension was detected. That is deliberate: mock 7a rules the nav as a fixed five-item row, and a four-item row with a shifting gap reads as a rendering bug. The anchor simply resolves to nothing when the section is absent, which is the same no-op `:target` behaviour the archetype reference already relies on.
-- `border-l-2 border-l-warning` alongside `border border-border-secondary` depends on Tailwind emitting the shorthand width before the longhand. It does in 4.3.3, but this is exactly the kind of ordering subtlety that has bitten this migration — **verify the computed `border-left-width` is `2px` and its colour is `--warning` in the browser during Task 12**, not in jsdom, which computes neither. If it loses, replace those two classes with `style={{ borderLeft: "2px solid var(--warning)" }}` and say so in the PR.
+- ~~The jump nav's `Tensions` link is now unconditional, where it used to be hidden when no tension was detected. That is deliberate: mock 7a rules the nav as a fixed five-item row, and a four-item row with a shifting gap reads as a rendering bug. The anchor simply resolves to nothing when the section is absent, which is the same no-op `:target` behaviour the archetype reference already relies on.~~ **Overridden as shipped — see "As shipped" note 4.** The nav stays a fixed five-item row, but the *section* is now unconditional too, with an empty state, so every anchor resolves.
+- `border-l-2 border-l-warning` alongside `border border-border-secondary` depends on Tailwind emitting the shorthand width before the longhand. It does in 4.3.3, but this is exactly the kind of ordering subtlety that has bitten this migration — **verify the computed `border-left-width` is `2px` and its colour is `--warning` in the browser during Task 12**, not in jsdom, which computes neither. If it loses, replace those two classes with `style={{ borderLeft: "2px solid var(--warning)" }}` and say so in the PR. (As shipped: still unverified, and still routed to Task 12.)
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts && npx tsc --noEmit`
-Expected: PASS, and `tsc` is now clean — this task clears the `alternateRow` error Task 5 left standing.
+Expected: PASS, and `tsc` is now clean — this task clears the `alternateRow` error Task 4 left standing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
-git add src/components/results/ResultsView.tsx tests/unit/results-chrome.test.ts
+git add src/components/results/ResultsView.tsx src/components/results/ArchetypeCard.tsx src/components/results/AxisBreakdownCard.tsx src/components/comparison/ComparisonScoreBar.tsx src/app/results/page.tsx "src/app/results/[profileId]/page.tsx" src/lib/scoring-types.ts src/lib/radar-geometry.ts tests/helpers/client-component-env.ts tests/unit/results-chrome.test.ts tests/unit/radar-geometry.test.ts tests/unit/scoring-narrowing.test.ts
 git commit -m "feat(design): restyle the results page shell onto mock 7a"
 ```
 
-**Addenda from Task 4's code-quality review**, deliberately routed here rather than fixed in Task 4, because both touch the `AxisDisplayData`/`AxisBreakdownCardProps` interface this task owns:
+Shipped as `70d7909`, one commit over twelve files — the heaviest task in the phase, because the nine addenda routed here from Tasks 4, 6, 7 and 8 all land in it. Verified final state: **779 tests across 64 files**, lint clean at `--max-warnings=0`, `npx tsc --noEmit` **clean** — the deliberately-red interval that opened at Task 4 is closed — `npm run build` succeeds, and `npx playwright test tests/e2e/results.spec.ts` passes 3/3 with its three copy-and-role assertions unmodified. Nineteen tests added: twelve in `describe("ResultsView")`, one in `describe("ArchetypeCard")`, and six in the new `tests/unit/scoring-narrowing.test.ts`.
 
-- **Dead surface on `AxisBreakdownCardProps`.** A required `domain: string` is never destructured or used by the component; three `tension` sub-fields (`level`, `direction`, `narrative`) are accepted but never read; and the `AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback is unreachable in practice and its numbers match none of the three real weight profiles. These were left in Task 4 because the interface is shared with `ResultsView`'s `AxisDisplayData`, which this task owns — trim both together, along with the `alternateRow` removal already scheduled here.
-- **`confidence: string` is looser than its source type.** `src/lib/scoring-types.ts:32` defines `"high" | "moderate" | "low" | "conflicted"`, so an unrecognised value currently falls through to `AxisBreakdownCard`'s default branch and silently renders "Low confidence" instead of failing to typecheck. Narrowing it was deferred specifically because doing it in Task 4 would have added a second typecheck error during the Task 4-to-10 interval that this plan already flags as deliberately red (the `alternateRow` removal) — two simultaneous errors would have destroyed the "exactly one error, and it is the expected one" signal that makes that interval safe to leave red. Do this alongside the dead-surface trim above.
-- **Orphaned `"use client"` on `ComparisonScoreBar.tsx`, found in Task 6's review.** With the `useState` and mouse handlers gone, the component has no hooks, no event handlers, and no browser APIs — nothing that needs the client boundary — while `PairedAxisScale`, the primitive it now wraps, carries no directive at all. `src/app/compare/[profileId1]/[profileId2]/page.tsx` is a server component, so the directive needlessly pushes its twelve `ComparisonScoreBar` rows across the client boundary and hydrates them for nothing. Routed here rather than fixed in Task 6 because verifying the removal properly needs `npm run build`, which cannot pass until this task clears the `alternateRow` typecheck error.
+**As shipped.** Implementation and review moved this task in thirteen ways from the text above.
 
-**Addenda from Task 7**, all in files this task owns:
+1. **The tension-title assertion was unsatisfiable — record this as a plan defect, not a divergence.** Step 1 asserted `toBe("Moderate tension · Axis 5")` while Step 3 rendered `{axis.tension.level}` — the engine's literal `"moderate"` — inside a `capitalize` class. CSS `text-transform` never touches `textContent`, so that assertion could not pass against that markup in any browser or any DOM. Compounding it: the title also carries the `label` utility, which **already sets `text-transform: uppercase`** (`src/app/globals.css:436-442`), so a `capitalize` beside it would have left the rendered case to Tailwind's emission order — the same ordering hazard the second implementer's note above flags for the border. Fixed with a `sentenceCase()` helper in JS and the `capitalize` class dropped. The plan's expected string is kept exactly, and it is now what a screen reader announces and what a copy-paste yields, rather than a capital that exists only in the paint.
+2. **`expect(container.textContent).not.toContain("!")` was page-wide.** Intended to prove the circled "!" glyph is gone from the tension panels, it reads the entire rendered page — so it also forbade `CopyLinkButton`'s "Copied!" state, which is one `setTimeout` from being on screen, and every future exclamation mark anywhere on `/results`. That is a tripwire for unrelated work, not a guard. Narrowed to `panels[0].textContent`, which is what it was always about.
+3. **Step 2 says "eight new tests"; Step 1 contains seven `it()` blocks.** A plain arithmetic error in the plan, and the kind that makes a red run ambiguous — an implementer counting eight would go looking for a test that was never written. Nineteen landed: the seven drafted, five more in `describe("ResultsView")` — four of them closing the gaps in notes 4, 5, 7 and 8, and a fifth (`layers every section panel on the raised surface`) pinning the shared `PANEL` string across all five sections, since one drifted token in that one string restyles the whole page and nothing else notices — one in `describe("ArchetypeCard")` for Task 8's `userScores` addendum, which the plan specified no coverage for at all, and six in the new `scoring-narrowing` file. Note 6's gap was closed by tightening two of the seven rather than by adding a thirteenth.
+4. **The jump nav's dead `Tensions` anchor — an explicit plan decision, overridden.** Step 3's first implementer's note considered this and accepted it: *"The anchor simply resolves to nothing when the section is absent, which is the same no-op `:target` behaviour the archetype reference already relies on."* The analogy does not hold. An unused `:target` rule is a stylesheet rule that never matches and that nobody can see; this was a **rendered, focusable control**, visually indistinguishable from the four beside it, that on click set the hash, scrolled nowhere and moved focus nowhere. The rewrite is also what created the problem: it made the *link* unconditional while leaving the *section* conditional, where the parent commit rendered both conditionally and was at least consistent. **Fix: the Tensions section now renders unconditionally, with an empty state** — "No tensions recorded: your stated views and budget priorities point the same way on all twelve axes." That keeps the plan's stable five-item nav, makes every anchor resolve, and is the better product answer under this project's "describe, don't prescribe" and "radical transparency" principles: the absence of tension is itself a result, not silence. Pinned by `records the absence of tension rather than dropping the section`, and kept honest by the anchor test in note 8.
+
+**Notes 5-9 are coverage gaps closed after the code-quality review.** The reviewer approved the task; a mutation pass over the approved state then found **eight of seventeen mutations surviving**. They were closed anyway, on the principle established in Task 8's note 1 — coverage that reads as protection and is not is worse than none.
+
+5. **The tension narrative could invert silently.** Swapping the bodies of the two `direction` arms compiles, renders, and makes every panel on the page tell the respondent the exact opposite of what they answered — with the whole suite green. Both arms are now pinned by pole name, driven from a fixture carrying **two** tension axes of opposite direction. One was insufficient: the arms are mirror images, so a single-direction fixture stays green straight through the swap. The two axes are 5 (Power and Authority) and 8 (Society and Identity) — deliberately in different domains, so the 2/4/3/3 domain counts asserted in the test above are unaffected.
+6. **An axis could vanish from the breakdown.** Dropping one rendered eleven rows under four plausible headings and passed 57 of 57, because the domain-head test asserted only one group's count, and the toggle test's `toBeGreaterThanOrEqual(12)` still holds at eleven — `ArchetypeCard`'s own disclosure supplies the twelfth `aria-expanded`. That lower bound was the one loose assertion among the plan's seven tests. It is now an exact count of `[data-axis-row]` elements whose scoring disclosure is present, and all four domain counts and names are asserted rather than group [1]'s alone.
+7. **The distinctive branch was wholly uncovered**, including `primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}`. Forcing that to pass the id unconditionally gives the compass an emphasised archetype mark for exactly the respondents the copy has just told there is no such match — and nothing else on the page notices. Now covered through `CompassPlot`'s emphasis marks (`opacity="0.75"`, of which the distinctive branch must have zero), with a paired control assertion on the matched branch, so the zero cannot pass by the twelve reference marks having disappeared altogether.
+8. **The jump nav's hrefs were unverified.** `expect(nav.querySelectorAll("a")).toHaveLength(5)` passes with a link aimed at an id that is not on the page. A test now reads every `nav a[href^="#"]`, pins the five ids in order, and asserts each target element exists — across all three fixtures (default, no-tension, distinctive). It is what makes note 4's claim checkable rather than merely asserted.
+9. **The confidence boundary was untested and could drift from its own union.** `AXIS_CONFIDENCES` is now the `as const` source and `AxisConfidence` is derived from it as `(typeof AXIS_CONFIDENCES)[number]`, both in `src/lib/scoring-types.ts`, with `toAxisConfidence` beside them; `TENSION_LEVELS` and `TENSION_DIRECTIONS` take the same shape. A hand-kept pair drifts silently in one direction only — add a fifth grade to the union and the runtime guard quietly maps it to the fallback, which is the exact failure the narrowing exists to prevent. The new `tests/unit/scoring-narrowing.test.ts` drives the round-trip **off the list itself**, so a fifth grade must be handled rather than silently becoming `"low"`.
+10. **Eight of the nine addenda routed here landed as written; the ninth was declined (note 11).** Dead-surface trim on `AxisBreakdownCardProps`; `alternateRow` gone from the call site; `confidence` narrowed; `"use client"` off `ComparisonScoreBar.tsx`; the sub-AA drift-guard literal shrunk to `[]`; `secondary.summary` dropped from `ArchetypeCardProps` and `ResultsViewProps` alike; `LOW_MATCH_THRESHOLD_PCT` imported in place of the bare `< 55`; `ArchetypeCardProps.userScores` widened to `RadarAxisScore[]` with `normaliseByAxisId` applied inside `MiniRadar`, which finishes the half of Task 7's addendum D that Task 8 could not reach; and `domain` dropped from `RadarAxisScore` and from the pad literal in `normaliseByAxisId`. **Narrowing `confidence` exposed a real hole rather than merely tightening a type.** The value arrives from Prisma as a bare `String` at `src/app/results/[profileId]/page.tsx`, where it previously fell through `AxisBreakdownCard`'s trailing `else` and silently rendered "Low confidence" — a made-up reading of a row nobody could read. That trust boundary now validates explicitly, and `tension.level` / `tension.direction` were narrowed the same way with `toTensionLevel` / `toTensionDirection`. The direction is the worst of the three: an unrecognised value falls through the narrative ladder and renders a titled tension panel with no explanation in it at all.
+11. **The optional `min-[560px]` → `min-[600px]` breakpoint change was DECLINED.** 560px is load-bearing four times on this page — `AxisBreakdownCard.tsx:76` and `:101`, `ArchetypeCard.tsx:169`, `ResultsView.tsx:180` — and again in `NavBar.tsx`, the quiz page and the home page, so forking one of them would step the page's columns at two different widths and trade a wrap band for a misalignment band. jsdom computes no layout, so the change could not be verified where every other assertion in this task was verified. **The `V ∈ [560, 600)` pole-label wrap band therefore remains open — routed to Task 12**, which has a browser.
+12. **Further dead surface trimmed, beyond what the addenda named.** `ResultsViewProps.profileId` (accepted and never read, while both callers dutifully supplied it); `ResultsViewProps.secondary.summary` (it became unused *in this very commit* while still declared required, so both callers were computing `secondaryArchetype?.summary ?? ""` for a consumer that no longer existed); and `AxisDisplayData.tension.narrative` (no reader anywhere, and its only writer — `src/app/results/page.tsx` — stored a literal `null` with a comment explaining that only DB profiles have narratives).
+13. **Two test-harness discoveries, now held in `tests/helpers/client-component-env.ts`.** (a) jsdom implements no `IntersectionObserver` and `FadeInSection` constructs one on mount, so the `ReferenceError` fails the whole render rather than just the animation. A no-op stub is installed through an exported function rather than an import side effect, so a reader can see where it happens; `vmForks` was verified empirically to give each spec file its own VM context, so the `globalThis` assignment cannot leak into whichever file runs next. (b) **Mounting any component that calls `useRouter` requires loading the app-router context through `createRequire(import.meta.url)`, not a plain ESM import.** vitest externalises the bare CJS `next/navigation` to Node's own require cache, so an ESM import of `next/dist/shared/lib/app-router-context.shared-runtime` resolves to a *second* context instance whose Provider publishes to nothing — and the mount still throws "invariant expected app router to be mounted", **with a provider plainly visible in the tree**. Verified by probe against both the CJS and the ESM builds and both extension spellings; all four are distinct from the instance `useRouter` closes over. The helper carries an UPGRADE NOTE on that private path and on the stub's opaque `bfcacheId`. Neither discovery uses `vi.mock`, which this repo's `vmForks` pool makes hazardous: a mock of a module as widely imported as `next/navigation` leaks into the spec file that runs next.
+
+**Addenda from Task 4's code-quality review — all three resolved; see "As shipped" notes 10 and 12.** Deliberately routed here rather than fixed in Task 4, because both touch the `AxisDisplayData`/`AxisBreakdownCardProps` interface this task owns:
+
+- **Dead surface on `AxisBreakdownCardProps`.** A required `domain: string` is never destructured or used by the component; three `tension` sub-fields (`level`, `direction`, `narrative`) are accepted but never read; and the `AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback is unreachable in practice and its numbers match none of the three real weight profiles. These were left in Task 4 because the interface is shared with `ResultsView`'s `AxisDisplayData`, which this task owns — trim both together, along with the `alternateRow` removal already scheduled here. (As shipped: all trimmed, and the unreachable fallback deleted rather than replaced by a guard — see the backlog item on narrowing `AXIS_WEIGHT_PROFILES` to `Record<AxisId, …>`.)
+- **`confidence: string` is looser than its source type.** `src/lib/scoring-types.ts` defines `"high" | "moderate" | "low" | "conflicted"`, so an unrecognised value currently falls through to `AxisBreakdownCard`'s default branch and silently renders "Low confidence" instead of failing to typecheck. Narrowing it was deferred specifically because doing it in Task 4 would have added a second typecheck error during the Task 4-to-10 interval that this plan already flags as deliberately red (the `alternateRow` removal) — two simultaneous errors would have destroyed the "exactly one error, and it is the expected one" signal that makes that interval safe to leave red. Do this alongside the dead-surface trim above. (As shipped: done, and it turned out to be a live defect at the database boundary, not just a loose type — note 10.)
+- **Orphaned `"use client"` on `ComparisonScoreBar.tsx`, found in Task 6's review.** With the `useState` and mouse handlers gone, the component has no hooks, no event handlers, and no browser APIs — nothing that needs the client boundary — while `PairedAxisScale`, the primitive it now wraps, carries no directive at all. `src/app/compare/[profileId1]/[profileId2]/page.tsx` is a server component, so the directive needlessly pushes its twelve `ComparisonScoreBar` rows across the client boundary and hydrates them for nothing. Routed here rather than fixed in Task 6 because verifying the removal properly needs `npm run build`, which cannot pass until this task clears the `alternateRow` typecheck error. (As shipped: removed, and `npm run build` verified green in the same pass.)
+
+**Addenda from Task 7 — the first three resolved, the fourth declined; see "As shipped" notes 10 and 11.** All in files this task owns:
 
 - **The drift guard's literal must shrink to `[]`.** Task 7 added `describe("results chrome drift guards")` to `tests/unit/results-chrome.test.ts` with one test asserting that the sorted list of files in `src/components/results/` naming `text-text-tertiary` equals `["ResultsView.tsx"]`. `ResultsView.tsx` is the last file in the directory still on that sub-AA token (12 occurrences). This task rewrites it; when it does, the expected array becomes `[]`. The guard fails closed in **both** directions — an unexpected offender reddens it, and so does the expected offender disappearing — so this task **cannot** land without updating the literal. That is deliberate, not a nuisance.
-- **`secondary.summary` is declared required on `ArchetypeCardProps` and never read.** Only `.name` and `.matchPercentage` are used, in both branches. `src/components/results/ResultsView.tsx:223` dutifully supplies it today. Drop it from both sides. Note that the Step 3 block above already passes `secondary={archetype.secondary}` wholesale rather than rebuilding the object, so only the interface side needs the trim — TypeScript's excess-property check does not apply to a variable reference.
-- **`lowMatch`'s `< 55` is an unnamed literal whose named form already exists.** `src/lib/scoring-types.ts:121` exports `LOW_MATCH_THRESHOLD_PCT = 55` beside its siblings `DISTINCTIVE_MATCH_CEILING = 72` and `DISTINCTIVE_STDDEV_FLOOR = 0.4`, and `tests/unit/scoring-archetypes.test.ts` pins it — but `ArchetypeCard` spells the number out instead of importing it. Correct and reachable, just undiscoverable, and it can now drift from the scoring engine silently. Import the constant. (The addendum as routed here said "hoist it beside its siblings"; the constant is already hoisted — the component simply does not use it.)
-- **Optional: close the pole-label wrap band.** Task 7's investigation of the Task 4 addendum (see that section) found the axis row's endpoint labels wrap over exactly `V ∈ [560, 599)`, and that this task's 820px container does not close it, because at a 560px viewport the container is viewport-limited. If it is judged worth fixing, the fix is one token in `AxisBreakdownCard.tsx` — `min-[560px]` to `min-[600px]` on the 3-column breakpoint — and **not** `shortPole`, which is lossy. Explicitly optional.
+- **`secondary.summary` is declared required on `ArchetypeCardProps` and never read.** Only `.name` and `.matchPercentage` are used, in both branches. `src/components/results/ResultsView.tsx` dutifully supplies it today. Drop it from both sides. Note that the Step 3 block above already passes `secondary={archetype.secondary}` wholesale rather than rebuilding the object, so only the interface side needs the trim — TypeScript's excess-property check does not apply to a variable reference. (As shipped: it came off `ResultsViewProps` and both page callers too — note 12.)
+- **`lowMatch`'s `< 55` is an unnamed literal whose named form already exists.** `src/lib/scoring-types.ts` exports `LOW_MATCH_THRESHOLD_PCT = 55` beside its siblings `DISTINCTIVE_MATCH_CEILING = 72` and `DISTINCTIVE_STDDEV_FLOOR = 0.4`, and `tests/unit/scoring-archetypes.test.ts` pins it — but `ArchetypeCard` spells the number out instead of importing it. Correct and reachable, just undiscoverable, and it can now drift from the scoring engine silently. Import the constant. (The addendum as routed here said "hoist it beside its siblings"; the constant is already hoisted — the component simply does not use it.)
+- **Optional: close the pole-label wrap band.** Task 7's investigation of the Task 4 addendum (see that section) found the axis row's endpoint labels wrap over exactly `V ∈ [560, 599)`, and that this task's 820px container does not close it, because at a 560px viewport the container is viewport-limited. If it is judged worth fixing, the fix is one token in `AxisBreakdownCard.tsx` — `min-[560px]` to `min-[600px]` on the 3-column breakpoint — and **not** `shortPole`, which is lossy. Explicitly optional. (As shipped: **declined here and routed to Task 12** — note 11.)
 
-**Addenda from Task 8**, both in files or interfaces this task owns:
+**Addenda from Task 8 — both resolved; see "As shipped" note 10.** Both in files or interfaces this task owns:
 
-- **Widen `ArchetypeCardProps.userScores` to carry `axisId`, and apply `normaliseByAxisId` in `MiniRadar`.** This is the unfinished half of Task 7's addenda B and D — see Task 8's "As shipped" note 9. `userScores` is built at `src/components/results/ResultsView.tsx:227` as `axisData.map((a) => a.finalScore)`: bare numbers with no ids, so `MiniRadar` maps vertex `i` to axis `i + 1` positionally and cannot normalise, while `RadarChart` — whose prop carries `axisId` — already does. Without this, the mini radar's user polygon and its fixed axis-1-through-12 prototype can misalign against *each other*, which is the one comparison that chart exists to make. It is latent today only because `order === id` for all twelve rows of `src/data/axes.ts`, while `src/app/results/page.tsx:77` maps in scoring-pipeline order and `src/app/results/[profileId]/page.tsx:20` orders by `axis.order`. Widen the prop, update the one call site, and call `normaliseByAxisId` in `MiniRadar`.
-- **Drop the now-unread `domain` field from `RadarAxisScore`** in `src/lib/radar-geometry.ts`, and from the pad literal inside `normaliseByAxisId`. Task 8's sr-only Domain column derives the domain name from the axis id rather than reading the field, so nothing reads it any more (that task's "As shipped" note 5). A wider object still satisfies the narrower interface, so `AxisDisplayData` keeps passing unchanged. **Warning:** do not confuse the two `domain` fields. `ResultsView.tsx:157` groups the axis breakdown with `axisData.filter((a) => a.domain === DOMAIN_COLORS[key].name)` — that is `AxisDisplayData`'s own `domain`, structurally unrelated to the radar interface and load-bearing for the four domain groups. Dropping the `RadarAxisScore` field must not touch that grouping.
+- **Widen `ArchetypeCardProps.userScores` to carry `axisId`, and apply `normaliseByAxisId` in `MiniRadar`.** This is the unfinished half of Task 7's addenda B and D — see Task 8's "As shipped" note 9. `userScores` is built in `ResultsView` as `axisData.map((a) => a.finalScore)`: bare numbers with no ids, so `MiniRadar` maps vertex `i` to axis `i + 1` positionally and cannot normalise, while `RadarChart` — whose prop carries `axisId` — already does. Without this, the mini radar's user polygon and its fixed axis-1-through-12 prototype can misalign against *each other*, which is the one comparison that chart exists to make. It is latent today only because `order === id` for all twelve rows of `src/data/axes.ts`, while `src/app/results/page.tsx` maps in scoring-pipeline order and `src/app/results/[profileId]/page.tsx` orders by `axis.order`. Widen the prop, update the one call site, and call `normaliseByAxisId` in `MiniRadar`. (As shipped: the call site now passes `axisData` itself, and `puts each axis on its own spoke, whatever order the caller built` pins it with a reversed fixture.)
+- **Drop the now-unread `domain` field from `RadarAxisScore`** in `src/lib/radar-geometry.ts`, and from the pad literal inside `normaliseByAxisId`. Task 8's sr-only Domain column derives the domain name from the axis id rather than reading the field, so nothing reads it any more (that task's "As shipped" note 5). A wider object still satisfies the narrower interface, so `AxisDisplayData` keeps passing unchanged. **Warning:** do not confuse the two `domain` fields. `ResultsView` groups the axis breakdown with `axisData.filter((a) => a.domain === DOMAIN_COLORS[key].name)` — that is `AxisDisplayData`'s own `domain`, structurally unrelated to the radar interface and load-bearing for the four domain groups. Dropping the `RadarAxisScore` field must not touch that grouping. (As shipped: dropped, the grouping untouched, and `RadarAxisScore.confidence` narrowed to `AxisConfidence` in the same edit.)
 
 ---
 
@@ -4182,14 +4476,14 @@ A guard that passes vacuously is worse than no guard, and this phase's tokens ar
 | 2 | `ArchetypeCard.tsx`: `border-rule-strong` → `border-stone-900` on the label rule | `puts the section label over a hard ink rule` |
 | 3 | `AxisBreakdownCard.tsx`: delete `min-[560px]:grid-cols-[24px_minmax(0,1fr)_210px]` | `lays the row out on the mock's three-column grid` |
 | 4 | `AxisBreakdownCard.tsx`: re-add `bg-surface-2` to the row wrapper | `separates rows by a rule instead of a zebra fill` |
-| 5 | `PairedAxisScale.tsx`: `getDomainMarkVar(axisId)` → `domain[600]` on dot A | `steps respondent A's dot to its domain mark` |
+| 5 | `PairedAxisScale.tsx`: `getDomainMarkVar(axisId)` → `domain[600]` on dot A | `steps respondent A's dot to its domain mark rather than a fixed hex` |
 | 6 | `PairedAxisScale.tsx`: in `describePosition`, `0.45` → `0.5` | `puts each boundary in the bucket above it` |
 | 7 | `CompassPlot.tsx`: `var(--text-primary)` → `var(--stone-900)` on the dot | `plots the respondent as a 12px ink dot the engine positions` **and** `keeps fixed ramp literals out of the ink and mark positions` |
 | 8 | `CompassPlot.tsx`: swap the `Traditional` and `Progressive` label positions | `keeps the compass pointing the way the scoring engine does` |
-| 9 | `ResultsView.tsx`: `DOMAIN_MARK_VARS[key]` → `DOMAIN_COLORS[key][600]` on the domain rule | `heads each domain group with a 2px rule` **and** `routes every data mark through the stepping tokens` |
+| 9 | `ResultsView.tsx`: `DOMAIN_MARK_VARS[key]` → `DOMAIN_COLORS[key][600]` on the domain rule | `heads each domain group with a 2px rule in the domain's own colour` **and** `routes every data mark through the stepping tokens` |
 | 10 | `globals.css`: dark `--domain-power` → `var(--slate-600)` | `steps every domain mark from its 600 tone to its 400 tone in dark` |
-| 11 | `globals.css`: delete `line-height: 1.6` from `body-s` | `names the delta's most-used sans size` |
-| 12 | `ComparisonScoreBar.tsx`: reinstate a local `delta <= 0.3 ? "very close" : ...` ladder | `labels the gap from the shared buckets, not a local ladder` |
+| 11 | `globals.css`: delete `line-height: 1.6` from `body-s` | `names the delta's most-used sans size so the pair cannot drift` |
+| 12 | `ComparisonScoreBar.tsx`: reinstate a local `delta <= 0.3 ? "very close" : ...` ladder | `derives the gap badge from the same two scores as the scale, not an independent prop` |
 
 Mutation 10 is the one worth dwelling on: a guard written against the *light* value only would pass, because that is where the two tokens agree. Every token in this phase has to be asserted on both sides.
 
@@ -4220,6 +4514,13 @@ git commit -m "test(design): guard the results page against design drift"
 - **Two notes above are now settled by Task 9.** The parenthetical about `CompassPlot.tsx:203-226` holding five real `var(--stone-600)` uses is resolved — all five are gone, and the file's only remaining ramp literal is `var(--stone-500)` on the contour strokes. Note that `keeps fixed ramp literals out of the ink and mark positions` justifies sparing `var(--stone-500)` as "the mini radar's prototype stroke"; it is now also the compass contours', so that comment wants a word when this guard is written. And `routes every data mark through the stepping tokens`: Task 9 introduced no domain mark, so the positive count stands at **2** after Task 10, exactly as the note above predicts.
 - **Three one-line fixes to this file, found during Task 9's reconciliation and deliberately not made there** (Task 9 was already at review sign-off and these change no behaviour): the `drops the decoration the mock is right to cut` test cites "the convention at :56-61", which `stripComments` displaced to `:72-77`; and `keeps the contour lines and the archetype markers` states the closest archetype label pair as 23.05 units at `PADDING = 50` and 19.06 at the old 76, where the measured values are **23.0068** and **19.0189** (22.70 and 18.72 in the worst case across all thirteen `primaryArchetypeId` selections, since the primary's label sits one unit higher). Every conclusion drawn from those numbers holds — see Task 9's "As shipped" note 11.
 
+**Addendum (reconciled after Task 10). Two of the guards drafted above will red against the tree as it now stands, and in both cases it is the guard that is wrong, not the source.**
+
+- **`routes every data mark through the stepping tokens` — the positive half's literal is `3`; the true count is `2`.** The two files in `src/components/results/` naming `getDomainMarkVar` or `DOMAIN_MARK_VARS` are `RadarChart.tsx` (Task 8) and `ResultsView.tsx` (Task 10, the domain rule). The third mark consumer is `src/components/PairedAxisScale.tsx`, which draws `AxisBreakdownCard`'s dots from **outside** the scanned directory and is therefore invisible to every guard in this block — see the backlog item that deliberately leaves it to phase 5. Task 8's addendum above predicted **2**; Tasks 9 and 10 both shipped without adding a third, so this confirms it. Write the literal as `2`, or widen the sweep and write `3` — but not both halves of that as drafted.
+- **`never names --domain-economic where --mark-primary is meant` still scans raw text.** The draft above does `text.includes("--domain-economic")`; `stripComments` (Task 9, at the top of this file) exists precisely for this. `RadarChart.tsx:142` and `ArchetypeCard.tsx:107` each carry a deliberate "**not** `--domain-economic`" prose note explaining why the alias is avoided *at that exact line*, so the raw form reports both files as offenders — the guard redding on the documentation of the rule it enforces, which is the precise failure `stripComments` was extracted to prevent. Route this guard, and the ramp-literal guard beside it, through `stripComments(text)` exactly as the three existing guards in the block already do. **Do not reword the comments to suit the guard.** The ramp-literal guard is now worse off than Task 8's addendum recorded: raw, it reds on **three** files, not two — `ArchetypeCard.tsx` and `RadarChart.tsx` on `var(--stone-600)`, and `CompassPlot.tsx` on the `var(--stone-900)` in the ink-dot comment Task 9 shipped ("`--text-primary`, not `var(--stone-900)`: Stone 900 ink on a Stone 900 ground is invisible"). Through `stripComments` all three are clean, and the only ramp literal left in real code across the directory is the `var(--stone-500)` this guard spares — now the compass contours' stroke as well as the mini radar's prototype, as Task 9's addendum notes.
+- **Four cells of the mutation table below named a test inaccurately, and are corrected in place.** Mutation 12's `labels the gap from the shared buckets, not a local ladder` names a test that exists nowhere in the suite; the guard that actually reddens on a reinstated local ladder is Task 6's `derives the gap badge from the same two scores as the scale, not an independent prop`, which pins the badge's exact strings against the `aria-label`'s trailing clause. (A local ladder reproducing `describeGap`'s strings byte-for-byte would be an equivalent mutation and reddens nothing — say so in the PR if that is what gets applied.) Mutations 5, 9 and 11 each named their test by a prefix of its shipped title; all three now carry the full title, so the table can be checked by `grep` rather than by memory.
+- The sub-AA literal is settled: Task 10 rewrote `ResultsView.tsx` and shrank `keeps the migrated results components off the sub-AA tertiary token` to `[]` in the same commit, as its Task 7 addendum required. There is nothing left for this task to do there beyond not writing a second copy of it.
+
 ---
 
 ### Task 12: Full verification and the two-mode visual check
@@ -4239,7 +4540,7 @@ npm run build
 
 Expected: `npm test` reports **60 files** with **676 + the new tests** passing — `results-chrome.test.ts` is the 61st file, so expect 61 files. Lint runs at `--max-warnings=0`; a new warning is a fix, never a raised threshold.
 
-**Flagged, not fixed (reconciled after Task 8).** Those two numbers are stale and have been since Task 5. Three test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5) and `tests/unit/radar-geometry.test.ts` (Task 8) — `tests/helpers/source-files.ts` is a helper and is not collected. At `ad08639` the suite reports **760 tests across 63 files** — Task 9 added ten and no new file. Left for whoever reconciles this task to fold into the sentence above, together with whatever Tasks 10-11 add.
+**Flagged, not fixed (reconciled after Task 8, updated after Tasks 9 and 10).** Those two numbers are stale and have been since Task 5. **Four** test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5), `tests/unit/radar-geometry.test.ts` (Task 8) and `tests/unit/scoring-narrowing.test.ts` (Task 10) — `tests/helpers/source-files.ts` and `tests/helpers/client-component-env.ts` are helpers and are not collected. At `70d7909` the suite reports **779 tests across 64 files** — Task 9 added ten and no new file; Task 10 added nineteen, thirteen of them in `results-chrome.test.ts` and six in the new file above. Still left for whoever reconciles **this** task to fold into the sentence above, together with whatever Task 11 adds; the Step 1 literals are deliberately not edited here.
 
 If the lockfile changed for any reason, run `npm ci` **before** re-running these — a stale `node_modules` makes a local green disagree with CI.
 
@@ -4273,6 +4574,12 @@ Then, for each of `prefers-color-scheme: light` and `dark`, open a URL-encoded r
 6. **Behaviour.** `Copy link` shows `Copied!` for 2s; `Compare with someone` opens the input and a pasted `?r=` URL routes to `/compare`; `Show scoring details` reveals twelve disclosures; each jump link scrolls to its section.
 7. **`PairedAxisScale`'s endpoint labels wrap correctly at narrow viewports.** Task 5 moved these to 11px uppercase mono via `label-tight`, replacing sentence-case sans; the longest pole pair may now wrap onto two lines at narrow widths. Task 5 also added `text-right` to the second endpoint span so a wrapped pole B stays right-aligned rather than ragged-left — confirm it actually does.
 8. **The per-axis detail page's restored "Composite score" label reads as hierarchy, not mismatch.** Task 5 restored it on `text-text-label`, which in light mode is visibly darker than the three sibling `text-text-tertiary` labels beside it (`Forced choice`, `Scaled`, `Budget`). Confirm that difference reads as intentional emphasis rather than a styling inconsistency; the two tokens are byte-identical in dark mode, so this is a light-mode-only check.
+
+**Routed here by Task 10's reconciliation.** Three browser-only items, none of which jsdom could settle:
+
+- **The `V ∈ [560, 600)` pole-label wrap band is still open.** Task 7 found it, Task 10 was offered the one-token fix (`min-[560px]` → `min-[600px]` on `AxisBreakdownCard`'s 3-column breakpoint) and **declined** it: 560px is load-bearing four times on this page — `AxisBreakdownCard.tsx:76` and `:101`, `ArchetypeCard.tsx:169`, `ResultsView.tsx:180` — and again in `NavBar.tsx`, the quiz page and the home page, so forking one of them steps the page's columns at two different widths. Re-measure it in the browser at 560, 575 and 599 CSS px, and apply the change here if it is still wanted, checking the column alignment at the same three widths. See Task 10's "As shipped" note 11.
+- **A pre-existing hydration mismatch on `/results`.** `RadarChart`'s `[data-radar-label]` `y` renders `123.72312247338783` server-side and `123.7231224733878` client-side — a float-to-string precision difference, not a logic one. Confirmed to reproduce on unmodified `HEAD`, so it belongs to Task 8's file rather than Task 10's diff. It is a live console error on every load of the page this phase is about, so it belongs in this browser pass.
+- **The tension panel's `border-l-2 border-l-warning`** is item 3 of the checklist above. Task 10 shipped the class form rather than the inline-style fallback and could not verify it — jsdom computes neither width nor colour — so the measurement is genuinely outstanding, not a formality.
 
 Capture one screenshot per mode for the PR.
 
@@ -4325,4 +4632,8 @@ Items consciously punted during the build. None block shipping. Listed here so t
 - **`ComparisonRadar.tsx` and `GroupRadar.tsx` are the last holders of the duplicated radar geometry.** Task 8 extracted `src/lib/radar-geometry.ts` and moved `RadarChart` and `MiniRadar` onto it; these two still carry their own `RING_FRACTIONS`, `ringPolygonPoints`, `spokeAngle`, `polarToCart` and `scoreToRadius`, plus — at `GroupRadar.tsx:57` — their own copy of the pad-to-twelve loop that `normaliseByAxisId` replaces. Both are still on the **fraction** convention (`ringPolygonPoints(0.5)`), which is exactly the hazard `ringPoints`' docstring warns about, so migrating them is a call-site audit rather than an import swap and wants its own task. Deliberately not folded into Tasks 9-12: neither file is on the results page, and both are D6-deferred to phase 5 already (see "Deferred to later phases", which defers `ComparisonRadar`'s `getDomainColor600` for the same reason).
 - **Two exported `TOTAL_AXES` now live in `src/lib/`** — `radar-geometry.ts:15` and `comparison-radar-data.ts:3` — the same value in two homes, with a third, unexported copy at `GroupRadar.tsx:16`. Re-export one from the other; the natural moment is the migration above.
 - **`src/components/PairedAxisScale.tsx` sits outside every guard's scan, and it is not Task 11's to fix.** It draws `AxisBreakdownCard`'s domain dots, but it lives in `src/components/`, while all three tertiary/hex/ramp guards — Task 7's, and the two Task 9 added — scan `src/components/results/` only. So the one file in this phase that actually routes a *domain* mark is the one file none of the guards see. **This deliberately does not belong to Task 11**, whose guardrail the plan scopes by directory (see its `routes every data mark through the stepping tokens` note, which excludes `PairedAxisScale` from the count for exactly this reason). `PairedAxisScale` is a shared primitive with three consumers across results, comparison and groups, so widening a results-scoped guard onto it changes what a failure there means for two other features. That is a phase-5 decision, alongside the already-deferred `/compare` sweep and the recursive `src/app/results/**` sweep flagged in Task 11's post-Task-5 addendum.
+- **Narrow `AXIS_WEIGHT_PROFILES` to `Record<AxisId, …>`**, with `type AxisId = 1 | 2 | … | 12`, the next time the scoring types are touched. Task 10 removed the unreachable `?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback in `AxisBreakdownCard` — its numbers matched none of the three real profiles — but the table is still typed `Record<number, AxisWeightProfile>` (`src/lib/scoring-types.ts`), so an out-of-range `axisId` is not compile-flagged at either call site. Deliberately **not** fixed by restoring a runtime guard: that would protect the *display* of a number `src/lib/scoring.ts:130` has already crashed producing, since the engine does the same unguarded lookup one step earlier. And deliberately **not** by enabling `noUncheckedIndexedAccess`, which would ripple across the whole repo for one unreachable branch. The keyed type is the proportionate fix, and it costs nothing at runtime.
+- **Promote `PANEL` to an `@utility`.** `ResultsView` names the string once; the same three classes — `bg-surface-1 border border-border-secondary rounded-sharp` — are spelled out verbatim at **25 sites across 14 files**, on `/compare` (5), `/results/[profileId]/[axisId]` (4), `/account` (3), `/groups/[groupId]` (3), the home page (2), `/auth/signin` and `/auth/signup`, `GlossaryTerm`, and four quiz components. A panel is the delta's most-repeated surface and the one most likely to be restyled as a unit.
+- **A second copy of `sentenceCase` exists**, inline, at `src/lib/study/tensionDescription.ts:69` (`${level.charAt(0).toUpperCase()}${level.slice(1)}`) — the same one-liner, on the same concept, a tension level. Two copies of a one-liner do not yet justify a shared module; this is noted so that the third copy triggers the extraction rather than starting an argument.
+- **The results page's five `<section>` elements are unnamed regions.** None carries `aria-labelledby` pointing at its own `<h2>`, so a screen-reader user's region list reads "section" five times. Compounding it: in the normal case the `h1` and `ArchetypeCard`'s `h2` are both the archetype name, and in the distinctive case section 1 has no heading at all — so a heading-list user sees four of the five sections, one of them named twice. Task 10 left this because naming the regions properly means deciding what section 1's heading is, which is `ArchetypeCard`'s question rather than `ResultsView`'s.
 - **`RadarChart`'s vertex tooltip is untested and keyboard-unreachable.** Inverting which pole it names (`score >= 0 ? axis.poleBLabel : axis.poleALabel`) passes the entire suite. It is driven by `onMouseEnter`/`onMouseLeave` on a `<circle>` inside an `aria-hidden` `<svg>`, so a sighted keyboard user cannot read an exact vertex value at all; no AT user loses information, because the sr-only table carries the same twelve numbers in rows. Both facts predate this phase — Task 8 changed only the tooltip's metrics (`fontSize` 10 → 11, `rx` 4 → 2) — so this is recorded rather than fixed here.
