@@ -6,6 +6,15 @@ interface ReferenceCtaProps {
   label?: string;
   /** The line under the button — usually one link. Pass null for none. */
   secondary: ReactNode;
+  /**
+   * Renders the secondary line as `<nav aria-label={secondaryLabel}>` instead
+   * of `<p>`. Only worth it where the line is genuinely a set of destinations:
+   * /archetypes carries three and replaced a hand-rolled
+   * `<nav aria-label="Page navigation">`, so omitting the landmark there took
+   * one away from anybody navigating by landmark. The single-link consumers
+   * pass nothing — a landmark around one link is noise.
+   */
+  secondaryLabel?: string;
 }
 
 /**
@@ -18,7 +27,12 @@ interface ReferenceCtaProps {
  * duplicated verbatim at all four sites, including the half of it that does
  * not invert.
  */
-export function ReferenceCta({ label = "Begin the assessment", secondary }: ReferenceCtaProps) {
+export function ReferenceCta({
+  label = "Begin the assessment",
+  secondary,
+  secondaryLabel,
+}: ReferenceCtaProps) {
+  const SecondaryTag = secondaryLabel ? "nav" : "p";
   return (
     <div className="border-t border-border-secondary mt-12 pt-8 text-center">
       <p data-reference-cta>
@@ -27,9 +41,13 @@ export function ReferenceCta({ label = "Begin the assessment", secondary }: Refe
         </ButtonLink>
       </p>
       {secondary && (
-        <p data-reference-secondary className="mt-4 mono-meta text-text-label">
+        <SecondaryTag
+          data-reference-secondary
+          aria-label={secondaryLabel}
+          className="mt-4 mono-meta text-text-label"
+        >
           {secondary}
-        </p>
+        </SecondaryTag>
       )}
     </div>
   );

@@ -30,13 +30,38 @@ const PROVENANCE_BLURB: Record<ArchetypeEmergence, string> = {
   theoretical: "grounded in comparative political philosophy, no empirical match surfaced",
 };
 
-function EmergenceGlyph({ emergence }: { emergence: ArchetypeEmergence }) {
-  const fullLabel = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
+/** The provenance mark, in one of two name modes.
+ *
+ *  The page draws this glyph at three sites and each needs a different amount
+ *  of announcing, so the name is a prop rather than a constant:
+ *
+ *  - The index carries `"short"`. The glyph sits inside the row's <a>, so its
+ *    name is part of the link's, and the tier is otherwise unreachable there.
+ *    The tier NAME is enough: "01 Radical Egalitarian Emerged from data".
+ *  - The entry heading and the legend carry `"none"`. Both print the tier in
+ *    words within a line and a half of the mark, so a name here makes a screen
+ *    reader say the same tier twice in a row.
+ *
+ *  `title` is set at all three, and is deliberately never the accessible name.
+ *  It is a mouse affordance for the long-form gloss. The pre-fix component set
+ *  `title` and an identical `aria-label` — `aria-label` wins the name
+ *  computation, but NVDA and JAWS surface `title` as the accessible
+ *  *description*, so several AT configurations read the 215-character string
+ *  and then read it again. */
+function EmergenceGlyph({
+  emergence,
+  name = "short",
+}: {
+  emergence: ArchetypeEmergence;
+  name?: "short" | "none";
+}) {
+  const full = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
   return (
     <span
-      role="img"
-      title={fullLabel}
-      aria-label={fullLabel}
+      {...(name === "none"
+        ? { "aria-hidden": true as const }
+        : { role: "img", "aria-label": EMERGENCE_LABELS[emergence] })}
+      title={full}
       className="text-[14px] leading-none cursor-help"
       style={{ color: "var(--mark-primary)" }}
     >
@@ -44,6 +69,11 @@ function EmergenceGlyph({ emergence }: { emergence: ArchetypeEmergence }) {
     </span>
   );
 }
+
+/** Axis id -> axis. `axes.find()` inside the prototype map ran 144 times per
+ *  render of this page, and its `!` threw at render time the moment axis ids
+ *  stopped being a dense 1..12. */
+const axisById = new Map(axes.map((a) => [a.id, a]));
 
 const RADAR_SIZE = 72;
 const RADAR_CX = RADAR_SIZE / 2;
@@ -107,6 +137,78 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
   );
 }
 
+/** The per-entry "Axis positions" disclosure.
+ *
+ *  Local, alongside `MiniRadar` and `TraditionsProse` — the file already
+ *  establishes named render helpers as its idiom, and this block was 59 lines
+ *  of `section > div > details > div > map > div > div > div > div` with four
+ *  interacting inline geometry computations at the bottom of it. Changing one
+ *  of the bars meant counting closing tags inside a nested map. */
+function AxisPositions({ prototype }: { prototype: number[] }) {
+  return (
+    <details className="group mt-4">
+      <summary className="list-none inline-flex items-center gap-1.5 label text-text-label font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none focus-ring">
+        <span
+          aria-hidden="true"
+          className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
+        >
+          ▸
+        </span>
+        Axis positions
+      </summary>
+      <div className="mt-3 space-y-1">
+        {prototype.map((value, idx) => {
+          const axis = axisById.get(idx + 1);
+          if (!axis) return null;
+          return (
+            <div key={axis.id}>
+              <div className="flex items-baseline justify-between mb-0.5">
+                <span className="text-xs text-text-secondary">{axis.name}</span>
+                <span className="mono-meta text-text-label tabular-nums">
+                  {value > 0 ? "+" : ""}
+                  {value.toFixed(1)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label text-right truncate">
+                  {axis.poleALabel.split(" ")[0]}
+                </span>
+                <div
+                  className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
+                  style={{ backgroundColor: "var(--border-secondary)" }}
+                >
+                  {value !== 0 && (
+                    <div
+                      className="absolute top-0 h-full rounded-[3px]"
+                      style={{
+                        backgroundColor: "var(--mark-primary)",
+                        opacity: 0.4,
+                        left: value < 0 ? `${50 + value * 50}%` : "50%",
+                        width: `${Math.abs(value) * 50}%`,
+                      }}
+                    />
+                  )}
+                  <div
+                    className="absolute top-0 h-full"
+                    style={{
+                      left: "50%",
+                      width: "1px",
+                      backgroundColor: "var(--border-primary)",
+                    }}
+                  />
+                </div>
+                <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label truncate">
+                  {axis.poleBLabel.split(" ")[0]}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 function TraditionsProse({
   traditions,
   leadIn,
@@ -152,12 +254,6 @@ export default function ArchetypesPage() {
     (a, b) => a.displayOrder - b.displayOrder
   );
 
-  // Map each archetype to its 1-based position (01..12) in displayOrder so the
-  // number stays stable across grouped / flat presentations.
-  const numberFor = new Map<string, number>(
-    sortedArchetypes.map((a, i) => [a.id, i + 1])
-  );
-
   return (
     <main id="top" className="min-h-screen pt-11 pb-10">
       <div data-archetypes-header className="mx-auto max-w-reference px-6">
@@ -195,9 +291,7 @@ export default function ArchetypesPage() {
               data-provenance-row
               className="text-[13px] leading-[1.6] text-text-secondary"
             >
-              <span aria-hidden="true" className="text-mark-primary">
-                {EMERGENCE_GLYPH[tier]}
-              </span>{" "}
+              <EmergenceGlyph emergence={tier} name="none" />{" "}
               <span data-provenance-tier className="label-nav font-medium text-text-primary">
                 {EMERGENCE_LABELS[tier]}
               </span>
@@ -215,14 +309,14 @@ export default function ArchetypesPage() {
           className="grid grid-cols-2 gap-x-7 gap-y-1.5 mb-2"
           aria-label="Archetype list"
         >
-          {sortedArchetypes.map((a) => (
+          {sortedArchetypes.map((a, i) => (
             <a
               key={a.id}
               href={`#${a.id}`}
               className="flex items-baseline gap-2 text-[13px] text-text-secondary no-underline py-[3px] hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               <span data-index-number className="font-mono text-[11px] text-text-label tabular-nums">
-                {String(numberFor.get(a.id)).padStart(2, "0")}
+                {String(i + 1).padStart(2, "0")}
               </span>
               <span>{a.name.replace(/^The\s+/, "")}</span>
               <EmergenceGlyph emergence={a.emergence} />
@@ -245,11 +339,14 @@ export default function ArchetypesPage() {
               <header className="flex gap-5 items-start mb-3.5">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2.5 flex-wrap">
-                    <span className="font-mono text-xs text-text-label tabular-nums">
+                    <span
+                      data-entry-number
+                      className="font-mono text-xs text-text-label tabular-nums"
+                    >
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <h2 className="display-entry text-text-primary">{archetype.name}</h2>
-                    <EmergenceGlyph emergence={archetype.emergence} />
+                    <EmergenceGlyph emergence={archetype.emergence} name="none" />
                   </div>
                   <p data-entry-tier className="label-nav text-text-label mt-1.5">
                     {EMERGENCE_LABELS[archetype.emergence]}
@@ -276,65 +373,7 @@ export default function ArchetypesPage() {
                 }
               />
 
-              <details className="group mt-4">
-                <summary className="list-none inline-flex items-center gap-1.5 label text-text-label font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none focus-ring">
-                  <span
-                    aria-hidden="true"
-                    className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
-                  >
-                    ▸
-                  </span>
-                  Axis positions
-                </summary>
-                <div className="mt-3 space-y-1">
-                  {archetype.prototype.map((value, idx) => {
-                    const axis = axes.find((a) => a.id === idx + 1)!;
-                    return (
-                      <div key={axis.id}>
-                        <div className="flex items-baseline justify-between mb-0.5">
-                          <span className="text-xs text-text-secondary">{axis.name}</span>
-                          <span className="mono-meta text-text-label tabular-nums">
-                            {value > 0 ? "+" : ""}
-                            {value.toFixed(1)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label text-right truncate">
-                            {axis.poleALabel.split(" ")[0]}
-                          </span>
-                          <div
-                            className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
-                            style={{ backgroundColor: "var(--border-secondary)" }}
-                          >
-                            {value !== 0 && (
-                              <div
-                                className="absolute top-0 h-full rounded-[3px]"
-                                style={{
-                                  backgroundColor: "var(--mark-primary)",
-                                  opacity: 0.4,
-                                  left: value < 0 ? `${50 + value * 50}%` : "50%",
-                                  width: `${Math.abs(value) * 50}%`,
-                                }}
-                              />
-                            )}
-                            <div
-                              className="absolute top-0 h-full"
-                              style={{
-                                left: "50%",
-                                width: "1px",
-                                backgroundColor: "var(--border-primary)",
-                              }}
-                            />
-                          </div>
-                          <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label truncate">
-                            {axis.poleBLabel.split(" ")[0]}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </details>
+              <AxisPositions prototype={archetype.prototype} />
             </div>
           </section>
         ))}
@@ -342,6 +381,7 @@ export default function ArchetypesPage() {
 
       <div className="mx-auto max-w-reference px-6">
         <ReferenceCta
+          secondaryLabel="Page navigation"
           secondary={
             <>
               <Link

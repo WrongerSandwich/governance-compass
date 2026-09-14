@@ -180,6 +180,38 @@ describe("ReferenceCta", () => {
     expect(classes(secondary)).toContain("text-text-label");
   });
 
+  it("wraps the secondary links in a navigation landmark when labelled", () => {
+    const container = render(
+      createElement(ReferenceCta, {
+        secondaryLabel: "Page navigation",
+        secondary: createElement("a", { href: "/references" }, "Back to references"),
+      }),
+    );
+
+    const secondary = container.querySelector("[data-reference-secondary]")!;
+    // /archetypes replaced a hand-rolled <nav aria-label="Page navigation">
+    // with this component. Dropping to a <p> silently removed a landmark a
+    // screen-reader user could navigate to, on the one consumer whose footer
+    // carries more than one link.
+    expect(secondary.tagName).toBe("NAV");
+    expect(secondary.getAttribute("aria-label")).toBe("Page navigation");
+    expect(classes(secondary)).toContain("mono-meta");
+  });
+
+  it("leaves an unlabelled secondary line as a paragraph, not a landmark", () => {
+    const container = render(
+      createElement(ReferenceCta, {
+        secondary: createElement("a", { href: "/methodology" }, "read the methodology"),
+      }),
+    );
+
+    const secondary = container.querySelector("[data-reference-secondary]")!;
+    // A landmark around a single link is noise, so /methodology and /axes
+    // pass no label and keep the paragraph.
+    expect(secondary.tagName).toBe("P");
+    expect(secondary.getAttribute("aria-label")).toBeNull();
+  });
+
   it("omits the secondary line when there is none", () => {
     const container = render(createElement(ReferenceCta, { secondary: null }));
 

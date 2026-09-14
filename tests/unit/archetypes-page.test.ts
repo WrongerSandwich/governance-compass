@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import ArchetypesPage from "@/app/archetypes/page";
-import { archetypes } from "@/data/archetypes";
+import { archetypes, EMERGENCE_LABELS } from "@/data/archetypes";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -154,16 +154,20 @@ describe("/archetypes provenance legend", () => {
     }
   });
 
-  it("keeps the long tooltip reachable from the index glyphs", () => {
+  it("names the index glyph with the tier alone, and keeps the tooltip on title", () => {
     const container = render(createElement(ArchetypesPage));
 
     const glyph = container.querySelector("[data-archetype-index] [role='img']")!;
-    expect(glyph.getAttribute("aria-label")).toMatch(
-      /Emerged from data|Refined with data|Theoretically derived/,
-    );
-    // EmergenceGlyph builds its name as "<label>. <tooltip>", so this is the
-    // one place the long form stays available to an AT user.
-    expect(glyph.getAttribute("aria-label")!.length).toBeGreaterThan(100);
+    // This was `aria-label!.length).toBeGreaterThan(100)`, which enshrined the
+    // defect rather than guarding against it. The name was "<label>. <tooltip>"
+    // and EMERGENCE_TOOLTIPS.refined alone is 215 characters; the glyph sits
+    // INSIDE each index <a>, so all twelve links in this nav computed a
+    // ~240-character accessible name and link-list navigation over them was
+    // unusable. Length is the least meaningful property of an accessible name.
+    expect(Object.values(EMERGENCE_LABELS)).toContain(glyph.getAttribute("aria-label"));
+    // The long form stays reachable, but as `title` — a mouse affordance, and
+    // deliberately never the accessible name.
+    expect(glyph.getAttribute("title")!.length).toBeGreaterThan(100);
   });
 });
 
@@ -176,7 +180,14 @@ describe("/archetypes index", () => {
     expect(grid.querySelectorAll("a").length).toBe(archetypes.length);
     // The pre-7c index split into three headed groups. Mock 7c carries the
     // tier per row, by glyph, and prints the tier NAME inside each entry.
-    expect(container.querySelectorAll("[data-index-tier-group]").length).toBe(0);
+    //
+    // Expressed structurally — a headed group needs a heading, and the flat
+    // grid contains nothing but anchors. The assertion this replaces was
+    // `querySelectorAll("[data-index-tier-group]").length === 0`, an attribute
+    // that has never existed anywhere in this repo: the grouped index used a
+    // bare <div key={tier}>, so no reintroduction would invent that hook and
+    // the assertion could not fail against any implementation.
+    expect(grid.querySelectorAll("p, h2, h3").length).toBe(0);
   });
 
   it("numbers every index row in mono, zero-padded, in display order", () => {
@@ -187,10 +198,28 @@ describe("/archetypes index", () => {
     ).map((el) => el.textContent);
 
     expect(numbers[0]).toBe("01");
-    expect(numbers[numbers.length - 1]).toBe("12");
+    // Derived, not "12" — the same standard the lead-paragraph test above is
+    // praised in its own comment for holding.
+    expect(numbers[numbers.length - 1]).toBe(String(archetypes.length).padStart(2, "0"));
     const first = container.querySelector("[data-archetype-index] [data-index-number]")!;
     expect(classes(first)).toContain("font-mono");
     expect(classes(first)).toContain("text-text-label");
+  });
+
+  it("numbers the entries and the index identically", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const idx = Array.from(
+      container.querySelectorAll("[data-archetype-index] [data-index-number]"),
+    ).map((e) => e.textContent);
+    const ent = Array.from(
+      container.querySelectorAll("[data-archetype-entry] [data-entry-number]"),
+    ).map((e) => e.textContent);
+
+    // The two numbers are now produced by two independent map callbacks over
+    // the same sorted array. They agree today by construction; this is what
+    // catches it if one of them ever stops iterating the other's order.
+    expect(ent).toEqual(idx);
   });
 
   it("points every index row at the entry it names", () => {
@@ -260,6 +289,21 @@ describe("/archetypes entries", () => {
     expect(["Emerged from data", "Refined with data", "Theoretically derived"]).toContain(
       tiers[0].textContent,
     );
+  });
+
+  it("leaves the entry heading glyph decorative beside the tier line", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    // The glyph is the only titled element in the entry header.
+    const glyph = container.querySelector("[data-archetype-entry] header span[title]")!;
+    expect(glyph.textContent).toMatch(/[\u25cf\u25d0\u25cb]/);
+    // D19 put the tier name in words 1.5 lines below this mark, so a name on
+    // the glyph makes a screen reader announce the tier twice in a row — the
+    // exact double-announce the legend's own glyphs are already guarded
+    // against, one describe block up.
+    expect(glyph.getAttribute("aria-hidden")).toBe("true");
+    expect(glyph.getAttribute("role")).toBeNull();
+    expect(glyph.getAttribute("aria-label")).toBeNull();
   });
 
   it("keeps the serif italic lead-ins as prose, not mono labels", () => {
