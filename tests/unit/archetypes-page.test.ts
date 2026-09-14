@@ -215,6 +215,13 @@ describe("/archetypes entries", () => {
 
     const rows = container.querySelectorAll("[data-archetype-entry]");
     expect(rows.length).toBe(archetypes.length);
+    // The positive half matters more than the negative one. Leaving even rows
+    // unstyled is not "white" — they inherit the page ground, and
+    // `body { background: var(--surface-3) }` is Stone 100, darker than the
+    // Stone 50 band. That inverts the polarity issue #136 specifies
+    // (white / Stone 50), and `not.toContain("bg-surface-2")` passes on it,
+    // on `bg-surface-3`, and on no class at all.
+    expect(classes(rows[0])).toContain("bg-surface-1");
     expect(classes(rows[0])).not.toContain("bg-surface-2");
     expect(classes(rows[1])).toContain("bg-surface-2");
     // Each row separates from the next with a rule, per 7c.
@@ -291,6 +298,28 @@ describe("/archetypes entries", () => {
     );
     expect(bodyEm.length).toBeGreaterThan(0);
     expect(classes(bodyEm[0])).not.toContain("font-serif");
+  });
+
+  it("sets both entry body paragraphs on the same body role", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const entry = container.querySelector("[data-archetype-entry]")!;
+    const paragraphs = Array.from(entry.querySelectorAll("em[data-lead-in]")).map(
+      (em) => em.parentElement!,
+    );
+    expect(paragraphs.length).toBe(2);
+
+    // "Internal tension." and "Traditions." are consecutive body paragraphs.
+    // They were both 13px before the rebuild; moving only the first onto
+    // `body-s` (13.5px / 1.6) left the pair half a pixel and 0.025 line-height
+    // apart, which reads as misregistration rather than as a step — and 13px
+    // is below the 13.5-14.5px band issue #136 sets for this copy.
+    for (const p of paragraphs) {
+      expect(classes(p)).toContain("body-s");
+      expect(classes(p)).toContain("text-text-secondary");
+      expect(classes(p)).not.toContain("text-[13px]");
+      expect(classes(p)).not.toContain("leading-relaxed");
+    }
   });
 
   it("labels the axis-position disclosure in mono", () => {

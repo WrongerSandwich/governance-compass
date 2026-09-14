@@ -118,7 +118,7 @@ function TraditionsProse({
     <ReactMarkdown
       components={{
         p: ({ children }) => (
-          <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+          <p className="body-s text-text-secondary mb-3">
             {leadIn}
             {children}
           </p>
@@ -184,9 +184,7 @@ export default function ArchetypesPage() {
             .
           </SpoilerNote>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-reference px-6">
         <p data-provenance-label className="label-eyebrow text-text-label mb-3">
           Provenance
         </p>
@@ -240,7 +238,7 @@ export default function ArchetypesPage() {
             id={archetype.id}
             data-archetype-entry
             className={`border-b border-border-secondary scroll-mt-20 ${
-              i % 2 === 1 ? "bg-surface-2" : ""
+              i % 2 === 1 ? "bg-surface-2" : "bg-surface-1"
             }`}
           >
             <div data-entry-inner className="mx-auto max-w-reference px-6 pt-[30px] pb-8">
@@ -301,7 +299,7 @@ export default function ArchetypesPage() {
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[11px] text-text-label text-right truncate">
+                          <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label text-right truncate">
                             {axis.poleALabel.split(" ")[0]}
                           </span>
                           <div
@@ -328,7 +326,7 @@ export default function ArchetypesPage() {
                               }}
                             />
                           </div>
-                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[11px] text-text-label truncate">
+                          <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label truncate">
                             {axis.poleBLabel.split(" ")[0]}
                           </span>
                         </div>
