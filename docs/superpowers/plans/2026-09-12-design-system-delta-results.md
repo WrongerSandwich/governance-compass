@@ -4334,36 +4334,98 @@ Shipped as `70d7909`, one commit over twelve files — the heaviest task in the 
 
 **What a guard is for here.** Styling changes resist conventional assertions, and the long-term risk in a token migration is drift, not breakage. Each guard below covers something that, if it regressed, would render *plausibly* — a muddy dot on a dark ground, a label that fails AA, a second primitive quietly reappearing — and would fail nothing else.
 
-- [ ] **Step 1: Write the guards**
+- [x] **Step 1: Write the guards**
 
-Append to `tests/unit/results-chrome.test.ts`:
+Append to `tests/unit/results-chrome.test.ts` — into the `describe` Task 7 opened, not a second one. As shipped, and reproduced here from `c6e6709` rather than as drafted: the sweep spans two directories, two of the drafted guards were wrong, one more guard landed than the draft has to add, and three were strengthened in review. See "As shipped" notes 1-9.
 
 ```ts
 describe("results chrome drift guards", () => {
-  it("has no source left in the results directory unswept", () => {
-    // A sanity check on the sweep itself: if a component is added or renamed,
-    // every guard below silently stops covering it. ScoreBar's absence is
-    // pinned here as well as in results-dead-code, because this list is what
-    // a future author reads when adding a file.
-    expect(resultsSources.map((s) => s.name).sort()).toEqual([
-      "ArchetypeCard.tsx",
-      "AxisBreakdownCard.tsx",
-      "CompassPlot.tsx",
-      "RadarChart.tsx",
-      "ResultsView.tsx",
-    ]);
+  it("keeps the migrated results components off the sub-AA tertiary token", () => {
+    // Stone 500 measures 3.28:1 on the card ground — under AA for small text.
+    // Phase 4 routes the label layer through --text-label and prose through
+    // --text-secondary, but nothing in the per-component tests notices a
+    // revert: every `text-text-label` this phase introduces can go back to
+    // `text-text-tertiary` with the whole suite green. Mirrors the quiz's
+    // guard at tests/unit/quiz-chrome.test.ts.
+    //
+    // Counted per file, not just listed: see offenceCounts. An object also
+    // sidesteps the ordering problem a sorted array literal only papers over.
+    const offenders = offenceCounts(/\btext-text-tertiary\b/g);
+
+    // Shrank to [] across src/components/results at Task 10, which rewrote
+    // ResultsView.tsx — the last file in that directory still on the token, at
+    // 12 occurrences.
+    //
+    // RATCHET. This list must only ever shrink, and it must reach []. The one
+    // entry is what widening the sweep to src/app/results surfaced: eight
+    // occurrences in the per-axis detail page, at :108, :115, :122, :153,
+    // :158, :163, :168 and :200. They are not one mechanical substitution but
+    // three roles — 11px structural labels (-> --text-label), 13px prose
+    // (-> --text-secondary), and a DELIBERATE de-emphasis inside
+    // `r.selectedPole === "A" ? … : "text-text-tertiary"`, where the token is
+    // doing real work distinguishing an unselected pole from a selected one
+    // and the replacement has to preserve that contrast relationship. Eight
+    // per-line judgement calls want a design review and a contrast
+    // measurement in a real browser, which is Task 12's job, not a
+    // guards-only task's. Routed there; delete this entry with that fix, and
+    // with the one in the Tailwind-ramp guard below — both empty together.
+    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 8 });
   });
 
-  it("retires text-text-tertiary from the results page", () => {
-    // Stone 500 measures 2.73:1 on the page ground and 3.28:1 on the panels —
-    // under AA for small text either way. D7 routes the label layer through
-    // --text-label; prose moves to --text-secondary. D6 defers layout on
-    // undrawn screens, not this.
-    const offenders = resultsSources
-      .filter(({ text }) => text.includes("text-text-tertiary"))
-      .map(({ name }) => name);
+  it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {
+    // The class-name guard above is blind to this phase's four SVG charts.
+    // CompassPlot colours all six of its labels through inline
+    // style={{ fill: 'var(--...)' }} and carries no `text-` class at all, so
+    // dropping every one of them onto the 3.28:1 token passes it green. Same
+    // token, same failure, different spelling.
+    //
+    // Comments stripped, like the class guard above: this file family writes
+    // `// --mark-primary, not var(--stone-600)` as a matter of style, so the
+    // natural `// --text-label, not var(--text-tertiary): 3.28:1 fails AA`
+    // would otherwise red this guard on prose documenting compliance with it.
+    const varOffenders = resultsSources
+      .filter(({ text }) => stripComments(text).includes("var(--text-tertiary)"))
+      .map(({ path }) => path)
+      .sort();
 
-    expect(offenders).toEqual([]);
+    expect(varOffenders).toEqual([]);
+  });
+
+  it("keeps raw colour hexes out of the results components", () => {
+    // CompassPlot's four quadrant tints were raw hexes (#6b7d8a, #85735e,
+    // #7a8b6e, #96716b); a fixed hex cannot invert, and Task 9 removed them.
+    // A DOM-level check on [fill] attributes looks like it guards this and does
+    // not: post-task the only fill attributes left are the contours'
+    // fill="none", so such a check runs over ["none","none","none","none"] and
+    // a tint re-added as style={{ fill: '#6b7d8a' }} sails straight through.
+    // Source level, so no spelling dodges it.
+    const hexOffenders = resultsSources
+      .filter(({ text }) => /#[0-9a-fA-F]{3,8}\b/.test(stripComments(text)))
+      .map(({ path }) => path)
+      .sort();
+
+    expect(hexOffenders).toEqual([]);
+  });
+
+  it("has no source left in the results feature unswept", () => {
+    // A sanity check on the sweep itself: if a component is added, renamed or
+    // moved, every guard in this block silently stops covering it and nothing
+    // else notices. ScoreBar's absence is pinned here as well as in
+    // results-dead-code, because this list is what a future author reads when
+    // adding a file.
+    //
+    // Repo-relative, because the sweep now spans two directories and three of
+    // the eight files are called `page.tsx`.
+    expect(resultsSources.map(({ path }) => path).sort()).toEqual([
+      "src/app/results/[profileId]/[axisId]/page.tsx",
+      "src/app/results/[profileId]/page.tsx",
+      "src/app/results/page.tsx",
+      "src/components/results/ArchetypeCard.tsx",
+      "src/components/results/AxisBreakdownCard.tsx",
+      "src/components/results/CompassPlot.tsx",
+      "src/components/results/RadarChart.tsx",
+      "src/components/results/ResultsView.tsx",
+    ]);
   });
 
   it("routes every data mark through the stepping tokens", () => {
@@ -4371,17 +4433,35 @@ describe("results chrome drift guards", () => {
     // steps every dot, track, rule and domain label to its 400 tone on a dark
     // ground. The reference pages (/axes, /questions) keep the fixed accessor
     // deliberately — they are D6-deferred and their 600 tone is intended in
-    // both modes — so this guard is scoped to this directory.
-    const offenders = resultsSources
-      .filter(({ text }) => /getDomainColor600|DOMAIN_COLORS\[[^\]]+\]\[600\]/.test(text))
-      .map(({ name }) => name);
+    // both modes — so this guard is scoped to this feature.
+    expect(offenceCounts(/getDomainColor600|DOMAIN_COLORS\[[^\]]+\]\[600\]/g)).toEqual({});
 
-    expect(offenders).toEqual([]);
-    // The positive half: the stepping accessors are actually in use, so the
-    // assertion above cannot pass by every domain colour having been dropped.
-    expect(
-      resultsSources.filter(({ text }) => /getDomainMarkVar|DOMAIN_MARK_VARS/.test(text)),
-    ).toHaveLength(3);
+    // The positive half, so the assertion above cannot pass by every domain
+    // colour having been dropped. During Task 8, reverting the radar's legend
+    // swatch from DOMAIN_MARK_VARS to a fixed 600 hex was undetectable by
+    // every test then in place; this is the general form of that catch.
+    //
+    // Matched at the CALL and the SUBSCRIPT — `getDomainMarkVar(`, not
+    // `getDomainMarkVar` — because the bare name is also on the import line.
+    // Replacing the only use in ResultsView with a literal string leaves the
+    // import behind, which satisfied an identifier-only regex and left this
+    // guard green while the mount test did all the work. (Lint would red the
+    // unused import, but that is a different gate than the one claiming this.)
+    //
+    // Counted per file for the same reason the ratchets are: RadarChart has
+    // TWO consumers (the domain dots and the legend swatches), and a file-list
+    // assertion survives one of them regressing while the other holds it on
+    // the list. A legitimate third consumer updates the number here.
+    //
+    // Two files, not three: RadarChart (Task 8) and ResultsView's domain rule
+    // (Task 10). AxisBreakdownCard draws no mark itself — its dots come from
+    // src/components/PairedAxisScale.tsx, outside both swept directories and
+    // deliberately left to phase 5, where paired-axis-scale.test.ts covers
+    // them — and CompassPlot has none.
+    expect(offenceCounts(/getDomainMarkVar\(|DOMAIN_MARK_VARS\[/g)).toEqual({
+      "src/components/results/RadarChart.tsx": 2,
+      "src/components/results/ResultsView.tsx": 1,
+    });
   });
 
   it("never names --domain-economic where --mark-primary is meant", () => {
@@ -4396,77 +4476,152 @@ describe("results chrome drift guards", () => {
     // The radar polygons and the mini radar are Stone marks, not Economic
     // ones. Only AxisBreakdownCard's dots — drawn by PairedAxisScale, not
     // here — are domain-scoped.
+    //
+    // Through stripComments: RadarChart.tsx and ArchetypeCard.tsx each carry a
+    // deliberate "--mark-primary, NOT --domain-economic" note at exactly the
+    // line where the distinction matters, so a raw scan reds on the prose
+    // documenting the rule it enforces. Strip the prose; never reword it.
     const offenders = resultsSources
-      .filter(({ text }) => text.includes("--domain-economic"))
-      .map(({ name }) => name);
+      .filter(({ text }) => stripComments(text).includes("--domain-economic"))
+      .map(({ path }) => path)
+      .sort();
 
     expect(offenders).toEqual([]);
     expect(
-      resultsSources.filter(({ text }) => text.includes("var(--mark-primary)")).map((s) => s.name).sort(),
-    ).toEqual(["ArchetypeCard.tsx", "RadarChart.tsx"]);
+      resultsSources
+        .filter(({ text }) => stripComments(text).includes("var(--mark-primary)"))
+        .map(({ path }) => path)
+        .sort(),
+    ).toEqual([
+      "src/components/results/ArchetypeCard.tsx",
+      "src/components/results/RadarChart.tsx",
+    ]);
   });
 
   it("keeps fixed ramp literals out of the ink and mark positions", () => {
-    // The bug this project has shipped twice: a Stone ramp literal where an
-    // inverting token belongs. The ramp is fixed across modes, so
+    // The bug this project has shipped twice: a raw ramp literal where an
+    // inverting token belongs. All four ramps are fixed across modes, so
     // var(--stone-900) as a fill reads as near-black ink on a near-black
-    // ground. var(--stone-500) survives deliberately — it is the same value in
-    // both modes and is the mini radar's prototype stroke.
-    const offenders = resultsSources.flatMap(({ name, text }) =>
-      [...text.matchAll(/var\(--stone-(900|800|700|600|100|50)\)/g)].map(
-        ([match]) => `${name}: ${match}`,
-      ),
+    // ground — and var(--slate-600), var(--sage-700) and var(--clay-800) are
+    // no less fixed than the Stone ones, so all four families are matched.
+    //
+    // Only `--stone-500` is spared, and only in this spelling: it is the same
+    // value in both modes and is the stroke of both the mini radar's prototype
+    // polygon (ArchetypeCard) and the compass contour lines (CompassPlot,
+    // Task 9), neither of which needs to step. The other three ramps have no
+    // such use, so their 500s stay closed.
+    //
+    // Through stripComments for the same reason as the guard above, and with
+    // one more offender than that one: CompassPlot's ink-dot note spells out
+    // "--text-primary, not var(--stone-900)".
+    const offenders = offenceCounts(
+      /var\(--stone-(?:50|100|200|300|400|600|700|800|900|950)\)|var\(--(?:slate|sage|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\)/g,
     );
 
-    expect(offenders).toEqual([]);
+    expect(offenders).toEqual({});
+  });
+
+  it("keeps the fixed ramp out of the Tailwind class spelling too", () => {
+    // Same defect, different spelling — `border-stone-900` is exactly as fixed
+    // across modes as `var(--stone-900)`, and the guard above sees neither it
+    // nor `bg-clay-100`.
+    //
+    // This is not hypothetical. ArchetypeCard's distinctive branch carries its
+    // own section rule, and `puts the section label over a hard ink rule` only
+    // ever mounts the PRIMARY branch: swapping that rule to `border-stone-900`
+    // was verified to survive the whole 69-test file. A browser pass would not
+    // have found it either — in light mode `border-stone-900` and
+    // `border-rule-strong` are near-identical, so it only shows in dark, on a
+    // branch that needs a contrived profile to render at all.
+    //
+    // stripComments is REQUIRED here, not merely tidy: CompassPlot.tsx:143
+    // carries a deliberate "a `stroke-stone-50` literal would read as
+    // near-white hairlines on a dark ground" note, and a raw scan reds on it.
+    const offenders = offenceCounts(
+      /\b(?:text|bg|border|fill|stroke|ring|divide|from|via|to)-(?:stone|slate|sage|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/g,
+    );
+
+    // RATCHET, the second in this block and the twin of the sub-AA one above:
+    // ten occurrences in the same un-migrated per-axis detail page, at :77
+    // (text-stone-600 and text-stone-800), :83, :142, :153 (bg-stone-100 and
+    // text-stone-800), :163 (the same pair), :182 and :196. Same reasoning for
+    // deferring the fix: the page is not in this phase's scope, the
+    // replacements are per-line judgement calls, and Task 12 can measure them
+    // in a real browser. Both ratchets should reach {} in that one commit.
+    expect(offenders).toEqual({ "src/app/results/[profileId]/[axisId]/page.tsx": 10 });
   });
 
   it("never layers a colour over a self-contained role", () => {
     // `caption-italic` declares its own `color`. Layering `text-*` beside it
     // is banned — whether the custom rule wins depends on Tailwind's emitted
-    // order, which is too subtle to rely on.
-    const offenders = resultsSources.flatMap(({ name, text }) =>
-      [...text.matchAll(/className="([^"]*\bcaption-italic\b[^"]*)"/g)]
-        .filter(([, classNames]) => /\btext-(?!\[)[a-z-]+\b/.test(classNames))
-        .map(([, classNames]) => `${name}: ${classNames}`),
+    // order, which is too subtle to rely on. `text-[` is excluded: an
+    // arbitrary size (`text-[13px]`) is not a colour.
+    //
+    // Known gap: the regex reads static `className="..."` only, so a
+    // `className={`caption-italic ${cls}`}` evades it. No source in the swept
+    // set builds this role's class list dynamically today, and widening to
+    // template literals would mean matching an interpolation whose value is
+    // not in this file — a guard that cannot see its own subject. Left
+    // narrow and stated rather than made to look broader than it is.
+    const captioned = resultsSources.flatMap(({ path, text }) =>
+      [...stripComments(text).matchAll(/className="([^"]*\bcaption-italic\b[^"]*)"/g)].map(
+        ([, classNames]) => `${path}: ${classNames}`,
+      ),
     );
 
-    expect(offenders).toEqual([]);
+    expect(captioned.filter((entry) => /\btext-(?!\[)[a-z-]+\b/.test(entry))).toEqual([]);
+    // The role is actually in use, so the assertion above is not vacuous.
+    expect(captioned.length).toBeGreaterThan(0);
   });
 
   it("keeps the zebra fill retired", () => {
     // Delta 04: rules carry structure, and a list separated by 1px Stone 200
     // does not also need an alternating surface. The prop is gone from the
     // interface, so this guard is about the idiom not creeping back in via
-    // a nth-child or an index modulo.
-    const offenders = resultsSources
-      .filter(({ text }) => /alternateRow|i % 2|odd:bg-|even:bg-/.test(text))
-      .map(({ name }) => name);
+    // an nth-child or an index modulo.
+    //
+    // Any identifier modulo two, not the literal `i % 2` the draft carried:
+    // `${axisId % 2 === 0 ? "bg-surface-2" : ""}` was verified to survive the
+    // whole file, since the rows here are mapped over `axisId`/`index`, never
+    // `i`, and the mount test only backstops this when the fixture's index
+    // happens to be even (AXIS.axisId is 3). Whitespace is optional on both
+    // sides because `axisId%2` is what a formatter-free edit produces.
+    const offenders = offenceCounts(
+      /\balternateRow\b|\b[A-Za-z_$][\w$]*\s*%\s*2\b|\bodd:bg-|\beven:bg-/g,
+    );
 
-    expect(offenders).toEqual([]);
+    expect(offenders).toEqual({});
   });
 
   it("routes every focus ring and corner through the shared utilities", () => {
-    // Duplicated from the repo-wide guardrails on purpose: those scan `src`
+    // A local copy of the repo-wide guardrails, kept because those scan `src`
     // and would report a violation here as an anonymous path in a long list.
     // This one names the file, which is what a reviewer of THIS phase needs.
-    const offenders = resultsSources.flatMap(({ name, text }) =>
-      [...text.matchAll(/outline-none|focus-visible:outline-|rounded-(?:lg|xl|\[(?:8|12)px\])/g)].map(
-        ([match]) => `${name}: ${match}`,
-      ),
+    //
+    // The corner arm is the repo-wide pattern verbatim
+    // (design-system-tokens.test.ts:210) rather than the phase plan's
+    // shorthand: the optional `-[a-z]{1,2}` side segment catches `rounded-t-lg`
+    // and `rounded-tl-[8px]`, which the shorthand misses entirely, and the
+    // `(?![\w-])` boundary stops `rounded-lg` matching inside a longer token.
+    // Copying the shorthand would have left a reviewer trusting a guard
+    // narrower than the one it claims to mirror.
+    const offenders = offenceCounts(
+      /outline-none|focus-visible:outline-|rounded(?:-[a-z]{1,2})?-(?:\[(?:12|8)px\]|lg|xl)(?![\w-])/g,
     );
 
-    expect(offenders).toEqual([]);
+    expect(offenders).toEqual({});
   });
 });
 ```
 
-- [ ] **Step 2: Run the guards**
+- [x] **Step 2: Run the guards**
 
 Run: `npx vitest run tests/unit/results-chrome.test.ts`
 Expected: PASS. Any red here is a real finding from Tasks 4–10, not a bad guard — fix the source, not the assertion.
 
-- [ ] **Step 3: Prove the guards by mutation**
+As shipped: PASS, **70 tests** in this file and **787 across 64** for the suite. Two guards did red on first run, and in both cases the finding was real and neither was in the directory the draft scanned — see notes 2 and 3. They are pinned as ratchets and routed to Task 12, which is the first task in this phase with a browser.
+
+- [x] **Step 3: Prove the guards by mutation**
 
 A guard that passes vacuously is worse than no guard, and this phase's tokens are exactly the kind that make a mutation invisible. Apply each mutation, confirm the expected suite reddens, then revert it. **Record the result of each in the PR description**, including any that fail to redden.
 
@@ -4484,29 +4639,67 @@ A guard that passes vacuously is worse than no guard, and this phase's tokens ar
 | 10 | `globals.css`: dark `--domain-power` → `var(--slate-600)` | `steps every domain mark from its 600 tone to its 400 tone in dark` |
 | 11 | `globals.css`: delete `line-height: 1.6` from `body-s` | `names the delta's most-used sans size so the pair cannot drift` |
 | 12 | `ComparisonScoreBar.tsx`: reinstate a local `delta <= 0.3 ? "very close" : ...` ladder | `derives the gap badge from the same two scores as the scale, not an independent prop` |
+| 2b | `ArchetypeCard.tsx`: `border-rule-strong` → `border-stone-900` on the **distinctive** branch's label rule (added in review — see note 5) | `keeps the fixed ramp out of the Tailwind class spelling too` |
+| 4b | `AxisBreakdownCard.tsx`: `${axisId % 2 === 0 ? "bg-surface-2" : ""}` on the row wrapper (added in review — see note 8b) | `keeps the zebra fill retired` |
+| 9b | `ResultsView.tsx`: `DOMAIN_MARK_VARS[key]` → a literal colour string on the domain rule, **leaving the import in place** (added in review — see note 8a) | `routes every data mark through the stepping tokens` |
+| R1 | `src/app/results/[profileId]/[axisId]/page.tsx`: add a ninth `text-text-tertiary` and an eleventh `text-stone-800` **inside the already-pinned file** (added in review) | both ratchets, notes 2 and 3 |
 
 Mutation 10 is the one worth dwelling on: a guard written against the *light* value only would pass, because that is where the two tokens agree. Every token in this phase has to be asserted on both sides.
 
-- [ ] **Step 4: Commit**
+**Results as shipped: all twelve drafted rows killed, run twice — once by the implementer, once independently by the reviewer — plus the four rows above.** Three things are worth recording rather than just ticking:
+
+- **Row 12 has a documented equivalent mutation, exactly as Task 10's addendum predicted.** A local gap ladder that reproduces `describeGap`'s strings byte-for-byte survives and reddens nothing, because the guard pins the badge's rendered text against the `aria-label`'s trailing clause and both spellings produce the same text. Row 12's kill comes from the *string change* a hand-written ladder almost always carries, not from the ladder's existence. Stated here so a future implementer who applies the byte-identical form does not read a green suite as a bad guard.
+- **Rows 2b, 4b and 9b all survived the state the reviewer had already approved**, and each is a distinct class of hole: a branch the mount tests never render (2b), a spelling the regex was too literal to see (4b), and a positive assertion satisfied by a surviving import rather than by a use (9b). All three are killed now, by the guard changes in notes 5, 8b and 8a respectively.
+- **R1 is a property demonstration, not a coverage claim.** It shows that the two ratchets fail closed *upward* as well as downward: a pinned file growing a further offence reds them, because they assert per-file counts rather than a file list. That is the whole reason `offenceCounts` exists (note 9).
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/unit/results-chrome.test.ts
 git commit -m "test(design): guard the results page against design drift"
 ```
 
-**Addendum (reconciled after Task 5).** `resultsSources` is built from `readdirSync` scoped to `src/components/results/`, so every guard in this task only ever sees that one directory. Task 5 shipped the gap: its `text-text-tertiary` violation (see Task 5's "As shipped" note) landed at `src/app/results/[profileId]/[axisId]/page.tsx` — the same feature, under `src/app`, not `src/components/results` — and none of these guards would have caught it; it surfaced only because a human review pass happened to look at that file. The eventual guard here should also sweep `src/app/results/**`, not just `src/components/results/`. `tests/helpers/source-files.ts`, extracted in Task 5, already does a recursive extension-filtered sweep with `node_modules`/`generated`/dot-directory pruning built in, so it is the right tool for that recursive sweep rather than a second hand-rolled `readdirSync` walk. Left as an addendum rather than a rewrite of the guards above — this task's implementer should act on it.
+Shipped as `c6e6709`, one commit over one file — `tests/unit/results-chrome.test.ts`, +288/−22. Verified final state: **787 tests across 64 files** (70 of them in this file), lint clean at `--max-warnings=0`, `npx tsc --noEmit` clean. The `describe("results chrome drift guards")` block now holds **eleven** guards: three pre-existing — Task 7's sub-AA class guard and the `var(--text-tertiary)` and raw-hex guards Task 9 added — and eight written here. The draft above lists eight, one of which duplicated Task 7's, so seven were owed; the eighth is note 5.
 
-**Addendum (reconciled after Task 7).** The `describe("results chrome drift guards")` block in the Step 1 draft above **already exists** in `tests/unit/results-chrome.test.ts` — Task 7 opened it, to hold one guard it needed early. Two consequences for this task:
+**As shipped.** Implementation and review moved this task in twelve ways from the text above:
+
+1. **The sweep was widened to the whole feature, and the field it exposes was renamed.** It now spans `src/components/results` **and** `src/app/results`, through `tests/helpers/source-files.ts` as the post-Task-5 addendum below directs — eight files, five components and three pages. **The sweep's `name` field became `path`**, carrying a repo-relative POSIX path, because three of the eight files are called `page.tsx` and a bare-basename assertion could therefore pass while naming the wrong file. All three pre-existing guards were converted with it, along with the one non-guard consumer of the sweep — `AxisBreakdownCard`'s ScoreBar-import assertion in `describe("AxisBreakdownCard")`, which now looks the file up by full path. The helper defaults to `.ts` as well as `.tsx`, so a non-component helper dropped into either directory is swept too and the `unswept` guard reds until someone accounts for it.
+
+2. **Ratchet one: eight `text-text-tertiary` occurrences, pinned rather than fixed.** Widening the sweep did exactly what the post-Task-5 addendum said it would — it found the violation that addendum was written about, still live, in `src/app/results/[profileId]/[axisId]/page.tsx` at `:108`, `:115`, `:122`, `:153`, `:158`, `:163`, `:168` and `:200`. It is **not** one mechanical substitution. The eight split across three roles: 11px structural labels that want `--text-label`, 13px prose that wants `--text-secondary`, and `r.selectedPole === "A" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"` at `:153` and `:163`, where the token is carrying a real selected/unselected distinction and any replacement has to preserve that *relationship*, not merely clear AA. Eight per-line contrast judgements need a browser; this task has none. Pinned as a per-file count and **routed to Task 12**.
+
+3. **Ratchet two: ten Tailwind stone-ramp classes, in the same un-migrated file.** The new guard of note 5 found them: `text-stone-800` ×6 at `:77`, `:83`, `:142`, `:153`, `:163`, `:182`; `bg-stone-100` ×2 at `:153` and `:163`; `text-stone-600` ×2 at `:77` and `:196`. Same file, same reasoning, same routing — and deliberately the same commit, since the `:153`/`:163` pairs are two halves of one ternary and fixing the sub-AA arm without the ramp arm would leave the row half-migrated. **Both ratchets must reach `{}` in the same Task 12 commit.**
+
+4. **Two of the drafted guards were wrong against the shipped tree, exactly as the Task 8 and Task 10 addenda predicted.** The stepping-token positive count is **2**, not the draft's `3` — `RadarChart.tsx` (Task 8) and `ResultsView.tsx`'s domain rule (Task 10); the third consumer is `PairedAxisScale`, outside the sweep (note 12). And `never names --domain-economic where --mark-primary is meant` and `keeps fixed ramp literals out of the ink and mark positions` both scanned raw text, where `RadarChart.tsx`, `ArchetypeCard.tsx` and `CompassPlot.tsx` carry deliberate "not this token" notes at exactly the lines the distinction matters; both now scan through the existing `stripComments`. **No source comment was reworded to suit a guard**, which was the addendum's actual instruction and the harder half of it.
+
+5. **An eighth guard was written beyond the draft, and it closes a real hole rather than rounding out a set.** `keeps the fixed ramp out of the Tailwind class spelling too` matches `/\b(?:text|bg|border|fill|stroke|ring|divide|from|via|to)-(?:stone|slate|sage|clay)-(?:50|…|950)\b/` through `stripComments`. The `var()` guard beside it sees no class spelling at all, and `ArchetypeCard`'s **distinctive**-branch label rule was covered by nothing else: `puts the section label over a hard ink rule` only ever mounts the primary branch, so swapping that rule to `border-stone-900` was verified to survive the file as it then stood, all sixty-nine tests of it. **Task 12's browser pass would not have caught it either** — `border-stone-900` and `border-rule-strong` render near-identically in light mode, so it shows only in dark, on a branch that needs a contrived profile to render at all. Verified caught after the fix; it is row 2b of the table above.
+
+6. **The `var()` ramp arm was folded out to all four ramps.** `var(--slate-600)`, `var(--sage-700)` and `var(--clay-800)` are as fixed-across-modes as `var(--stone-900)`, and the draft matched only the Stone family. `500` is spared for **`stone` only** — the documented sparing, which now covers the compass contour strokes (Task 9) as well as the mini radar's prototype stroke, two consumers rather than the one the draft's comment credited. The other three ramps have no such use, so their `500`s stay closed, and the guard still asserts `{}` with no second ratchet needed.
+
+7. **Three guards were strengthened past the draft, each proven non-vacuous by mutation.** The stepping-token positive half stopped being `toHaveLength(3)` — a bare length survives one consumer regressing while another is added, which is the Task 8 legend-swatch failure precisely — and became a per-file count (note 8a). `never layers a colour over a self-contained role` now also asserts `captioned.length > 0`, so it cannot pass by `caption-italic` having disappeared from the page. **Correction to this reconciliation's own brief:** the `var(--mark-primary)` positive half was *already* a sorted file-list assertion in the draft, not a `toHaveLength`; what changed there is `name` → `path` and the routing through `stripComments`. Two guards were strengthened in kind, one in spelling.
+
+8. **Two vacuities were found in review and fixed.** (a) **The stepping-token positive half was satisfied by an unused import.** Replacing `ResultsView`'s only real use with a literal colour string left the guard green, because the draft's identifier-only regex still matched the surviving `import` line, and only the mount test noticed. It now matches at use sites — `/getDomainMarkVar\(|DOMAIN_MARK_VARS\[/` — **and** asserts per-file counts (`RadarChart.tsx: 2`, `ResultsView.tsx: 1`), because use-site matching alone still cannot see the intra-file case where one of `RadarChart`'s two consumers regresses and the other holds the file on the list. (Lint would red the unused import — but lint is a different gate than the one this guard claims to be.) (b) **`keeps the zebra fill retired` matched the literal `i % 2`**, so `${axisId % 2 === 0 ? "bg-surface-2" : ""}` walked straight past it; the rows here are mapped over `axisId` and `index`, never `i`. Broadened to `/\b[A-Za-z_$][\w$]*\s*%\s*2\b/`, whitespace optional on both sides.
+
+9. **A shared `offenceCounts(pattern)` helper now backs the counting guards.** It returns `{ path: count }` with clean files omitted. Both ratchets and the four `{}`-empty guards — stepping-token negative, `var()` ramp literals, zebra, focus-ring/corner — plus the stepping-token positive count assert against it, which is six guards and seven assertions in all. **Correction to this reconciliation's own brief:** the five array-style guards (`var(--text-tertiary)`, raw hex, `unswept`, `--domain-economic` with its `var(--mark-primary)` half, and `caption-italic`) do **not** route through it; they assert sorted path lists, not `{}`. The point of the helper is the direction a file-list ratchet cannot fail in: pinned to a list alone, a ratchet stays green while the file it names gets worse. Pinned to a count, it reds — row R1.
+
+10. **The focus-ring/corner guard adopted the repo-wide pattern verbatim.** The draft's local shorthand `rounded-(?:lg|xl|\[(?:8|12)px\])` matches neither `rounded-t-lg` nor `rounded-tl-[8px]` and has no trailing boundary, so `rounded-lg` could match inside a longer token. It now carries `design-system-tokens.test.ts:210`'s pattern character for character, and the guard's "duplicated from the repo-wide guardrails" comment was reworded to say what the shorthand *would* have missed — a comment claiming a guard mirrors another one is worth only as much as the mirroring.
+
+11. **Three one-line fixes to pre-existing content, deferred here from Task 9's reconciliation — two landed clean, and the third replaced a stale number with another stale number.** The archetype label separation was corrected from 23.05 / 19.06 to **23.0068 / 19.0189**, with the worst case across all thirteen `primaryArchetypeId` selections stated as **22.70 / 18.72**; and the ramp guard's `var(--stone-500)` sparing now credits the compass contours alongside the mini radar's prototype stroke (note 6). The third: the `drops the decoration the mock is right to cut` test's stale `:56-61` hook-convention citation was re-derived and reworded to "the hook convention at the top of this file (`:103-108`)" — and `:103-108` is **wrong at `c6e6709`**, landing inside `offenceCounts`'s body. The convention sits at **`:125-130`**, displaced again by the two helper docstrings this very commit added above it. The reword does most of the work the fix was for, since "at the top of this file" survives any shift; the parenthetical does not. Harmless to the suite — no test reads a comment — and **routed to Task 12**, with a note that the parenthetical is the part that keeps going stale and is worth dropping rather than re-deriving a third time.
+
+12. **`src/components/PairedAxisScale.tsx` remains outside the sweep, deliberately, and the guard that would otherwise over-claim says so.** It draws `AxisBreakdownCard`'s domain dots from outside *both* swept directories, so the one file in this phase that routes a **domain** mark is the one file none of these guards see. Pulling it in would drag a phase-5-deferred shared primitive — three consumers, across results, comparison and groups — under the sub-AA, focus-ring and hex guards at the same time, which changes what a failure here means for two other features. The mark is independently covered: the table's mutation 5 is killed by `tests/unit/paired-axis-scale.test.ts` while every guard in this block stays green. Recorded inside `routes every data mark through the stepping tokens`, next to the count it explains.
+
+**Addendum (reconciled after Task 5) — resolved; see "As shipped" note 1.** `resultsSources` is built from `readdirSync` scoped to `src/components/results/`, so every guard in this task only ever sees that one directory. Task 5 shipped the gap: its `text-text-tertiary` violation (see Task 5's "As shipped" note) landed at `src/app/results/[profileId]/[axisId]/page.tsx` — the same feature, under `src/app`, not `src/components/results` — and none of these guards would have caught it; it surfaced only because a human review pass happened to look at that file. The eventual guard here should also sweep `src/app/results/**`, not just `src/components/results/`. `tests/helpers/source-files.ts`, extracted in Task 5, already does a recursive extension-filtered sweep with `node_modules`/`generated`/dot-directory pruning built in, so it is the right tool for that recursive sweep rather than a second hand-rolled `readdirSync` walk. Left as an addendum rather than a rewrite of the guards above — this task's implementer should act on it.
+
+**Addendum (reconciled after Task 7) — both points honoured; one `describe`, one sub-AA guard.** The `describe("results chrome drift guards")` block in the Step 1 draft above **already exists** in `tests/unit/results-chrome.test.ts` — Task 7 opened it, to hold one guard it needed early. Two consequences for this task:
 
 - **Do not write a second sub-AA guard.** Task 7's `keeps the migrated results components off the sub-AA tertiary token` is the same check as this draft's `retires text-text-tertiary from the results page`, differing only in that Task 7 pinned the then-current offender list (`["ResultsView.tsx"]`) rather than `[]`, and sorted it because `readdirSync` order is not guaranteed. Task 10 shrinks that literal to `[]`. Extend or simply keep the existing test — do not append a duplicate under a new name.
 - **Do not re-open the `describe`.** Append the remaining guards into the block Task 7 created rather than declaring a second `describe` of the same name; two same-named blocks run, but they make the reporter ambiguous and hide which one a failure came from.
 
-**Addendum (reconciled after Task 8).** Two of the guards drafted above will now red on their own subject matter, and a third has live work:
+**Addendum (reconciled after Task 8) — all three resolved; see "As shipped" notes 4 and 8a.** Two of the guards drafted above will now red on their own subject matter, and a third has live work:
 
 - **The two source-text guards red on comments, not on code — strip comments before scanning.** `never names --domain-economic where --mark-primary is meant` does `text.includes("--domain-economic")` over raw file text and expects `[]`; that string now appears in explanatory comments in **both** `RadarChart.tsx:142` and `ArchetypeCard.tsx:99`, each saying the token is deliberately *not* used there. `keeps fixed ramp literals out of the ink and mark positions` matches `/var\(--stone-(900|800|700|600|100|50)\)/` and expects `[]`; `var(--stone-600)` appears in comments in the same two files (`RadarChart.tsx:141`, `ArchetypeCard.tsx:98`). Task 7 introduced the pattern and Task 8 doubled it. **Strip `//` line comments and `/* */` blocks from each file's text before scanning.** Do not reword the comments to suit the guards: they are correct, they sit exactly where a future reader needs them, and a later implementer tempted to weaken a guard that exists to catch a defect this project has already shipped twice is much the worse outcome. (`CompassPlot.tsx:203-226` also holds five *real* `var(--stone-600)` uses; Task 9 removes them, and they must keep redding until it does.)
 - **`routes every data mark through the stepping tokens` has live work, and its positive count looks stale.** That half asserts `resultsSources.filter(/getDomainMarkVar|DOMAIN_MARK_VARS/)` has length **3**. Before Task 8 no file in `src/components/results/` matched at all; Task 8 made `RadarChart.tsx` the first, and Task 10's `DOMAIN_MARK_VARS[key]` domain rule makes `ResultsView.tsx` the second. `AxisBreakdownCard` draws no domain mark itself — its dots come from `src/components/PairedAxisScale.tsx`, outside the scanned directory — and `CompassPlot` has none, so the literal should be **2** unless Task 9 or 10 introduces a third. The negative half is live too: during Task 8, reverting the radar's legend swatch from `DOMAIN_MARK_VARS[key]` to a fixed 600 hex was undetectable by every test then in place, which is why that task added a local assertion on the four swatches. This guard is the general form of it.
 
-**Addendum (reconciled after Task 9).** Task 9 shipped part of this task's subject matter, because it is what turned two of these guards green. Five consequences:
+**Addendum (reconciled after Task 9) — resolved, except that one of its three one-line fixes re-staled; see "As shipped" note 11.** Task 9 shipped part of this task's subject matter, because it is what turned two of these guards green. Five consequences:
 
 - **Step 1 says to "append" a `describe("results chrome drift guards")` that already exists — and it now holds three guards, not one.** Task 7 created the block; Task 9 added the two below. Followed literally, Step 1 produces a second same-named block whose `retires text-text-tertiary from the results page` (`[]`) contradicts the existing `keeps the migrated results components off the sub-AA tertiary token` (`["ResultsView.tsx"]`, shrinking to `[]` at Task 10). **Extend the existing block. Do not open a second one.**
 - **`stripComments` already exists**, at `tests/unit/results-chrome.test.ts:56-70` (Task 9), with the `^\s*` anchoring rationale and the `"/*"`-string-literal gap recorded in its docstring. Use it; do not write a second one. It is also the helper Task 8's addendum above says this task needs for the guards-redding-on-prose problem — that work is done, and the pre-existing sub-AA guard was retrofitted onto it in the same change.
@@ -4514,7 +4707,7 @@ git commit -m "test(design): guard the results page against design drift"
 - **Two notes above are now settled by Task 9.** The parenthetical about `CompassPlot.tsx:203-226` holding five real `var(--stone-600)` uses is resolved — all five are gone, and the file's only remaining ramp literal is `var(--stone-500)` on the contour strokes. Note that `keeps fixed ramp literals out of the ink and mark positions` justifies sparing `var(--stone-500)` as "the mini radar's prototype stroke"; it is now also the compass contours', so that comment wants a word when this guard is written. And `routes every data mark through the stepping tokens`: Task 9 introduced no domain mark, so the positive count stands at **2** after Task 10, exactly as the note above predicts.
 - **Three one-line fixes to this file, found during Task 9's reconciliation and deliberately not made there** (Task 9 was already at review sign-off and these change no behaviour): the `drops the decoration the mock is right to cut` test cites "the convention at :56-61", which `stripComments` displaced to `:72-77`; and `keeps the contour lines and the archetype markers` states the closest archetype label pair as 23.05 units at `PADDING = 50` and 19.06 at the old 76, where the measured values are **23.0068** and **19.0189** (22.70 and 18.72 in the worst case across all thirteen `primaryArchetypeId` selections, since the primary's label sits one unit higher). Every conclusion drawn from those numbers holds — see Task 9's "As shipped" note 11.
 
-**Addendum (reconciled after Task 10). Two of the guards drafted above will red against the tree as it now stands, and in both cases it is the guard that is wrong, not the source.**
+**Addendum (reconciled after Task 10) — all four points resolved; see "As shipped" notes 4, 6 and 12, and Step 3's results. Two of the guards drafted above will red against the tree as it now stands, and in both cases it is the guard that is wrong, not the source.**
 
 - **`routes every data mark through the stepping tokens` — the positive half's literal is `3`; the true count is `2`.** The two files in `src/components/results/` naming `getDomainMarkVar` or `DOMAIN_MARK_VARS` are `RadarChart.tsx` (Task 8) and `ResultsView.tsx` (Task 10, the domain rule). The third mark consumer is `src/components/PairedAxisScale.tsx`, which draws `AxisBreakdownCard`'s dots from **outside** the scanned directory and is therefore invisible to every guard in this block — see the backlog item that deliberately leaves it to phase 5. Task 8's addendum above predicted **2**; Tasks 9 and 10 both shipped without adding a third, so this confirms it. Write the literal as `2`, or widen the sweep and write `3` — but not both halves of that as drafted.
 - **`never names --domain-economic where --mark-primary is meant` still scans raw text.** The draft above does `text.includes("--domain-economic")`; `stripComments` (Task 9, at the top of this file) exists precisely for this. `RadarChart.tsx:142` and `ArchetypeCard.tsx:107` each carry a deliberate "**not** `--domain-economic`" prose note explaining why the alias is avoided *at that exact line*, so the raw form reports both files as offenders — the guard redding on the documentation of the rule it enforces, which is the precise failure `stripComments` was extracted to prevent. Route this guard, and the ramp-literal guard beside it, through `stripComments(text)` exactly as the three existing guards in the block already do. **Do not reword the comments to suit the guard.** The ramp-literal guard is now worse off than Task 8's addendum recorded: raw, it reds on **three** files, not two — `ArchetypeCard.tsx` and `RadarChart.tsx` on `var(--stone-600)`, and `CompassPlot.tsx` on the `var(--stone-900)` in the ink-dot comment Task 9 shipped ("`--text-primary`, not `var(--stone-900)`: Stone 900 ink on a Stone 900 ground is invisible"). Through `stripComments` all three are clean, and the only ramp literal left in real code across the directory is the `var(--stone-500)` this guard spares — now the compass contours' stroke as well as the mini radar's prototype, as Task 9's addendum notes.
@@ -4540,7 +4733,7 @@ npm run build
 
 Expected: `npm test` reports **60 files** with **676 + the new tests** passing — `results-chrome.test.ts` is the 61st file, so expect 61 files. Lint runs at `--max-warnings=0`; a new warning is a fix, never a raised threshold.
 
-**Flagged, not fixed (reconciled after Task 8, updated after Tasks 9 and 10).** Those two numbers are stale and have been since Task 5. **Four** test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5), `tests/unit/radar-geometry.test.ts` (Task 8) and `tests/unit/scoring-narrowing.test.ts` (Task 10) — `tests/helpers/source-files.ts` and `tests/helpers/client-component-env.ts` are helpers and are not collected. At `70d7909` the suite reports **779 tests across 64 files** — Task 9 added ten and no new file; Task 10 added nineteen, thirteen of them in `results-chrome.test.ts` and six in the new file above. Still left for whoever reconciles **this** task to fold into the sentence above, together with whatever Task 11 adds; the Step 1 literals are deliberately not edited here.
+**Flagged, not fixed (reconciled after Task 8, updated after Tasks 9, 10 and 11).** Those two numbers are stale and have been since Task 5. **Four** test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5), `tests/unit/radar-geometry.test.ts` (Task 8) and `tests/unit/scoring-narrowing.test.ts` (Task 10) — `tests/helpers/source-files.ts` and `tests/helpers/client-component-env.ts` are helpers and are not collected. At `c6e6709` the suite reports **787 tests across 64 files** — Task 9 added ten and no new file; Task 10 added nineteen, thirteen of them in `results-chrome.test.ts` and six in the new file above; Task 11 added eight, all of them guards in `results-chrome.test.ts`, which brings that file to 70. Task 11 is the last task that adds tests, so **787 / 64** is the number this step should expect unless Task 12's own work changes it. Still left for whoever reconciles **this** task to fold into the sentence above; the Step 1 literals are deliberately not edited here.
 
 If the lockfile changed for any reason, run `npm ci` **before** re-running these — a stale `node_modules` makes a local green disagree with CI.
 
@@ -4581,6 +4774,11 @@ Then, for each of `prefers-color-scheme: light` and `dark`, open a URL-encoded r
 - **A pre-existing hydration mismatch on `/results`.** `RadarChart`'s `[data-radar-label]` `y` renders `123.72312247338783` server-side and `123.7231224733878` client-side — a float-to-string precision difference, not a logic one. Confirmed to reproduce on unmodified `HEAD`, so it belongs to Task 8's file rather than Task 10's diff. It is a live console error on every load of the page this phase is about, so it belongs in this browser pass.
 - **The tension panel's `border-l-2 border-l-warning`** is item 3 of the checklist above. Task 10 shipped the class form rather than the inline-style fallback and could not verify it — jsdom computes neither width nor colour — so the measurement is genuinely outstanding, not a formality.
 
+**Routed here by Task 11's reconciliation.** One piece of source work — the last this phase has queued — and one one-line correction:
+
+- **Empty both ratchets, in one commit.** `src/app/results/[profileId]/[axisId]/page.tsx` holds **8** `text-text-tertiary` occurrences (`:108`, `:115`, `:122`, `:153`, `:158`, `:163`, `:168`, `:200`) and **10** Tailwind stone-ramp classes (`text-stone-800` ×6 at `:77`, `:83`, `:142`, `:153`, `:163`, `:182`; `bg-stone-100` ×2 at `:153`, `:163`; `text-stone-600` ×2 at `:77`, `:196`), pinned as the two ratchets in `results-chrome.test.ts` — see Task 11's "As shipped" notes 2 and 3. Fix the source and delete both ratchet entries in the same commit: the `:153` and `:163` pairs are two arms of one ternary, so emptying one ratchet without the other leaves those rows half-migrated. **Measure the contrast in a real browser, in both modes.** The eight are three different roles — 11px structural labels (→ `--text-label`), 13px prose (→ `--text-secondary`), and `r.selectedPole === "A" ? "bg-stone-100 text-stone-800" : "text-text-tertiary"` at `:153` and `:163`, where the token distinguishes an unselected pole from a selected one and the replacement must preserve that **contrast relationship**, not merely clear AA on its own. Both ratchets are written to red if the file is fixed *or* worsened — they assert per-file counts, not a file list — so this cannot land silently in either direction. **Note the interaction with item 8 of the checklist above:** that item asks whether the restored `Composite score` label reads as deliberate emphasis beside "the three sibling `text-text-tertiary` labels" — those siblings are `:108`, `:115` and `:122`, three of the eight. Do item 8 **before** the fix, or it has no comparison left to make; if the three move to `--text-label`, `Composite score` stops being distinguishable from them at all and the question becomes what, if anything, should carry the emphasis instead.
+- **A stale line citation in `results-chrome.test.ts`.** The `drops the decoration the mock is right to cut` test cites "the hook convention at the top of this file (`:103-108`)"; at `c6e6709` the convention sits at **`:125-130`** and `:103-108` lands inside `offenceCounts`'s body. This is the second time the citation has gone stale — Task 9 created it as `:56-61`, Task 11 re-derived it and the same commit's own helper docstrings displaced it again. Prefer **dropping the parenthetical**: the reworded prose anchor ("at the top of this file") already survives any shift, and the number is the only part that keeps rotting. See Task 11's "As shipped" note 11.
+
 Capture one screenshot per mode for the PR.
 
 - [ ] **Step 4: Reconcile the plan with what shipped**
@@ -4602,7 +4800,7 @@ The body should carry: the issue reference (`Closes #135`), the mutation table r
 
 Recorded here so they are not rediscovered as bugs:
 
-- **`/compare`, `/groups` and the per-axis detail page keep their layouts.** Tasks 5 and 6 changed their score-bar primitive and nothing else. Their surrounding chrome — `text-[11px] uppercase tracking-[0.08em]` domain headers, `text-stone-800` literals, zebra rows — is phase 5's sweep under D6.
+- **`/compare`, `/groups` and the per-axis detail page keep their layouts.** Tasks 5 and 6 changed their score-bar primitive and nothing else. Their surrounding chrome — `text-[11px] uppercase tracking-[0.08em]` domain headers, `text-stone-800` literals, zebra rows — is phase 5's sweep under D6. **Narrowed by Task 11:** widening the drift sweep to `src/app/results/**` pulled the per-axis detail page's *colour* tokens into guard scope, so its 8 `text-text-tertiary` and 10 stone-ramp classes are pinned as ratchets and routed to Task 12, not to phase 5. Everything else about that page — the type scale, the layout, the panel idiom — is still phase 5's. `/compare` and `/groups` are untouched by this and remain deferred whole.
 - **The home domain footer still draws its axis borders from `getDomainColor600`.** `src/app/page.tsx:159` keeps the fixed hex, so those borders stay at the 600 tone on a dark ground. It is a drawn screen that phase 2 shipped; changing it here would be drift into a merged phase. Phase 5 or 6 should sweep it now that `getDomainMarkVar` exists.
 - **`ComparisonRadar` keeps `getDomainColor600`** for the same reason, and is a larger job than a token swap because it draws two respondents' polygons.
 - **`--container-results` is the second of four page widths the delta implies** (1040 shell, 820 results, 672 quiz, 660 reference). The quiz and reference widths are still spelled as Tailwind literals. Phase 5 should decide whether they become tokens too.
@@ -4631,7 +4829,7 @@ Items consciously punted during the build. None block shipping. Listed here so t
 - **`/compare`'s legend sentence is unguarded copy that is about to go stale on purpose.** `src/app/compare/page.tsx:180` ("Filled dot is you, ring marker is them.") has no test pinning word order — reverting it to the wrong order leaves the whole suite green. Now that Task 6 gives each readout its own swatch, the sentence is close to redundant; deleting it in phase 5 is preferable to writing a guard for copy that phase 5 is going to remove anyway.
 - **`ComparisonRadar.tsx` and `GroupRadar.tsx` are the last holders of the duplicated radar geometry.** Task 8 extracted `src/lib/radar-geometry.ts` and moved `RadarChart` and `MiniRadar` onto it; these two still carry their own `RING_FRACTIONS`, `ringPolygonPoints`, `spokeAngle`, `polarToCart` and `scoreToRadius`, plus — at `GroupRadar.tsx:57` — their own copy of the pad-to-twelve loop that `normaliseByAxisId` replaces. Both are still on the **fraction** convention (`ringPolygonPoints(0.5)`), which is exactly the hazard `ringPoints`' docstring warns about, so migrating them is a call-site audit rather than an import swap and wants its own task. Deliberately not folded into Tasks 9-12: neither file is on the results page, and both are D6-deferred to phase 5 already (see "Deferred to later phases", which defers `ComparisonRadar`'s `getDomainColor600` for the same reason).
 - **Two exported `TOTAL_AXES` now live in `src/lib/`** — `radar-geometry.ts:15` and `comparison-radar-data.ts:3` — the same value in two homes, with a third, unexported copy at `GroupRadar.tsx:16`. Re-export one from the other; the natural moment is the migration above.
-- **`src/components/PairedAxisScale.tsx` sits outside every guard's scan, and it is not Task 11's to fix.** It draws `AxisBreakdownCard`'s domain dots, but it lives in `src/components/`, while all three tertiary/hex/ramp guards — Task 7's, and the two Task 9 added — scan `src/components/results/` only. So the one file in this phase that actually routes a *domain* mark is the one file none of the guards see. **This deliberately does not belong to Task 11**, whose guardrail the plan scopes by directory (see its `routes every data mark through the stepping tokens` note, which excludes `PairedAxisScale` from the count for exactly this reason). `PairedAxisScale` is a shared primitive with three consumers across results, comparison and groups, so widening a results-scoped guard onto it changes what a failure there means for two other features. That is a phase-5 decision, alongside the already-deferred `/compare` sweep and the recursive `src/app/results/**` sweep flagged in Task 11's post-Task-5 addendum.
+- **`src/components/PairedAxisScale.tsx` sits outside every guard's scan, and it was not Task 11's to fix.** It draws `AxisBreakdownCard`'s domain dots, but it lives in `src/components/`, while every guard in the drift block scans `src/components/results/` and `src/app/results/` — the latter added by Task 11, which closed the recursive-sweep half of this item; only `PairedAxisScale` is still outside. So the one file in this phase that actually routes a *domain* mark is the one file none of the guards see. **This deliberately did not belong to Task 11**, whose guardrail the plan scopes by directory (see its `routes every data mark through the stepping tokens` note, which excludes `PairedAxisScale` from the count for exactly this reason and now says so in the shipped comment). `PairedAxisScale` is a shared primitive with three consumers across results, comparison and groups, so widening a results-scoped guard onto it changes what a failure there means for two other features — and would drag a phase-5-deferred file under the sub-AA, focus-ring and hex guards in the same move. The mark is not unguarded meanwhile: `tests/unit/paired-axis-scale.test.ts` kills the plan's mutation 5. That is a phase-5 decision, alongside the already-deferred `/compare` sweep.
 - **Narrow `AXIS_WEIGHT_PROFILES` to `Record<AxisId, …>`**, with `type AxisId = 1 | 2 | … | 12`, the next time the scoring types are touched. Task 10 removed the unreachable `?? { fc: 0.40, sc: 0.35, bg: 0.25 }` fallback in `AxisBreakdownCard` — its numbers matched none of the three real profiles — but the table is still typed `Record<number, AxisWeightProfile>` (`src/lib/scoring-types.ts`), so an out-of-range `axisId` is not compile-flagged at either call site. Deliberately **not** fixed by restoring a runtime guard: that would protect the *display* of a number `src/lib/scoring.ts:130` has already crashed producing, since the engine does the same unguarded lookup one step earlier. And deliberately **not** by enabling `noUncheckedIndexedAccess`, which would ripple across the whole repo for one unreachable branch. The keyed type is the proportionate fix, and it costs nothing at runtime.
 - **Promote `PANEL` to an `@utility`.** `ResultsView` names the string once; the same three classes — `bg-surface-1 border border-border-secondary rounded-sharp` — are spelled out verbatim at **25 sites across 14 files**, on `/compare` (5), `/results/[profileId]/[axisId]` (4), `/account` (3), `/groups/[groupId]` (3), the home page (2), `/auth/signin` and `/auth/signup`, `GlossaryTerm`, and four quiz components. A panel is the delta's most-repeated surface and the one most likely to be restyled as a unit.
 - **A second copy of `sentenceCase` exists**, inline, at `src/lib/study/tensionDescription.ts:69` (`${level.charAt(0).toUpperCase()}${level.slice(1)}`) — the same one-liner, on the same concept, a tension level. Two copies of a one-liner do not yet justify a shared module; this is noted so that the third copy triggers the extraction rather than starting an argument.
