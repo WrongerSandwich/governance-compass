@@ -89,8 +89,8 @@ export default async function ComparePage({
 
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-1">Comparison</h1>
+      <div className="max-w-results mx-auto">
+        <h1 className="display-m text-text-primary mb-1">Comparison</h1>
         <p className="text-text-secondary text-sm mb-6">
           <span className="font-medium text-text-primary">{labelA}</span>
           {" vs "}
@@ -109,7 +109,7 @@ export default async function ComparePage({
         </div>
 
         <div className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-8">
-          <h2 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium border-b border-border-secondary pb-1.5 mb-4">
+          <h2 className="label font-medium text-text-label border-b border-border-secondary pb-2 mb-4">
             By axis
           </h2>
           {comparison.perAxisDeltas
@@ -146,7 +146,7 @@ export default async function ComparePage({
               {comparison.closestAxes.map((d) => (
                 <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                   {axisMap.get(d.axisId)?.name} —{" "}
-                  <span className="font-mono text-xs text-text-tertiary">
+                  <span className="font-mono text-xs text-text-label">
                     {d.delta.toFixed(2)} apart
                   </span>
                 </div>
@@ -159,7 +159,7 @@ export default async function ComparePage({
               {comparison.furthestAxes.map((d) => (
                 <div key={d.axisId} className="text-sm text-text-secondary mb-1">
                   {axisMap.get(d.axisId)?.name} —{" "}
-                  <span className="font-mono text-xs text-text-tertiary">
+                  <span className="font-mono text-xs text-text-label">
                     {d.delta.toFixed(2)} apart
                   </span>
                 </div>

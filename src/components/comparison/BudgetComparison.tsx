@@ -46,7 +46,7 @@ export function BudgetComparison({
   return (
     <div className="space-y-4">
       {/* Legend */}
-      <div className="flex gap-4 text-xs text-text-tertiary">
+      <div className="flex gap-4 text-xs text-text-secondary">
         <div className="flex items-center gap-1.5">
           <div
             className="h-[6px] w-5 rounded-[3px]"
@@ -77,7 +77,7 @@ export function BudgetComparison({
             className={`rounded-sharp px-3 py-3 ${i % 2 === 1 ? "bg-surface-2" : ""}`}
           >
             {/* Ministry header */}
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-text-secondary font-medium mb-2">
+            <p className="flex items-center gap-1.5 label text-text-label font-medium mb-2">
               {Icon && <Icon size={13} strokeWidth={1.5} className="shrink-0" />}
               {ministry.name}
             </p>
@@ -117,23 +117,23 @@ export function BudgetComparison({
                   }}
                 />
               </div>
-              <span className="w-5 text-right text-[13px] font-mono font-medium tabular-nums text-text-tertiary">
+              <span className="w-5 text-right text-[13px] font-mono font-medium tabular-nums text-text-label">
                 {valueB}
               </span>
             </div>
 
             {/* Consequence text */}
             {sameConsequence ? (
-              <p className="text-xs font-serif italic text-text-tertiary leading-relaxed mt-2">
+              <p className="caption-italic mt-2">
                 {consequenceA}
               </p>
             ) : (
               <div className="mt-2 space-y-1">
-                <p className="text-xs font-serif italic text-text-tertiary leading-relaxed">
+                <p className="caption-italic">
                   <span className="not-italic font-sans font-medium text-text-secondary">{labelA}:</span>{" "}
                   {consequenceA}
                 </p>
-                <p className="text-xs font-serif italic text-text-tertiary leading-relaxed">
+                <p className="caption-italic">
                   <span className="not-italic font-sans font-medium text-text-secondary">{labelB}:</span>{" "}
                   {consequenceB}
                 </p>

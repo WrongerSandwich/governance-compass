@@ -12,7 +12,8 @@ import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { AlignmentScore } from "@/components/comparison/AlignmentScore";
 import { BudgetComparison } from "@/components/comparison/BudgetComparison";
 import { FadeInSection } from "@/components/FadeInSection";
-import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import { DOMAIN_COLORS, DOMAIN_MARK_VARS, type DomainKey } from "@/lib/design-tokens";
+import { Button } from "@/components/Button";
 import Link from "next/link";
 
 function CopyLinkButton() {
@@ -34,12 +35,9 @@ function CopyLinkButton() {
     }
   };
   return (
-    <button
-      onClick={handleCopy}
-      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
-    >
+    <Button variant="secondary" onClick={handleCopy}>
       {copied ? "Copied!" : "Copy comparison link"}
-    </button>
+    </Button>
   );
 }
 
@@ -102,7 +100,7 @@ function CompareResults() {
   if (!data) {
     return (
       <main className="min-h-screen px-4 py-24 text-center">
-        <p className="text-text-tertiary text-sm">Invalid comparison data.</p>
+        <p className="text-text-secondary text-sm">Invalid comparison data.</p>
       </main>
     );
   }
@@ -111,19 +109,19 @@ function CompareResults() {
 
   return (
     <main className="min-h-screen px-4 py-8 overflow-x-hidden">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-results mx-auto">
         <FadeInSection>
           <div className="mb-6">
             <Link
               href={`/results?r=${encodedA}`}
-              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150 mb-2 inline-block"
+              className="label-nav text-text-label no-underline hover:text-text-secondary transition-colors duration-150 mb-3 inline-block focus-ring"
             >
               &larr; Back to your results
             </Link>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
+            <p className="label-eyebrow text-text-label mb-1.5">
               Comparison
             </p>
-            <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
+            <h1 className="display-page text-text-primary">
               How your views compare
             </h1>
           </div>
@@ -149,20 +147,20 @@ function CompareResults() {
           <FadeInSection delay={150}>
             <div className="grid min-[560px]:grid-cols-2 gap-6 mb-8">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">Most aligned</p>
+                <p className="label-eyebrow text-text-label mb-2">Most aligned</p>
                 {comparison.closestAxes.map((d) => (
-                  <div key={d.axisId} className="text-sm text-text-secondary mb-1">
+                  <div key={d.axisId} className="body-s text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="text-xs text-text-tertiary">{describeGap(d.delta)}</span>
+                    <span className="mono-meta text-text-label">{describeGap(d.delta)}</span>
                   </div>
                 ))}
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">Most divergent</p>
+                <p className="label-eyebrow text-text-label mb-2">Most divergent</p>
                 {comparison.furthestAxes.map((d) => (
-                  <div key={d.axisId} className="text-sm text-text-secondary mb-1">
+                  <div key={d.axisId} className="body-s text-text-secondary mb-1">
                     {axisMap.get(d.axisId)?.name} —{" "}
-                    <span className="text-xs text-text-tertiary">{describeGap(d.delta)}</span>
+                    <span className="mono-meta text-text-label">{describeGap(d.delta)}</span>
                   </div>
                 ))}
               </div>
@@ -173,11 +171,11 @@ function CompareResults() {
         {/* Axis breakdown by domain — flat, matching results page pattern */}
         <FadeInSection delay={200}>
           <section>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+            <h2 className="display-m text-text-primary mb-1.5">
               Axis breakdown
             </h2>
-            <p className="text-xs font-serif italic text-text-tertiary mb-6">
-              Each bar shows both profiles. Filled dot is you, ring marker is them.
+            <p className="caption-italic max-w-[60ch] mb-6">
+              Each bar shows both profiles.
             </p>
 
             <div className="space-y-5">
@@ -190,8 +188,8 @@ function CompareResults() {
                 return (
                   <div key={domainKey}>
                     <div
-                      className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0"
-                      style={{ color: domain[600] }}
+                      className="label font-medium border-b border-border-secondary pb-2 mb-2 mt-5 first:mt-0"
+                      style={{ color: DOMAIN_MARK_VARS[domainKey] }}
                     >
                       {domain.name}
                     </div>
@@ -225,10 +223,10 @@ function CompareResults() {
         {/* Budget comparison */}
         <FadeInSection delay={250}>
           <section className="mt-10">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+            <h2 className="display-m text-text-primary mb-1.5">
               Budget allocation
             </h2>
-            <p className="text-xs font-serif italic text-text-tertiary mb-5">
+            <p className="caption-italic max-w-[60ch] mb-6">
               How each of you funded the seven ministries out of 50 points.
             </p>
             <BudgetComparison
@@ -246,7 +244,7 @@ function CompareResults() {
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<main className="min-h-screen px-4 py-24 text-center"><p className="text-text-tertiary text-sm">Loading comparison...</p></main>}>
+    <Suspense fallback={<main className="min-h-screen px-4 py-24 text-center"><p className="text-text-secondary text-sm">Loading comparison...</p></main>}>
       <CompareResults />
     </Suspense>
   );
