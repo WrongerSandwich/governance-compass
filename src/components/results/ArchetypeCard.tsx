@@ -2,12 +2,15 @@
 
 import { useState, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/Button";
+import { LOW_MATCH_THRESHOLD_PCT } from "@/lib/scoring-types";
 import {
   TOTAL_AXES,
+  normaliseByAxisId,
   polarToCart,
   ringPoints,
   scoreToRadius,
   spokeAngle,
+  type RadarAxisScore,
 } from "@/lib/radar-geometry";
 
 interface ArchetypeCardProps {
@@ -23,11 +26,13 @@ interface ArchetypeCardProps {
   secondary: {
     name: string;
     matchPercentage: number;
-    summary: string;
   };
   isBlended: boolean;
   isDistinctive: boolean;
-  userScores?: number[]; // 12 axis finalScores for mini radar
+  /** The respondent's twelve axes for the mini radar. Carries `axisId`, not
+   *  bare scores: a radar vertex is positional, so the polygon can only be
+   *  put on the right spokes by an id lookup. */
+  userScores?: RadarAxisScore[];
   /** Mock 7a draws Copy link / Compare with someone inside the panel, but the
    *  timer and the router belong to ResultsView. It passes them in here. */
   actions?: ReactNode;
@@ -38,13 +43,9 @@ const MINI_CX = MINI_SIZE / 2;
 const MINI_CY = MINI_SIZE / 2;
 const MINI_R = 80;
 
-/** Vertex `i` is axis `i + 1`, so this mapping is positional. `userScores`
- *  arrives as a bare `number[]` (`axisData.map((a) => a.finalScore)` at the
- *  call site), which carries no axis id, so `normaliseByAxisId` cannot be
- *  applied here without widening `ArchetypeCard`'s `userScores` prop to carry
- *  ids — a change to the public prop shape, made at ResultsView. `RadarChart`
- *  normalises because its prop already carries `axisId`. See the report note
- *  on addendum D. */
+/** Vertex `i` is axis `i + 1`, so this mapping is positional: callers must
+ *  hand it a list already in axis-id order. `MiniRadar` gets there through
+ *  `normaliseByAxisId`, the same way `RadarChart` does. */
 function miniRadarPoints(scores: number[]): string {
   return scores
     .map((score, i) => {
@@ -63,9 +64,16 @@ function MiniRadar({
   userScores,
   prototypeScores,
 }: {
-  userScores: number[];
+  userScores: RadarAxisScore[];
   prototypeScores: number[];
 }) {
+  // The user polygon and the prototype polygon are the one comparison this
+  // chart exists to make, and the prototype is a fixed axis-1-through-12
+  // literal. The two routes into ResultsView build their axis lists
+  // differently (scoring-pipeline order against `axis.order`) and agree only
+  // while `order === id` holds for every row of src/data/axes.ts.
+  const userPoints = normaliseByAxisId(userScores).map((axis) => axis.finalScore);
+
   return (
     <svg
       viewBox={`0 0 ${MINI_SIZE} ${MINI_SIZE}`}
@@ -100,7 +108,7 @@ function MiniRadar({
           the same value in both modes — see the note in globals.css. */}
       <polygon
         data-mini-user
-        points={miniRadarPoints(userScores)}
+        points={miniRadarPoints(userPoints)}
         style={{ fill: 'var(--mark-primary)', stroke: 'var(--mark-primary)' }}
         fillOpacity={0.12}
         strokeWidth={1.4}
@@ -119,7 +127,7 @@ export function ArchetypeCard({
   actions,
 }: ArchetypeCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const lowMatch = primary.matchPercentage < 55;
+  const lowMatch = primary.matchPercentage < LOW_MATCH_THRESHOLD_PCT;
 
   if (isDistinctive) {
     return (

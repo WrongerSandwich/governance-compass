@@ -1,5 +1,3 @@
-"use client";
-
 import { PairedAxisScale, describeGap } from "@/components/PairedAxisScale";
 import { getDomainMarkVar } from "@/lib/design-tokens";
 import { formatScore } from "@/lib/format-score";
@@ -26,6 +24,13 @@ interface ComparisonScoreBarProps {
  * component's former ones: respondent A is the FILLED domain dot and
  * respondent B the outlined one, which is the reverse of what shipped. The
  * legend on `/compare` names them in that order.
+ *
+ * No `"use client"`: with the hover tooltips gone this has no hooks, no event
+ * handlers and no browser APIs, and `PairedAxisScale` — the primitive it wraps
+ * — carries no directive either. `/compare/[id]/[id]` is a server component,
+ * so the directive was pushing twelve rows across the client boundary and
+ * hydrating them for nothing. `/compare` is a client page and renders it just
+ * the same; a directive is a boundary, not a requirement.
  *
  * `delta` is not a prop: it is derived here from the same two scores the
  * scale draws, so the visible gap badge and the scale's `aria-label` can

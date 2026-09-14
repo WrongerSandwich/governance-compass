@@ -2,23 +2,29 @@
 
 import { useState } from "react";
 import { PairedAxisScale } from "@/components/PairedAxisScale";
-import { AXIS_WEIGHT_PROFILES } from "@/lib/scoring-types";
+import { AXIS_WEIGHT_PROFILES, type AxisConfidence } from "@/lib/scoring-types";
 import { formatScore } from "@/lib/format-score";
 
+/**
+ * Only what this row draws. `ResultsView` spreads a wider `AxisDisplayData`
+ * over it, which is fine — JSX spread of a variable carries no excess-property
+ * check — so a field belongs here only once something below reads it.
+ *
+ * Deliberately absent: `domain` (the row's colour comes from `axisId` via
+ * `PairedAxisScale`, and `ResultsView` does the domain grouping itself) and
+ * `tension.level` / `.direction` / `.narrative` (the row shows only that a
+ * tension exists; the tension panels above spell it out).
+ */
 export interface AxisBreakdownCardProps {
   axisId: number;
   name: string;
   poleALabel: string;
   poleBLabel: string;
   tagline: string;
-  domain: string;
   finalScore: number;
-  confidence: string;
+  confidence: AxisConfidence;
   tension: {
     detected: boolean;
-    level: string;
-    direction: string | null;
-    narrative: string | null;
   };
   components: {
     fc: number;
@@ -40,9 +46,14 @@ export function AxisBreakdownCard({
   components,
   showScoring = false,
 }: AxisBreakdownCardProps) {
-  const weights = AXIS_WEIGHT_PROFILES[axisId] ?? { fc: 0.40, sc: 0.35, bg: 0.25 };
+  // No `??` fallback: the table covers axes 1-12, which is every axis the
+  // compass has, and the fallback that stood here invented a fourth weight
+  // profile matching none of the three real ones.
+  const weights = AXIS_WEIGHT_PROFILES[axisId];
   const [expanded, setExpanded] = useState(false);
 
+  // `confidence` is the scoring engine's four-member union, so this ladder is
+  // exhaustive by construction rather than by its trailing else.
   const confidenceText =
     confidence === "high"
       ? "High confidence"

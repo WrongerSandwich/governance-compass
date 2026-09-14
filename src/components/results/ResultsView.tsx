@@ -6,8 +6,14 @@ import { CompassPlot } from "./CompassPlot";
 import { ArchetypeCard } from "./ArchetypeCard";
 import { RadarChart } from "./RadarChart";
 import { AxisBreakdownCard } from "./AxisBreakdownCard";
-import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import { Button } from "@/components/Button";
+import { DOMAIN_COLORS, DOMAIN_MARK_VARS, type DomainKey } from "@/lib/design-tokens";
 import { FadeInSection } from "@/components/FadeInSection";
+import type {
+  AxisConfidence,
+  TensionDirection,
+  TensionLevel,
+} from "@/lib/scoring-types";
 
 export interface AxisDisplayData {
   axisId: number;
@@ -17,12 +23,17 @@ export interface AxisDisplayData {
   tagline: string;
   domain: string;
   finalScore: number;
-  confidence: string;
+  /** The scoring engine's unions, not bare `string`s. An unrecognised
+   *  confidence used to fall through to `AxisBreakdownCard`'s default branch
+   *  and render "Low confidence"; an unrecognised `direction` falls through
+   *  the narrative ladder below and renders a titled tension panel with no
+   *  explanation at all. Both are silent-wrong-output failures that only a
+   *  type can catch, since neither throws and both render plausibly. */
+  confidence: AxisConfidence;
   tension: {
     detected: boolean;
-    level: string;
-    direction: string | null;
-    narrative: string | null;
+    level: TensionLevel;
+    direction: TensionDirection | null;
   };
   components: { fc: number; sc: number; bg: number | null };
 }
@@ -43,12 +54,10 @@ export interface ResultsViewProps {
     secondary: {
       name: string;
       matchPercentage: number;
-      summary: string;
     };
     isBlended: boolean;
     isDistinctive: boolean;
   };
-  profileId?: string;
   encoded?: string;
 }
 
@@ -74,12 +83,9 @@ function CopyLinkButton() {
   };
 
   return (
-    <button
-      onClick={handleCopy}
-      className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150 focus-ring"
-    >
+    <Button variant="secondary" onClick={handleCopy}>
       {copied ? "Copied!" : "Copy link"}
-    </button>
+    </Button>
   );
 }
 
@@ -98,17 +104,14 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-xs border border-border-secondary bg-surface-1 text-text-secondary rounded-sharp px-3.5 py-1.5 hover:bg-surface-2 hover:text-text-primary transition-colors duration-150"
-      >
+      <Button variant="secondary" onClick={() => setOpen(true)}>
         Compare with someone
-      </button>
+      </Button>
     );
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full">
       <input
         type="text"
         value={link}
@@ -116,21 +119,14 @@ function CompareInput({ myEncoded }: { myEncoded: string }) {
         onKeyDown={(e) => e.key === "Enter" && handleCompare()}
         placeholder="Paste their results link"
         autoFocus
-        className="flex-1 min-w-0 rounded-sharp border border-border-primary px-3 py-1.5 text-xs bg-surface-1 text-text-primary placeholder:text-text-tertiary focus-ring"
+        className="flex-1 min-w-0 rounded-sharp border border-border-primary px-3 py-2 body-s bg-surface-1 text-text-primary placeholder:text-text-label focus-ring"
       />
-      <button
-        onClick={handleCompare}
-        disabled={!link.trim()}
-        className="text-xs border border-stone-600 text-stone-600 rounded-sharp px-3.5 py-1.5 hover:bg-stone-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <Button variant="secondary" onClick={handleCompare} disabled={!link.trim()}>
         Compare
-      </button>
-      <button
-        onClick={() => { setOpen(false); setLink(""); }}
-        className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-      >
+      </Button>
+      <Button variant="tertiary" onClick={() => { setOpen(false); setLink(""); }}>
         Cancel
-      </button>
+      </Button>
     </div>
   );
 }
@@ -143,17 +139,37 @@ const SECTION_IDS = {
   compass: "compass",
 };
 
-export function ResultsView({
-  axisData,
-  compass,
-  archetype,
-  encoded,
-}: ResultsViewProps) {
+const PANEL = "bg-surface-1 border border-border-secondary rounded-sharp";
+
+/** Eyebrow, heading and caption — the same three-line opener on four sections. */
+function SectionHead({ eyebrow, title, caption }: { eyebrow: string; title: string; caption: string }) {
+  return (
+    <>
+      <p className="label-eyebrow text-text-label mb-1.5">{eyebrow}</p>
+      <h2 className="display-m text-text-primary mb-1.5">{title}</h2>
+      <p className="caption-italic max-w-[60ch] mb-[18px]">{caption}</p>
+    </>
+  );
+}
+
+/** Sentence-cases a tension grade for display.
+ *
+ *  In JS rather than a `capitalize` class, for two reasons. `text-transform`
+ *  does not touch `textContent`, so a CSS-only capital is invisible to a
+ *  screen reader and to anything the respondent copies out of the page; and
+ *  the title carries the `label` role, which sets `text-transform` itself, so
+ *  layering a second one on it would leave the rendered case decided by
+ *  Tailwind's emitted order. */
+function sentenceCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function ResultsView({ axisData, compass, archetype, encoded }: ResultsViewProps) {
   const domainKeys: DomainKey[] = ["economic", "power", "society", "world"];
   const domains = domainKeys.map((key) => ({
     key,
     name: DOMAIN_COLORS[key].name,
-    color600: DOMAIN_COLORS[key][600],
+    mark: DOMAIN_MARK_VARS[key],
     axes: axisData.filter((a) => a.domain === DOMAIN_COLORS[key].name),
   }));
 
@@ -161,30 +177,24 @@ export function ResultsView({
   const [showScoring, setShowScoring] = useState(false);
 
   return (
-    <main className="min-h-screen px-4 py-8 overflow-x-hidden">
-      <div className="mx-auto max-w-3xl space-y-8">
-        {/* Page header with archetype identity */}
+    <main className="min-h-screen pt-12 pb-14 px-[18px] min-[560px]:px-7 overflow-x-hidden">
+      <div data-results-column className="mx-auto max-w-results">
+        {/* Page header */}
         <FadeInSection>
           <div>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-              Assessment results
-            </p>
+            <p className="label-eyebrow text-text-label mb-3.5">Assessment results</p>
             {archetype.isDistinctive ? (
               <>
-                <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
-                  A distinctive profile
-                </h1>
-                <p className="text-sm text-text-secondary mt-1">
-                  Your positions don&apos;t map to a single governance philosophy — nearest match is {archetype.primary.name} at {archetype.primary.matchPercentage}%
+                <h1 className="display-page text-text-primary mb-2">A distinctive profile</h1>
+                <p data-results-sub className="text-base leading-[1.6] text-text-secondary mb-5">
+                  Your positions don&apos;t map to a single governance philosophy — nearest match is {archetype.primary.name} at {archetype.primary.matchPercentage}%.
                 </p>
               </>
             ) : (
               <>
-                <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight">
-                  {archetype.primary.name}
-                </h1>
-                <p className="text-sm text-text-secondary mt-1">
-                  {archetype.primary.matchPercentage}% match — your Governance Compass across 12 axes
+                <h1 className="display-page text-text-primary mb-2">{archetype.primary.name}</h1>
+                <p data-results-sub className="text-base leading-[1.6] text-text-secondary mb-5">
+                  {archetype.primary.matchPercentage}% match — your compass across twelve axes.
                 </p>
               </>
             )}
@@ -193,180 +203,170 @@ export function ResultsView({
 
         {/* Section jump links */}
         <FadeInSection delay={100}>
-        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary" aria-label="Page sections">
-          <a href={`#${SECTION_IDS.archetype}`} className="hover:text-text-secondary transition-colors duration-150">Archetype</a>
-          <a href={`#${SECTION_IDS.radar}`} className="hover:text-text-secondary transition-colors duration-150">Radar</a>
-          {tensionAxes.length > 0 && (
-            <a href={`#${SECTION_IDS.tensions}`} className="hover:text-text-secondary transition-colors duration-150">Tensions</a>
-          )}
-          <a href={`#${SECTION_IDS.breakdown}`} className="hover:text-text-secondary transition-colors duration-150">Breakdown</a>
-          <a href={`#${SECTION_IDS.compass}`} className="hover:text-text-secondary transition-colors duration-150">Compass</a>
-        </nav>
+          <nav
+            className="flex flex-wrap gap-x-5 gap-y-2 py-3 border-y border-border-secondary label-nav text-text-label"
+            aria-label="Page sections"
+          >
+            <a href={`#${SECTION_IDS.archetype}`} className="hover:text-text-primary transition-colors duration-150 focus-ring">Archetype</a>
+            <a href={`#${SECTION_IDS.radar}`} className="hover:text-text-primary transition-colors duration-150 focus-ring">Radar</a>
+            <a href={`#${SECTION_IDS.tensions}`} className="hover:text-text-primary transition-colors duration-150 focus-ring">Tensions</a>
+            <a href={`#${SECTION_IDS.breakdown}`} className="hover:text-text-primary transition-colors duration-150 focus-ring">Breakdown</a>
+            <a href={`#${SECTION_IDS.compass}`} className="hover:text-text-primary transition-colors duration-150 focus-ring">Compass</a>
+          </nav>
         </FadeInSection>
 
-        {/* 1. Archetype hero — with mini radar, no compass */}
+        {/* 1. Archetype panel */}
         <FadeInSection delay={200}>
-        <section id={SECTION_IDS.archetype} className="bg-surface-2 rounded-sharp p-6">
-          <ArchetypeCard
-            primary={{
-              id: archetype.primary.id,
-              name: archetype.primary.name,
-              matchPercentage: archetype.primary.matchPercentage,
-              summary: archetype.primary.summary,
-              description: archetype.primary.description,
-              tension: archetype.primary.tension,
-              prototype: archetype.primary.prototype,
-            }}
-            secondary={{
-              name: archetype.secondary.name,
-              matchPercentage: archetype.secondary.matchPercentage,
-              summary: archetype.secondary.summary,
-            }}
-            isBlended={archetype.isBlended}
-            isDistinctive={archetype.isDistinctive}
-            userScores={axisData.map((a) => a.finalScore)}
-          />
-
-          {/* Action bar */}
-          <div className="flex flex-wrap items-center gap-2 mt-5">
-            <CopyLinkButton />
-            {/* Save to account hidden for v1 */}
-            {encoded && <CompareInput myEncoded={encoded} />}
-          </div>
-        </section>
+          <section id={SECTION_IDS.archetype} className={`${PANEL} p-[26px] mt-8`}>
+            <ArchetypeCard
+              primary={archetype.primary}
+              secondary={archetype.secondary}
+              isBlended={archetype.isBlended}
+              isDistinctive={archetype.isDistinctive}
+              userScores={axisData}
+              actions={
+                <>
+                  <CopyLinkButton />
+                  {/* Save to account hidden for v1 */}
+                  {encoded && <CompareInput myEncoded={encoded} />}
+                </>
+              }
+            />
+          </section>
         </FadeInSection>
 
-        {/* 2. Radar section */}
+        {/* 2. Radar */}
         <FadeInSection>
-        <section id={SECTION_IDS.radar}>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-            Full profile
-          </p>
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
-            12-axis radar
-          </h2>
-          <p className="text-xs font-serif italic text-text-tertiary mb-4">
-            Each spoke runs from one governance pole (center) to its counterpart (perimeter). The midpoint ring is neutral. Colors group axes by domain.
-          </p>
-          <div className="bg-surface-2 rounded-sharp p-6">
-            <RadarChart axisScores={axisData} />
-          </div>
-        </section>
-        </FadeInSection>
-
-        {/* 3. Tension section */}
-        {tensionAxes.length > 0 && (
-          <FadeInSection>
-          <section id={SECTION_IDS.tensions}>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-              Detected tensions
-            </p>
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
-              Principles vs. priorities
-            </h2>
-            <p className="text-xs font-serif italic text-text-tertiary mb-4">
-              Tensions occur when your stated views and your budget choices pull in different directions. This is normal — and often where the most interesting self-knowledge lives.
-            </p>
-
-            <div className="space-y-3">
-              {tensionAxes.map((axis) => {
-                let narrative = "";
-                if (axis.tension.direction === "principles_B_but_budget_A") {
-                  narrative = `Your questionnaire responses lean toward ${axis.poleBLabel}, but your budget priorities suggest ${axis.poleALabel}.`;
-                } else if (axis.tension.direction === "principles_A_but_budget_B") {
-                  narrative = `Your questionnaire responses lean toward ${axis.poleALabel}, but your budget priorities suggest ${axis.poleBLabel}.`;
-                }
-
-                return (
-                  <div
-                    key={axis.axisId}
-                    className="bg-surface-1 rounded-sharp border border-border-secondary p-5"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-warning-bg text-warning-text">
-                        !
-                      </span>
-                      <span className="text-xs font-medium capitalize text-warning-text">
-                        {axis.tension.level} tension — {axis.name}
-                      </span>
-                    </div>
-                    {narrative && (
-                      <p className="text-[13px] text-text-secondary leading-relaxed">
-                        {narrative}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
+          <section id={SECTION_IDS.radar} className="mt-10">
+            <SectionHead
+              eyebrow="Full profile"
+              title="Twelve-axis radar"
+              caption="Each spoke runs from one governance pole at the centre to its counterpart at the perimeter. The dashed ring is neutral; colour groups the axes by domain."
+            />
+            <div className={`${PANEL} p-7 flex justify-center`}>
+              <RadarChart axisScores={axisData} />
             </div>
           </section>
-          </FadeInSection>
-        )}
+        </FadeInSection>
+
+        {/* 3. Tensions.
+            Rendered unconditionally, where the parent commit hid the whole
+            section when no tension was detected. The plan made the jump nav a
+            fixed five-item row and accepted that `Tensions` would then resolve
+            to nothing — but an inert item sitting in a rendered nav is not the
+            same as an unused `:target`: clicking it sets the hash, scrolls
+            nowhere and moves focus nowhere, and nothing distinguishes it from
+            the four links that work. The empty state also says something the
+            respondent wants to know. "Describe, don't prescribe": the absence
+            of tension is itself a result, not silence. */}
+        <FadeInSection>
+          <section id={SECTION_IDS.tensions} className="mt-10">
+            <SectionHead
+              eyebrow="Detected tensions"
+              title="Principles against priorities"
+              caption="A tension is recorded when stated views and budget choices pull in different directions. It is common, and often the most informative part of a profile."
+            />
+            {tensionAxes.length === 0 ? (
+              <div className={`${PANEL} px-[22px] py-5`}>
+                <p data-tension-empty className="body-s text-text-secondary">
+                  No tensions recorded: your stated views and budget priorities point the same way on all twelve axes.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tensionAxes.map((axis) => {
+                  // Exhaustive over TensionDirection, so the two arms cannot be
+                  // reached by a value the ladder does not describe. A drifted
+                  // direction used to fall through to "" and render a titled
+                  // panel with no explanation; a SWAPPED pair renders the exact
+                  // opposite of what the respondent answered, which is why both
+                  // arms are pinned by name in the suite.
+                  let narrative = "";
+                  if (axis.tension.direction === "principles_B_but_budget_A") {
+                    narrative = `Your questionnaire responses lean toward ${axis.poleBLabel}, but your budget priorities suggest ${axis.poleALabel}.`;
+                  } else if (axis.tension.direction === "principles_A_but_budget_B") {
+                    narrative = `Your questionnaire responses lean toward ${axis.poleALabel}, but your budget priorities suggest ${axis.poleBLabel}.`;
+                  }
+
+                  return (
+                    <div
+                      key={axis.axisId}
+                      data-tension-panel
+                      className={`${PANEL} border-l-2 border-l-warning px-[22px] py-5`}
+                    >
+                      <p data-tension-title className="label font-medium text-warning-text mb-1.5">
+                        {sentenceCase(axis.tension.level)} tension · {axis.name}
+                      </p>
+                      {narrative && (
+                        <p data-tension-narrative className="body-s text-text-secondary">
+                          {narrative}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </FadeInSection>
 
         {/* 4. Axis breakdown by domain */}
         <FadeInSection>
-        <section id={SECTION_IDS.breakdown}>
-          <div className="flex items-baseline justify-between mb-1">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary">
-              Axis breakdown
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowScoring((prev) => !prev)}
-              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors duration-150"
-            >
-              {showScoring ? "Hide scoring details" : "Show scoring details"}
-            </button>
-          </div>
-          <p className="text-xs font-serif italic text-text-tertiary mb-6">
-            Each axis scored from -1.0 to +1.0 between its two endpoints, weighted across your dilemma choices, scale responses, and budget allocation.
-          </p>
+          <section id={SECTION_IDS.breakdown} className="mt-10">
+            <div className="flex items-baseline justify-between gap-4 flex-wrap">
+              <h2 className="display-m text-text-primary mb-1.5">Axis breakdown</h2>
+              <Button
+                variant="tertiary"
+                data-scoring-toggle
+                onClick={() => setShowScoring((prev) => !prev)}
+              >
+                {showScoring ? "Hide scoring details" : "Show scoring details"}
+              </Button>
+            </div>
+            <p className="caption-italic max-w-[60ch] mb-[22px]">
+              Each axis is scored from −1.00 to +1.00 between its poles, weighted across dilemma choices, scale responses, and the budget allocation.
+            </p>
 
-          <div className="space-y-5">
-            {domains.map((domain) => (
-              <div key={domain.key}>
-                <div
-                  className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-2 mt-5 first:mt-0"
-                  style={{ color: domain.color600 }}
-                >
-                  {domain.name}
-                </div>
-                <div className="space-y-0">
-                  {domain.axes.map((axis, i) => (
-                    <AxisBreakdownCard
-                      key={axis.axisId}
-                      {...axis}
-                      alternateRow={i % 2 === 1}
-                      showScoring={showScoring}
-                    />
+            <div className="flex flex-col gap-[26px]">
+              {domains.map((domain) => (
+                <div key={domain.key}>
+                  <div
+                    data-domain-head
+                    className="border-t-2 pt-2.5 mb-1.5 flex items-baseline justify-between gap-3"
+                    style={{ borderTopColor: domain.mark }}
+                  >
+                    <p data-domain-name className="label font-medium" style={{ color: domain.mark }}>
+                      {domain.name}
+                    </p>
+                    <p data-domain-count className="mono-meta text-text-label">
+                      {domain.axes.length} axes
+                    </p>
+                  </div>
+                  {domain.axes.map((axis) => (
+                    <AxisBreakdownCard key={axis.axisId} {...axis} showScoring={showScoring} />
                   ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
         </FadeInSection>
 
-        {/* 3. Compass plot — de-emphasized, at the bottom */}
+        {/* 5. Compass plot */}
         <FadeInSection>
-        <section id={SECTION_IDS.compass}>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-1">
-            Two-dimensional summary
-          </p>
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
-            Compass plot
-          </h2>
-          <p className="text-xs font-serif italic text-text-tertiary mb-4">
-            A simplified projection onto two super-dimensions. The full 12-axis radar above is the primary output.
-          </p>
-          <div className="bg-surface-2 rounded-sharp p-6">
-            <CompassPlot
-              economic={compass.economic}
-              cultural={compass.cultural}
-              primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}
+          <section id={SECTION_IDS.compass} className="mt-10">
+            <SectionHead
+              eyebrow="Two-dimensional summary"
+              title="Compass plot"
+              caption="A simplified projection onto two super-dimensions. The twelve-axis radar above remains the primary output."
             />
-          </div>
-        </section>
+            <div className={`${PANEL} p-6 flex justify-center`}>
+              <CompassPlot
+                economic={compass.economic}
+                cultural={compass.cultural}
+                primaryArchetypeId={archetype.isDistinctive ? undefined : archetype.primary.id}
+              />
+            </div>
+          </section>
         </FadeInSection>
       </div>
     </main>

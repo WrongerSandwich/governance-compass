@@ -11,21 +11,30 @@
  * duplication started.
  */
 
+import type { AxisConfidence } from "./scoring-types";
+
 /** The governance compass has twelve axes. Both charts draw all twelve. */
 export const TOTAL_AXES = 12;
 
 /**
  * The subset of an axis score that a radar needs. `ResultsView` passes a
  * wider `AxisDisplayData`, which satisfies this structurally.
+ *
+ * No `domain`: both charts derive a spoke's domain from its `axisId` (see
+ * `getDomainForAxis`), which is also the only spelling that cannot disagree
+ * with the id — a caller is free to pass a domain string that names a
+ * different group, or no string at all.
  */
 export interface RadarAxisScore {
   axisId: number;
   name: string;
   poleALabel: string;
   poleBLabel: string;
-  domain: string;
   finalScore: number;
-  confidence: string;
+  /** The engine's union, matching its sibling on `AxisDisplayData`.
+   *  `RadarChart` prints this straight into its sr-only table, so a drifted
+   *  value is announced verbatim to a screen reader and to nobody else. */
+  confidence: AxisConfidence;
 }
 
 /**
@@ -110,7 +119,6 @@ export function normaliseByAxisId(
         name: `Axis ${axisId}`,
         poleALabel: "",
         poleBLabel: "",
-        domain: "",
         finalScore: 0,
         confidence: "low",
       }

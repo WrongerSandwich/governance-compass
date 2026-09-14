@@ -14,9 +14,19 @@ import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
 import { CompassPlot } from "@/components/results/CompassPlot";
 import { RadarChart } from "@/components/results/RadarChart";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
+import { ResultsView, type ResultsViewProps } from "@/components/results/ResultsView";
 import { getDomainMarkVar } from "@/lib/design-tokens";
+import {
+  AppRouterContext,
+  ROUTER_STUB,
+  installIntersectionObserverStub,
+} from "../helpers/client-component-env";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+// `ResultsView` wraps all six of its sections in `FadeInSection`, which
+// constructs an IntersectionObserver on mount.
+installIntersectionObserverStub();
 
 const mounted: { container: HTMLDivElement; root: Root }[] = [];
 
@@ -96,8 +106,13 @@ const AXIS = {
   tagline: "Where should decisions be made?",
   domain: "Power and Authority",
   finalScore: -0.5,
-  confidence: "high",
-  tension: { detected: false, level: "none", direction: null, narrative: null },
+  // `as const`: Task 10 narrowed the prop from `string` to the scoring
+  // engine's four-member union, so a widened `string` no longer compiles.
+  confidence: "high" as const,
+  // `level`, `direction` and `narrative` left the prop at Task 10 — the row
+  // only ever showed that a tension exists. The tension panels above it,
+  // which ResultsView draws, are where the grade and direction are spelled.
+  tension: { detected: false },
   // Axis 3 is a no-budget axis: weights are { fc: 0.60, sc: 0.40, bg: 0.00 }.
   // 0.60*(-0.6) + 0.40*(-0.35) + 0 = -0.50, matching finalScore exactly, and
   // bg: null reflects that this axis carries no budget signal (the Budget
@@ -154,7 +169,7 @@ describe("AxisBreakdownCard", () => {
     const container = render(
       createElement(AxisBreakdownCard, {
         ...AXIS,
-        tension: { detected: true, level: "moderate", direction: null, narrative: null },
+        tension: { detected: true },
       }),
     );
     const flag = container.querySelector("[data-axis-tension]");
@@ -450,6 +465,20 @@ describe("ComparisonScoreBar", () => {
   });
 });
 
+/** One `RadarAxisScore` for the mini radar. The chart reads `axisId` and
+ *  `finalScore`; the rest is the shape, not the subject. */
+const MINI_AXES = Array.from({ length: 12 }, (_, i) => i + 1);
+function miniAxis(axisId: number, finalScore: number) {
+  return {
+    axisId,
+    name: `Axis ${axisId}`,
+    poleALabel: `Pole A ${axisId}`,
+    poleBLabel: `Pole B ${axisId}`,
+    finalScore,
+    confidence: "high" as const,
+  };
+}
+
 describe("ArchetypeCard", () => {
   const ARCHETYPE = {
     primary: {
@@ -464,7 +493,10 @@ describe("ArchetypeCard", () => {
     secondary: { name: "The Communitarian Steward", matchPercentage: 61, summary: "" },
     isBlended: false,
     isDistinctive: false,
-    userScores: Array.from({ length: 12 }, () => -0.1),
+    // Carries `axisId`, not bare scores: `MiniRadar` normalises by id, the
+    // same way `RadarChart` does, so the user polygon and the fixed
+    // axis-1-through-12 prototype cannot drift against each other.
+    userScores: MINI_AXES.map((axisId) => miniAxis(axisId, -0.1)),
   };
 
   it("lays the panel out as text beside a 220px radar column", () => {
@@ -595,6 +627,34 @@ describe("ArchetypeCard", () => {
     expect(parse(container.querySelector("[data-mini-ring='mid']")!)[0]).toEqual([100, 60]);
   });
 
+  it("puts each axis on its own spoke, whatever order the caller built", () => {
+    // The half of Task 7's addendum D that Task 8 could not finish: the prop
+    // used to be a bare `number[]`, so vertex `i` was whatever the caller
+    // happened to put at index `i`. The two routes into ResultsView build
+    // their lists differently — scoring-pipeline order on /results, `axis.order`
+    // on /results/[profileId] — and agree only while `order === id` holds for
+    // every row of src/data/axes.ts. Reversed here, so a positional map lands
+    // axis 1 on vertex 11 and draws a plausible wrong polygon against the
+    // prototype this chart exists to compare it with.
+    const reversed = [...MINI_AXES].reverse().map((axisId) => miniAxis(axisId, axisId === 1 ? 1 : -1));
+    const container = render(
+      createElement(ArchetypeCard, { ...ARCHETYPE, userScores: reversed }),
+    );
+    const points = container
+      .querySelector("[data-mini-user]")!
+      .getAttribute("points")!
+      .split(" ")
+      .map((pair) => pair.split(",").map(Number));
+
+    // Axis 1 scores +1, so r = 80 — vertex 0, straight up from (100, 100).
+    expect(points[0][0]).toBeCloseTo(100, 6);
+    expect(points[0][1]).toBeCloseTo(20, 6);
+    // Every other axis scores -1, so r = 0: they all collapse on the centre.
+    for (const [x, y] of points.slice(1)) {
+      expect(Math.hypot(x - 100, y - 100)).toBeCloseTo(0, 6);
+    }
+  });
+
   it("still describes a distinctive profile without an archetype", () => {
     const container = render(
       createElement(ArchetypeCard, { ...ARCHETYPE, isDistinctive: true }),
@@ -611,7 +671,10 @@ describe("ArchetypeCard", () => {
     // the prototype alone is a tautology, and a short userScores reaches
     // miniRadarPoints unchecked and draws a plausible wrong polygon.
     const container = render(
-      createElement(ArchetypeCard, { ...ARCHETYPE, userScores: [0.1, -0.2, 0.3] }),
+      createElement(ArchetypeCard, {
+        ...ARCHETYPE,
+        userScores: [miniAxis(1, 0.1), miniAxis(2, -0.2), miniAxis(3, 0.3)],
+      }),
     );
 
     expect(container.querySelector("[data-mini-user]")).toBeNull();
@@ -641,7 +704,7 @@ describe("RadarChart", () => {
     poleBLabel: `Pole B ${i + 1}`,
     domain: "Economic Organization",
     finalScore: 0.2,
-    confidence: "high",
+    confidence: "high" as const,
   }));
 
   it("draws exactly one user polygon, off the stepping mark", () => {
@@ -1057,6 +1120,314 @@ describe("CompassPlot", () => {
   });
 });
 
+describe("ResultsView", () => {
+  const TENSION_BY_INDEX: Record<number, {
+    detected: true;
+    level: "moderate" | "strong";
+    direction: "principles_A_but_budget_B" | "principles_B_but_budget_A";
+  }> = {
+    4: { detected: true, level: "moderate", direction: "principles_A_but_budget_B" },
+    7: { detected: true, level: "strong", direction: "principles_B_but_budget_A" },
+  };
+
+  const AXES = Array.from({ length: 12 }, (_, i) => ({
+    axisId: i + 1,
+    name: `Axis ${i + 1}`,
+    poleALabel: `Pole A ${i + 1}`,
+    poleBLabel: `Pole B ${i + 1}`,
+    tagline: `Tagline ${i + 1}`,
+    domain: [
+      "Economic Organization", "Economic Organization",
+      "Power and Authority", "Power and Authority", "Power and Authority", "Power and Authority",
+      "Society and Identity", "Society and Identity", "Society and Identity",
+      "The State in the World", "The State in the World", "The State in the World",
+    ][i],
+    finalScore: 0.2,
+    // `as const` throughout, which the plan's fixture omitted: `confidence`,
+    // `tension.level` and `tension.direction` are all narrowed to the scoring
+    // engine's unions, and a widened `string` here would fail to compile.
+    confidence: "high" as const,
+    // TWO tension axes, with OPPOSITE directions. One is not enough: the two
+    // narrative arms are mirror images, so swapping their bodies leaves a
+    // single-direction fixture green while every panel on the page then tells
+    // the respondent the exact opposite of what they answered. Axis 5 is in
+    // the Power domain and axis 8 in Society, so the domain counts below are
+    // untouched by this.
+    tension: TENSION_BY_INDEX[i] ?? { detected: false as const, level: "none" as const, direction: null },
+    components: { fc: 0.2, sc: 0.2, bg: 0.2 },
+  }));
+
+  const PROPS = {
+    axisData: AXES,
+    compass: { economic: -0.4, cultural: 0.3 },
+    archetype: {
+      primary: {
+        id: "social-democrat",
+        name: "The Social Democrat",
+        matchPercentage: 74,
+        summary: "A summary.",
+        description: "A description.",
+        tension: "A tension.",
+        prototype: Array.from({ length: 12 }, () => 0.2),
+      },
+      // No `summary`: `ArchetypeCard` never read it and the prop is gone from
+      // both interfaces, so supplying one would be inventing a consumer.
+      secondary: { name: "The Communitarian Steward", matchPercentage: 61 },
+      isBlended: false,
+      isDistinctive: false,
+    },
+    encoded: "abc123",
+  };
+
+  /** The same respondent with every tension cleared. The interesting fixture:
+   *  it is the one under which the Tensions section used to disappear while
+   *  its jump link stayed. */
+  const NO_TENSION_PROPS = {
+    ...PROPS,
+    axisData: AXES.map((axis) => ({
+      ...axis,
+      tension: { detected: false as const, level: "none" as const, direction: null },
+    })),
+  };
+
+  const DISTINCTIVE_PROPS = {
+    ...PROPS,
+    archetype: { ...PROPS.archetype, isDistinctive: true },
+  };
+
+  /** `CompareInput` calls `useRouter`, which throws outright with no
+   *  `AppRouterContext` above it. The context is supplied rather than mocked:
+   *  this suite runs on `vmForks`, where a `vi.mock` of a module as widely
+   *  imported as `next/navigation` leaks into whichever file runs next. */
+  function renderView(props: ResultsViewProps = PROPS) {
+    return render(
+      createElement(
+        AppRouterContext.Provider,
+        { value: ROUTER_STUB },
+        createElement(ResultsView, props),
+      ),
+    );
+  }
+
+  it("caps the column at the mock's width and takes the nav's gutters", () => {
+    const container = renderView();
+    const main = container.querySelector("main")!;
+    const column = container.querySelector("[data-results-column]")!;
+
+    // max-w-results (820px), NOT max-w-3xl (768px) and not max-w-shell (1040px,
+    // which NavBar and Footer keep).
+    expect(classes(column)).toContain("max-w-results");
+    expect(classes(main)).toContain("px-[18px]");
+    expect(classes(main)).toContain("min-[560px]:px-7");
+  });
+
+  it("leads with the eyebrow, the archetype at display-page, and the match sub", () => {
+    const container = renderView();
+
+    // The e2e suite locates the page by this exact string.
+    expect(container.textContent).toContain("Assessment results");
+    const h1 = container.querySelector("h1")!;
+    expect(h1.textContent).toBe("The Social Democrat");
+    expect(classes(h1)).toContain("display-page");
+    expect(container.querySelector("[data-results-sub]")!.textContent).toBe(
+      "74% match — your compass across twelve axes.",
+    );
+  });
+
+  it("rules the jump nav above and below", () => {
+    const container = renderView();
+    const nav = container.querySelector("nav")!;
+
+    expect(classes(nav)).toContain("border-y");
+    expect(classes(nav)).toContain("border-border-secondary");
+    expect(classes(nav)).toContain("label-nav");
+    expect(nav.querySelectorAll("a")).toHaveLength(5);
+    // The page also renders NavBar's <nav>. Without a name this is a second,
+    // unnamed landmark of the same role — and `querySelector("nav")` in any
+    // future full-page test then reads whichever comes first in the DOM.
+    expect(nav.getAttribute("aria-label")).toBe("Page sections");
+  });
+
+  it("heads each domain group with a 2px rule in the domain's own colour", () => {
+    const container = renderView();
+    const groups = [...container.querySelectorAll("[data-domain-head]")] as HTMLElement[];
+
+    expect(groups).toHaveLength(4);
+    expect(groups[1].style.borderTopColor).toBe("var(--domain-power)");
+    expect(classes(groups[1])).toContain("border-t-2");
+    // The name takes the same mark, so it steps with the rule above it.
+    const name = groups[1].querySelector("[data-domain-name]") as HTMLElement;
+    expect(name.textContent).toBe("Power and Authority");
+    expect(name.style.color).toBe("var(--domain-power)");
+
+    // ALL FOUR counts, not just this group's. Asserting one leaves the other
+    // three free to lose a row: the twelve axes split 2/4/3/3, and a filter
+    // that silently drops one renders eleven plausible rows under four
+    // plausible headings.
+    expect(groups.map((g) => g.querySelector("[data-domain-count]")!.textContent)).toEqual([
+      "2 axes",
+      "4 axes",
+      "3 axes",
+      "3 axes",
+    ]);
+    expect(groups.map((g) => g.querySelector("[data-domain-name]")!.textContent)).toEqual([
+      "Economic Organization",
+      "Power and Authority",
+      "Society and Identity",
+      "The State in the World",
+    ]);
+  });
+
+  it("draws a tension as a warning-ruled panel, not a badge", () => {
+    const container = renderView();
+    const panels = [...container.querySelectorAll("[data-tension-panel]")];
+
+    expect(panels).toHaveLength(2);
+    // Delta 04: a 2px domain-or-warning colour on a callout's left edge.
+    expect(classes(panels[0])).toContain("border-l-2");
+    expect(classes(panels[0])).toContain("border-l-warning");
+    // Capitalised in JS, not by a `capitalize` class over the `label` role:
+    // `text-transform` leaves `textContent` alone, so a CSS-only capital is
+    // invisible to a screen reader and to a copy-paste.
+    expect(panels.map((p) => p.querySelector("[data-tension-title]")!.textContent)).toEqual([
+      "Moderate tension · Axis 5",
+      "Strong tension · Axis 8",
+    ]);
+    // The circled "!" glyph it replaced carried no information the title
+    // did not already carry. Scoped to the panel, not the whole page: the
+    // plan's `container.textContent` form also forbids `CopyLinkButton`'s
+    // "Copied!" state and every future exclamation anywhere on the results
+    // page, which is a tripwire for unrelated work rather than a guard.
+    expect(panels[0].textContent).not.toContain("!");
+  });
+
+  it("explains each tension in the direction the respondent actually answered", () => {
+    // The one assertion on this page whose failure mode is not cosmetic. The
+    // two narrative arms are mirror images of each other, so swapping their
+    // bodies compiles, renders, and tells every respondent with a tension the
+    // exact opposite of what they answered. Both directions are pinned by
+    // their pole names, which is the only thing that tells the arms apart.
+    const container = renderView();
+    const narratives = [...container.querySelectorAll("[data-tension-narrative]")].map(
+      (p) => p.textContent,
+    );
+
+    expect(narratives).toEqual([
+      // Axis 5, principles_A_but_budget_B: questionnaire toward A, budget B.
+      "Your questionnaire responses lean toward Pole A 5, but your budget priorities suggest Pole B 5.",
+      // Axis 8, principles_B_but_budget_A: the mirror. If this reads "Pole A 8
+      // ... Pole B 8", the two arms have been swapped.
+      "Your questionnaire responses lean toward Pole B 8, but your budget priorities suggest Pole A 8.",
+    ]);
+  });
+
+  it("records the absence of tension rather than dropping the section", () => {
+    const container = renderView(NO_TENSION_PROPS);
+
+    expect(container.querySelectorAll("[data-tension-panel]")).toHaveLength(0);
+    // The section still exists, so its jump link still resolves — see the
+    // anchor test below, which is what this exists to keep honest.
+    expect(container.querySelector("#tensions")).not.toBeNull();
+    expect(container.querySelector("[data-tension-empty]")!.textContent).toBe(
+      "No tensions recorded: your stated views and budget priorities point the same way on all twelve axes.",
+    );
+  });
+
+  it("points every jump link at a section that is actually on the page", () => {
+    // `toHaveLength(5)` alone passes with a link aimed at an id that does not
+    // exist: clicking sets the hash, scrolls nowhere, moves focus nowhere, and
+    // nothing distinguishes it from the four that work.
+    for (const props of [PROPS, NO_TENSION_PROPS, DISTINCTIVE_PROPS]) {
+      const container = renderView(props);
+      const targets = [...container.querySelectorAll('nav a[href^="#"]')].map((a) =>
+        a.getAttribute("href")!.slice(1),
+      );
+
+      expect(targets).toEqual(["archetype", "radar", "tensions", "breakdown", "compass"]);
+      for (const id of targets) {
+        expect(container.querySelector(`#${id}`)).not.toBeNull();
+      }
+    }
+  });
+
+  it("layers every section panel on the raised surface", () => {
+    // Mock 7a's central move: content sits on surface-1 panels over the
+    // surface-3 page ground. `PANEL` is one shared string, so one drifted
+    // token restyles five sections at once and nothing else notices.
+    const container = renderView();
+    const panels = [
+      container.querySelector("#archetype")!,
+      container.querySelector("#radar div")!,
+      container.querySelector("#compass div")!,
+      container.querySelector("[data-tension-panel]")!,
+    ];
+
+    for (const panel of panels) {
+      expect(classes(panel)).toContain("bg-surface-1");
+      expect(classes(panel)).toContain("border-border-secondary");
+      expect(classes(panel)).toContain("rounded-sharp");
+    }
+  });
+
+  it("tells a distinctive respondent there is no match, and marks no archetype", () => {
+    const container = renderView(DISTINCTIVE_PROPS);
+
+    expect(container.querySelector("h1")!.textContent).toBe("A distinctive profile");
+    expect(container.querySelector("[data-results-sub]")!.textContent).toBe(
+      "Your positions don't map to a single governance philosophy — nearest match is The Social Democrat at 74%.",
+    );
+
+    // The branch that matters. `primaryArchetypeId` is passed as `undefined`
+    // on this branch, which is what stops CompassPlot emphasising one of its
+    // twelve reference marks — at 0.75 opacity and r=3 against the others'
+    // 0.4 and r=2. Passing it unconditionally gives the compass a primary
+    // archetype mark for exactly the respondents the copy has just told there
+    // is no such match, and every other assertion on the page still passes.
+    const marks = [...container.querySelectorAll("[data-compass-archetype]")];
+    expect(marks).toHaveLength(12);
+    expect(marks.filter((g) => g.getAttribute("opacity") === "0.75")).toHaveLength(0);
+
+    // The control: the same page for a matched respondent emphasises exactly
+    // one, so the assertion above cannot pass by the marks having gone away.
+    const matched = renderView();
+    expect(
+      [...matched.querySelectorAll("[data-compass-archetype]")].filter(
+        (g) => g.getAttribute("opacity") === "0.75",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("hands the copy and compare controls to the archetype panel", () => {
+    const container = renderView();
+    const grid = container.querySelector("[data-archetype-grid]")!;
+
+    // Mock 7a draws them inside the panel; they used to sit in a bar below it.
+    // The e2e suite drives both by accessible name.
+    expect(grid.textContent).toContain("Copy link");
+    expect(grid.textContent).toContain("Compare with someone");
+  });
+
+  it("toggles the scoring disclosures for every row at once", () => {
+    const container = renderView();
+    const toggle = container.querySelector("[data-scoring-toggle]") as HTMLButtonElement;
+
+    // Every axis has a row before the toggle is touched. `aria-expanded` alone
+    // is a lower bound that still holds at eleven rows, because the archetype
+    // panel's own disclosure makes up the twelfth — so an axis can vanish from
+    // the breakdown with this test green.
+    expect(container.querySelectorAll("[data-axis-row]")).toHaveLength(12);
+
+    expect(container.textContent).not.toContain("See how this was scored");
+    act(() => toggle.click());
+    expect(container.querySelectorAll("[data-axis-row]")).toHaveLength(12);
+    expect(
+      [...container.querySelectorAll("[data-axis-row]")].filter(
+        (row) => row.parentElement!.textContent!.includes("See how this was scored"),
+      ),
+    ).toHaveLength(12);
+  });
+});
+
 describe("results chrome drift guards", () => {
   it("keeps the migrated results components off the sub-AA tertiary token", () => {
     // Stone 500 measures 3.28:1 on the card ground — under AA for small text.
@@ -1073,8 +1444,9 @@ describe("results chrome drift guards", () => {
       .map(({ name }) => name)
       .sort();
 
-    // Shrinks to [] at Task 10, which owns ResultsView.tsx.
-    expect(offenders).toEqual(["ResultsView.tsx"]);
+    // Shrank to [] at Task 10, which rewrote ResultsView.tsx — the last file
+    // in the directory still on the token, at 12 occurrences.
+    expect(offenders).toEqual([]);
   });
 
   it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {

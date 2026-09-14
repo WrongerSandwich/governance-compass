@@ -24,7 +24,6 @@ const axis = (axisId: number, finalScore: number): RadarAxisScore => ({
   name: `Axis ${axisId}`,
   poleALabel: `A${axisId}`,
   poleBLabel: `B${axisId}`,
-  domain: "Economic Organization",
   finalScore,
   confidence: "high",
 });
