@@ -899,19 +899,30 @@ describe("/archetypes entries", () => {
     const container = render(createElement(ArchetypesPage));
 
     const entry = container.querySelector("[data-archetype-entry]")!;
-    const leadIns = Array.from(entry.querySelectorAll("em")).map((el) => el.textContent);
+    const leadIns = Array.from(entry.querySelectorAll("em[data-lead-in]"));
 
     // Issue #136's "the one thing not to redesign". Turning these into mono
     // labels turns a reference into a spec sheet, and nothing else in this
     // file would fail if someone did.
-    expect(leadIns).toContain("Internal tension.");
-    expect(leadIns).toContain("Traditions.");
-    for (const em of entry.querySelectorAll("em")) {
+    expect(leadIns.map((el) => el.textContent)).toEqual([
+      "Internal tension.",
+      "Traditions.",
+    ]);
+    for (const em of leadIns) {
       expect(classes(em)).toContain("font-serif");
       expect(classes(em)).toContain("italic");
       expect(classes(em)).not.toContain("label");
       expect(classes(em)).not.toContain("label-nav");
     }
+
+    // Selecting every `em` in the entry instead would sweep in a different
+    // device: markdown emphasis inside the traditions prose. The first entry
+    // italicises `*Ujamaa*`, a Swahili term inside sans body copy, which
+    // `TraditionsProse` renders sans on purpose. Asserting `font-serif` over
+    // that set reds the suite on correct markup.
+    const bodyEm = Array.from(entry.querySelectorAll("em:not([data-lead-in])"));
+    expect(bodyEm.length).toBeGreaterThan(0);
+    expect(classes(bodyEm[0])).not.toContain("font-serif");
   });
 
   it("labels the axis-position disclosure in mono", () => {
@@ -1057,7 +1068,7 @@ with:
               </p>
 
               <p className="body-s text-text-secondary mb-3">
-                <em className="font-serif italic text-text-primary">Internal tension.</em>{" "}
+                <em data-lead-in className="font-serif italic text-text-primary">Internal tension.</em>{" "}
                 {archetype.characteristicTension}
               </p>
 
@@ -1065,7 +1076,7 @@ with:
                 traditions={archetype.traditions}
                 leadIn={
                   <>
-                    <em className="font-serif italic text-text-primary">Traditions.</em>{" "}
+                    <em data-lead-in className="font-serif italic text-text-primary">Traditions.</em>{" "}
                   </>
                 }
               />
