@@ -277,7 +277,7 @@ export function ComparisonRadar({
               <text
                 x={tx} y={ty - 5}
                 textAnchor="middle" dominantBaseline="central"
-                fontSize={9} style={{ fill: "var(--text-tertiary)" }}
+                fontSize={9} style={{ fill: "var(--text-label)" }}
               >
                 {name}
               </text>
