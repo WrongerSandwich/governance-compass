@@ -59,14 +59,54 @@ export function scoreToRadius(score: number, maxRadius: number): number {
   return ((score + 1) / 2) * maxRadius;
 }
 
-/** Polar to cartesian about (`cx`, `cy`). */
+/**
+ * Decimal places every coordinate this module emits is rounded to.
+ *
+ * Node and Chromium do not agree to the last bit on `Math.sin`/`Math.cos` —
+ * neither is required by ECMA-262 to be correctly rounded, and the two ship
+ * different ports of the underlying routine — so the server and the client
+ * compute vertices that differ in the ~14th significant digit. React's
+ * hydration pass compares the serialised attribute against the client value,
+ * finds `y="123.7231224733878"` against `y={123.72312247338783}`, and logs
+ * "some attributes of the server rendered HTML didn't match the client
+ * properties. This won't be patched up" — a console error on every load of
+ * /results/[profileId], for a disagreement of 3e-14 SVG units.
+ *
+ * Nine places discards a disagreement of that size with four orders of
+ * magnitude to spare, and is itself engine-independent: `toFixed` and numeric
+ * parsing are both exactly specified, so the same double rounds to the same
+ * string everywhere. It also stays far inside the 1e-6 tolerances the geometry
+ * tests assert, so the pinned `MiniRadar` vertices do not move.
+ *
+ * Rounding lives here rather than at each `points=`/`cx=`/`y=` site because
+ * every coordinate on both charts comes through `polarToCart`, and a helper a
+ * future call site can forget to apply is the exact duplication this module
+ * was extracted to end.
+ */
+export const COORD_PLACES = 9;
+
+/** Rounds one coordinate to `COORD_PLACES`. See the constant's note. */
+export function roundCoord(value: number): number {
+  return Number(value.toFixed(COORD_PLACES));
+}
+
+/**
+ * Polar to cartesian about (`cx`, `cy`), rounded to `COORD_PLACES`.
+ *
+ * The rounding is not cosmetic — see `COORD_PLACES`. It is what keeps the
+ * server's serialised SVG attribute byte-identical to the client's recomputed
+ * one.
+ */
 export function polarToCart(
   angle: number,
   radius: number,
   cx: number,
   cy: number,
 ): [number, number] {
-  return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+  return [
+    roundCoord(cx + radius * Math.cos(angle)),
+    roundCoord(cy + radius * Math.sin(angle)),
+  ];
 }
 
 /**
