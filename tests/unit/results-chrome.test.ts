@@ -1082,9 +1082,12 @@ describe("CompassPlot", () => {
     // [data-compass-moderate] and [data-compass-pulse] and expecting null -- is
     // an absence assertion on a hook that never existed. It passes against the
     // pre-task file, so it cannot tell "removed" from "never present", and it
-    // coins hooks that name nothing, against the hook convention at the top
-    // of this file (:103-108). These
-    // are positive and hold only after the removal.
+    // coins hooks that name nothing, against the hook convention at the top of
+    // this file. (No line number: the citation has gone stale twice already —
+    // Task 9 wrote it as :56-61, Task 11 re-derived it to :103-108 and the same
+    // commit's own docstrings displaced it again. The prose anchor survives any
+    // shift; the number is the only part that keeps rotting.) These are
+    // positive and hold only after the removal.
     //
     // One rect: the frame. Before this task there were six -- the frame, the
     // four quadrant tints and the dashed moderate-zone rect.
