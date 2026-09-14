@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import { DOMAIN_COLORS, DOMAIN_MARK_VARS, type DomainKey } from "@/lib/design-tokens";
+import { PageHeader } from "@/components/PageHeader";
+import { ReferenceCta } from "@/components/ReferenceCta";
 
 const DOMAINS = [
   {
@@ -110,34 +112,35 @@ const DOMAINS = [
 
 export default function AxesPage() {
   return (
-    <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-2xl">
-        <p className="mb-1">
-          <Link
-            href="/references"
-            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
-          >
-            ← Reference
-          </Link>
-        </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
-          The twelve axes
-        </h1>
-        <p className="text-sm text-text-secondary leading-relaxed mb-4">
-          The Governance Compass measures your political philosophy across twelve independent dimensions, organized into four domains. Each axis represents a genuine tension in how human societies can be organized &mdash; not a right answer and a wrong answer, but two defensible priorities that pull in different directions.
-        </p>
+    <main className="min-h-screen px-6 pt-11 pb-10">
+      <article className="mx-auto max-w-reference">
+        <PageHeader
+          kicker="← Reference"
+          kickerHref="/references"
+          title="The twelve axes"
+          lead={[
+            "The Governance Compass measures your political philosophy across twelve independent dimensions, organized into four domains. Each axis represents a genuine tension in how human societies can be organized — not a right answer and a wrong answer, but two defensible priorities that pull in different directions.",
+          ]}
+        />
 
-        <nav className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-tertiary mb-10" aria-label="Domain sections">
+        <nav
+          className="flex flex-wrap gap-x-4 gap-y-1 label-nav mt-6 mb-10"
+          aria-label="Domain sections"
+        >
           {(["economic", "power", "society", "world"] as DomainKey[]).map((key, i) => (
             <span key={key}>
               <a
                 href={`#${key}`}
-                className="hover:text-text-secondary transition-colors duration-150"
-                style={{ color: DOMAIN_COLORS[key][600] }}
+                className="no-underline hover:opacity-80 transition-opacity duration-150 focus-ring"
+                style={{ color: DOMAIN_MARK_VARS[key] }}
               >
                 {DOMAIN_COLORS[key].name}
               </a>
-              {i < 3 && <span className="ml-3 opacity-30">&middot;</span>}
+              {i < 3 && (
+                <span aria-hidden="true" className="ml-4 opacity-30">
+                  ·
+                </span>
+              )}
             </span>
           ))}
         </nav>
@@ -146,8 +149,9 @@ export default function AxesPage() {
           {DOMAINS.map((domain) => (
             <section key={domain.key} id={domain.key}>
               <h2
-                className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-6"
-                style={{ color: DOMAIN_COLORS[domain.key][600] }}
+                data-domain-head
+                className="label font-medium border-b border-border-secondary pb-2 mb-6"
+                style={{ color: DOMAIN_MARK_VARS[domain.key] }}
               >
                 {DOMAIN_COLORS[domain.key].name}
               </h2>
@@ -155,17 +159,15 @@ export default function AxesPage() {
               <div className="space-y-10">
                 {domain.axes.map((axis) => (
                   <div key={axis.name}>
-                    <h3 className="text-[17px] font-serif font-medium text-text-primary mb-1">
-                      {axis.name}
-                    </h3>
-                    <p className="text-xs font-serif italic text-text-tertiary mb-4">
+                    <h3 className="display-s text-text-primary mb-1">{axis.name}</h3>
+                    <p data-axis-question className="caption-italic mb-4">
                       {axis.question}
                     </p>
-                    <div className="space-y-3 text-sm text-text-secondary leading-relaxed">
+                    <div className="space-y-3 body-s text-text-secondary">
                       <p>{axis.poleA}</p>
                       <p>{axis.poleB}</p>
                       {axis.note && (
-                        <p className="text-xs text-text-tertiary leading-relaxed border-l-2 border-border-secondary pl-3">
+                        <p className="text-xs leading-relaxed text-text-secondary border-l-2 border-border-secondary pl-3">
                           {axis.note}
                         </p>
                       )}
@@ -177,22 +179,17 @@ export default function AxesPage() {
           ))}
         </div>
 
-        <div className="border-t border-border-secondary mt-12 pt-6">
-          <div className="text-center">
+        <ReferenceCta
+          label="Take the assessment"
+          secondary={
             <Link
-              href="/quiz"
-              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+              href="/methodology"
+              className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
             >
-              Take the assessment
+              or read the methodology
             </Link>
-            <p className="mt-3 text-xs text-text-tertiary">
-              or{" "}
-              <Link href="/methodology" className="hover:text-text-secondary transition-colors duration-150">
-                read the methodology
-              </Link>
-            </p>
-          </div>
-        </div>
+          }
+        />
       </article>
     </main>
   );

@@ -12,6 +12,8 @@ import { ReferenceCta } from "@/components/ReferenceCta";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
 import ReferencesPage from "@/app/references/page";
 import MethodologyPage from "@/app/methodology/page";
+import AxesPage from "@/app/axes/page";
+import { DOMAIN_MARK_VARS } from "@/lib/design-tokens";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -237,5 +239,49 @@ describe("/methodology", () => {
     expect(classes(nav)).toContain("label-nav");
     expect(classes(nav)).toContain("text-text-label");
     expect(classes(nav)).not.toContain("text-text-tertiary");
+  });
+});
+
+describe("/axes", () => {
+  it("opens on the shared header with a back-link kicker", () => {
+    const container = render(createElement(AxesPage));
+
+    const link = container.querySelector("[data-page-kicker] a")!;
+    expect(link.getAttribute("href")).toBe("/references");
+    expect(classes(container.querySelector("h1")!)).toContain("display-page");
+  });
+
+  it("draws every domain mark off the stepping token, not a fixed hex", () => {
+    const container = render(createElement(AxesPage));
+
+    const heads = container.querySelectorAll<HTMLElement>("[data-domain-head]");
+    expect(heads.length).toBe(4);
+    const used = Array.from(heads).map((el) => el.style.color);
+
+    // A fixed hex renders the same in both modes, so a dark-ground check is
+    // the only thing that would otherwise catch this — and there isn't one.
+    expect(used).toEqual(Object.values(DOMAIN_MARK_VARS));
+    for (const value of used) expect(value).not.toMatch(/#[0-9a-f]{6}/i);
+  });
+
+  it("sets axis names at the small display size and their questions in the caption role", () => {
+    const container = render(createElement(AxesPage));
+
+    const h3 = container.querySelector("h3")!;
+    expect(classes(h3)).toContain("display-s");
+
+    const question = container.querySelector("[data-axis-question]")!;
+    expect(classes(question)).toContain("caption-italic");
+    // `caption-italic` declares its own colour; layering one beside it makes
+    // the rendered value depend on Tailwind's emitted order.
+    expect(classes(question).some((c) => c.startsWith("text-text-"))).toBe(false);
+  });
+
+  it("routes its CTA through the primary button", () => {
+    const container = render(createElement(AxesPage));
+
+    const cta = container.querySelector("[data-reference-cta] a")!;
+    expect(classes(cta)).toContain("bg-button-primary");
+    expect(classes(cta)).not.toContain("bg-stone-600");
   });
 });
