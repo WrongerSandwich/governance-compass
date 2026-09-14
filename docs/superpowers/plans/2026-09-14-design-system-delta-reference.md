@@ -512,7 +512,7 @@ export function ReferenceCta({ label = "Begin the assessment", secondary }: Refe
 npx vitest run tests/unit/reference-chrome.test.ts
 ```
 
-Expected: PASS, 11 tests.
+Expected: PASS, 10 tests.
 
 - [ ] **Step 6: Commit**
 
