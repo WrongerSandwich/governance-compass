@@ -46,7 +46,9 @@ Phases 1 (#132, PR #140), 2 (#133, PR #143), 3 (#134, PR #145) and 4 (#135, PR #
 
 Continuing phase 4's numbering (D8–D15 live in that plan).
 
-**D16 — Error text joins the warning family.** Six sites spell their error state `text-red-600`. There is no error token and the spec permits no third hue, so adding `--danger` is out. They move to `text-warning-text`, whose declared role — "caution states" — covers them. This is a real semantic compression: an error is not an advisory. It is acceptable because *the hue was never what carried the severity* — every one of these six sites already has `role="alert"` or sits inside an `aria-live` region, and those are what an assistive-technology user acts on. A sighted user reading amber-on-cream still sees a marked, non-body-coloured string in the place an error goes. Recorded rather than quietly swapped, because "we turned the error message the same colour as the spoiler notice" is a sentence someone will want the reasoning for.
+**D16 — Error text joins the warning family.** Six sites spell their error state `text-red-600`. There is no error token and the spec permits no third hue, so adding `--danger` is out. They move to `text-warning-text`, whose declared role — "caution states" — covers them. This is a real semantic compression: an error is not an advisory. It is acceptable because *the hue was never what carried the severity* — what an assistive-technology user acts on is `role="alert"` or an enclosing `aria-live` region, not the colour. A sighted user reading amber-on-cream still sees a marked, non-body-coloured string in the place an error goes. Recorded rather than quietly swapped, because "we turned the error message the same colour as the spoiler notice" is a sentence someone will want the reasoning for.
+
+**D16, amended after implementation.** This decision originally asserted that *every one of the six sites already has* `role="alert"` *or sits inside an* `aria-live` *region*. That was checked against three of them and generalised to six, and it was false at the other three: `/groups/[groupId]`, `/auth/signin` and `/auth/signup` had neither. Swapping the hue at those sites would have removed the only cue a sighted user had and supplied nothing in its place — the argument for the swap was load-bearing on a premise that did not hold. `role="alert"` was added at all three as part of Task 10's and Task 11's colour swap, so the decision is now true of the code rather than merely asserted about it, and two tests pin the pairing going forward (`group-chrome`'s *marks the error state with role=alert since this site had no live region before* and `account-actions`' *pairs every warning-ink error message with an alert role or a live region*). The lesson generalises past this decision: a premise of the form "every site already does X" is a claim about six files, and writing it down is not the same as opening them.
 
 **D17 — The four page widths all become tokens.** Phase 4 left this open. `--container-shell` (1040) and `--container-results` (820) exist; this phase adds `--container-reference` (660, mock 7c) and `--container-quiz` (672, the current `max-w-2xl`). Four widths, four tokens, no literals. The quiz swap is value-identical (`max-w-2xl` is 672px) so it is a rename, not a restyle, and it does not reopen phase 3.
 
@@ -915,12 +917,17 @@ describe("/archetypes entries", () => {
       expect(classes(em)).not.toContain("label-nav");
     }
 
-    // Selecting every `em` instead would sweep in a different device:
-    // markdown emphasis inside the traditions prose. Five of the twelve
-    // entries italicise a term that way — `*Ujamaa*`, `*Rerum Novarum*`,
-    // `*Neue Mitte*` — and `TraditionsProse` renders those sans on purpose.
-    // Scope to the band, not the page: `SpoilerNote` in the header renders a
-    // serif `em` of its own that carries no `data-lead-in`.
+    // Selecting every `em` instead would sweep in a different device: markdown
+    // emphasis inside the traditions prose. `popular-egalitarian` italicises
+    // `*Ujamaa*`, `social-democrat` `*ostpolitik*` — foreign terms inside sans
+    // body copy, which `TraditionsProse` renders sans on purpose. Asserting
+    // `font-serif` over that set reds the suite on correct markup.
+    //
+    // Scoped to the band rather than to the first entry: `radical-egalitarian`
+    // leads the display order and its traditions carry links only, no emphasis
+    // at all. Scoped to the band rather than the page for the opposite reason —
+    // `SpoilerNote` in the header renders its own serif italic lead-in, which
+    // is a lead-in and not markdown emphasis.
     const bodyEm = Array.from(
       container.querySelectorAll("[data-archetypes-band] em:not([data-lead-in])"),
     );
@@ -951,6 +958,8 @@ describe("/archetypes entries", () => {
   });
 });
 ```
+
+That comment took two corrections to get right, and both are worth keeping because each is a different way of being wrong about the same five lines of data. The first draft looped every `em` in the entry and asserted `font-serif` on each, which reds on *correct* markup: five of the twelve entries carry markdown emphasis inside their traditions prose. The second scoped the negative half to the **first** entry and said that entry italicises `*Ujamaa*` — it does not. `radical-egalitarian` leads the display order and its traditions carry links only, no emphasis at all; `*Ujamaa*` belongs to `popular-egalitarian` at display order 2. Scoping to `[data-archetypes-band]` is what shipped, and it is the only scope that is simultaneously wide enough to be sure of finding emphasis somewhere and narrow enough to exclude `SpoilerNote`'s serif `em` up in the header.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
@@ -1170,7 +1179,7 @@ Three things changed inside the disclosure beyond the token swaps, and each is d
 npx vitest run tests/unit/archetypes-page.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 22 tests; clean typecheck; clean lint. If lint still reports an unused binding, it is `numberFor` or `EmergenceGlyph` — both are used above, so a report means the edit landed in the wrong place.
+Expected: PASS, **21 tests** (Task 3's 6 plus the 15 above); clean typecheck; clean lint. Step 7 adds the 22nd. If lint still reports an unused binding, it is `numberFor` or `EmergenceGlyph` — both are used above, so a report means the edit landed in the wrong place. (`numberFor` did not survive the phase: review found it had become an identity map over the flat index, and deleted it. See "Review fixes" below.)
 
 - [ ] **Step 6: Commit**
 
@@ -1334,19 +1343,41 @@ import { ReferenceCta } from "@/components/ReferenceCta";
 npx vitest run tests/unit/archetypes-page.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 21 tests; clean typecheck and lint.
+Expected: PASS, **25 tests** (22 after Task 4, plus the three above); clean typecheck and lint. The file finishes the phase at 28, the last three arriving with the review fixes recorded below.
 
 - [ ] **Step 5: Re-point the `:target` highlight**
 
-Issue #136 names this explicitly, and Task 4 broke it. `src/app/globals.css:311-318` carries two rules — `.archetype-entry:target` and `.archetype-entry:target::before` — and Task 4 replaced that class with a `data-archetype-entry` attribute, so both selectors now match nothing. Rewrite the two selectors to `[data-archetype-entry]:target` and `[data-archetype-entry]:target::before`, changing the declaration bodies not at all.
+Issue #136 names this explicitly, and Task 4 broke it. `src/app/globals.css:311-318` carries two rules — `.archetype-entry:target` and `.archetype-entry:target::before` — and Task 4 replaced that class with a `data-archetype-entry` attribute, so both selectors now match nothing. This is the failure mode the phase-4 constraint about silence was written for: a dead `:target` rule throws nothing, logs nothing, and leaves the page rendering correctly in every respect except the one the issue asked about.
 
-This is the failure mode the phase-4 constraint about silence was written for: a dead `:target` rule throws nothing, logs nothing, and leaves the page rendering correctly in every respect except the one the issue asked about. Confirm by hand in Task 14 Step 2 — load `/archetypes#<some-archetype-id>` and check the highlight paints.
+**What this step originally said, and why it was not enough.** The instruction was to rewrite the two selectors to `[data-archetype-entry]:target` and `[data-archetype-entry]:target::before`, "changing the declaration bodies not at all". That shipped, and it was wrong — not wrong as a rename, but wrong because the rename was the smaller half of the problem. The declaration body was written when the highlighted element was a `px-4` section *inside* a 660px `<article>`, so `position: relative` on the section made the section the positioning context and `left: 0` landed on the prose edge. Task 4 made that same section full-bleed. The rule still matched, still painted, and still animated — it just painted its 2px rail at the viewport edge, roughly 390px left of the entry it was marking on a 1440px viewport. A rename verified by `grep` cannot see that; only loading the page can.
+
+The rail has to ride the element that defines the measure, which after D18 is the inner column, not the row. What shipped:
+
+```css
+[data-archetype-entry]:target [data-entry-inner] {
+  position: relative;
+}
+[data-archetype-entry]:target [data-entry-inner]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--mark-primary);
+  animation: archetype-target-fade 2s ease-out forwards;
+}
+```
+
+Two things changed beyond the selector. The descendant `[data-entry-inner]` moves both the positioning context and the pseudo-element onto the 660px column. And `background` moves from `var(--stone-600)` to `var(--mark-primary)`: Task 4 Step 7 swept this page's marks onto the stepping token but reached only the JSX, so the deep-link rail was left as the one mark on the page that stayed a fixed brown on a dark ground.
+
+The generalisable lesson, which is why this step is written out rather than just corrected: **a selector rename is only safe when nothing about the element it selects has moved.** Task 4 had changed the element's box from a capped child to a full-bleed parent in the same phase, two tasks earlier, and the rename step did not look at the declaration body at all because the instruction told it not to.
 
 ```bash
 grep -n "archetype-entry" src/app/globals.css
 ```
 
-Expected after the edit: two hits, both spelled `[data-archetype-entry]:target`, and none spelled `.archetype-entry`.
+Expected after the edit: two hits, both spelled `[data-archetype-entry]:target [data-entry-inner]`, and none spelled `.archetype-entry`. Confirm by hand in Task 14 Step 2 — load `/archetypes#<some-archetype-id>` and check the rail paints **against the prose**, not at the window edge. That last clause is the whole check; "the highlight paints" was the check as originally written, and the defect satisfied it.
 
 - [ ] **Step 6: Commit**
 
@@ -1542,7 +1573,7 @@ The `Ready to see where you stand?` line above the old button goes. `ReferenceCt
 npx vitest run tests/unit/reference-chrome.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 17 tests; clean typecheck and lint.
+Expected: PASS, **16 tests** (Task 2's 10 plus the 6 above); clean typecheck and lint.
 
 - [ ] **Step 6: Commit**
 
@@ -1714,7 +1745,7 @@ Update the imports: add `PageHeader`, `ReferenceCta`, and `DOMAIN_MARK_VARS` fro
 npx vitest run tests/unit/reference-chrome.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 21 tests; clean typecheck and lint.
+Expected: PASS, **20 tests**; clean typecheck and lint.
 
 - [ ] **Step 5: Commit**
 
@@ -1937,7 +1968,7 @@ Add `PageHeader`, `SpoilerNote`, `ReferenceCta` and `DOMAIN_MARK_VARS` to the im
 npx vitest run tests/unit/reference-chrome.test.ts && npm run typecheck && npm run lint
 ```
 
-Expected: PASS, 26 tests; clean typecheck and lint.
+Expected: PASS, **27 tests**; clean typecheck and lint. Twenty-five of those are this plan's — Task 7 left the file at 20 and the five above bring it to 25 — and two more arrived in between with the `/archetypes` review fixes recorded below, which touched `ReferenceCta` and therefore this file. `reference-chrome` ends the phase at 27.
 
 - [ ] **Step 7: Commit**
 
@@ -2287,8 +2318,11 @@ const SPREAD_SURFACES = [
 ] as const;
 
 function spreadSurface(spread: number): string {
-  if (spread < 0.4) return SPREAD_SURFACES[0];
-  if (spread < 1.0) return SPREAD_SURFACES[1];
+  // Spread on [0, 2.0]; map to intensity, same arithmetic as the old
+  // stone-ramp version — the cuts are on intensity, not raw spread.
+  const intensity = Math.min(spread / 2.0, 1);
+  if (intensity < 0.3) return SPREAD_SURFACES[0];
+  if (intensity < 0.6) return SPREAD_SURFACES[1];
   return SPREAD_SURFACES[2];
 }
 ```
@@ -2301,7 +2335,11 @@ and at the cell, replace the `className={...}` ternary with:
             style={{ backgroundColor: spreadSurface(stat.spread) }}
 ```
 
-Keep whatever padding, sizing and rounding classes the cell already carries; only the colour pair moves. Preserve the existing threshold values — read them off the ternary being replaced and carry them across unchanged. The bands above use `< 0.4` and `< 1.0` as placeholders for whatever the file already has; if they differ, the file wins and this task does not retune the chart.
+Keep whatever padding, sizing and rounding classes the cell already carries; only the colour pair moves.
+
+The threshold values above are the ones that shipped, and they are not what a first reading of this task would produce. The first draft of this step wrote `< 0.4` and `< 1.0` against raw `spread`, flagged as placeholders with the instruction that the file wins. The file did win: the original ternary computes `const intensity = Math.min(spread / 2.0, 1)` first and cuts at `0.3` / `0.6` on **intensity**, which is raw spread of `0.6` and `1.2` — so the placeholders were not merely approximate, they cut in the wrong place, and a chart retuned by a third would have looked entirely plausible. Carrying the intensity step across rather than folding it into the comparisons is deliberate: it keeps the shipped arithmetic diff-identical to the version being replaced, so the change is provably a recolour and nothing else.
+
+That is also why the shipped spec carries a third `GroupHeatMap` case the block above does not — *preserves the original intensity cut points, tested on raw spread* — which renders at `0.59`/`0.6` and `1.19`/`1.2` and asserts the band changes across each boundary. The two cases above check that the ramp is gone and that the bands still differ; neither would have caught a retune.
 
 - [ ] **Step 4: Sweep the group page**
 
@@ -2557,7 +2595,7 @@ The `Math.cos`/`Math.sin` ban has one known exception in the codebase — `Radar
 npx vitest run tests/unit/radar-geometry.test.ts -t "one home"
 ```
 
-Expected: FAIL — three files listed with their own `polarToCart`.
+Expected: FAIL — but **two** files, not three, and both reported as `scoreToRadius` rather than `polarToCart`. The offender list prints `match[0]`, which is the regex's *first* hit in the file, and `ComparisonRadar` and `GroupRadar` both declare `scoreToRadius` above `polarToCart`. The archetype page's copy does not appear in this case's output at all: its helper is named `radarPoints` with the trig inlined, so the `function (?:polarToCart|…)` alternation misses it and it is caught instead by the `Math.cos`/`Math.sin` ban two cases below. Three components carry the duplication; one guard sees two of them and a different guard sees the third. Worth knowing before reading a two-line failure as evidence that only two needed migrating.
 
 - [ ] **Step 3: Migrate `ComparisonRadar`**
 
@@ -2643,7 +2681,9 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
 
 The stroke widths and the dropped `opacity` attributes are mock 7c's — it draws `stroke-width="0.6"` / `"0.5"` with no opacity, where the shipped version carried `0.5`/`0.4` under `opacity={0.6}`/`{0.35}`. The fill moves from `var(--stone-600)` to `var(--mark-primary)`, which is the same value in light mode and steps to Stone 400 in dark.
 
-Also change `EmergenceGlyph`'s `style={{ color: "var(--stone-600)" }}` to `className="text-mark-primary"`, dropping the inline style.
+One attribute went with them that the prose above does not account for: the data polygon's `strokeOpacity={0.6}`. The block is the authority here and the block does not carry it, so the prototype shape now strokes at full opacity. Whether that is 7c's intent or an accident of transcription is unresolved — the prose names only the *rings'* dropped `opacity`, and no test covers the shape's stroke either way. Recorded in "Deferred to later phases" as a thing to hold against the mock rather than silently ratified here.
+
+**This step's `EmergenceGlyph` instruction was correctly skipped.** It read: *change `EmergenceGlyph`'s `style={{ color: "var(--stone-600)" }}` to `className="text-mark-primary"`, dropping the inline style.* By the time Task 12 ran, that instruction described code that no longer existed. Task 4 Step 7 had already moved the glyph to `style={{ color: "var(--mark-primary)" }}` and pinned it with an assertion on the inline style (`expect(glyph.getAttribute("style")).toContain("var(--mark-primary)")`), and the review fixes recorded below had given the component a `name?: "short" | "none"` prop to control whether it contributes an accessible name. Following the instruction literally would have moved the colour to a class, redded that assertion, and traded a working inline style for a class — with no benefit, since the value was already the stepping token. The shipped form is the inline style with `--mark-primary`; the glyph is a `<span>` whose only styling is `color`, and the plan's preference for a class over an inline style was never a rule, just a leftover from when the value was `--stone-600`.
 
 - [ ] **Step 6: Sweep the home domain footer**
 
@@ -2795,7 +2835,21 @@ describe("phase 5 sweep holds (design delta D20)", () => {
 });
 ```
 
-`max-w-md` on the two auth panels and `max-w-xl` inside the radar SVGs are the known survivors of the last guard — `max-w-md` is a modal-ish card, not a page measure, and is not matched by the pattern. If `max-w-xl` inside `ComparisonRadar`/`GroupRadar` reds this guard, that is the guard working: those are SVG caps, so either exclude the two chart files from this one case with a named comment, or move them to an explicit `max-w-[576px]`. Pick the exclusion — renaming an SVG's cap to a literal trades one drift risk for another.
+`max-w-md` on the two auth panels and `max-w-xl` inside the radar SVGs are the known survivors of the last guard — `max-w-md` is a modal-ish card, not a page measure, and is not matched by the pattern.
+
+`max-w-xl` **did** red the guard, and the exclusion shipped. The two excluded files are `ComparisonRadar.tsx` and `GroupRadar.tsx`, and the exclusion is scoped to this one case by filename:
+
+```ts
+    // ComparisonRadar and GroupRadar are excluded from THIS case only. Their
+    // `max-w-xl` caps an `<svg>`, not a page measure, so it is not drift of
+    // the kind the width tokens exist to prevent — and minting a
+    // `max-w-radar` token to satisfy a text scan would trade this drift risk
+    // for a worse one: a chart cap that silently tracks a page measure.
+    // Both files remain subject to every other guard in this block.
+    const SVG_CAPPED = ["ComparisonRadar.tsx", "GroupRadar.tsx"];
+```
+
+The alternative — moving both to an explicit `max-w-[576px]` — was rejected for the reason given when the choice was posed: renaming an SVG's cap to a literal trades one drift risk for another, and a literal is the harder of the two to notice going stale.
 
 - [ ] **Step 2: Run the guards**
 
@@ -2809,20 +2863,51 @@ Expected: PASS. Any failure here is a site Tasks 3–12 missed; fix the site, no
 
 A source-scanning guard fails by passing vacuously — a typo'd path list, a regex that matches nothing, a `sourceFiles` call rooted somewhere empty — and a green run proves nothing until each guard has been shown to redden. Apply each mutation, run the named test, confirm it **fails**, then revert.
 
-| # | Mutation | Must redden |
-|---|---|---|
-| M1 | Restore `text-text-tertiary` on one class in `src/app/questions/page.tsx` | `keeps the sub-AA tertiary text token off every swept surface` |
-| M2 | Restore `text-stone-800` on one heading in `src/app/compare/[profileId1]/[profileId2]/page.tsx` | `keeps the frozen Stone ramp off every swept surface` |
-| M3 | Restore `text-red-600` on the error span in `AnnotationEditor.tsx` | `admits no hue outside Stone and the warning family` **and** `routes every error state through the warning ink` (Task 11) |
-| M4 | Restore `style={{ color: "#85735e" }}` on the budget heading in `/questions` | `admits no raw hex on a swept surface` |
-| M5 | Replace one `<Button variant="secondary">` in `/auth/signin` with a bare `<button>` and drop the import | `routes every swept control through the button primitive` |
-| M6 | Change `max-w-results` back to `max-w-3xl` in `src/app/compare/page.tsx` | `caps every swept page on a width token` **and** `holds the comparison column on the results measure` (Task 9) |
-| M7 | Empty the `SWEPT` list to `[]` | **All six** phase-5 guards. If any still passes on an empty list it is asserting nothing. |
-| M8 | Reintroduce `function polarToCart` in `GroupRadar.tsx` | `leaves no component with its own copy of the polar helpers` (Task 12) |
-| M9 | Re-point `SPREAD_SURFACES` so all three entries are `var(--surface-2)` | `keeps the three bands visually distinct from one another` (Task 10) |
-| M10 | Restore the deleted `Filled dot is you, ring marker is them.` sentence | `drops the legend sentence the per-readout swatches replaced` (Task 9) |
+| # | Mutation | Must redden | Result |
+|---|---|---|---|
+| M1 | Restore `text-text-tertiary` on one class in `src/app/questions/page.tsx` | `keeps the sub-AA tertiary text token off every swept surface` | Reddened, 1 failure |
+| M2 | Restore `text-stone-800` on one heading in `src/app/compare/[profileId1]/[profileId2]/page.tsx` | `keeps the frozen Stone ramp off every swept surface` | Reddened, 1 failure |
+| M3 | Restore `text-red-600` on the error span in `AnnotationEditor.tsx` | `admits no hue outside Stone and the warning family` **and** `routes every error state through the warning ink` (Task 11) | Reddened, 3 failures — both named, plus `leaves no red utility anywhere in src` |
+| M4 | Restore `style={{ color: "#85735e" }}` on the budget heading in `/questions` | `admits no raw hex on a swept surface` | Reddened, 2 failures — see the note below on why the second one only counts after a separate fix |
+| M5 | Replace one `<Button variant="secondary">` in `/auth/signin` with a bare `<button>` and drop the import | `routes every swept control through the button primitive` | Reddened, 1 failure |
+| M6 | Change `max-w-results` back to `max-w-3xl` in `src/app/compare/page.tsx` | `caps every swept page on a width token` **and** `holds the comparison column on the results measure` (Task 9) | Reddened, 2 failures |
+| M7 | Empty the `SWEPT` list to `[]` | **All six** phase-5 guards. If any still passes on an empty list it is asserting nothing. | **SURVIVED — 0 of 6.** Fixed; now 7 failures. See below. |
+| M8 | Reintroduce `function polarToCart` in `GroupRadar.tsx` | `leaves no component with its own copy of the polar helpers` (Task 12) | Reddened, 1 failure |
+| M9 | Re-point `SPREAD_SURFACES` so all three entries are `var(--surface-2)` | `keeps the three bands visually distinct from one another` (Task 10) | Reddened, 2 failures — plus `preserves the original intensity cut points` |
+| M10 | Restore the deleted `Filled dot is you, ring marker is them.` sentence | `drops the legend sentence the per-readout swatches replaced` (Task 9) | Reddened, 1 failure |
 
-M7 is the one that matters most and the one easiest to skip. A path list is the single point of failure for all six guards at once: if `SWEPT` names a directory that does not exist, `sourceFiles` throws and the suite is loudly red — but if it names one that exists and holds nothing relevant, every guard passes forever. Run M7 and confirm **six** failures, not five.
+M7 is the one that matters most and the one easiest to skip. A path list is the single point of failure for all six guards at once: if `SWEPT` names a directory that does not exist, `sourceFiles` throws and the suite is loudly red — but if it names one that exists and holds nothing relevant, every guard passes forever. The instruction as written was to run M7 and confirm **six** failures, not five.
+
+#### M7 survived, and it could not have done anything else
+
+This is the single most valuable result of the phase, so it is recorded at length rather than as a table cell.
+
+Emptying `SWEPT` to `[]` reddened **none** of the six guards. All six passed, in single-digit milliseconds, having read zero files. The reason is mechanical and it is visible in the shape every one of them shares:
+
+```ts
+const offenders = sweptSources().flatMap(({ file, text }) => /* … */);
+expect(offenders).toEqual([]);
+```
+
+`[].flatMap(fn)` is `[]`, and `expect([]).toEqual([])` passes. There is no arrangement of those six assertions under which an empty file list produces a failure — the expected outcome the step demanded was not merely unobserved, it was **unreachable**. A run that had gone looking for six failures and found zero would have been read as "the mutation did not apply"; a run that had not been done at all would have left a guard block with a silent single point of failure in it, shipping green forever.
+
+The generalisable form: **a guard that reports offenders as a list and asserts the list is empty cannot distinguish "nothing is wrong" from "nothing was checked."** Every source-scanning guard in this repo is written that way, because it is the shape that produces a useful failure message. The emptiness is not a flaw in the shape; it is a flaw in relying on the shape alone.
+
+The fix has two halves, both shipped:
+
+1. `sweptSources()` throws when it resolves to no files, so the vacuity check lives once in the function all six share rather than being restated in each:
+
+```ts
+  if (sources.length === 0) {
+    throw new Error("SWEPT resolved to no files — every guard below would pass vacuously");
+  }
+```
+
+2. A seventh test, first in the block, pins the specific files the sweep must reach — `expect(swept.length).toBeGreaterThanOrEqual(20)` plus eight named anchors, chosen as the files this very mutation table targets. A count alone would pass on twenty of the wrong files; naming the anchors is what makes the evidence from M1–M10 transfer to the guards that shipped.
+
+With both in place, M7 produces **7 failures**: the anchor test plus all six guards, since the throw propagates through each. Re-measured after the fix and confirmed.
+
+One more row is worth reading twice. M4 reddens two tests today, but its second — `/questions`' *puts the budget heading on the unified mark rather than a Stone literal* — was itself dead when this table was written: it asserted `expect(container.innerHTML).not.toContain("85735e")`, and jsdom normalises a hex in an inline style to `rgb()` before it reaches `innerHTML`, so the string could never appear whatever the source said. That was caught separately and is recorded under "Review fixes". Two dead assertions in a phase whose own guard block also passed vacuously is not a coincidence — it is the same failure mode arriving three times, and it is the argument for running mutations against *every* negative assertion rather than only against the ones that look load-bearing.
 
 Record the result of every row. A mutation that does **not** redden is a finding, not a formality — and check that the mutation applied as valid syntax before recording it as survived. A broken template literal makes vitest report no failures at all, which a harness grepping for failed-test lines will happily record as "survived".
 
@@ -2832,6 +2917,34 @@ Record the result of every row. A mutation that does **not** redden is a finding
 git add tests/unit/design-system-tokens.test.ts
 git commit -m "test(design): guard the phase 5 sweep against reintroduction"
 ```
+
+---
+
+## Review fixes
+
+Five commits on this branch correspond to no task above, and one finding landed inside two task commits. They are recorded here because without them this document reads as though Tasks 3–5 rebuilt `/archetypes` correctly on the first pass, and they did not — two independent reviews of that rebuild returned twelve issues between them, every one of which rendered without erroring and was therefore invisible to a green suite. That is the phase's second lesson after M7: **the archetype rebuild's defects were all in the class "renders fine, looks wrong", which is exactly the class a unit suite is blind to.** Both review passes were worth more than any additional assertion written in advance would have been.
+
+**`a847cf3` — the zebra pair and the `:target` rail.** Five visual defects. The `:target` geometry is written up at Task 5 Step 5 above. The zebra was the wrong pair *and* the wrong polarity: Task 4's ternary gave odd rows `bg-surface-2` and even rows no background class at all, and an unstyled row is not white — it inherits `body { background: var(--surface-3) }`, Stone 100. The band therefore alternated Stone 100 / Stone 50 and read *lighter* than the page, where issue #136 specifies white / Stone 50 and the mock draws the band darker. Even rows are now explicitly `bg-surface-1`, which inverts correctly too (dark mode's `--surface-1` `#2a2118` is lighter than its `--surface-2` `#1f1812`). `TraditionsProse` was left on the inherited `text-[13px] leading-relaxed` while `Internal tension.` directly above it moved to `body-s` — two consecutive body paragraphs differing by 0.5px and 0.025 line-height read as misregistration rather than as a step, and 13px sits below the 13.5–14.5px band #136 sets; both are `body-s` now. Task 4's axis-position rewrite introduced a `min-[480px]`, a second responsive breakpoint in a codebase whose stated single breakpoint is `min-[560px]`. And the header block and the legend/index block shipped as two adjacent `mx-auto max-w-reference px-6` siblings with nothing full-bleed between them — a Task 3 / Task 4 seam rather than a design, now merged into one, with the band still a separate child of `<main>` because that is what the full-bleed zebra needs.
+
+The zebra assertion this plan specified — `expect(classes(rows[0])).not.toContain("bg-surface-2")` — could not have caught any of it: it passes equally on `bg-surface-1`, on `bg-surface-3`, and on no class at all. It asserts the positive class now, and a new case pins both entry body paragraphs to the same role.
+
+**`2a3a686` — the glyphs announcing the tier twice.** `EmergenceGlyph` named itself `"<label>. <tooltip>"`, and `EMERGENCE_TOOLTIPS.refined` alone is 215 characters. The glyph sits inside each index `<a>`, so all twelve links in `nav[aria-label="Archetype list"]` computed a ~240-character accessible name — pulling up a link list on that nav gave twelve near-identical walls of prose instead of twelve archetype names. The entry heading was worse: it drew the glyph and then, a line and a half below, a `<p data-entry-tier>` printing the same tier in words. That is precisely the double-announce the provenance legend's own test in Task 4 Step 1 guards against, and its comment — *"the glyphs that DO carry a name are the ones in the index and the entry headings, where nothing else says what the mark means"* — stopped being true the moment D19 moved the tier name into the entry. The component also set `title` and an identical `aria-label` on a `role="img"`; `aria-label` wins the name computation but NVDA and JAWS surface `title` as the accessible *description*, so several configurations read the long string and then read it again. `EmergenceGlyph` now takes `name?: "short" | "none"`: the index carries the tier name alone, the entry heading and the legend carry none, and `title` stays at all three as a mouse affordance that is deliberately never the accessible name.
+
+Three more things landed in the same commit. `ReferenceCta` gained an optional `secondaryLabel`, because `/archetypes` had replaced a `<nav aria-label="Page navigation">` with this component's `<p>` and silently removed a landmark — on the one consumer whose footer carries three links; the single-link consumers pass nothing, since a landmark around one link is noise. `numberFor` was deleted: it existed because the pre-7c index was tier-grouped, so an archetype's array position differed from its display number, and the flat index made it an identity map that still carried a live trap — `String(numberFor.get(id))` on a `number | undefined` renders the literal `"undefined"` rather than failing, and `tsc` accepts it because `String()` accepts anything. The 59-line axis-position disclosure moved into a local `AxisPositions` component, and its axis lookup moved to a module-scope `axisById` map: `axes.find()` inside the inner map ran 144 times per page render, and its `!` would have thrown at render time the moment axis ids stopped being a dense 1..12. Verified behaviour-preserving by diffing the `outerHTML` of all twelve rendered `<details>` against the pre-extraction page.
+
+Two test defects went with it. The index-glyph case asserted `aria-label.length > 100`, which enshrined the defect rather than guarding anything — length is the least meaningful property of an accessible name — and now pins the name itself. And Task 4 Step 1's flat-index case asserted `container.querySelectorAll("[data-index-tier-group]").length === 0` against an attribute **that has never existed anywhere in this repo**: the grouped index it was guarding against used a bare `<div key={tier}>`, so no plausible reintroduction would invent that hook and the assertion could not fail against any implementation. It now asserts that the grid contains no heading or paragraph elements, which reds when a tier heading is put back.
+
+**`97b649e` — two dead hex assertions.** Task 8's spec asserted `expect(container.innerHTML).not.toContain("b5942e")` and `not.toContain("85735e")`. jsdom normalises a hex in an inline style to `rgb()` before it reaches `innerHTML`, so neither string could ever appear whatever the source said; both assertions were incapable of failing. Proven rather than argued: reverting the forced-choice card's border to `DOMAIN_COLORS[domain.key][600]`, which is literally `#85735e`, left the suite green. They assert `"133, 115, 94"` and `"181, 148, 46"` / `"rgba(181, 148, 46"` now, which red on exactly that mutation, and a `var()` reference passes through unresolved so the positive assertions beside them do not collide. The same commit corrected a comment in `results-chrome` claiming `/axes` and `/questions` keep the fixed accessor deliberately — Tasks 7 and 8 swept both, so it had stopped being true within this phase.
+
+This is the mutation-blindness lesson in a second costume: a negative assertion phrased in a representation the test environment never produces is indistinguishable from a passing one.
+
+**`b981e08` — a hover that changed nothing.** Task 11 Step 3's literal instruction sent the saved-group card's `hover:bg-stone-100` to `hover:bg-surface-2`. The card *rests* on `bg-surface-2`, so the hover state resolved to the colour it already was and the affordance became invisible. Nothing in the suite inspects a `:hover` variant, so it would have shipped silently. It is `hover:bg-surface-1`, which lifts in both modes, and the card gained the `focus-ring` it was missing as a link. Recorded because the instruction was followed exactly and produced a defect: a per-site colour swap table cannot be applied without knowing what each site sits on.
+
+**`5e82d93` — the last sub-AA ink.** `ComparisonRadar`'s hover tooltip kept `var(--text-tertiary)`, 3.28:1 in both modes. Task 12 Step 3 named the *hidden-label fallback* and the perimeter labels and said nothing about the tooltip, so it was left behind. It takes `--text-label` like the labels beside it. The directory-wide guards in Task 13 do not catch this one: they scan for the Tailwind class `text-text-tertiary`, and this was the CSS variable spelled inside a `fill` attribute.
+
+**D16's premise.** Amended in the decision itself above rather than only here, because a merged plan is read for its decisions and a false premise left standing in one is worse than no premise. Short form: the claim that all six `text-red-600` sites already carried `role="alert"` or an `aria-live` region was false at three — `/groups/[groupId]`, `/auth/signin`, `/auth/signup` — and `role="alert"` was added at each as part of the swap.
+
+**Two smaller drifts from the task text, for completeness.** Task 10's file list omits `src/components/groups/GroupScoreBar.tsx`, which the sweep had to touch anyway: it carried a `text-text-tertiary` and lives under `src/components/groups`, which Task 13's `SWEPT` list covers wholesale. And `ReferenceCta`'s doc comment does not read as Task 2 Step 4 wrote it — the draft spelled the markup it replaces as the literal classes `bg-stone-600 text-white`, which Task 13's ramp guard would have matched *in the comment*, since that guard is a whole-file text scan with no comment-stripping step. The shipped comment names them in prose instead, and says so. A guard that reads comments is a guard whose prose has to obey it.
 
 ---
 
@@ -2847,7 +2960,7 @@ git commit -m "test(design): guard the phase 5 sweep against reintroduction"
 npm test && npm run typecheck && npm run lint && npm run build && npm run test:e2e
 ```
 
-Expected: all green. Baseline was 793 unit tests across 64 files; this phase adds `reference-chrome`, `archetypes-page`, `compare-chrome` and `group-chrome` plus cases appended to four existing files, so the count rises and no existing test may fall.
+Expected: all green. Baseline was 793 unit tests across 64 files; this phase adds `reference-chrome`, `archetypes-page`, `compare-chrome` and `group-chrome` plus cases appended to four existing files, so the count rises and no existing test may fall. **Final state: 886 tests across 68 files.** Four new files, 93 new cases — 27 in `reference-chrome`, 28 in `archetypes-page`, 8 in `compare-chrome`, 10 in `group-chrome`, and the remaining 20 appended to three existing files — `design-system-tokens` (+9: two in Task 1, seven in Task 13), `account-actions` (+7) and `radar-geometry` (+4). `results-chrome` and `quiz-chrome` were edited but gained no cases.
 
 Three environment traps, each of which has cost this project an afternoon before:
 
@@ -2905,7 +3018,13 @@ Then update the spec's phasing table so the roadmap reflects reality — phase 5
 
 Before opening the PR, re-read this document against the diff. Plan and artifact drift apart in predictable ways — a comment describing an approach that was replaced, an assertion that verifies less than its title claims, a decision that was revised mid-task without being written down. Correct this file where it no longer describes the code, and note any decision that changed in the PR description.
 
-Three places in this plan are written as instructions to *read the code and follow it* rather than as fixed values, and each needs its actual outcome recorded here: `GroupHeatMap`'s spread thresholds (Task 10 Step 3), the `:target` selector's real form (Task 5 Step 5), and whether `max-w-xl` in the two radar SVGs needed the named exclusion (Task 13 Step 1).
+Three places in this plan were written as instructions to *read the code and follow it* rather than as fixed values, and each needed its actual outcome recorded. **All three are now resolved in place** and none of them still hedges:
+
+- `GroupHeatMap`'s spread thresholds (Task 10 Step 3) — the cuts are on `intensity`, not raw spread, at `0.3` / `0.6`. The placeholders were not approximate; they cut in the wrong place.
+- The `:target` selector's real form (Task 5 Step 5) — the naive rename shipped first and was insufficient, because Task 4 had made the row full-bleed. The rule rides `[data-entry-inner]` and paints `--mark-primary`.
+- The `max-w-xl` exclusion (Task 13 Step 1) — it redded, and the exclusion shipped for `ComparisonRadar.tsx` and `GroupRadar.tsx`.
+
+Beyond those three, this pass corrected: five stated test counts that no longer matched the file; Task 12 Step 2's expected failure (two files, not three, and reported under a different helper name); Task 12 Step 5's `EmergenceGlyph` instruction, which was correctly skipped and now says so; Task 4's lead-in comment, which named the wrong entry; D16's false premise; and the ten-row mutation result, whose M7 row demanded an outcome that was mechanically unreachable. The work with no task attached is written up under "Review fixes" above.
 
 - [ ] **Step 5: Open the PR**
 
@@ -2923,7 +3042,10 @@ The body should carry: `Closes #136`, a link to the new phase 5b issue, the muta
 Recorded here so they are not rediscovered as bugs:
 
 - **`/study/*` is phase 5b.** D21, and now its own issue (Task 14 Step 3). Every guard added in Task 13 is scoped around it; widening the `SWEPT` list is how 5b will be measured.
-- **`GroupRadar` still carries its own pad-to-twelve loop.** `normaliseByAxisId` does not apply: `GroupRadar`'s element type is `AxisAverage` (`axisName`, `average`) while the shared normaliser's is `RadarAxisScore` (`name`, `finalScore`). Reconciling them is a change to the group comparison data pipeline, not to a chart, and it wants its own task. Task 12 removed the duplicated *geometry* and left this.
+- **`GroupRadar` still carries its own pad-to-twelve loop.** `normaliseByAxisId` does not apply: `GroupRadar`'s element type is `AxisAverage` (`axisName`, `average`) while the shared normaliser's is `RadarAxisScore` (`name`, `finalScore`). Reconciling them is a change to the group comparison data pipeline, not to a chart, and it wants its own task. Task 12 removed the duplicated *geometry* and left this. (Re-verified against the shipped file: the `padded` construction is still there, and it is still the only thing in the component that is not shared.)
+- **Two chart files sit outside the page-width guard.** `ComparisonRadar`'s `max-w-xl` and `GroupRadar`'s are SVG caps, not page measures, and are excluded by filename from Task 13's *caps every swept page on a width token* case. The shape of that exclusion matters more than the exclusion: if a third chart appears with its own SVG cap, **the exclusion list grows rather than the guard changing**. Minting a `max-w-radar` token to satisfy a text scan would trade a small drift risk for a worse one — a chart cap that silently tracks a page measure — and moving both to `max-w-[576px]` literals only hides them from the scan. Both files remain subject to every other guard in the block.
+- **Task 13's `<button>` guard is per-file, not per-element, and that is how the defect comes back.** The check is: does this file contain `<button` and, if so, does it also import `Button`? A file that already imports the primitive and then grows a new hand-rolled `<button>` beside it passes. That is not a hypothetical shape — it is the *likely* one, because every file this phase swept now imports `Button`, so the guard is disarmed on exactly the files most likely to gain another control. It catches a wholly hand-rolled file, which is what all nine replaced sites were, and nothing finer; a per-element version needs a parse rather than a scan. Stated here rather than only in the test's own comment because whoever reintroduces the defect will read this document, not that comment.
+- **The archetype prototype polygon lost its `strokeOpacity={0.6}`.** Task 12 Step 5's code block rewrote `MiniRadar`'s data polygon without it, and it shipped that way — the shape now strokes at full opacity. The step's *prose* accounts only for the two ring polygons' dropped `opacity` attributes, so it is genuinely unclear whether the code block or the prose was authoritative against mock 7c, and no test covers the shape's stroke either way. Check the rendered entry against 7c and either restore the attribute or write down that 7c draws it solid; do not leave it resolved by whichever of the two the next reader happens to believe.
 - **`PANEL` is still spelled out at 25 sites across 14 files.** `bg-surface-1 border border-border-secondary rounded-sharp`, named once in `ResultsView` and repeated everywhere else. Phase 4 deferred it; this phase touched nine of those files and deliberately did not fold it in, because promoting it to an `@utility` touches five files phase 5 has no other reason to open — including quiz components, which phase 3 owns.
 - **Tailwind's content scanner reads `docs/**/*.md`.** Discovered in Task 1: `max-w-reference` compiled into the production stylesheet with zero source consumers, because this plan document names the class sixteen times and Tailwind v4's auto-detection treats the repo's markdown as a content source. Every class name written in any of the five plan docs is a candidate, so the shipped CSS carries rules nothing renders. Harmless to correctness but it means **a test can never prove a class is absent by grepping the emitted stylesheet** — Task 13's guards scan source for exactly that reason. Fixing it is a `@source` directive in `globals.css`, which is a build-config change and wants its own task.
 
@@ -2941,7 +3063,9 @@ Checked against `docs/superpowers/specs/2026-09-08-design-system-delta-design.md
 - **The one thing not to redesign.** Issue #136 is explicit that `Internal tension.` and `Traditions.` stay serif italic in Stone 900 over sans prose, and that the description/tension/traditions paragraphs stay sans at 13.5–14.5px. Task 4 keeps all five — 14.5px on the description, `body-s` (13.5px) on the other two — and asserts the lead-ins are `font-serif italic` and carry no `label` class, which is the mutation that would turn the reference into a spec sheet.
 - **Spec deltas.** 01 (mono layer, serif scale) → Tasks 2–11. 02 (near-square corners) → Tasks 8, 10. 03 (buttons) → Tasks 2, 5, 9, 11. 04 (rules carry structure) → the zebra band in Task 4, the domain rules in Tasks 7–9. 06 (dark mode inverts) → Tasks 10, 12, and the whole of D16/D20. 05 (paired axis scale) landed in phase 4 and is untouched here.
 - **Phase 4's routed-forward items.** `/compare` and `/groups` layouts → Tasks 9, 10. Home footer `getDomainColor600` → Task 12. `ComparisonRadar`/`GroupRadar` geometry and hydration → Task 12. Container width tokens → Task 1. `/compare`'s legend sentence → Task 9. Two exported `TOTAL_AXES` → Task 12. `PairedAxisScale` outside every guard's scan → Task 13's `SWEPT` list does not add it either; it is a shared primitive with consumers in three features, and phase 4's reasoning for leaving it out has not changed.
-- **Placeholder scan.** No TBDs. Two steps deliberately instruct the implementer to read a value out of the existing code rather than restating it — `GroupHeatMap`'s spread thresholds and the `max-w-xl` exclusion decision — and each says explicitly that the file wins and that the outcome must be written back into this plan in Task 14 Step 4. That is a different thing from a placeholder: the instruction is complete, the value is the code's. A third was written that way in the first draft and is now concrete: the `:target` rules are at `globals.css:311-318` and Task 5 names both selectors.
+- **Placeholder scan.** No TBDs. Two steps deliberately instructed the implementer to read a value out of the existing code rather than restating it — `GroupHeatMap`'s spread thresholds and the `max-w-xl` exclusion decision — and each said explicitly that the file wins and that the outcome must be written back into this plan in Task 14 Step 4. That is a different thing from a placeholder: the instruction is complete, the value is the code's. A third was written that way in the first draft and was made concrete before implementation: the `:target` rules at `globals.css:311-318`, with Task 5 naming both selectors.
+
+  **Reconciled after implementation, and the scorecard is mixed.** Both read-the-code instructions were honoured and both outcomes are now written into the steps themselves, so nothing in this document still hedges. But the third one — the one that *stopped* being a read-the-code instruction and became a concrete rewrite — is the one that shipped a defect. Naming both selectors made the step look complete, and it was complete about the selector and silent about the declaration body, which is where the problem was. The self-review treated "concrete" as strictly better than "go and look", and on this evidence it is not: a step that says *read the file* keeps the implementer's eyes on the file, and a step that spells the answer out invites a find-and-replace. Weigh that next time before promoting an instruction to a literal.
 - **One bug caught in self-review, recorded because the next reader will reach for the same thing.** The first draft's provenance legend rendered `EMERGENCE_TOOLTIPS[tier]`, which is the only exported per-tier prose and is therefore the obvious pick — but it is the 40-word form written for the glyph's `title`, so three of them in a column replace mock 7c's three lines with three paragraphs. Task 4 Step 3a names the short form as `PROVENANCE_BLURB` and the test asserts both halves: the short body is present, and the tooltip's distinctive sentence is not.
 - **Type consistency.** `PageHeader`'s props (`kicker`, `kickerHref?`, `title`, `lead?: string[]`) are used under those names in Tasks 3, 6, 7, 8. `SpoilerNote`'s (`leadIn?`, `children`) in Tasks 3 and 8. `ReferenceCta`'s (`label?`, `secondary`) in Tasks 5, 6, 7, 8 — note `secondary` is required and takes `null` explicitly, which Task 6's `/references` call passes. `spreadSurface(spread: number): string` (Task 10) is used only in that task. The `radar-geometry` signatures consumed in Task 12 — `spokeAngle(index, total)`, `polarToCart(angle, radius, cx, cy)`, `scoreToRadius(score, maxRadius)`, `ringPoints(radius, total, cx, cy)` — match the shipped module exactly, including `ringPoints`' absolute-radius convention, which is the one the conversion in Steps 3 and 4 exists to honour.
 
