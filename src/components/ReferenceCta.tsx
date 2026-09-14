@@ -23,9 +23,11 @@ interface ReferenceCtaProps {
  * `primary`, not `secondary`, and that is a rule rather than a preference:
  * CLAUDE.md reserves the filled button for "beginning or resuming the
  * assessment", which is exactly what every one of these four buttons does.
- * The markup it replaces was a hand-rolled `bg-stone-600 text-white` fill —
- * duplicated verbatim at all four sites, including the half of it that does
- * not invert.
+ * The markup it replaces was a hand-rolled Stone-600 fill over hard-coded
+ * white ink — duplicated verbatim at all four sites, including the half of it
+ * that does not invert. (Naming those two classes in prose rather than as
+ * literals keeps the phase 5 ramp guard a plain text scan, with no
+ * comment-stripping step of its own to go wrong.)
  */
 export function ReferenceCta({
   label = "Begin the assessment",
