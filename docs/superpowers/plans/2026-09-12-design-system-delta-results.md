@@ -2381,10 +2381,15 @@ Shipped as `55ec6e3`. A second commit, `39b79ac`, followed it — an out-of-plan
 
 **Files:**
 - Modify: `src/components/results/RadarChart.tsx` (full rewrite)
+- Create: `src/lib/radar-geometry.ts` (as shipped; folded in from addendum B below)
+- Modify: `src/components/results/ArchetypeCard.tsx` — `MiniRadar` moves onto the shared geometry (as shipped)
 - Modify: `tests/unit/results-chrome.test.ts` — append a `describe`
+- Create: `tests/unit/radar-geometry.test.ts` (as shipped; addendum E named one assertion, the file holds eleven tests)
 
 **Interfaces:**
-- Props are unchanged (`axisScores: AxisScore[]`).
+- Props are structurally unchanged. The local `AxisScore` interface moves to `src/lib/radar-geometry.ts` as the exported `RadarAxisScore` (as shipped), so the prop reads `axisScores: RadarAxisScore[]`; `ResultsView`'s `AxisDisplayData` still satisfies it structurally and no call site moved.
+- Produces: `src/lib/radar-geometry.ts`, exporting `TOTAL_AXES`, `RadarAxisScore`, `spokeAngle(index, total)`, `scoreToRadius(score, maxRadius)`, `polarToCart(angle, radius, cx, cy)`, `ringPoints(radius, total, cx, cy)` and `normaliseByAxisId(axisScores, total?)` (as shipped — addendum B named the last one `padAndSortByAxisId`; see "As shipped" note 2).
+- Consumes: `formatScore` from `src/lib/format-score.ts` (Task 6), per addendum A.
 - Removes: `DOMAIN_SEGMENTS`, `buildDomainPath`, `RING_FRACTIONS`, the twelve domain-tinted triangle fills, the centre dot.
 - Keeps: the `((score + 1) / 2) * R` mapping, the visually-hidden score table, and the vertex hover tooltip.
 
@@ -2392,7 +2397,7 @@ Shipped as `55ec6e3`. A second commit, `39b79ac`, followed it — an out-of-plan
 
 The tooltip stays. It is behaviour, it is the only way to read an exact score off the chart, and nothing in the issue's "must not change" list implies otherwise — but its `rx={4}` corner drops to `2`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/unit/results-chrome.test.ts`:
 
@@ -2420,6 +2425,11 @@ describe("RadarChart", () => {
     // NOT --domain-economic, which holds the identical value in both modes.
     expect(user.style.fill).toBe("var(--mark-primary)");
     expect(user.getAttribute("fill-opacity")).toBe("0.1");
+    // The stroke, not the fill, is what the eye reads: the fill sits at 10%
+    // while the 1.6px stroke has no opacity at all. Guarding only `fill`
+    // leaves the load-bearing half free to revert to a fixed Stone 600, which
+    // in light mode is pixel-identical and only shows up on a dark ground.
+    expect(user.style.stroke).toBe("var(--mark-primary)");
   });
 
   it("marks each axis with a domain dot", () => {
@@ -2442,7 +2452,34 @@ describe("RadarChart", () => {
     expect(container.querySelectorAll("[data-radar-ring]")).toHaveLength(2);
     // Six full-diameter lines became twelve spokes from the centre, so a
     // spoke is present even where the mapping puts a vertex at the origin.
-    expect(container.querySelectorAll("[data-radar-spoke]")).toHaveLength(12);
+    const spokes = [...container.querySelectorAll("[data-radar-spoke]")];
+    expect(spokes).toHaveLength(12);
+    // Counting alone cannot tell twelve spokes from twelve diameters. Each
+    // one starts AT the centre, which is the whole point of the change: a
+    // diameter through the middle draws no spoke for an axis whose vertex
+    // lands on the origin.
+    expect(spokes[0].getAttribute("x1")).toBe("290");
+    expect(spokes[0].getAttribute("y1")).toBe("290");
+  });
+
+  it("draws the rings and labels at absolute radii, not fractions of one", () => {
+    // The ring helper is shared with MiniRadar and takes an ABSOLUTE radius,
+    // where this chart's old local helper took a fraction of MAX_RADIUS.
+    // Passing the old 1 / 0.5 through collapses both rings onto the centre,
+    // and counting rings — which is all the test above does — still sees two.
+    // Vertex 0 of each ring is straight up from the (290, 290) centre.
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const vertex0 = (el: Element) =>
+      el.getAttribute("points")!.split(" ")[0].split(",").map(Number);
+    const [outer, mid] = [...container.querySelectorAll("[data-radar-ring]")];
+
+    expect(vertex0(outer)).toEqual([290, 290 - 170]);
+    expect(vertex0(mid)).toEqual([290, 290 - 85]);
+
+    // And the labels sit at r+22, the tightened radius the test below names
+    // but does not otherwise measure. At r+38 this would read 62.
+    const label = container.querySelector("[data-radar-label]")!;
+    expect(Number(label.getAttribute("y"))).toBeCloseTo(290 - (170 + 22), 6);
   });
 
   it("keeps the score-to-radius mapping the chart has always used", () => {
@@ -2474,42 +2511,119 @@ describe("RadarChart", () => {
     // The SVG is aria-hidden, so this table is the entire accessible chart.
     expect(classes(table)).toContain("sr-only");
     expect(table.querySelectorAll("tbody tr")).toHaveLength(12);
+    // That premise is stated in three comments and was asserted nowhere.
+    // Drop the attribute and twelve SVG labels plus the tooltip become a
+    // second, duplicate reading of the same twelve axes.
+    expect(container.querySelector("svg")!.getAttribute("aria-hidden")).toBe("true");
+    // Column headers, so a row cell is announced with the column it sits in.
+    // `toEqual` against a literal rather than `.every(...)`: every() is TRUE on
+    // an empty array, so a <th> -> <td> change emptied the selector and the
+    // assertion passed on nothing. This form also pins the column count.
+    const headers = [...table.querySelectorAll("thead th")];
+    expect(headers.map((th) => th.getAttribute("scope"))).toEqual(["col", "col", "col", "col"]);
+  });
+
+  it("names each axis's domain in the table and hides the legend that repeats it", () => {
+    // This task made domain the job of the twelve dots. A screen reader sees
+    // no dots, so without a column here the one variable the chart gained is
+    // the one assistive tech loses.
+    const container = render(createElement(RadarChart, { axisScores: SCORES }));
+    const table = container.querySelector("table")!;
+    const domainCell = (row: number) =>
+      [...table.querySelectorAll("tbody tr")][row].querySelectorAll("td")[1].textContent;
+
+    expect([...table.querySelectorAll("thead th")].map((th) => th.textContent)).toEqual([
+      "Axis",
+      "Domain",
+      "Score",
+      "Confidence",
+    ]);
+    // Derived from the axis id, exactly as the dot beside it is. The fixture
+    // sets `domain: "Economic Organization"` on all twelve, so reading the
+    // field instead would label axis 3 Economic while its dot renders
+    // --domain-power — the table and the chart disagreeing about the same axis.
+    expect(domainCell(0)).toBe("Economic Organization");
+    expect(domainCell(2)).toBe("Power and Authority");
+    expect(domainCell(6)).toBe("Society and Identity");
+    expect(domainCell(9)).toBe("The State in the World");
+
+    // The legend annotates an aria-hidden <svg>. Exposed, it reads as four
+    // loose domain names with no referent — the defect Task 7 fixed on the
+    // mini radar's twin legend one task ago.
+    const legend = container.querySelector("[data-radar-legend]")!;
+    expect(legend.getAttribute("aria-hidden")).toBe("true");
+
+    // The swatches are data marks: a fixed hex cannot step to the 400 tone on
+    // a dark ground, and reverting them was previously undetectable.
+    const swatches = [...container.querySelectorAll("[data-radar-legend-swatch]")] as HTMLElement[];
+    expect(swatches).toHaveLength(4);
+    expect(swatches.map((s) => s.style.backgroundColor)).toEqual([
+      "var(--domain-economic)",
+      "var(--domain-power)",
+      "var(--domain-society)",
+      "var(--domain-world)",
+    ]);
+  });
+
+  it("reads the score table through the shared formatter", () => {
+    // The table used to inline `>= 0 ? "+" : ""`, a fourth copy of the pattern
+    // Task 6 consolidated into format-score.ts. That copy signed an exact
+    // zero. A padded axis scores exactly 0, so this is reachable: the sole
+    // consumer is a screen reader, which would say "plus zero point zero zero"
+    // for an axis carrying no signal at all.
+    const container = render(
+      createElement(RadarChart, { axisScores: [SCORES[0], { ...SCORES[1], finalScore: -0.4 }] }),
+    );
+    const cells = [...container.querySelectorAll("tbody tr")].map(
+      (row) => row.querySelectorAll("td")[2].textContent,
+    );
+
+    expect(cells[0]).toBe("+0.20");
+    expect(cells[1]).toBe("-0.40");
+    // Axes 3-12 are absent from the input and pad to a neutral, unsigned zero.
+    expect(cells[2]).toBe("0.00");
+    expect(cells).toHaveLength(12);
   });
 });
 ```
 
-Add `RadarChart` to the file's imports.
+Add `RadarChart` to the file's imports. A second file, `tests/unit/radar-geometry.test.ts`, is written in the same step — eleven tests pinning the shared module directly, without a mount (addendum E).
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run tests/unit/results-chrome.test.ts`
-Expected: FAIL — six new tests; `[data-radar-*]` hooks do not exist and four `path` elements are found.
+Run: `npx vitest run tests/unit/results-chrome.test.ts tests/unit/radar-geometry.test.ts`
+Expected: FAIL — nine new `RadarChart` tests (the plan drafted six; see "As shipped" note 7), because the `[data-radar-*]` hooks do not exist and four `path` elements are found, plus the whole of `radar-geometry.test.ts`, which cannot resolve `@/lib/radar-geometry` until Step 3.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
-Replace `src/components/results/RadarChart.tsx` in full:
+Extract `src/lib/radar-geometry.ts` first — the module addendum B specifies — then replace `src/components/results/RadarChart.tsx` in full. Note that `ringPoints` takes an **absolute** radius, so this file's former `ringPolygonPoints(1)` / `ringPolygonPoints(0.5)` call sites become `ringPoints(MAX_RADIUS, …)` / `ringPoints(MAX_RADIUS * 0.5, …)`. Passing the old fractions through collapses both rings onto the centre and still renders plausibly — see "As shipped" note 1:
 
 ```tsx
 "use client";
 
 import { useState } from "react";
-import { DOMAIN_COLORS, DOMAIN_MARK_VARS, getDomainMarkVar, type DomainKey } from "@/lib/design-tokens";
-
-interface AxisScore {
-  axisId: number;
-  name: string;
-  poleALabel: string;
-  poleBLabel: string;
-  domain: string;
-  finalScore: number;
-  confidence: string;
-}
+import {
+  DOMAIN_COLORS,
+  DOMAIN_MARK_VARS,
+  getDomainForAxis,
+  getDomainMarkVar,
+  type DomainKey,
+} from "@/lib/design-tokens";
+import { formatScore } from "@/lib/format-score";
+import {
+  TOTAL_AXES,
+  normaliseByAxisId,
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+  type RadarAxisScore,
+} from "@/lib/radar-geometry";
 
 interface RadarChartProps {
-  axisScores: AxisScore[];
+  axisScores: RadarAxisScore[];
 }
 
-const TOTAL_AXES = 12;
 const SIZE = 580;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
@@ -2517,27 +2631,6 @@ const MAX_RADIUS = 170;
 // Mock 7a puts the labels at r+22. The old r+38 was sized for two-line
 // domain-coloured labels; at 11px mono the ring can close up.
 const LABEL_PADDING = 22;
-
-function scoreToRadius(score: number): number {
-  // Directional: center = strongest Pole A (-1), perimeter = strongest Pole B (+1)
-  return ((score + 1) / 2) * MAX_RADIUS;
-}
-
-function spokeAngle(index: number): number {
-  return (index / TOTAL_AXES) * 2 * Math.PI - Math.PI / 2;
-}
-
-function polarToCart(angle: number, radius: number): [number, number] {
-  return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
-}
-
-function ringPolygonPoints(radiusFraction: number): string {
-  const r = MAX_RADIUS * radiusFraction;
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const [x, y] = polarToCart(spokeAngle(i), r);
-    return `${x},${y}`;
-  }).join(" ");
-}
 
 /** Split a long label at the space nearest its middle, so a perimeter label
  *  stays inside the viewBox. Unchanged from the chart this replaces. */
@@ -2553,26 +2646,16 @@ function splitLabel(label: string): string[] {
 }
 
 export function RadarChart({ axisScores }: RadarChartProps) {
-  const sorted = [...axisScores].sort((a, b) => a.axisId - b.axisId);
-
-  const paddedScores: AxisScore[] = Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const found = sorted.find((s) => s.axisId === i + 1);
-    return (
-      found ?? {
-        axisId: i + 1,
-        name: `Axis ${i + 1}`,
-        poleALabel: "",
-        poleBLabel: "",
-        domain: "",
-        finalScore: 0,
-        confidence: "low",
-      }
-    );
-  });
+  const paddedScores = normaliseByAxisId(axisScores);
 
   const userPolygon = paddedScores
     .map((axis, i) => {
-      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(axis.finalScore, MAX_RADIUS),
+        CX,
+        CY,
+      );
       return `${x},${y}`;
     })
     .join(" ");
@@ -2584,13 +2667,33 @@ export function RadarChart({ axisScores }: RadarChartProps) {
       {/* The SVG is aria-hidden, so this table is the entire accessible chart. */}
       <table className="sr-only" aria-label="12-axis governance profile scores">
         <thead>
-          <tr><th>Axis</th><th>Score</th><th>Confidence</th></tr>
+          <tr>
+            <th scope="col">Axis</th>
+            <th scope="col">Domain</th>
+            <th scope="col">Score</th>
+            <th scope="col">Confidence</th>
+          </tr>
         </thead>
         <tbody>
           {paddedScores.map((axis) => (
             <tr key={axis.axisId}>
               <td>{axis.name}: {axis.poleALabel} to {axis.poleBLabel}</td>
-              <td>{axis.finalScore >= 0 ? "+" : ""}{axis.finalScore.toFixed(2)}</td>
+              {/* This task made domain the job of the twelve dots, which a
+                  screen reader cannot see — so without this column the one
+                  variable the chart gained is the one AT loses.
+
+                  Derived from the axis id, exactly as `getDomainMarkVar`
+                  derives the dot beside it, rather than read off
+                  `axis.domain`. The two can disagree — a caller sets the
+                  string while the dot is computed — and a padded axis has no
+                  string at all, though its id still names its domain. */}
+              <td>{DOMAIN_COLORS[getDomainForAxis(axis.axisId)].name}</td>
+              {/* The shared formatter, not a fourth inline copy of
+                  `>= 0 ? "+" : ""`. It also clamps to -1..1, and it does not
+                  sign an exact zero — a padded axis reads "0.00", so a screen
+                  reader no longer says "plus zero point zero zero" for an
+                  axis that carries no signal at all. */}
+              <td>{formatScore(axis.finalScore)}</td>
               <td>{axis.confidence}</td>
             </tr>
           ))}
@@ -2600,17 +2703,21 @@ export function RadarChart({ axisScores }: RadarChartProps) {
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-xl" aria-hidden="true">
         {/* Outer ring and dashed mid-ring. Four concentric rings became two:
             the mid-ring is the neutral mark the caption describes, and the
-            0.33/0.67 rings carried no meaning. */}
+            0.33/0.67 rings carried no meaning.
+
+            `ringPoints` takes an ABSOLUTE radius, where the local helper this
+            replaces took a fraction of MAX_RADIUS. Passing 1 and 0.5 here
+            would collapse both rings to the centre. */}
         <polygon
           data-radar-ring
-          points={ringPolygonPoints(1)}
+          points={ringPoints(MAX_RADIUS, TOTAL_AXES, CX, CY)}
           fill="none"
           style={{ stroke: 'var(--border-secondary)' }}
           strokeWidth={0.8}
         />
         <polygon
           data-radar-ring
-          points={ringPolygonPoints(0.5)}
+          points={ringPoints(MAX_RADIUS * 0.5, TOTAL_AXES, CX, CY)}
           fill="none"
           style={{ stroke: 'var(--border-primary)' }}
           strokeWidth={0.8}
@@ -2620,7 +2727,7 @@ export function RadarChart({ axisScores }: RadarChartProps) {
         {/* Twelve spokes from the centre, not six diameters: a spoke has to be
             present even where the mapping puts its vertex at the origin. */}
         {Array.from({ length: TOTAL_AXES }, (_, i) => {
-          const [x, y] = polarToCart(spokeAngle(i), MAX_RADIUS);
+          const [x, y] = polarToCart(spokeAngle(i, TOTAL_AXES), MAX_RADIUS, CX, CY);
           return (
             <line
               key={i}
@@ -2646,7 +2753,12 @@ export function RadarChart({ axisScores }: RadarChartProps) {
         />
 
         {paddedScores.map((axis, i) => {
-          const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const [x, y] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            scoreToRadius(axis.finalScore, MAX_RADIUS),
+            CX,
+            CY,
+          );
           const isHovered = hoveredAxis === axis.axisId;
           return (
             <g key={axis.axisId}>
@@ -2675,14 +2787,19 @@ export function RadarChart({ axisScores }: RadarChartProps) {
         {hoveredAxis != null && (() => {
           const axis = paddedScores[hoveredAxis - 1];
           const i = hoveredAxis - 1;
-          const [vx, vy] = polarToCart(spokeAngle(i), scoreToRadius(axis.finalScore));
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const [vx, vy] = polarToCart(
+            angle,
+            scoreToRadius(axis.finalScore, MAX_RADIUS),
+            CX,
+            CY,
+          );
           const score = axis.finalScore;
           const poleName = score >= 0 ? axis.poleBLabel : axis.poleALabel;
           const label = `${Math.abs(score).toFixed(2)}  ${poleName}`;
           const boxW = label.length * 5.5 + 16;
           const boxH = 28;
 
-          const angle = spokeAngle(i);
           let tx = vx + Math.cos(angle) * 20;
           let ty = vy + Math.sin(angle) * 20;
           tx = Math.max(10, Math.min(SIZE - boxW - 2, tx - boxW / 2)) + boxW / 2;
@@ -2714,8 +2831,8 @@ export function RadarChart({ axisScores }: RadarChartProps) {
         })()}
 
         {paddedScores.map((axis, i) => {
-          const angle = spokeAngle(i);
-          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING);
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING, CX, CY);
 
           let anchor: "start" | "middle" | "end" = "middle";
           const normAngle = (angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
@@ -2750,10 +2867,18 @@ export function RadarChart({ axisScores }: RadarChartProps) {
         })}
       </svg>
 
-      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-3">
+      {/* aria-hidden, like the <svg> it annotates: exposed, it reads as four
+          loose domain names with no referent, describing a chart AT cannot
+          perceive. The table above carries the same information in rows. */}
+      <div
+        data-radar-legend
+        aria-hidden="true"
+        className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-3"
+      >
         {(["economic", "power", "society", "world"] as DomainKey[]).map((key) => (
           <div key={key} className="flex items-center gap-1.5 mono-meta text-text-label">
             <span
+              data-radar-legend-swatch
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: DOMAIN_MARK_VARS[key] }}
             />
@@ -2766,27 +2891,41 @@ export function RadarChart({ axisScores }: RadarChartProps) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run tests/unit/results-chrome.test.ts`
+Run: `npx vitest run tests/unit/results-chrome.test.ts tests/unit/radar-geometry.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
-git add src/components/results/RadarChart.tsx tests/unit/results-chrome.test.ts
+git add src/lib/radar-geometry.ts src/components/results/RadarChart.tsx src/components/results/ArchetypeCard.tsx tests/unit/results-chrome.test.ts tests/unit/radar-geometry.test.ts
 git commit -m "feat(design): reduce the radar to one polygon and twelve domain dots"
 ```
 
-**Addendum from Task 6.** The sr-only score table above still inlines its own always-signed formatter (`axis.finalScore >= 0 ? "+" : ""` against `axis.finalScore.toFixed(2)`) — a fourth instance of the pattern Task 6 found three copies of and consolidated into `src/lib/format-score.ts`. Task 6 deliberately left this one alone, since it owns `ComparisonScoreBar.tsx`, `AxisBreakdownCard.tsx`, and `comparison-radar-data.ts`, not this file. Fold this one onto `formatScore` from `@/lib/format-score` as part of this task's rewrite; doing so also picks up the shared helper's `-1..1` clamping and its `null` → `"N/A"` handling, neither of which the inline version has.
+Shipped as `067888f`, one commit over five files. Verified final state: **750 tests across 63 files**, lint clean at `--max-warnings=0`, and `npx tsc --noEmit` red on exactly one error — `ResultsView.tsx(339,23)`, the expected `alternateRow` mismatch that Task 10 clears. That "exactly one error, and it is the expected one" signal is the whole reason this interval is safe to leave red; if a second error ever appears, stop and fix it rather than carrying two.
 
-**Addenda from Task 7.** Task 7 shipped a second radar in this repo — `MiniRadar`, inside `src/components/results/ArchetypeCard.tsx` — and it duplicates this chart's geometry rather than sharing it. Fold that in here, since this is the task that rewrites `RadarChart`:
+**Addendum A, from Task 6 — resolved.** The sr-only score table above still inlines its own always-signed formatter (`axis.finalScore >= 0 ? "+" : ""` against `axis.finalScore.toFixed(2)`) — a fourth instance of the pattern Task 6 found three copies of and consolidated into `src/lib/format-score.ts`. Task 6 deliberately left this one alone, since it owns `ComparisonScoreBar.tsx`, `AxisBreakdownCard.tsx`, and `comparison-radar-data.ts`, not this file. Fold this one onto `formatScore` from `@/lib/format-score` as part of this task's rewrite; doing so also picks up the shared helper's `-1..1` clamping and its `null` → `"N/A"` handling, neither of which the inline version has.
 
-- **Extract `src/lib/radar-geometry.ts`**, exporting `spokeAngle(i, total)`, `scoreToRadius(score, maxRadius)`, `polarToCart(angle, r, cx, cy)`, `ringPoints(radius, total, cx, cy)`, and a `padAndSortByAxisId(axisScores)` normaliser; have **both** `MiniRadar` and `RadarChart` consume all five. `MiniRadar` currently re-inlines `spokeAngle` twice, `polarToCart` twice and `scoreToRadius` once, and its `MINI_AXES = 12` duplicates this file's `TOTAL_AXES = 12`.
-- **Trap to avoid when merging the ring helpers.** `ArchetypeCard`'s `ringPoints(radius)` takes an **absolute radius** (`ringPoints(MINI_R)`, `ringPoints(MINI_R * 0.5)`); `RadarChart`'s `ringPolygonPoints(radiusFraction)` takes a **fraction** of `MAX_RADIUS`. Unifying them by name without reconciling the argument convention silently rescales every ring in one of the two charts, and both still render plausibly.
-- **A latent axis-ordering misalignment goes with it.** `RadarChart` sorts by `axisId` and pads to twelve; `MiniRadar` consumes `userScores` in whatever order it arrives and overlays a prototype vector that is fixed axis-1-through-12. `src/app/results/page.tsx:77` maps in pipeline order while `src/app/results/[profileId]/page.tsx:20` orders by `axis.order` — the two agree **only** because `order === id` for all twelve rows in `src/data/axes.ts`. Not live today, but if it ever fires, the mini radar's two polygons misalign against *each other*, which is the one comparison the chart exists to make. `padAndSortByAxisId` is the fix, applied in both charts.
-- **Pin the radius mapping as a pure function.** A test asserting `scoreToRadius(-1) === 0`, `scoreToRadius(0) === R / 2` and `scoreToRadius(1) === R` kills the rescale / sign-flip / offset class of mutation for **both** charts permanently, and does it without a mount. Task 7's `places the radar's vertices where the score and the radius put them` does this the hard way, off rendered `points` attributes, because no shared function existed to test.
-- **Do not loosen `results-chrome.test.ts`'s `.sr-only` lookup.** The assertion added in commit `39b79ac` is scoped to the button (`button.querySelector(".sr-only")`) precisely because `RadarChart.tsx:106` already renders an `.sr-only` table that this task relocates. A container-wide lookup would start passing on the wrong node without ever reddening.
+**Addenda from Task 7 — C, E and F resolved; B and D only partly, see "As shipped" note 9.** Task 7 shipped a second radar in this repo — `MiniRadar`, inside `src/components/results/ArchetypeCard.tsx` — and it duplicates this chart's geometry rather than sharing it. Fold that in here, since this is the task that rewrites `RadarChart`:
+
+- **B — Extract `src/lib/radar-geometry.ts`**, exporting `spokeAngle(i, total)`, `scoreToRadius(score, maxRadius)`, `polarToCart(angle, r, cx, cy)`, `ringPoints(radius, total, cx, cy)`, and a `normaliseByAxisId(axisScores)` normaliser (drafted here as `padAndSortByAxisId`); have **both** `MiniRadar` and `RadarChart` consume all five. `MiniRadar` currently re-inlines `spokeAngle` twice, `polarToCart` twice and `scoreToRadius` once, and its `MINI_AXES = 12` duplicates this file's `TOTAL_AXES = 12`.
+- **C — Trap to avoid when merging the ring helpers.** `ArchetypeCard`'s `ringPoints(radius)` takes an **absolute radius** (`ringPoints(MINI_R)`, `ringPoints(MINI_R * 0.5)`); `RadarChart`'s `ringPolygonPoints(radiusFraction)` takes a **fraction** of `MAX_RADIUS`. Unifying them by name without reconciling the argument convention silently rescales every ring in one of the two charts, and both still render plausibly.
+- **D — A latent axis-ordering misalignment goes with it.** `RadarChart` sorts by `axisId` and pads to twelve; `MiniRadar` consumes `userScores` in whatever order it arrives and overlays a prototype vector that is fixed axis-1-through-12. `src/app/results/page.tsx:77` maps in pipeline order while `src/app/results/[profileId]/page.tsx:20` orders by `axis.order` — the two agree **only** because `order === id` for all twelve rows in `src/data/axes.ts`. Not live today, but if it ever fires, the mini radar's two polygons misalign against *each other*, which is the one comparison the chart exists to make. `normaliseByAxisId` is the fix — applied in `RadarChart`, but **not** in `MiniRadar`, whose prop carries no axis ids; see "As shipped" note 9 and the addendum this routes to Task 10.
+- **E — Pin the radius mapping as a pure function.** A test asserting `scoreToRadius(-1) === 0`, `scoreToRadius(0) === R / 2` and `scoreToRadius(1) === R` kills the rescale / sign-flip / offset class of mutation for **both** charts permanently, and does it without a mount. Task 7's `places the radar's vertices where the score and the radius put them` does this the hard way, off rendered `points` attributes, because no shared function existed to test.
+- **F — Do not loosen `results-chrome.test.ts`'s `.sr-only` lookup.** The assertion added in commit `39b79ac` is scoped to the button (`button.querySelector(".sr-only")`) precisely because `RadarChart.tsx:106` already renders an `.sr-only` table that this task relocates. A container-wide lookup would start passing on the wrong node without ever reddening.
+
+**As shipped.** Implementation and review moved this task in nine ways from the text above:
+
+1. **The specified tests could not see the specified trap — record this as a plan defect, not merely a divergence.** Addendum C warns that unifying the two ring helpers without converting the argument convention "silently rescales every ring in one of the two charts". It does: passing the old fractional arguments (`1` and `0.5`) into the new absolute-radius `ringPoints` collapses **both** rings onto the centre — and all six specified tests stay green through it, because `reduces to two rings and twelve spokes` only *counts* `[data-radar-ring]` and never reads a vertex. The same gap ran through the label test: `labels each spoke in mono, numbered, at the tightened radius` measures no radius at all, so `LABEL_PADDING` 22 → 38 — the other half of the change its own title advertises — also survived. Two tests close both: `draws the rings and labels at absolute radii, not fractions of one` in this file, and `reads its radius as absolute, not as a fraction of some maximum` in `tests/unit/radar-geometry.test.ts`. Coverage that is specified alongside the trap it cannot detect is worse than no coverage, because it reads as protection.
+2. **`padAndSortByAxisId` shipped as `normaliseByAxisId`, and it contains no sort.** The function rebuilds the list index-driven — `find((score) => score.axisId === i + 1)` per slot — which already orders the output, so a preceding `.sort()` is dead code. That makes dropping it an *equivalent mutation by construction*: no test anywhere can distinguish the two forms, so the suite could not decide it and the decision was argued instead, confirmed two independent ways — `Array.prototype.sort` has been required to be stable since ES2019, and 200,000 randomised trials (shuffles, duplicate ids, out-of-range ids, short lists) found zero divergences between the sorting and non-sorting forms. The rename is the point: the old name advertised a `.sort()` that a future reader would be right to "restore", reintroducing a line that provably does nothing. Its docstring also records the two consequences of the id lookup that no caller relies on today — a duplicated `axisId` keeps the first match in input order, and an id outside `1..total` is silently dropped, since nothing ever looks it up.
+3. **The local `AxisScore` interface moved to `src/lib/radar-geometry.ts` as `RadarAxisScore`.** It is never exported from `RadarChart.tsx`. The prop shape is structurally unchanged and `ResultsView`'s `AxisDisplayData` still satisfies it, so no call site changed — only this file's own import.
+4. **`ArchetypeCard`'s `showMiniRadar` guard reads `TOTAL_AXES`** on both halves, rather than the literal `12` Task 7 shipped. Same value; the literal was the last thing in that file asserting twelve-ness independently of the shared module.
+5. **The sr-only score table gained a `Domain` column, and the column is derived from the axis id rather than read from `RadarAxisScore.domain`.** This task made domain the job of the twelve dots, which a screen reader cannot see, so without the column the one variable the chart gained is the one assistive tech loses. The cell is `DOMAIN_COLORS[getDomainForAxis(axis.axisId)].name`, computed exactly as `getDomainMarkVar(axis.axisId)` computes the dot beside it. Reading `axis.domain` instead would let the two disagree — a caller sets that string while the dot is computed from the id — and `normaliseByAxisId` pads a missing axis with `domain: ""`, so the field would print an empty Domain cell next to a dot that still renders a domain colour. Deriving both from the id makes table and chart structurally incapable of disagreeing. **Consequence: `RadarAxisScore.domain` is now read by nobody** — routed to Task 10.
+6. **Three accessibility additions beyond the rewrite.** `scope="col"` on the four table headers, so a cell is announced with the column it sits in. `aria-hidden="true"` on the domain legend wrapper (`data-radar-legend`), which had named four domains beside an `aria-hidden` chart — the same defect Task 7 fixed on `ArchetypeCard`'s twin legend one task earlier. And the `<svg>`'s own `aria-hidden` contract, stated in three comments and asserted nowhere, is now pinned: drop the attribute and twelve SVG labels plus the tooltip become a second, duplicate reading of the same twelve axes.
+7. **The component's test block grew from the plan's six tests to nine, and a new file holds eleven more.** The three added to `describe("RadarChart")` are `draws the rings and labels at absolute radii, not fractions of one` (note 1), `names each axis's domain in the table and hides the legend that repeats it` (notes 5 and 6 — it also pins the four legend swatches to `DOMAIN_MARK_VARS`, a revert to a fixed 600 hex having been invisible to every test then in place), and `reads the score table through the shared formatter` (note 8). Two of the plan's six also gained assertions: the user polygon's **stroke** is now guarded beside its fill, because the fill sits at 10% opacity while the 1.6px stroke has none, so guarding `fill` alone left the load-bearing half free to revert to a fixed Stone 600; and the spoke test now reads `x1`/`y1`, because counting alone cannot tell twelve spokes from twelve diameters. `tests/unit/radar-geometry.test.ts` holds **eleven** tests across five `describe` blocks, where addendum E named a single three-assertion test.
+8. **Addendum A changed a rendered string.** `formatScore` does not sign an exact zero, where the inline `>= 0 ? "+" : ""` did. This is reachable rather than theoretical: `normaliseByAxisId` pads a missing axis to exactly `0`, so a partial result's padded rows now read `0.00` instead of `+0.00` — a screen reader, the table's only consumer, no longer says "plus zero point zero zero" for an axis that carries no signal at all. Intended, and asserted.
+9. **Addenda B and D are only partly met; the remainder is routed to Task 10.** `MiniRadar` consumes four of the five shared helpers — `spokeAngle`, `scoreToRadius`, `polarToCart`, `ringPoints` — plus `TOTAL_AXES`, and its `MINI_AXES` is gone. It cannot consume the fifth: `normaliseByAxisId` keys on `axisId`, while `MiniRadar` receives `userScores: number[]`, bare numbers with no ids. Fixing that means widening `ArchetypeCardProps.userScores`, whose sole producer is `src/components/results/ResultsView.tsx:227` — a Task 10 file — so the change belongs in one task rather than split across two. `RadarChart` normalises because its prop already carries `axisId`. The `miniRadarPoints` docstring records the constraint at the exact point where a reader would otherwise reach for the helper.
 
 ---
 
@@ -3516,6 +3655,11 @@ git commit -m "feat(design): restyle the results page shell onto mock 7a"
 - **`lowMatch`'s `< 55` is an unnamed literal whose named form already exists.** `src/lib/scoring-types.ts:121` exports `LOW_MATCH_THRESHOLD_PCT = 55` beside its siblings `DISTINCTIVE_MATCH_CEILING = 72` and `DISTINCTIVE_STDDEV_FLOOR = 0.4`, and `tests/unit/scoring-archetypes.test.ts` pins it — but `ArchetypeCard` spells the number out instead of importing it. Correct and reachable, just undiscoverable, and it can now drift from the scoring engine silently. Import the constant. (The addendum as routed here said "hoist it beside its siblings"; the constant is already hoisted — the component simply does not use it.)
 - **Optional: close the pole-label wrap band.** Task 7's investigation of the Task 4 addendum (see that section) found the axis row's endpoint labels wrap over exactly `V ∈ [560, 599)`, and that this task's 820px container does not close it, because at a 560px viewport the container is viewport-limited. If it is judged worth fixing, the fix is one token in `AxisBreakdownCard.tsx` — `min-[560px]` to `min-[600px]` on the 3-column breakpoint — and **not** `shortPole`, which is lossy. Explicitly optional.
 
+**Addenda from Task 8**, both in files or interfaces this task owns:
+
+- **Widen `ArchetypeCardProps.userScores` to carry `axisId`, and apply `normaliseByAxisId` in `MiniRadar`.** This is the unfinished half of Task 7's addenda B and D — see Task 8's "As shipped" note 9. `userScores` is built at `src/components/results/ResultsView.tsx:227` as `axisData.map((a) => a.finalScore)`: bare numbers with no ids, so `MiniRadar` maps vertex `i` to axis `i + 1` positionally and cannot normalise, while `RadarChart` — whose prop carries `axisId` — already does. Without this, the mini radar's user polygon and its fixed axis-1-through-12 prototype can misalign against *each other*, which is the one comparison that chart exists to make. It is latent today only because `order === id` for all twelve rows of `src/data/axes.ts`, while `src/app/results/page.tsx:77` maps in scoring-pipeline order and `src/app/results/[profileId]/page.tsx:20` orders by `axis.order`. Widen the prop, update the one call site, and call `normaliseByAxisId` in `MiniRadar`.
+- **Drop the now-unread `domain` field from `RadarAxisScore`** in `src/lib/radar-geometry.ts`, and from the pad literal inside `normaliseByAxisId`. Task 8's sr-only Domain column derives the domain name from the axis id rather than reading the field, so nothing reads it any more (that task's "As shipped" note 5). A wider object still satisfies the narrower interface, so `AxisDisplayData` keeps passing unchanged. **Warning:** do not confuse the two `domain` fields. `ResultsView.tsx:157` groups the axis breakdown with `axisData.filter((a) => a.domain === DOMAIN_COLORS[key].name)` — that is `AxisDisplayData`'s own `domain`, structurally unrelated to the radar interface and load-bearing for the four domain groups. Dropping the `RadarAxisScore` field must not touch that grouping.
+
 ---
 
 ### Task 11: Drift guards for the results directory
@@ -3694,6 +3838,11 @@ git commit -m "test(design): guard the results page against design drift"
 - **Do not write a second sub-AA guard.** Task 7's `keeps the migrated results components off the sub-AA tertiary token` is the same check as this draft's `retires text-text-tertiary from the results page`, differing only in that Task 7 pinned the then-current offender list (`["ResultsView.tsx"]`) rather than `[]`, and sorted it because `readdirSync` order is not guaranteed. Task 10 shrinks that literal to `[]`. Extend or simply keep the existing test — do not append a duplicate under a new name.
 - **Do not re-open the `describe`.** Append the remaining guards into the block Task 7 created rather than declaring a second `describe` of the same name; two same-named blocks run, but they make the reporter ambiguous and hide which one a failure came from.
 
+**Addendum (reconciled after Task 8).** Two of the guards drafted above will now red on their own subject matter, and a third has live work:
+
+- **The two source-text guards red on comments, not on code — strip comments before scanning.** `never names --domain-economic where --mark-primary is meant` does `text.includes("--domain-economic")` over raw file text and expects `[]`; that string now appears in explanatory comments in **both** `RadarChart.tsx:142` and `ArchetypeCard.tsx:99`, each saying the token is deliberately *not* used there. `keeps fixed ramp literals out of the ink and mark positions` matches `/var\(--stone-(900|800|700|600|100|50)\)/` and expects `[]`; `var(--stone-600)` appears in comments in the same two files (`RadarChart.tsx:141`, `ArchetypeCard.tsx:98`). Task 7 introduced the pattern and Task 8 doubled it. **Strip `//` line comments and `/* */` blocks from each file's text before scanning.** Do not reword the comments to suit the guards: they are correct, they sit exactly where a future reader needs them, and a later implementer tempted to weaken a guard that exists to catch a defect this project has already shipped twice is much the worse outcome. (`CompassPlot.tsx:203-226` also holds five *real* `var(--stone-600)` uses; Task 9 removes them, and they must keep redding until it does.)
+- **`routes every data mark through the stepping tokens` has live work, and its positive count looks stale.** That half asserts `resultsSources.filter(/getDomainMarkVar|DOMAIN_MARK_VARS/)` has length **3**. Before Task 8 no file in `src/components/results/` matched at all; Task 8 made `RadarChart.tsx` the first, and Task 10's `DOMAIN_MARK_VARS[key]` domain rule makes `ResultsView.tsx` the second. `AxisBreakdownCard` draws no domain mark itself — its dots come from `src/components/PairedAxisScale.tsx`, outside the scanned directory — and `CompassPlot` has none, so the literal should be **2** unless Task 9 or 10 introduces a third. The negative half is live too: during Task 8, reverting the radar's legend swatch from `DOMAIN_MARK_VARS[key]` to a fixed 600 hex was undetectable by every test then in place, which is why that task added a local assertion on the four swatches. This guard is the general form of it.
+
 ---
 
 ### Task 12: Full verification and the two-mode visual check
@@ -3712,6 +3861,8 @@ npm run build
 ```
 
 Expected: `npm test` reports **60 files** with **676 + the new tests** passing — `results-chrome.test.ts` is the 61st file, so expect 61 files. Lint runs at `--max-warnings=0`; a new warning is a fix, never a raised threshold.
+
+**Flagged, not fixed (reconciled after Task 8).** Those two numbers are stale and have been since Task 5. Three test files have been added since the 676-tests-across-60-files baseline: `tests/unit/results-chrome.test.ts` (Task 4), `tests/unit/group-score-bar.test.ts` (Task 5) and `tests/unit/radar-geometry.test.ts` (Task 8) — `tests/helpers/source-files.ts` is a helper and is not collected. At `067888f` the suite reports **750 tests across 63 files**. Left for whoever reconciles this task to fold into the sentence above, together with whatever Tasks 9-11 add.
 
 If the lockfile changed for any reason, run `npm ci` **before** re-running these — a stale `node_modules` makes a local green disagree with CI.
 
@@ -3794,3 +3945,6 @@ Items consciously punted during the build. None block shipping. Listed here so t
 
 - **`tests/unit/results-chrome.test.ts`'s render harness is a fifth near-verbatim copy.** The `render` helper, `classes`, and the `afterEach` cleanup block introduced in Task 4 duplicate the same trio already living in `tests/unit/quiz-chrome.test.ts`, `footer-chrome`, `home-page`, and `account-actions`. `vitest.config.ts` includes only `tests/**/*.test.ts`, so a `tests/helpers/react-dom.ts` module would not itself be collected as a suite and is a clean home for the shared code. Deferred because extracting it mid-phase touches five existing test files at once and makes a red suite ambiguous — whose change broke it. Worth doing after phase 4 lands.
 - **`/compare`'s legend sentence is unguarded copy that is about to go stale on purpose.** `src/app/compare/page.tsx:180` ("Filled dot is you, ring marker is them.") has no test pinning word order — reverting it to the wrong order leaves the whole suite green. Now that Task 6 gives each readout its own swatch, the sentence is close to redundant; deleting it in phase 5 is preferable to writing a guard for copy that phase 5 is going to remove anyway.
+- **`ComparisonRadar.tsx` and `GroupRadar.tsx` are the last holders of the duplicated radar geometry.** Task 8 extracted `src/lib/radar-geometry.ts` and moved `RadarChart` and `MiniRadar` onto it; these two still carry their own `RING_FRACTIONS`, `ringPolygonPoints`, `spokeAngle`, `polarToCart` and `scoreToRadius`, plus — at `GroupRadar.tsx:57` — their own copy of the pad-to-twelve loop that `normaliseByAxisId` replaces. Both are still on the **fraction** convention (`ringPolygonPoints(0.5)`), which is exactly the hazard `ringPoints`' docstring warns about, so migrating them is a call-site audit rather than an import swap and wants its own task. Deliberately not folded into Tasks 9-12: neither file is on the results page, and both are D6-deferred to phase 5 already (see "Deferred to later phases", which defers `ComparisonRadar`'s `getDomainColor600` for the same reason).
+- **Two exported `TOTAL_AXES` now live in `src/lib/`** — `radar-geometry.ts:15` and `comparison-radar-data.ts:3` — the same value in two homes, with a third, unexported copy at `GroupRadar.tsx:16`. Re-export one from the other; the natural moment is the migration above.
+- **`RadarChart`'s vertex tooltip is untested and keyboard-unreachable.** Inverting which pole it names (`score >= 0 ? axis.poleBLabel : axis.poleALabel`) passes the entire suite. It is driven by `onMouseEnter`/`onMouseLeave` on a `<circle>` inside an `aria-hidden` `<svg>`, so a sighted keyboard user cannot read an exact vertex value at all; no AT user loses information, because the sr-only table carries the same twelve numbers in rows. Both facts predate this phase — Task 8 changed only the tooltip's metrics (`fontSize` 10 → 11, `rx` 4 → 2) — so this is recorded rather than fixed here.
