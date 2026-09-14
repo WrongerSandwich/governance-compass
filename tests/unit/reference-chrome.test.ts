@@ -10,6 +10,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { PageHeader, SpoilerNote } from "@/components/PageHeader";
 import { ReferenceCta } from "@/components/ReferenceCta";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
+import ReferencesPage from "@/app/references/page";
+import MethodologyPage from "@/app/methodology/page";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -180,5 +182,60 @@ describe("ReferenceCta", () => {
     const container = render(createElement(ReferenceCta, { secondary: null }));
 
     expect(container.querySelector("[data-reference-secondary]")).toBeNull();
+  });
+});
+
+describe("/references", () => {
+  it("opens on the shared header at the reference measure", () => {
+    const container = render(createElement(ReferencesPage));
+
+    expect(container.querySelector("h1")!.textContent).toBe("References");
+    expect(classes(container.querySelector("h1")!)).toContain("display-page");
+    expect(classes(container.querySelector("article")!)).toContain("max-w-reference");
+  });
+
+  it("routes its CTA through the primary button", () => {
+    const container = render(createElement(ReferencesPage));
+
+    const cta = container.querySelector("[data-reference-cta] a")!;
+    expect(classes(cta)).toContain("bg-button-primary");
+    expect(classes(cta)).not.toContain("bg-stone-600");
+  });
+
+  it("sets the card titles at the small display size", () => {
+    const container = render(createElement(ReferencesPage));
+
+    const h2 = container.querySelector("h2")!;
+    expect(classes(h2)).toContain("display-s");
+    expect(classes(h2)).not.toContain("text-[17px]");
+  });
+});
+
+describe("/methodology", () => {
+  it("opens on the shared header", () => {
+    const container = render(createElement(MethodologyPage));
+
+    expect(container.querySelector("h1")!.textContent).toBe(
+      "How The Governance Compass works",
+    );
+    expect(classes(container.querySelector("h1")!)).toContain("display-page");
+  });
+
+  it("sets its section headings at the entry display size", () => {
+    const container = render(createElement(MethodologyPage));
+
+    for (const h2 of container.querySelectorAll("h2")) {
+      expect(classes(h2)).toContain("display-entry");
+      expect(classes(h2)).not.toContain("text-[18px]");
+    }
+  });
+
+  it("runs the section jump nav in the mono nav layer", () => {
+    const container = render(createElement(MethodologyPage));
+
+    const nav = container.querySelector("nav[aria-label='Page sections']")!;
+    expect(classes(nav)).toContain("label-nav");
+    expect(classes(nav)).toContain("text-text-label");
+    expect(classes(nav)).not.toContain("text-text-tertiary");
   });
 });
