@@ -1696,7 +1696,7 @@ describe("results chrome drift guards", () => {
     // clearing one without the other would have left those rows half-migrated.
     // The per-axis page's ten ramp classes were the last holders: the back
     // link's 600/800 hover pair became --text-secondary/--text-primary, the
-    // three section headings became --text-primary (stone-800 measures 1.63:1
+    // three section headings became --text-primary (stone-800 measures 1.78:1
     // on the dark panel ground, which is the actual defect), the selected
     // pole's `bg-stone-100 text-stone-800` became `bg-surface-2
     // text-text-primary` so the highlight inverts with the surface instead of
