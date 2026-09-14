@@ -11,6 +11,7 @@ import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
+import { CompassPlot } from "@/components/results/CompassPlot";
 import { RadarChart } from "@/components/results/RadarChart";
 import { ComparisonScoreBar } from "@/components/comparison/ComparisonScoreBar";
 import { getDomainMarkVar } from "@/lib/design-tokens";
@@ -51,6 +52,22 @@ const resultsDir = resolve(process.cwd(), "src/components/results");
 const resultsSources = readdirSync(resultsDir)
   .filter((name) => name.endsWith(".tsx"))
   .map((name) => ({ name, text: readFileSync(resolve(resultsDir, name), "utf8") }));
+
+/** `//` lines and block comments. The source-level guards below scan for token
+ *  spellings that also appear in deliberate "not this token" notes in prose --
+ *  RadarChart.tsx:141 and ArchetypeCard.tsx:98 both carry such notes today --
+ *  so a guard reading raw text reds on a comment documenting the very rule it
+ *  enforces.
+ *
+ *  The line arm is anchored to `^\s*` on purpose. An unanchored `\/\/.*$`
+ *  also eats the tail of any line containing a URL, which was verified to hide
+ *  a real `#abcdef` sitting after one. For a drift guard, under-detection is
+ *  the dangerous direction: a false green ships the defect, a false red merely
+ *  annoys. Known remaining gap, left because no realistic source triggers it:
+ *  the block arm still spans from a `"/*"` string literal to a `"*\/"` one. */
+function stripComments(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+}
 
 // Hook convention for this file, which gets appended to across eight more
 // tasks: a `data-*` attribute exists only to give an element identity
@@ -800,6 +817,246 @@ describe("RadarChart", () => {
   });
 });
 
+describe("CompassPlot", () => {
+  const PLOT = { economic: -0.4, cultural: 0.3, primaryArchetypeId: "social-democrat" };
+  // toX/toY map [-1,+1] across PADDING..SIZE-PADDING, so the origin of both
+  // axes is the centre of the 400-unit viewBox.
+  const CENTRE = 200;
+
+  it("draws a 300px plot square with a 50px grid", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const frame = container.querySelector("[data-compass-frame]") as SVGRectElement;
+
+    expect(frame.getAttribute("width")).toBe("300");
+    expect(frame.getAttribute("height")).toBe("300");
+    // Squared off with the rest of the system: this rect carried rx={6}.
+    expect(frame.getAttribute("rx")).toBeNull();
+    // The frame's own origin, so the grid below is pinned to the square and not
+    // merely to the viewBox. Offset the frame by 10 and the lines stop dividing
+    // it, with a size-and-count assertion none the wiser.
+    expect(frame.getAttribute("x")).toBe("50");
+    expect(frame.getAttribute("y")).toBe("50");
+
+    // Five interior lines each way -- and WHERE they fall, not just how many.
+    // A step of 40 leaves exactly ten lines that no longer divide a 300px
+    // square into six columns.
+    const grid = [...container.querySelectorAll("[data-compass-grid]")];
+    expect(grid).toHaveLength(10);
+    const verticals = grid.filter((l) => l.getAttribute("x1") === l.getAttribute("x2"));
+    const horizontals = grid.filter((l) => l.getAttribute("y1") === l.getAttribute("y2"));
+    expect(verticals.map((l) => l.getAttribute("x1"))).toEqual(["100", "150", "200", "250", "300"]);
+    expect(horizontals.map((l) => l.getAttribute("y1"))).toEqual(["100", "150", "200", "250", "300"]);
+
+    // Those are viewBox units, which are only 300 *px* because the 400-unit
+    // viewBox renders 400px wide. max-w-sm is 384px, which would draw the
+    // square at 288px and the grid at 48px with every assertion above green.
+    expect(classes(container.querySelector("svg")!)).toContain("max-w-[400px]");
+  });
+
+  it("plots the respondent as a 12px ink dot the engine positions", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const dot = container.querySelector("[data-compass-dot]") as SVGCircleElement;
+
+    expect(dot.getAttribute("r")).toBe("6");
+    // var(--text-primary), not var(--stone-900): Stone 900 ink on a Stone 900
+    // ground is invisible, and --text-primary is already the ink pair that
+    // inverts (#3d2e1f / #efe9e3).
+    expect(dot.style.fill).toBe("var(--text-primary)");
+
+    // Nothing else in this file reads cx/cy against the inputs, so without
+    // these an inverted toY -- cultural +1 rendering at the BOTTOM, every point
+    // and all twelve archetype markers mirrored -- is entirely invisible.
+    // PLOT is economic -0.4 (left of centre) and cultural +0.3 (above it).
+    expect(Number(dot.getAttribute("cx"))).toBeLessThan(CENTRE);
+    expect(Number(dot.getAttribute("cy"))).toBeLessThan(CENTRE);
+    // Exact, so no sign error can hide inside a "less than".
+    expect(dot.getAttribute("cx")).toBe("140");
+    expect(dot.getAttribute("cy")).toBe("155");
+  });
+
+  it("keeps the compass pointing the way the scoring engine does", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const poleEls = [...container.querySelectorAll("[data-compass-pole]")];
+    const poles = poleEls.map((p) => p.textContent);
+    const poleY = (t: string) => Number(poleEls.find((p) => p.textContent === t)!.getAttribute("y"));
+    const poleX = (t: string) => Number(poleEls.find((p) => p.textContent === t)!.getAttribute("x"));
+
+    // Mock 7a labels the vertical axis Open / Traditional, which would invert
+    // the meaning of every plotted point. SD_CULTURAL_WEIGHTS maps +1 to the
+    // top and the shipped labels say Traditional there. The mock is a static
+    // prototype with fabricated coordinates; it does not outrank the engine.
+    expect(poles).toEqual(["Collective", "Market", "Traditional", "Progressive"]);
+    expect(poles).not.toContain("Open");
+    // The four 10px letterSpaced cardinal labels that used to sit OUTSIDE the
+    // square are replaced, not supplemented. They carry no [data-compass-pole]
+    // hook, so leaving them behind would sail past the assertions above while
+    // rendering each pole twice.
+    expect(container.textContent).not.toContain("COLLECTIVE");
+    expect(container.textContent).not.toContain("PROGRESSIVE");
+
+    // WHERE each label sits, not merely that it exists. Reading textContent in
+    // DOM order cannot tell Traditional-on-top from Traditional-on-the-bottom,
+    // so the array above leaves D12 -- the decision this plan spent a paragraph
+    // defending -- unguarded on its own.
+    expect(poleY("Traditional")).toBeLessThan(poleY("Progressive"));
+    expect(poleX("Collective")).toBeLessThan(poleX("Market"));
+    // And each straddles the axis it names rather than merely out-ordering its
+    // opposite somewhere off in a corner.
+    expect(poleY("Traditional")).toBeLessThan(CENTRE);
+    expect(poleY("Progressive")).toBeGreaterThan(CENTRE);
+
+    // INSIDE the square, which is the whole point of moving them off the
+    // outside. Every assertion above is relational -- Traditional above
+    // Progressive, Collective left of Market -- and a relational assertion is
+    // blind to a uniform outward shift: negating POLE_INSET puts all four
+    // labels outside the frame with their ordering, and the suite, intact.
+    // Bounds read off the frame rather than recomputed, as the dot test does.
+    const frameEl = container.querySelector("[data-compass-frame]")!;
+    const fx = Number(frameEl.getAttribute("x"));
+    const fy = Number(frameEl.getAttribute("y"));
+    const fr = fx + Number(frameEl.getAttribute("width"));
+    const fb = fy + Number(frameEl.getAttribute("height"));
+    for (const p of poleEls) {
+      expect(Number(p.getAttribute("x"))).toBeGreaterThanOrEqual(fx);
+      expect(Number(p.getAttribute("x"))).toBeLessThanOrEqual(fr);
+      expect(Number(p.getAttribute("y"))).toBeGreaterThanOrEqual(fy);
+      expect(Number(p.getAttribute("y"))).toBeLessThanOrEqual(fb);
+    }
+
+    // The mono face is a named deliverable of this task; flipping all six
+    // labels to `inherit` otherwise passes.
+    expect((poleEls[0] as SVGTextElement).style.fontFamily).toBe("var(--font-mono)");
+  });
+
+  it("keeps the contour lines and the archetype markers", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+
+    // CLAUDE.md names the contour lines as the design system's one protected
+    // decorative exception. The markers are the only thing that says where a
+    // respondent sits RELATIVE to the twelve archetypes.
+    expect(container.querySelectorAll("[data-compass-contour]")).toHaveLength(4);
+    expect(container.querySelectorAll("[data-compass-archetype]")).toHaveLength(12);
+
+    // All twelve are LABELLED. The MIN_DIST = 18 collision suppression has
+    // never fired against the shipped archetype data -- the closest pair is
+    // 23.05 units apart at PADDING = 50, and was 19.06 at the old 76, so this
+    // task moved the margin away from the threshold rather than toward it.
+    // Pinning the observable outcome beats contriving a fixture to force a
+    // branch real data does not reach, and this reds if a future prototype
+    // edit, or a smaller INNER, starts swallowing labels.
+    expect(container.querySelectorAll("[data-compass-archetype] text")).toHaveLength(12);
+  });
+
+  it("drops the decoration the mock is right to cut", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const svg = container.querySelector("svg")!;
+
+    expect(container.textContent).not.toContain("Libertarian left");
+
+    // The obvious spelling of the rest of this -- querying
+    // [data-compass-moderate] and [data-compass-pulse] and expecting null -- is
+    // an absence assertion on a hook that never existed. It passes against the
+    // pre-task file, so it cannot tell "removed" from "never present", and it
+    // coins hooks that name nothing, against the convention at :56-61. These
+    // are positive and hold only after the removal.
+    //
+    // One rect: the frame. Before this task there were six -- the frame, the
+    // four quadrant tints and the dashed moderate-zone rect.
+    expect(svg.querySelectorAll("rect")).toHaveLength(1);
+    // One circle at the dot's own coordinates: the two pulse rings sat there
+    // too. Read off the dot rather than recomputing toX/toY in the test.
+    const dot = container.querySelector("[data-compass-dot]")!;
+    const atDot = [...svg.querySelectorAll("circle")].filter(
+      (c) =>
+        c.getAttribute("cx") === dot.getAttribute("cx") &&
+        c.getAttribute("cy") === dot.getAttribute("cy"),
+    );
+    expect(atDot).toHaveLength(1);
+  });
+
+  it("still reports the coordinates in words and in numbers", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const svg = container.querySelector("svg")!;
+    const readout = container.querySelector("[data-compass-readout]") as SVGTextElement;
+
+    // role="img" is what promotes the label to the accessible name of the whole
+    // plot; drop it and the label goes unannounced.
+    expect(svg.getAttribute("role")).toBe("img");
+    // Two bare numbers tell a screen-reader user nothing about which way either
+    // axis runs, so each carries the pole it leans toward.
+    expect(svg.getAttribute("aria-label")).toBe(
+      "Political compass plot. Economic: -0.40 (Collective), Cultural: +0.30 (Traditional)",
+    );
+    expect(readout.textContent).toBe("-0.40, +0.30");
+    expect(readout.style.fontFamily).toBe("var(--font-mono)");
+    // The leader starts clear of the dot it points away from -- LEADER_START
+    // must exceed DOT_R or the line is drawn through the ink it is labelling.
+    const leader = container.querySelector("[data-compass-leader]")!;
+    const dotEl = container.querySelector("[data-compass-dot]")!;
+    expect(
+      Math.abs(Number(leader.getAttribute("x1")) - Number(dotEl.getAttribute("cx"))),
+    ).toBeGreaterThan(Number(dotEl.getAttribute("r")));
+
+    // That bound is one-sided: it pins LEADER_START from below and says
+    // nothing at all about the far end or the label. Stretching LEADER_END to
+    // 160, flipping its sign so the leader runs backwards through the dot, or
+    // widening READOUT_GAP to 60 all drag the readout off the plot square with
+    // the assertion above still green. dotX is 140, so from the dot: start
+    // +16, end +28, readout +32.
+    expect(leader.getAttribute("x1")).toBe("156");
+    expect(leader.getAttribute("x2")).toBe("168");
+    expect(readout.getAttribute("x")).toBe("172");
+    // Sits on the dot's own baseline: this one is 45 units clear of the
+    // horizontal axis, so the collision nudge below must not fire.
+    expect(readout.getAttribute("y")).toBe(dotEl.getAttribute("cy"));
+  });
+
+  it("signs the readout through the shared formatter", () => {
+    // Fifth inlined copy of the always-signed formatter, folded onto
+    // src/lib/format-score.ts (Task 6 consolidated three, Task 8 a fourth).
+    // formatScore signs on `> 0`, so an exact zero loses its `+` -- which is
+    // what the axis table beside this plot already renders, and what a screen
+    // reader should hear. computeSuperDimensions bounds both outputs to
+    // [-1, +1], so formatScore's clamp is a no-op here.
+    const container = render(
+      createElement(CompassPlot, { economic: 0, cultural: -0.25 }),
+    );
+
+    expect(container.querySelector("[data-compass-readout]")!.textContent).toBe("0.00, -0.25");
+    // "(centre)", not "(Collective)": an exact zero leans to neither pole, and
+    // a fully-skipped assessment scores exactly 0 on both axes.
+    expect(container.querySelector("svg")!.getAttribute("aria-label")).toBe(
+      "Political compass plot. Economic: 0.00 (centre), Cultural: -0.25 (Progressive)",
+    );
+  });
+
+  it("keeps the readout clear of the pole labels when the dot sits on the axis", () => {
+    // Moving the pole labels inside the square opened a collision the
+    // outside-the-square labels could not have. The readout renders at
+    // dotX + 32 on the dot's own baseline and "Collective" begins at x=58 on
+    // the centre line, so an economic score below about -0.72 with a near-zero
+    // cultural score printed one straight through the other. Reachable by a
+    // consistent respondent, and trivially via a crafted ?r= URL.
+    const left = render(createElement(CompassPlot, { economic: -0.9, cultural: 0 }));
+    const collective = [...left.querySelectorAll("[data-compass-pole]")].find(
+      (p) => p.textContent === "Collective",
+    )!;
+    expect(Number(collective.getAttribute("y"))).toBe(CENTRE);
+    expect(
+      Math.abs(Number(left.querySelector("[data-compass-readout]")!.getAttribute("y")) - CENTRE),
+    ).toBeGreaterThanOrEqual(12);
+
+    // Symmetrically past +0.89 on "Market" -- and this dot sits just BELOW the
+    // axis, so the nudge has to carry it further down. A nudge that always went
+    // up would push the readout back across the centre line onto the very label
+    // it is avoiding.
+    const right = render(createElement(CompassPlot, { economic: 0.95, cultural: -0.05 }));
+    expect(
+      Number(right.querySelector("[data-compass-readout]")!.getAttribute("y")),
+    ).toBeGreaterThan(CENTRE + 11);
+  });
+});
+
 describe("results chrome drift guards", () => {
   it("keeps the migrated results components off the sub-AA tertiary token", () => {
     // Stone 500 measures 3.28:1 on the card ground — under AA for small text.
@@ -812,11 +1069,46 @@ describe("results chrome drift guards", () => {
     // `.sort()` because readdirSync order is not guaranteed, and an unsorted
     // toEqual against an array literal is a flaky test, not a strict one.
     const offenders = resultsSources
-      .filter(({ text }) => text.includes("text-text-tertiary"))
+      .filter(({ text }) => stripComments(text).includes("text-text-tertiary"))
       .map(({ name }) => name)
       .sort();
 
     // Shrinks to [] at Task 10, which owns ResultsView.tsx.
     expect(offenders).toEqual(["ResultsView.tsx"]);
+  });
+
+  it("keeps them off the sub-AA tertiary token in its OTHER spelling too", () => {
+    // The class-name guard above is blind to this phase's four SVG charts.
+    // CompassPlot colours all six of its labels through inline
+    // style={{ fill: 'var(--...)' }} and carries no `text-` class at all, so
+    // dropping every one of them onto the 3.28:1 token passes it green. Same
+    // token, same failure, different spelling.
+    //
+    // Comments stripped, like the class guard above: this file family writes
+    // `// --mark-primary, not var(--stone-600)` as a matter of style, so the
+    // natural `// --text-label, not var(--text-tertiary): 3.28:1 fails AA`
+    // would otherwise red this guard on prose documenting compliance with it.
+    const varOffenders = resultsSources
+      .filter(({ text }) => stripComments(text).includes("var(--text-tertiary)"))
+      .map(({ name }) => name)
+      .sort();
+
+    expect(varOffenders).toEqual([]);
+  });
+
+  it("keeps raw colour hexes out of the results components", () => {
+    // CompassPlot's four quadrant tints were raw hexes (#6b7d8a, #85735e,
+    // #7a8b6e, #96716b); a fixed hex cannot invert, and Task 9 removed them.
+    // A DOM-level check on [fill] attributes looks like it guards this and does
+    // not: post-task the only fill attributes left are the contours'
+    // fill="none", so such a check runs over ["none","none","none","none"] and
+    // a tint re-added as style={{ fill: '#6b7d8a' }} sails straight through.
+    // Source level, so no spelling dodges it.
+    const hexOffenders = resultsSources
+      .filter(({ text }) => /#[0-9a-fA-F]{3,8}\b/.test(stripComments(text)))
+      .map(({ name }) => name)
+      .sort();
+
+    expect(hexOffenders).toEqual([]);
   });
 });

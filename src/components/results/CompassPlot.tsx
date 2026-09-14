@@ -1,6 +1,7 @@
 "use client";
 
 import { archetypes } from "@/data/archetypes";
+import { formatScore } from "@/lib/format-score";
 import { SD_ECONOMIC_WEIGHTS, SD_CULTURAL_WEIGHTS } from "@/lib/scoring-types";
 
 interface CompassPlotProps {
@@ -10,8 +11,41 @@ interface CompassPlotProps {
 }
 
 const SIZE = 400;
-const PADDING = 76;
+// 300px plot square, per mock 7a, inside the existing 400-unit viewBox. The
+// margin holds nothing — the pole labels moved inside the square — but it
+// keeps the square off the container edge.
+const PADDING = 50;
 const INNER = SIZE - PADDING * 2;
+
+// The grid divides the square into six columns. At PADDING = 50 that step is
+// 50 units, which equals PADDING and puts a line under the centre crosshair —
+// both coincidences of this particular padding, not relationships. Expressing
+// the step as a fraction of INNER keeps the grid square and centred if PADDING
+// ever moves; a literal 50 would drift off its own frame.
+const GRID_STEP = INNER / 6;
+const GRID_LINES = [1, 2, 3, 4, 5];
+
+// 12px ink dot at the 400px render width.
+const DOT_R = 6;
+// Pole labels sit inside the square now, so they must clear a dot parked hard
+// against the frame: one dot radius plus 2 units of breath.
+const POLE_INSET = DOT_R + 2;
+const POLE_FONT = 11;
+// Baseline push for the TOP pole only: the other three centre on an axis or
+// sit above the bottom edge, while this one hangs off the frame's top edge and
+// would otherwise render its cap height outside the square. Hand-tuned by eye
+// against POLE_FONT = 11 and NOT derived from it -- move POLE_FONT and this
+// needs re-checking rather than recomputing itself.
+const POLE_CAP = 6;
+// The leader line has to start clear of the dot it points away from, so both
+// offsets exceed DOT_R.
+const LEADER_START = DOT_R + 10;
+const LEADER_END = DOT_R + 22;
+// And the readout sits just past the leader's far end.
+const READOUT_GAP = 4;
+// Nudge the readout clear of the horizontal axis when the dot sits on it —
+// see the collision note at the call site.
+const READOUT_NUDGE = 12;
 
 function toX(v: number): number {
   return PADDING + ((v + 1) / 2) * INNER;
@@ -47,52 +81,89 @@ const ARCHETYPE_POSITIONS = archetypes.map((a) => {
   return { id: a.id, name: a.name, shortLabel, economic, cultural };
 });
 
+/**
+ * The pole a score leans toward, for the SVG's accessible label. An exact zero
+ * leans to neither: a fully-skipped assessment scores exactly 0 on both axes,
+ * so glossing 0 as "Collective" would tell a respondent who answered nothing
+ * that they lean collective-progressive.
+ */
+function poleGloss(v: number, negative: string, positive: string): string {
+  if (v === 0) return "centre";
+  return v > 0 ? positive : negative;
+}
+
 export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassPlotProps) {
   const dotX = toX(economic);
   const dotY = toY(cultural);
 
-  const economicLabel = economic >= 0 ? `+${economic.toFixed(2)}` : economic.toFixed(2);
-  const culturalLabel = cultural >= 0 ? `+${cultural.toFixed(2)}` : cultural.toFixed(2);
-
-  const modInset = INNER * 0.43;
-  const modX = PADDING + modInset;
-  const modY = PADDING + modInset;
-  const modW = INNER - modInset * 2;
-  const modH = INNER - modInset * 2;
+  // The shared formatter, not a fifth inlined copy. It signs on `> 0`, so an
+  // exact zero reads "0.00" here — matching the axis table beside this plot,
+  // and sparing a screen reader "plus zero point zero zero". Its ±1 clamp is
+  // a no-op: computeSuperDimensions bounds both outputs to [-1, +1].
+  const economicLabel = formatScore(economic);
+  const culturalLabel = formatScore(cultural);
 
   const flipLeader = dotX > CENTER_X;
-  const leaderEndX = flipLeader ? dotX - 28 : dotX + 28;
-  const labelX = flipLeader ? leaderEndX - 4 : leaderEndX + 4;
+  const leaderEndX = flipLeader ? dotX - LEADER_END : dotX + LEADER_END;
+  const labelX = flipLeader ? leaderEndX - READOUT_GAP : leaderEndX + READOUT_GAP;
   const labelAnchor = flipLeader ? "end" as const : "start" as const;
 
+  // Moving the pole labels inside the square opened a collision the
+  // outside-the-square labels could not have: the readout renders on the dot's
+  // own baseline, so a dot sitting on the horizontal axis pushes it straight
+  // through "Collective" (economic below about -0.72) or "Market" (above about
+  // +0.89). Both are reachable by a consistent respondent. Nudge the readout
+  // off the axis, and always AWAY from centre, so the nudge can never carry it
+  // onto the label it is avoiding.
+  const readoutY =
+    Math.abs(dotY - CENTER_Y) < READOUT_NUDGE
+      ? dotY + (dotY <= CENTER_Y ? -READOUT_NUDGE : READOUT_NUDGE)
+      : dotY;
+
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full max-w-sm"
-        aria-label={`Political compass plot. Economic: ${economicLabel}, Cultural: ${culturalLabel}`}
+        className="w-full max-w-[400px]"
+        aria-label={`Political compass plot. Economic: ${economicLabel} (${poleGloss(economic, "Collective", "Market")}), Cultural: ${culturalLabel} (${poleGloss(cultural, "Progressive", "Traditional")})`}
         role="img"
       >
         {/* Plot background */}
         <rect
+          data-compass-frame
           x={PADDING}
           y={PADDING}
           width={INNER}
           height={INNER}
-          rx={6}
-          style={{ fill: 'var(--surface-1)' }}
+          style={{ fill: 'var(--surface-1)', stroke: 'var(--border-secondary)' }}
+          strokeWidth={1}
         />
 
-        {/* Quadrant domain tints */}
-        <rect x={PADDING} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#6b7d8a" opacity={0.06} />
-        <rect x={CENTER_X} y={PADDING} width={INNER / 2} height={INNER / 2} fill="#85735e" opacity={0.06} />
-        <rect x={PADDING} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#7a8b6e" opacity={0.06} />
-        <rect x={CENTER_X} y={CENTER_Y} width={INNER / 2} height={INNER / 2} fill="#96716b" opacity={0.06} />
+        {/* Grid. --rule-hairline is the barely-there pair (Stone 50 / Stone
+            900); a `stroke-stone-50` literal would read as near-white hairlines
+            on a dark ground. */}
+        {GRID_LINES.map((k) => (
+          <g key={k}>
+            <line
+              data-compass-grid
+              x1={PADDING + k * GRID_STEP} y1={PADDING} x2={PADDING + k * GRID_STEP} y2={SIZE - PADDING}
+              style={{ stroke: 'var(--rule-hairline)' }}
+              strokeWidth={1}
+            />
+            <line
+              data-compass-grid
+              x1={PADDING} y1={PADDING + k * GRID_STEP} x2={SIZE - PADDING} y2={PADDING + k * GRID_STEP}
+              style={{ stroke: 'var(--rule-hairline)' }}
+              strokeWidth={1}
+            />
+          </g>
+        ))}
 
-        {/* Contour lines */}
+        {/* Contour lines — CLAUDE.md's one protected decorative exception. */}
         {CONTOUR_PATHS.map((d, i) => (
           <path
             key={i}
+            data-compass-contour
             d={d}
             fill="none"
             style={{ stroke: 'var(--stone-500)' }}
@@ -101,54 +172,34 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
           />
         ))}
 
-        {/* Moderate zone */}
-        <rect
-          x={modX} y={modY} width={modW} height={modH}
-          fill="none"
-          style={{ stroke: 'var(--border-secondary)' }}
-          strokeWidth={0.5}
-          strokeDasharray="3 3"
-          opacity={0.5}
-        />
-
         {/* Crosshairs */}
         <line
           x1={CENTER_X} y1={PADDING} x2={CENTER_X} y2={SIZE - PADDING}
           style={{ stroke: 'var(--border-secondary)' }}
-          strokeWidth={0.5}
+          strokeWidth={1}
         />
         <line
           x1={PADDING} y1={CENTER_Y} x2={SIZE - PADDING} y2={CENTER_Y}
           style={{ stroke: 'var(--border-secondary)' }}
-          strokeWidth={0.5}
+          strokeWidth={1}
         />
 
-        {/* Quadrant whisper labels */}
-        <text x={PADDING + 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.4}>
-          Communitarian
+        {/* Pole labels, inside the square at a POLE_INSET gutter. Traditional
+            is TOP and Progressive is BOTTOM because toY maps cultural +1 to the
+            top and SD_CULTURAL_WEIGHTS is what defines +1 — mock 7a's Open /
+            Traditional pair would invert the meaning of every plotted point
+            without touching the engine. See D12. */}
+        <text data-compass-pole x={PADDING + POLE_INSET} y={CENTER_Y} fontSize={POLE_FONT} letterSpacing="0.02em" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+          Collective
         </text>
-        <text x={SIZE - PADDING - 8} y={PADDING + 16} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.4}>
-          Conservative
+        <text data-compass-pole x={SIZE - PADDING - POLE_INSET} y={CENTER_Y} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="end" dominantBaseline="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+          Market
         </text>
-        <text x={PADDING + 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" opacity={0.4}>
-          Libertarian left
+        <text data-compass-pole x={CENTER_X} y={PADDING + POLE_INSET + POLE_CAP} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+          Traditional
         </text>
-        <text x={SIZE - PADDING - 8} y={SIZE - PADDING - 8} fontSize={9} style={{ fill: 'var(--text-tertiary)' }} fontFamily="inherit" textAnchor="end" opacity={0.4}>
-          Classical liberal
-        </text>
-
-        {/* Cardinal axis labels */}
-        <text x={PADDING - 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="end" dominantBaseline="middle" letterSpacing="0.08em">
-          COLLECTIVE
-        </text>
-        <text x={SIZE - PADDING + 6} y={CENTER_Y} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" dominantBaseline="middle" letterSpacing="0.08em">
-          MARKET
-        </text>
-        <text x={CENTER_X} y={PADDING - 10} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
-          TRADITIONAL
-        </text>
-        <text x={CENTER_X} y={SIZE - PADDING + 18} fontSize={10} style={{ fill: 'var(--text-secondary)' }} fontFamily="inherit" textAnchor="middle" letterSpacing="0.08em">
-          PROGRESSIVE
+        <text data-compass-pole x={CENTER_X} y={SIZE - PADDING - POLE_INSET} fontSize={POLE_FONT} letterSpacing="0.02em" textAnchor="middle" style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}>
+          Progressive
         </text>
 
         {/* Archetype reference markers — with collision suppression */}
@@ -175,7 +226,7 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
             if (showLabel) placed.push({ x: ax, y: labelY });
 
             return (
-              <g key={a.id} opacity={isPrimary ? 0.75 : 0.4}>
+              <g key={a.id} data-compass-archetype opacity={isPrimary ? 0.75 : 0.4}>
                 <circle
                   cx={ax}
                   cy={ay}
@@ -188,8 +239,7 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
                     y={labelY}
                     textAnchor="middle"
                     fontSize={isPrimary ? 7.5 : 6.5}
-                    fontFamily="inherit"
-                    style={{ fill: 'var(--text-secondary)' }}
+                    style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}
                   >
                     {a.shortLabel}
                   </text>
@@ -199,31 +249,31 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
           });
         })()}
 
-        {/* Pulse rings */}
-        <circle cx={dotX} cy={dotY} r={16} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.6} opacity={0.3} />
-        <circle cx={dotX} cy={dotY} r={10} fill="none" style={{ stroke: 'var(--stone-600)' }} strokeWidth={0.6} opacity={0.5} />
-
-        {/* Respondent dot */}
-        <circle cx={dotX} cy={dotY} r={5} style={{ fill: 'var(--stone-600)' }} />
+        {/* 12px ink dot. --text-primary, not var(--stone-900): Stone 900 ink
+            on a Stone 900 ground is invisible, and this token is already the
+            ink pair that inverts. */}
+        <circle data-compass-dot cx={dotX} cy={dotY} r={DOT_R} style={{ fill: 'var(--text-primary)' }} />
 
         {/* Leader line */}
         <line
-          x1={flipLeader ? dotX - 16 : dotX + 16}
+          data-compass-leader
+          x1={flipLeader ? dotX - LEADER_START : dotX + LEADER_START}
           y1={dotY}
           x2={leaderEndX}
           y2={dotY}
-          style={{ stroke: 'var(--stone-600)' }}
+          style={{ stroke: 'var(--text-label)' }}
           strokeWidth={0.6}
-          opacity={0.45}
         />
 
         {/* Coordinate label */}
         <text
+          data-compass-readout
           x={labelX}
-          y={dotY}
+          y={readoutY}
           textAnchor={labelAnchor}
-          fontSize={10}
-          style={{ fill: 'var(--stone-600)', fontFamily: 'var(--font-mono)' }}
+          fontSize={POLE_FONT}
+          letterSpacing="0.02em"
+          style={{ fill: 'var(--text-label)', fontFamily: 'var(--font-mono)' }}
           dominantBaseline="middle"
         >
           {economicLabel}, {culturalLabel}
