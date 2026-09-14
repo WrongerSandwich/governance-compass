@@ -13,6 +13,7 @@ import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
 import ReferencesPage from "@/app/references/page";
 import MethodologyPage from "@/app/methodology/page";
 import AxesPage from "@/app/axes/page";
+import QuestionsPage from "@/app/questions/page";
 import { DOMAIN_MARK_VARS } from "@/lib/design-tokens";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -315,5 +316,64 @@ describe("/axes", () => {
     const cta = container.querySelector("[data-reference-cta] a")!;
     expect(classes(cta)).toContain("bg-button-primary");
     expect(classes(cta)).not.toContain("bg-stone-600");
+  });
+});
+
+describe("/questions", () => {
+  it("opens on the shared header with a back-link kicker", () => {
+    const container = render(createElement(QuestionsPage));
+
+    expect(container.querySelector("[data-page-kicker] a")!.getAttribute("href")).toBe(
+      "/references",
+    );
+    expect(classes(container.querySelector("h1")!)).toContain("display-page");
+  });
+
+  it("draws the spoiler advisory on the shared warning stripe, with no off-palette wash", () => {
+    const container = render(createElement(QuestionsPage));
+
+    const note = container.querySelector("[data-spoiler-note]")!;
+    expect(classes(note)).toContain("border-warning");
+    // D22. `#b5942e` and its rgba wash are not in the palette at all — the
+    // page carried its own third hue, and a fixed low-alpha tint cannot
+    // follow the surface into dark mode either way.
+    expect(note.getAttribute("style")).toBeNull();
+    expect(container.innerHTML).not.toContain("b5942e");
+    expect(container.innerHTML).not.toContain("181, 148, 46");
+  });
+
+  it("draws every domain mark off the stepping token", () => {
+    const container = render(createElement(QuestionsPage));
+
+    const marks = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-domain-mark]"),
+    ).map((el) => el.style.color);
+
+    expect(marks.length).toBeGreaterThan(0);
+    for (const value of marks) {
+      expect(value).toMatch(/^var\(--/);
+      expect(value).not.toMatch(/#[0-9a-f]{6}/i);
+    }
+  });
+
+  it("puts the budget heading on the unified mark rather than a Stone literal", () => {
+    const container = render(createElement(QuestionsPage));
+
+    const budget = container.querySelector("#budget h2")!;
+    // It was `style={{ color: "#85735e" }}` — Stone 600 frozen as a hex, on
+    // a heading that sits beside four domain headings that now all step.
+    expect((budget as HTMLElement).style.color).toBe("var(--mark-primary)");
+    expect(container.innerHTML).not.toContain("85735e");
+  });
+
+  it("keeps every scoring chip on a sharp corner", () => {
+    const container = render(createElement(QuestionsPage));
+
+    const chips = container.querySelectorAll("[data-scoring-chip]");
+    expect(chips.length).toBeGreaterThan(0);
+    for (const chip of chips) {
+      expect(classes(chip)).toContain("rounded-sharp");
+      expect(classes(chip)).not.toContain("rounded");
+    }
   });
 });
