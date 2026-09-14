@@ -1,6 +1,12 @@
 import { axes as axesDef } from "@/data/axes";
+import { TOTAL_AXES } from "./radar-geometry";
 
-export const TOTAL_AXES = 12;
+/**
+ * Re-exported rather than redeclared: the twelve-axis count has one home in
+ * `radar-geometry`, and a second `export const` here is a value that can drift
+ * from the one every radar draws against.
+ */
+export { TOTAL_AXES };
 
 export interface AxisScoreEntry {
   axisId: number;

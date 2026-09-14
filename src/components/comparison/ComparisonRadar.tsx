@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { getDomainColor600 } from "@/lib/design-tokens";
+import { getDomainMarkVar } from "@/lib/design-tokens";
 import {
-  TOTAL_AXES,
   buildAxisNames,
   buildComparableScores,
   buildScoreRuns,
   type AxisScoreEntry,
 } from "@/lib/comparison-radar-data";
+import {
+  TOTAL_AXES,
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+} from "@/lib/radar-geometry";
 import { formatScore } from "@/lib/format-score";
 
 interface ComparisonRadarProps {
@@ -31,30 +37,15 @@ const MAX_RADIUS = 170;
 const LABEL_PADDING = 38;
 const RING_FRACTIONS = [0.33, 0.5, 0.67, 1.0];
 
-function scoreToRadius(score: number): number {
-  return ((score + 1) / 2) * MAX_RADIUS;
-}
-
-function spokeAngle(index: number): number {
-  return (index / TOTAL_AXES) * 2 * Math.PI - Math.PI / 2;
-}
-
-function polarToCart(angle: number, radius: number): [number, number] {
-  return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
-}
-
-function ringPolygonPoints(radiusFraction: number): string {
-  const r = MAX_RADIUS * radiusFraction;
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const [x, y] = polarToCart(spokeAngle(i), r);
-    return `${x},${y}`;
-  }).join(" ");
-}
-
 function runPoints(run: number[], scores: (number | null)[]): string {
   return run
     .map((i) => {
-      const [x, y] = polarToCart(spokeAngle(i), scoreToRadius(scores[i]!));
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(scores[i]!, MAX_RADIUS),
+        CX,
+        CY,
+      );
       return `${x},${y}`;
     })
     .join(" ");
@@ -178,7 +169,7 @@ export function ComparisonRadar({
         {RING_FRACTIONS.map((frac) => (
           <polygon
             key={frac}
-            points={ringPolygonPoints(frac)}
+            points={ringPoints(MAX_RADIUS * frac, TOTAL_AXES, CX, CY)}
             fill="none"
             style={{ stroke: frac === 0.5 ? 'var(--stone-600)' : 'var(--border-tertiary)' }}
             strokeWidth={frac === 0.5 ? 0.7 : 0.5}
@@ -189,8 +180,8 @@ export function ComparisonRadar({
 
         {/* 6 spoke lines */}
         {[0, 1, 2, 3, 4, 5].map((i) => {
-          const [x1, y1] = polarToCart(spokeAngle(i), MAX_RADIUS);
-          const [x2, y2] = polarToCart(spokeAngle(i + 6), MAX_RADIUS);
+          const [x1, y1] = polarToCart(spokeAngle(i, TOTAL_AXES), MAX_RADIUS, CX, CY);
+          const [x2, y2] = polarToCart(spokeAngle(i + 6, TOTAL_AXES), MAX_RADIUS, CX, CY);
           return (
             <line
               key={i}
@@ -223,17 +214,27 @@ export function ComparisonRadar({
           const scoreB = scoresB[i];
           // Hidden axes get no mark and no hit target — there is nothing to reveal.
           if (score === null || scoreB === null) return null;
-          const [xa, ya] = polarToCart(spokeAngle(i), scoreToRadius(score));
-          const [xb, yb] = polarToCart(spokeAngle(i), scoreToRadius(scoreB));
+          const [xa, ya] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            scoreToRadius(score, MAX_RADIUS),
+            CX,
+            CY,
+          );
+          const [xb, yb] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            scoreToRadius(scoreB, MAX_RADIUS),
+            CX,
+            CY,
+          );
           const isHovered = hoveredAxis === i;
           const onEnter = () => setHoveredAxis(i);
           const onLeave = () => setHoveredAxis(null);
           return (
             <g key={i}>
               {/* Profile A dot */}
-              <circle cx={xa} cy={ya} r={isHovered ? 5 : 3.5} fill={getDomainColor600(i + 1)} style={{ transition: "r 150ms" }} />
+              <circle cx={xa} cy={ya} r={isHovered ? 5 : 3.5} fill={getDomainMarkVar(i + 1)} style={{ transition: "r 150ms" }} />
               {/* Profile B ring */}
-              <circle cx={xb} cy={yb} r={isHovered ? 4 : 3} fill="none" stroke={getDomainColor600(i + 1)} strokeWidth={1.5} opacity={0.6} style={{ transition: "r 150ms" }} />
+              <circle cx={xb} cy={yb} r={isHovered ? 4 : 3} fill="none" stroke={getDomainMarkVar(i + 1)} strokeWidth={1.5} opacity={0.6} style={{ transition: "r 150ms" }} />
               {/* Hit targets on each dot */}
               <circle cx={xa} cy={ya} r={14} fill="transparent" style={{ cursor: "default" }} onMouseEnter={onEnter} onMouseLeave={onLeave} />
               <circle cx={xb} cy={yb} r={14} fill="transparent" style={{ cursor: "default" }} onMouseEnter={onEnter} onMouseLeave={onLeave} />
@@ -256,9 +257,9 @@ export function ComparisonRadar({
           const boxW = textWidth + padH * 2;
           const boxH = 28 + padV * 2;
 
-          const angle = spokeAngle(i);
+          const angle = spokeAngle(i, TOTAL_AXES);
           // Position tooltip outward along the spoke, just inside the labels
-          const [spokeX, spokeY] = polarToCart(angle, MAX_RADIUS * 0.55);
+          const [spokeX, spokeY] = polarToCart(angle, MAX_RADIUS * 0.55, CX, CY);
           let tx = spokeX;
           let ty = spokeY;
 
@@ -293,8 +294,8 @@ export function ComparisonRadar({
 
         {/* Axis labels with long-label wrapping */}
         {paddedNames.map((name, i) => {
-          const angle = spokeAngle(i);
-          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING);
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const [x, y] = polarToCart(angle, MAX_RADIUS + LABEL_PADDING, CX, CY);
 
           let anchor: "start" | "middle" | "end" = "middle";
           const normAngle = ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
@@ -324,8 +325,8 @@ export function ComparisonRadar({
               fontSize={10}
               fill={
                 hidden.has(i + 1)
-                  ? "var(--text-tertiary)"
-                  : getDomainColor600(i + 1)
+                  ? "var(--text-label)"
+                  : getDomainMarkVar(i + 1)
               }
               opacity={hidden.has(i + 1) ? 0.45 : 0.8}
             >
@@ -357,7 +358,7 @@ export function ComparisonRadar({
       </div>
 
       {hiddenNames.length > 0 && (
-        <p className="text-xs text-text-tertiary mt-3 text-center max-w-md">
+        <p className="text-xs text-text-secondary mt-3 text-center max-w-md">
           {hiddenNames.length === 1 ? "One axis is" : `${hiddenNames.length} axes are`}
           {" hidden by a profile owner and left out of this comparison: "}
           {hiddenNames.join(", ")}.

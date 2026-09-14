@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  TOTAL_AXES,
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+} from "@/lib/radar-geometry";
+
 interface AxisAverage {
   axisId: number;
   axisName: string;
@@ -13,7 +21,6 @@ interface GroupRadarProps {
   data: AxisAverage[];
 }
 
-const TOTAL_AXES = 12;
 const SIZE = 500;
 const CX = SIZE / 2;
 const CY = SIZE / 2;
@@ -21,33 +28,12 @@ const MAX_RADIUS = 170;
 const LABEL_PADDING = 28;
 const RING_FRACTIONS = [0.33, 0.67, 1.0];
 
-function scoreToRadius(score: number): number {
-  return ((score + 1) / 2) * MAX_RADIUS;
-}
-
-function spokeAngle(index: number): number {
-  return (index / TOTAL_AXES) * 2 * Math.PI - Math.PI / 2;
-}
-
-function polarToCart(angle: number, radius: number): [number, number] {
-  return [CX + radius * Math.cos(angle), CY + radius * Math.sin(angle)];
-}
-
-function ringPolygonPoints(radiusFraction: number): string {
-  const r = MAX_RADIUS * radiusFraction;
-  return Array.from({ length: TOTAL_AXES }, (_, i) => {
-    const angle = spokeAngle(i);
-    const [x, y] = polarToCart(angle, r);
-    return `${x},${y}`;
-  }).join(" ");
-}
-
 function scorePolygonPoints(scores: number[]): string {
   return scores
     .map((score, i) => {
-      const angle = spokeAngle(i);
-      const r = scoreToRadius(score);
-      const [x, y] = polarToCart(angle, r);
+      const angle = spokeAngle(i, TOTAL_AXES);
+      const r = scoreToRadius(score, MAX_RADIUS);
+      const [x, y] = polarToCart(angle, r, CX, CY);
       return `${x},${y}`;
     })
     .join(" ");
@@ -82,7 +68,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
         {RING_FRACTIONS.map((frac) => (
           <polygon
             key={frac}
-            points={ringPolygonPoints(frac)}
+            points={ringPoints(MAX_RADIUS * frac, TOTAL_AXES, CX, CY)}
             fill="none"
             style={{ stroke: 'var(--border-tertiary)' }}
             strokeWidth={frac === 0.67 ? 0.6 : 0.5}
@@ -92,10 +78,10 @@ export function GroupRadar({ data }: GroupRadarProps) {
 
         {/* 6 spoke lines */}
         {[0, 1, 2, 3, 4, 5].map((i) => {
-          const angle1 = spokeAngle(i);
-          const angle2 = spokeAngle(i + 6);
-          const [x1, y1] = polarToCart(angle1, MAX_RADIUS);
-          const [x2, y2] = polarToCart(angle2, MAX_RADIUS);
+          const angle1 = spokeAngle(i, TOTAL_AXES);
+          const angle2 = spokeAngle(i + 6, TOTAL_AXES);
+          const [x1, y1] = polarToCart(angle1, MAX_RADIUS, CX, CY);
+          const [x2, y2] = polarToCart(angle2, MAX_RADIUS, CX, CY);
           return (
             <line
               key={i}
@@ -122,9 +108,9 @@ export function GroupRadar({ data }: GroupRadarProps) {
 
         {/* Vertex dots */}
         {padded.map((axis, i) => {
-          const angle = spokeAngle(i);
-          const r = scoreToRadius(axis.average);
-          const [x, y] = polarToCart(angle, r);
+          const angle = spokeAngle(i, TOTAL_AXES);
+          const r = scoreToRadius(axis.average, MAX_RADIUS);
+          const [x, y] = polarToCart(angle, r, CX, CY);
           return (
             <circle
               key={axis.axisId}
@@ -138,9 +124,9 @@ export function GroupRadar({ data }: GroupRadarProps) {
 
         {/* Pole B perimeter labels */}
         {padded.map((axis, i) => {
-          const angle = spokeAngle(i);
+          const angle = spokeAngle(i, TOTAL_AXES);
           const labelR = MAX_RADIUS + LABEL_PADDING;
-          const [x, y] = polarToCart(angle, labelR);
+          const [x, y] = polarToCart(angle, labelR, CX, CY);
 
           const normAngle =
             ((angle + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI));
@@ -162,7 +148,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
               textAnchor={anchor}
               dominantBaseline="central"
               fontSize={10}
-              style={{ fill: 'var(--text-tertiary)' }}
+              style={{ fill: 'var(--text-label)' }}
             >
               {parts.map((part, pi) => (
                 <tspan

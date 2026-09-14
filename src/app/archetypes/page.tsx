@@ -12,6 +12,12 @@ import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { PageHeader, SpoilerNote } from "@/components/PageHeader";
 import { ReferenceCta } from "@/components/ReferenceCta";
+import {
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+} from "@/lib/radar-geometry";
 
 const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   empirical: "●",
@@ -81,27 +87,20 @@ const RADAR_CY = RADAR_SIZE / 2;
 const RADAR_R = 30;
 const AXIS_COUNT = 12;
 
-function radarPoints(prototype: number[]): string {
-  return prototype
+function MiniRadar({ prototype }: { prototype: number[] }) {
+  const outerRing = ringPoints(RADAR_R, AXIS_COUNT, RADAR_CX, RADAR_CY);
+  const midRing = ringPoints(RADAR_R * 0.5, AXIS_COUNT, RADAR_CX, RADAR_CY);
+  const shape = prototype
     .map((score, i) => {
-      const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-      const r = ((score + 1) / 2) * RADAR_R;
-      return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
+      const [x, y] = polarToCart(
+        spokeAngle(i, AXIS_COUNT),
+        scoreToRadius(score, RADAR_R),
+        RADAR_CX,
+        RADAR_CY,
+      );
+      return `${x},${y}`;
     })
     .join(" ");
-}
-
-function MiniRadar({ prototype }: { prototype: number[] }) {
-  const ringPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
-    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-    return `${RADAR_CX + RADAR_R * Math.cos(angle)},${RADAR_CY + RADAR_R * Math.sin(angle)}`;
-  }).join(" ");
-
-  const midRingPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
-    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-    const r = RADAR_R * 0.5;
-    return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
-  }).join(" ");
 
   return (
     <svg
@@ -110,26 +109,23 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
       aria-hidden="true"
     >
       <polygon
-        points={ringPoints}
+        points={outerRing}
+        fill="none"
+        style={{ stroke: "var(--border-secondary)" }}
+        strokeWidth={0.6}
+      />
+      <polygon
+        points={midRing}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
-        opacity={0.6}
-      />
-      <polygon
-        points={midRingPoints}
-        fill="none"
-        style={{ stroke: "var(--border-secondary)" }}
-        strokeWidth={0.4}
         strokeDasharray="1.5 1.5"
-        opacity={0.35}
       />
       <polygon
-        points={radarPoints(prototype)}
+        points={shape}
         data-prototype-shape
         style={{ fill: "var(--mark-primary)", stroke: "var(--mark-primary)" }}
         fillOpacity={0.14}
-        strokeOpacity={0.6}
         strokeWidth={1}
         strokeLinejoin="round"
       />

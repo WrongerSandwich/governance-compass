@@ -266,3 +266,67 @@ describe("normaliseByAxisId", () => {
     expect(padded).toEqual(complete);
   });
 });
+
+import { readFileSync } from "node:fs";
+import { relative, resolve } from "node:path";
+import { sourceFiles } from "../helpers/source-files";
+
+describe("radar geometry has one home (design delta phase 5)", () => {
+  it("leaves no component with its own copy of the polar helpers", () => {
+    // Five copies existed: RadarChart and MiniRadar (migrated in phase 4),
+    // ComparisonRadar, GroupRadar, and the archetype page's own MiniRadar.
+    // A local copy is not a style problem — each one re-inlines the trig that
+    // Node and Chromium disagree about, so each one logs its own hydration
+    // mismatch on a server-rendered page.
+    const offenders = sourceFiles(resolve(process.cwd(), "src")).flatMap((file) => {
+      if (file.endsWith("radar-geometry.ts")) return [];
+      const text = readFileSync(file, "utf8");
+      const match = text.match(/function (?:polarToCart|spokeAngle|scoreToRadius|ringPolygonPoints)\b/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps exactly one exported TOTAL_AXES", () => {
+    const offenders = sourceFiles(resolve(process.cwd(), "src")).flatMap((file) => {
+      if (file.endsWith("radar-geometry.ts")) return [];
+      const text = readFileSync(file, "utf8");
+      return /export const TOTAL_AXES/.test(text)
+        ? [relative(process.cwd(), file)]
+        : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("rounds every radar coordinate onto the shared decimal grid", () => {
+    // The assertion that would have failed before the migration: a component
+    // computing its own cos/sin emits an unrounded coordinate.
+    const charts = [
+      "src/components/comparison/ComparisonRadar.tsx",
+      "src/components/groups/GroupRadar.tsx",
+      "src/app/archetypes/page.tsx",
+    ];
+
+    for (const chart of charts) {
+      const text = readFileSync(resolve(process.cwd(), chart), "utf8");
+      expect(text).toContain('from "@/lib/radar-geometry"');
+      expect(text).not.toMatch(/Math\.(?:cos|sin)\(/);
+    }
+  });
+
+  it("draws every radar mark off a stepping token, never a fixed hex", () => {
+    const charts = [
+      "src/components/comparison/ComparisonRadar.tsx",
+      "src/components/groups/GroupRadar.tsx",
+      "src/app/archetypes/page.tsx",
+      "src/app/page.tsx",
+    ];
+
+    for (const chart of charts) {
+      const text = readFileSync(resolve(process.cwd(), chart), "utf8");
+      expect(text).not.toContain("getDomainColor600");
+    }
+  });
+});
