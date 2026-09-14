@@ -356,6 +356,28 @@ describe("data marks step by mode (design delta 06)", () => {
     expect(theme["--container-results"]).toBe("820px");
   });
 
+  it("names all four page widths as tokens, so none is spelled as a literal", () => {
+    // Phase 4 left two of the four as Tailwind literals. A width spelled
+    // `max-w-2xl` reads as a generic size rather than as "the quiz column",
+    // so a later phase retunes one page and silently desyncs it from the
+    // other on the same measure. 660 is mock 7c's; 672 is what `max-w-2xl`
+    // already resolved to, so that one is a rename and must not move.
+    expect(theme["--container-shell"]).toBe("1040px");
+    expect(theme["--container-results"]).toBe("820px");
+    expect(theme["--container-reference"]).toBe("660px");
+    expect(theme["--container-quiz"]).toBe("672px");
+  });
+
+  it("holds the quiz column on its token rather than the generic Tailwind size", () => {
+    const quizFlow = readFileSync(
+      resolve(process.cwd(), "src/components/quiz/QuizFlow.tsx"),
+      "utf8",
+    );
+
+    expect(quizFlow).toContain("max-w-quiz");
+    expect(quizFlow).not.toContain("max-w-2xl");
+  });
+
   it("maps each axis to its domain's mark variable", () => {
     // Axis 1-2 economic, 3-6 power, 7-9 society, 10-12 world. Asserted across
     // all twelve rather than one per domain, because an off-by-one in

@@ -262,6 +262,19 @@
      which NavBar and Footer keep. */
   --container-results: 820px;
 
+  /* Reference column width, from mock 7c. The narrowest of the four: this is
+     the long-prose measure, and 660px holds it near 75 characters at the
+     15px intro size. `/archetypes` runs its zebra band edge-to-edge and
+     re-applies this width to the content inside each row, so the measure
+     survives a full-bleed background. */
+  --container-reference: 660px;
+
+  /* Quiz column width. Value-identical to the `max-w-2xl` it replaces —
+     this is a naming change, not a retune. Spelled as a token so the four
+     page measures are all visible in one place and none of them reads as an
+     incidental Tailwind size. */
+  --container-quiz: 672px;
+
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
