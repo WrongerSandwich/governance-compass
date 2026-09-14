@@ -100,3 +100,218 @@ describe("/archetypes header block", () => {
     expect(header.parentElement).toBe(band.parentElement);
   });
 });
+
+describe("/archetypes provenance legend", () => {
+  it("labels the legend in the mono eyebrow layer", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const label = container.querySelector("[data-provenance-label]")!;
+    expect(label.textContent).toBe("Provenance");
+    expect(classes(label)).toContain("label-eyebrow");
+    expect(classes(label)).toContain("text-text-label");
+    expect(classes(label)).not.toContain("text-text-tertiary");
+  });
+
+  it("lists all three tiers as glyph, mono label, prose", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const rows = container.querySelectorAll("[data-provenance-row]");
+    expect(rows.length).toBe(3);
+    expect(rows[0].textContent).toContain("●");
+    expect(rows[1].textContent).toContain("◐");
+    expect(rows[2].textContent).toContain("○");
+
+    const firstLabel = rows[0].querySelector("[data-provenance-tier]")!;
+    expect(firstLabel.textContent).toBe("Emerged from data");
+    expect(classes(firstLabel)).toContain("label-nav");
+    expect(classes(firstLabel)).toContain("text-text-primary");
+  });
+
+  it("glosses each tier in one line, not in the glyph's long tooltip prose", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const rows = container.querySelectorAll("[data-provenance-row]");
+    expect(rows[0].textContent).toContain("identified from an empirical cluster");
+    // EMERGENCE_TOOLTIPS is the 40-word form EmergenceGlyph's accessible name
+    // uses. Reaching for it here is the natural mistake — it is the only
+    // exported per-tier prose — and it renders three paragraphs where 7c
+    // draws three lines, which no other assertion in this file would catch.
+    expect(rows[0].textContent).not.toContain("Its prototype vector is centered");
+    for (const row of rows) expect(row.textContent!.length).toBeLessThan(140);
+  });
+
+  it("leaves the legend's own glyphs decorative", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    // The row spells the tier out in words beside it, so an accessible name
+    // on the glyph would make a screen reader announce the same tier twice.
+    // The glyphs that DO carry a name are the ones in the index and the entry
+    // headings, where nothing else says what the mark means.
+    for (const row of container.querySelectorAll("[data-provenance-row]")) {
+      const glyph = row.querySelector("span")!;
+      expect(glyph.getAttribute("aria-hidden")).toBe("true");
+      expect(glyph.getAttribute("role")).toBeNull();
+    }
+  });
+
+  it("keeps the long tooltip reachable from the index glyphs", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const glyph = container.querySelector("[data-archetype-index] [role='img']")!;
+    expect(glyph.getAttribute("aria-label")).toMatch(
+      /Emerged from data|Refined with data|Theoretically derived/,
+    );
+    // EmergenceGlyph builds its name as "<label>. <tooltip>", so this is the
+    // one place the long form stays available to an AT user.
+    expect(glyph.getAttribute("aria-label")!.length).toBeGreaterThan(100);
+  });
+});
+
+describe("/archetypes index", () => {
+  it("draws one flat two-column grid rather than three tier-grouped blocks", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const grid = container.querySelector("[data-archetype-index]")!;
+    expect(classes(grid)).toContain("grid-cols-2");
+    expect(grid.querySelectorAll("a").length).toBe(archetypes.length);
+    // The pre-7c index split into three headed groups. Mock 7c carries the
+    // tier per row, by glyph, and prints the tier NAME inside each entry.
+    expect(container.querySelectorAll("[data-index-tier-group]").length).toBe(0);
+  });
+
+  it("numbers every index row in mono, zero-padded, in display order", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const numbers = Array.from(
+      container.querySelectorAll("[data-archetype-index] [data-index-number]"),
+    ).map((el) => el.textContent);
+
+    expect(numbers[0]).toBe("01");
+    expect(numbers[numbers.length - 1]).toBe("12");
+    const first = container.querySelector("[data-archetype-index] [data-index-number]")!;
+    expect(classes(first)).toContain("font-mono");
+    expect(classes(first)).toContain("text-text-label");
+  });
+
+  it("points every index row at the entry it names", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const hrefs = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>("[data-archetype-index] a"),
+    ).map((a) => a.getAttribute("href"));
+    const ids = Array.from(container.querySelectorAll("[data-archetype-entry]")).map(
+      (el) => `#${el.id}`,
+    );
+
+    // Anchor drift is silent: a wrong href scrolls to the top of the page,
+    // which reads as "the link did nothing" rather than as a bug.
+    expect(hrefs).toEqual(ids);
+  });
+});
+
+describe("/archetypes entries", () => {
+  it("renders one full-bleed row per archetype, alternating the ground", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const rows = container.querySelectorAll("[data-archetype-entry]");
+    expect(rows.length).toBe(archetypes.length);
+    expect(classes(rows[0])).not.toContain("bg-surface-2");
+    expect(classes(rows[1])).toContain("bg-surface-2");
+    // Each row separates from the next with a rule, per 7c.
+    expect(classes(rows[0])).toContain("border-b");
+    expect(classes(rows[0])).toContain("border-border-secondary");
+  });
+
+  it("re-applies the reference measure inside each full-bleed row", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const inner = container.querySelector("[data-archetype-entry] [data-entry-inner]")!;
+    // The band is edge-to-edge; the prose is not. Losing this cap is the
+    // failure mode of full-bleed: the text runs the width of the viewport and
+    // every other assertion here still passes.
+    expect(classes(inner)).toContain("max-w-reference");
+    expect(classes(inner)).toContain("mx-auto");
+  });
+
+  it("sets entry names at the entry display size", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const h2 = container.querySelector("[data-archetype-entry] h2")!;
+    expect(classes(h2)).toContain("display-entry");
+    expect(classes(h2)).not.toContain("text-[18px]");
+  });
+
+  it("prints the provenance tier as a mono line under each entry heading", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const tiers = container.querySelectorAll("[data-entry-tier]");
+    expect(tiers.length).toBe(archetypes.length);
+    expect(classes(tiers[0])).toContain("label-nav");
+    expect(classes(tiers[0])).toContain("text-text-label");
+    // D19: this is where the tier name went when the index flattened. If it
+    // is absent the tier is reachable only through a glyph's title attribute.
+    expect(["Emerged from data", "Refined with data", "Theoretically derived"]).toContain(
+      tiers[0].textContent,
+    );
+  });
+
+  it("keeps the serif italic lead-ins as prose, not mono labels", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const entry = container.querySelector("[data-archetype-entry]")!;
+    const leadIns = Array.from(entry.querySelectorAll("em[data-lead-in]"));
+
+    // Issue #136's "the one thing not to redesign". Turning these into mono
+    // labels turns a reference into a spec sheet, and nothing else in this
+    // file would fail if someone did.
+    expect(leadIns.map((el) => el.textContent)).toEqual([
+      "Internal tension.",
+      "Traditions.",
+    ]);
+    for (const em of leadIns) {
+      expect(classes(em)).toContain("font-serif");
+      expect(classes(em)).toContain("italic");
+      expect(classes(em)).not.toContain("label");
+      expect(classes(em)).not.toContain("label-nav");
+    }
+
+    // Selecting every `em` instead would sweep in a different device: markdown
+    // emphasis inside the traditions prose. `popular-egalitarian` italicises
+    // `*Ujamaa*`, `social-democrat` `*ostpolitik*` — foreign terms inside sans
+    // body copy, which `TraditionsProse` renders sans on purpose. Asserting
+    // `font-serif` over that set reds the suite on correct markup.
+    //
+    // Scoped to the band rather than to the first entry: `radical-egalitarian`
+    // leads the display order and its traditions carry links only, no emphasis
+    // at all. Scoped to the band rather than the page for the opposite reason —
+    // `SpoilerNote` in the header renders its own serif italic lead-in, which
+    // is a lead-in and not markdown emphasis.
+    const bodyEm = Array.from(
+      container.querySelectorAll("[data-archetypes-band] em:not([data-lead-in])"),
+    );
+    expect(bodyEm.length).toBeGreaterThan(0);
+    expect(classes(bodyEm[0])).not.toContain("font-serif");
+  });
+
+  it("labels the axis-position disclosure in mono", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const summary = container.querySelector("[data-archetype-entry] summary")!;
+    expect(summary.textContent).toContain("Axis positions");
+    expect(classes(summary)).toContain("label");
+    expect(classes(summary)).toContain("text-text-label");
+  });
+
+  it("keeps every entry addressable by id for :target deep links", () => {
+    const container = render(createElement(ArchetypesPage));
+
+    const ids = Array.from(container.querySelectorAll("[data-archetype-entry]")).map(
+      (el) => el.id,
+    );
+
+    // `/results#<archetype-id>` relies on these, and issue #136 calls the
+    // :target highlight out by name as a thing that must survive.
+    expect(ids).toEqual([...archetypes].sort((a, b) => a.displayOrder - b.displayOrder).map((a) => a.id));
+    expect(classes(container.querySelector("[data-archetype-entry]")!)).toContain("scroll-mt-20");
+  });
+});
