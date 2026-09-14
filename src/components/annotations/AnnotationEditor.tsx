@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/Button";
 
 interface AnnotationEditorProps {
   axisScoreId: string;
@@ -53,18 +54,14 @@ export function AnnotationEditor({
         className="w-full rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
       />
       <div className="flex items-center gap-3 mt-2">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="border border-stone-600 text-stone-600 px-4 py-1.5 rounded-sharp text-sm font-medium hover:bg-stone-100 disabled:opacity-50 transition-colors duration-150"
-        >
+        <Button variant="secondary" disabled={saving} onClick={handleSave}>
           {saving ? "Saving..." : "Save"}
-        </button>
-        <span aria-live="polite" className="text-sm text-stone-600">
+        </Button>
+        <span aria-live="polite" className="body-s text-text-secondary">
           {saved ? "Saved" : ""}
         </span>
         {saveError && (
-          <span role="alert" className="text-sm text-red-600">
+          <span role="alert" className="body-s text-warning-text">
             {saveError}
           </span>
         )}

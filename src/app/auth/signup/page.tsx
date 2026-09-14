@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import { Button } from "@/components/Button";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,7 @@ export default function SignUpPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="bg-surface-1 rounded-sharp border border-border-secondary p-8 w-full max-w-md">
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-6">
+        <h1 className="display-m text-text-primary mb-6">
           Create account
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,29 +83,34 @@ export default function SignUpPage() {
               aria-describedby="pwd-hint"
               className="w-full rounded-sharp border border-border-primary px-3 py-2 bg-surface-1 text-text-primary focus-ring"
             />
-            <p id="pwd-hint" className="text-xs text-text-tertiary mt-1">Minimum 8 characters</p>
+            <p id="pwd-hint" className="text-xs text-text-secondary mt-1">Minimum 8 characters</p>
           </div>
           <div aria-live="polite" aria-atomic="true">
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <p role="alert" className="text-sm text-warning-text">
+                {error}
+              </p>
+            )}
           </div>
-          <button
-            type="submit"
-            className="w-full border border-stone-600 text-stone-600 py-2 rounded-sharp font-medium hover:bg-stone-100 transition-colors duration-150"
-          >
+          <Button type="submit" variant="secondary" className="w-full">
             Create account
-          </button>
+          </Button>
         </form>
         <div className="mt-4">
-          <button
+          <Button
+            variant="secondary"
+            className="w-full"
             onClick={() => signIn("google", { callbackUrl: "/account" })}
-            className="w-full border border-border-primary text-text-secondary py-2 rounded-sharp font-medium hover:bg-surface-2 transition-colors duration-150"
           >
             Continue with Google
-          </button>
+          </Button>
         </div>
-        <p className="mt-4 text-sm text-center text-text-tertiary">
+        <p className="mt-4 text-sm text-center text-text-secondary">
           Already have an account?{" "}
-          <Link href="/auth/signin" className="text-stone-600 hover:text-stone-800">
+          <Link
+            href="/auth/signin"
+            className="text-text-primary hover:text-text-secondary transition-colors duration-150 focus-ring"
+          >
             Sign in
           </Link>
         </p>
