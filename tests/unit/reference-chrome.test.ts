@@ -338,8 +338,12 @@ describe("/questions", () => {
     // page carried its own third hue, and a fixed low-alpha tint cannot
     // follow the surface into dark mode either way.
     expect(note.getAttribute("style")).toBeNull();
-    expect(container.innerHTML).not.toContain("b5942e");
+    // Both halves of the old inline style, spelled the way jsdom serialises
+    // them. A hex in an inline style is normalised to `rgb()` before it
+    // reaches `innerHTML`, so asserting on `b5942e` would have been dead —
+    // it can never appear, whatever the source says.
     expect(container.innerHTML).not.toContain("181, 148, 46");
+    expect(container.innerHTML).not.toContain("rgba(181, 148, 46");
   });
 
   it("draws every domain mark off the stepping token", () => {
@@ -363,7 +367,11 @@ describe("/questions", () => {
     // It was `style={{ color: "#85735e" }}` — Stone 600 frozen as a hex, on
     // a heading that sits beside four domain headings that now all step.
     expect((budget as HTMLElement).style.color).toBe("var(--mark-primary)");
-    expect(container.innerHTML).not.toContain("85735e");
+    // `#85735e` normalised. The hex spelling never survives into innerHTML,
+    // so this is the only form of the assertion that can fail. A `var()`
+    // reference is passed through unresolved, which is why the positive
+    // assertion above and this negative do not contradict each other.
+    expect(container.innerHTML).not.toContain("133, 115, 94");
   });
 
   it("keeps every scoring chip on a sharp corner", () => {
