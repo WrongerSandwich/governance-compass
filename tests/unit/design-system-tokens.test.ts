@@ -501,9 +501,17 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     // 3.28:1 on surface-1, in BOTH modes. The label layer takes
     // `text-text-label`; prose takes `text-text-secondary`. There is no
     // remaining use for this token on these pages.
-    const offenders = sweptSources().flatMap(({ file, text }) =>
-      text.includes("text-text-tertiary") ? [relative(process.cwd(), file)] : [],
-    );
+    //
+    // BOTH spellings. The Tailwind class is how it appears on an element;
+    // `var(--text-tertiary)` is how it appears in an inline style, which is
+    // the form SVG text needs because `fill` takes no Tailwind colour class.
+    // ComparisonRadar's hover tooltip survived this phase's sweep in exactly
+    // that form, past a class-only version of this guard, and was found by
+    // reading rather than by a test.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(/text-text-tertiary|var\(--text-tertiary\)/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
 
     expect(offenders).toEqual([]);
   });
