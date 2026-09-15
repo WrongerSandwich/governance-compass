@@ -245,7 +245,7 @@ export default function StudyOverviewPage() {
                       href={link.href}
                       className="group flex items-baseline gap-5"
                     >
-                      <span className="mono-meta text-text-label tabular-nums shrink-0">
+                      <span className="mono-meta text-text-label tabular-nums font-medium shrink-0">
                         {link.number}
                       </span>
                       <span className="flex-1">
