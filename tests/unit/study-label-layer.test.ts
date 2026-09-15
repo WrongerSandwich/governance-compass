@@ -60,3 +60,43 @@ describe("the patterns page joins the label layer", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe("model agreement joins the label layer", () => {
+  const FILES = [
+    "src/components/study/model-agreement/ModelAgreementClient.tsx",
+    "src/components/study/model-agreement/CaseStudy.tsx",
+    "src/components/study/model-agreement/DisagreementByAttribute.tsx",
+  ];
+
+  it("leaves no inline font size on any of them", () => {
+    const offenders = FILES.flatMap((file) => {
+      const sizes = inlineFontSizes(read(file));
+      return sizes.length ? [`${file}: ${sizes.join(", ")}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("sets the case-study prose in sans, not serif", () => {
+    // Two analytical paragraphs were 14px serif roman. Spec delta 01 puts
+    // prose in sans and keeps serif for headings plus the one italic role;
+    // serif roman body is not in the scale. Asserted here rather than left
+    // to the fontSize sweep because moving to `body-s` changes the SIZE
+    // visibly and the FAMILY invisibly, and the family is the deliberate
+    // part.
+    const text = read("src/components/study/model-agreement/CaseStudy.tsx");
+
+    expect(text).not.toContain("var(--font-serif)");
+  });
+
+  it("gives the italic caption the role that already carries its colour", () => {
+    // `caption-italic` declares font-family, style, size, line-height AND
+    // color. A `text-*` class beside it is either redundant or fighting it,
+    // and phase 5 guarded exactly this shape.
+    const text = read("src/components/study/model-agreement/ModelAgreementClient.tsx");
+
+    for (const cls of text.match(/className="[^"]*caption-italic[^"]*"/g) ?? []) {
+      expect(cls, "caption-italic already sets its colour").not.toMatch(/\btext-text-/);
+    }
+  });
+});

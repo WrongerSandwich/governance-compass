@@ -85,15 +85,16 @@ describe("the study section's page shells", () => {
 
   it("caps each study page on the measure its content is, not a Tailwind size", () => {
     // Three prose pages on the reference measure; the browser on its own.
-    // Scoped to the four shells because `ModelAgreementClient` still carries
-    // eleven `max-w-2xl` section wrappers that Task 5 converts; widen this to
-    // the whole of STUDY_SOURCES when it does.
-    const offenders = STUDY_SOURCES.filter(({ file }) => SHELLS.includes(file)).flatMap(
-      ({ file, text }) => {
-        const match = text.match(/max-w-(?:2xl|3xl|xl)(?![\w-])|maxWidth: "1200px"/);
-        return match ? [`${file}: ${match[0]}`] : [];
-      },
-    );
+    // Scans the WHOLE section, not just the four shells: `ModelAgreementClient`
+    // carried the section wrappers for one of those pages, so a shell-only
+    // scan reported a page as capped while eleven of its sections were not.
+    // Task 5 converted those, which is what lets this widen — and widening it
+    // is the point, since scoped to four files it stopped guarding the other
+    // forty study components against a new `max-w-2xl` appearing.
+    const offenders = STUDY_SOURCES.flatMap(({ file, text }) => {
+      const match = text.match(/max-w-(?:2xl|3xl|xl)(?![\w-])|maxWidth: "1200px"/);
+      return match ? [`${file}: ${match[0]}`] : [];
+    });
 
     expect(offenders).toEqual([]);
   });

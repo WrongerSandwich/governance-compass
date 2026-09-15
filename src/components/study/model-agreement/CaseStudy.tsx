@@ -61,17 +61,7 @@ function ModelLegend() {
               flexShrink: 0,
             }}
           />
-          <span
-            style={{
-              fontSize: "10px",
-              fontFamily: "var(--font-sans)",
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.08em",
-              color: "var(--text-tertiary)",
-            }}
-          >
-            {label}
-          </span>
+          <span className="label text-text-label">{label}</span>
         </div>
       ))}
     </div>
@@ -105,25 +95,8 @@ export function CaseStudy({
           marginBottom: "16px",
         }}
       >
-        <span
-          style={{
-            fontSize: "10px",
-            fontFamily: "var(--font-sans)",
-            textTransform: "uppercase" as const,
-            letterSpacing: "0.1em",
-            color: "var(--text-tertiary)",
-            fontWeight: 500,
-          }}
-        >
-          {kindLabel}
-        </span>
-        <span
-          style={{
-            fontSize: "11px",
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-tertiary)",
-          }}
-        >
+        <span className="label text-text-label font-medium">{kindLabel}</span>
+        <span className="mono-meta text-text-label">
           distance = {distance.toFixed(3)}
         </span>
       </div>
@@ -141,44 +114,27 @@ export function CaseStudy({
         {/* Left — bio */}
         <div>
           <p
-            style={{
-              fontSize: "14px",
-              fontFamily: "var(--font-serif)",
-              fontWeight: 500,
-              color: "var(--text-primary)",
-              margin: "0 0 4px",
-            }}
+            className="display-s text-text-primary"
+            style={{ margin: "0 0 4px" }}
           >
             {personaName}
           </p>
           <p
-            style={{
-              fontSize: "12px",
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-tertiary)",
-              letterSpacing: "0.01em",
-              margin: "0 0 12px",
-            }}
+            className="body-xs text-text-secondary"
+            style={{ margin: "0 0 12px" }}
           >
             {identity}
           </p>
           <p
-            style={{
-              fontSize: "14px",
-              fontFamily: "var(--font-serif)",
-              color: "var(--text-secondary)",
-              lineHeight: 1.65,
-              margin: "0 0 12px",
-            }}
+            className="body-s text-text-secondary"
+            style={{ margin: "0 0 12px" }}
           >
             {bioSummary}
           </p>
           <Link
             href={viewFullProfileHref}
+            className="body-xs text-mark-primary"
             style={{
-              fontSize: "12px",
-              fontFamily: "var(--font-sans)",
-              color: "var(--stone-600)",
               textDecoration: "underline",
               textDecorationColor: "var(--border-secondary)",
               textUnderlineOffset: "3px",
@@ -206,13 +162,8 @@ export function CaseStudy({
           />
           <ModelLegend />
           <p
-            style={{
-              fontSize: "10px",
-              fontFamily: "var(--font-mono)",
-              color: "var(--text-tertiary)",
-              marginTop: "4px",
-              textAlign: "center",
-            }}
+            className="mono-meta text-text-label"
+            style={{ marginTop: "4px", textAlign: "center" }}
           >
             {personaId}
           </p>
@@ -221,27 +172,12 @@ export function CaseStudy({
         {/* Right — analysis */}
         <div>
           <p
-            style={{
-              fontSize: "10px",
-              fontFamily: "var(--font-sans)",
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.08em",
-              color: "var(--text-tertiary)",
-              marginBottom: "8px",
-            }}
+            className="label text-text-label"
+            style={{ marginBottom: "8px" }}
           >
             Analysis
           </p>
-          <p
-            style={{
-              fontSize: "14px",
-              fontFamily: "var(--font-serif)",
-              color: "var(--text-secondary)",
-              lineHeight: 1.65,
-            }}
-          >
-            {analyticalProse}
-          </p>
+          <p className="body-s text-text-secondary">{analyticalProse}</p>
         </div>
       </div>
 
