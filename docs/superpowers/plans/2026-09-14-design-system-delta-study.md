@@ -2023,6 +2023,12 @@ Add to `tests/helpers/source-files.ts`, next to `sourceFiles`:
 export function stripComments(text: string): string;
 ```
 
+While you are there, promote `read()` and `inlineFontSizes()` out of
+`study-label-layer.test.ts` into the same helper module. Four `describe` blocks in that
+spec use them today, Task 9's reviewer flagged that the next phase will copy them again,
+and a scanning helper that lives in one spec is how three specs end up with three
+slightly different copies.
+
 Then route the existing scans through it: `read()` in `study-label-layer.test.ts`,
 `sweptSources()` in `design-system-tokens.test.ts`, and the source reads in
 `study-chrome.test.ts`. Task 8's `{error}` guard already strips inline — delete its
