@@ -311,9 +311,9 @@ function ModalHeader({
       {/* Close button */}
       <button
         ref={closeBtnRef}
+        className="focus-ring text-text-label"
         onClick={onClose}
         aria-label="Close persona modal"
-        className="text-text-label"
         style={{
           background: "none",
           border: "1px solid var(--border-primary)",
@@ -609,7 +609,7 @@ function TensionBadge({
   };
   return (
     <button
-      className="tension-badge label-tight"
+      className="focus-ring tension-badge label-tight"
       onClick={onToggle}
       aria-expanded={isExpanded}
       aria-label={`${label} — click to ${isExpanded ? "collapse" : "expand"}`}
@@ -1679,9 +1679,9 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
     >
       {/* Toggle button */}
       <button
+        className="focus-ring body-s text-text-secondary font-medium"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="body-s text-text-secondary font-medium"
         style={{
           width: "100%",
           display: "flex",
@@ -1720,7 +1720,12 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                 marginBottom: "16px",
                 border: "1px solid var(--border-primary)",
                 borderRadius: "var(--radius)",
-                overflow: "hidden",
+                // No `overflow: hidden`: an outline is clipped by an ancestor's
+                // overflow clip, and these tabs sit flush against this box's
+                // edges, so the focus ring below would have been declared and
+                // never painted. It was here to round the active tab's fill
+                // into the corners, which at the 2px radius token is a
+                // sub-pixel effect and not worth a keyboard user's indicator.
                 width: "fit-content",
               }}
             >
@@ -1733,13 +1738,13 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                   <button
                     key={model}
                     id={tabId}
+                    className="focus-ring control"
                     role="tab"
                     aria-selected={isActive}
                     aria-controls={panelId}
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => handleTabSwitch(model)}
                     onKeyDown={(e) => handleTabKeyDown(e, model)}
-                    className="control"
                     // `fontWeight` stays inline and stays computed: the 500/400
                     // split is the selected-tab cue, alongside the filled
                     // background. It is not redundant with `control`'s own 500
@@ -1841,8 +1846,8 @@ function ModalFooter({ id }: { id: string }) {
     >
       {/* Share */}
       <button
+        className="focus-ring body-s"
         onClick={handleShare}
-        className="body-s"
         style={{
           background: "none",
           border: "none",
@@ -1865,10 +1870,10 @@ function ModalFooter({ id }: { id: string }) {
           }}
         >
           <button
+            className="focus-ring body-s"
             onClick={() => prevId && navigateTo(prevId)}
             disabled={!hasPrev}
             aria-label="Previous persona"
-            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -1890,10 +1895,10 @@ function ModalFooter({ id }: { id: string }) {
             </span>
           )}
           <button
+            className="focus-ring body-s"
             onClick={() => nextId && navigateTo(nextId)}
             disabled={!hasNext}
             aria-label="Next persona"
-            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -2099,9 +2104,9 @@ export function PersonaModal({ id }: PersonaModalProps) {
               {/* Hidden close button so focus trap doesn't get stuck */}
               <button
                 ref={closeBtnRef}
+                className="focus-ring text-text-label"
                 onClick={handleClose}
                 aria-label="Close persona modal"
-                className="text-text-label"
                 style={{
                   position: "absolute",
                   top: "16px",
@@ -2133,9 +2138,9 @@ export function PersonaModal({ id }: PersonaModalProps) {
             >
               <button
                 ref={closeBtnRef}
+                className="focus-ring text-text-label"
                 onClick={handleClose}
                 aria-label="Close persona modal"
-                className="text-text-label"
                 style={{
                   position: "absolute",
                   top: "16px",

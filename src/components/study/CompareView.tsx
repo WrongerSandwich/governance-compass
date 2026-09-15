@@ -173,10 +173,10 @@ function PersonaPanel({
     >
       {/* Unpin button */}
       <button
+        className="focus-ring text-text-label"
         onClick={onUnpin}
         aria-label={`Remove ${persona.name} from comparison`}
         title="Remove from comparison"
-        className="text-text-label"
         style={{
           position: "absolute",
           top: "10px",
@@ -311,8 +311,8 @@ function PersonaPanel({
       {/* View full profile link */}
       <div style={{ marginTop: "auto", paddingTop: "4px" }}>
         <button
+          className="focus-ring control text-mark-primary"
           onClick={onViewFull}
-          className="control text-mark-primary"
           style={{
             background: "none",
             border: "none",
@@ -497,9 +497,9 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
             </span>
           </div>
           <button
+            className="focus-ring body-s text-text-secondary"
             onClick={onClose}
             aria-label="Close compare view"
-            className="body-s text-text-secondary"
             style={{
               background: "none",
               border: "1px solid var(--border-primary)",

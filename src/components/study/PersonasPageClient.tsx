@@ -205,9 +205,9 @@ function FilterChips({
         >
           <span>{chip.label}</span>
           <button
+            className="focus-ring body-s text-text-secondary"
             onClick={() => clearFilter(chip.key)}
             aria-label={`Remove ${chip.label} filter`}
-            className="body-s text-text-secondary"
             style={{
               background: "none",
               border: "none",
@@ -221,8 +221,8 @@ function FilterChips({
         </span>
       ))}
       <button
+        className="focus-ring body-xs text-mark-primary"
         onClick={clearAll}
-        className="body-xs text-mark-primary"
         style={{
           background: "none",
           border: "none",
@@ -290,9 +290,9 @@ function RegionChipRow({
         return (
           <button
             key={r}
+            className="focus-ring region-chip body-xs"
             onClick={() => onRegionSelect(active ? null : r)}
             aria-pressed={active}
-            className="region-chip body-xs"
             style={{
               background: "none",
               border: "none",
@@ -358,7 +358,7 @@ function FilterPanelCollapse({
     <div className="persona-filters-wrap">
       <button
         type="button"
-        className="persona-filters-toggle"
+        className="focus-ring persona-filters-toggle"
         aria-expanded={open}
         aria-controls="persona-filters-content"
         onClick={() => setOpen((prev) => !prev)}

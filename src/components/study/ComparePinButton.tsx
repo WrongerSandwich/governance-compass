@@ -31,6 +31,7 @@ export function ComparePinButton({
 
   return (
     <button
+      className={`focus-ring${className ? ` ${className}` : ""}`}
       onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={isPinned}
@@ -46,7 +47,6 @@ export function ComparePinButton({
           ? "Unpin from comparison"
           : "Pin for comparison"
       }
-      className={className}
       style={{
         background: "none",
         border: "none",

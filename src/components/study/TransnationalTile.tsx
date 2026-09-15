@@ -107,7 +107,13 @@ export function TransnationalTile({
 
   return (
     <div
-      className={`transnational-tile label-tight text-text-primary ${className}`}
+      // `focus-ring` because this tile is `role="button" tabIndex={0}` with no
+      // focus affordance of its own — the same defect D28 removes from the
+      // map's region paths, in the tile that sits beside it. The inline
+      // `outline` below is the SELECTED cue, not a focus cue, and being inline
+      // it wins over the ring on a tile that is both; that case still shows a
+      // 2px accent ring, so there is no state with no indicator.
+      className={`focus-ring transnational-tile label-tight text-text-primary ${className}`}
       title={tooltipContent}
       aria-label={tooltipContent.replace(/\n/g, ", ")}
       role={isInteractive ? "button" : undefined}

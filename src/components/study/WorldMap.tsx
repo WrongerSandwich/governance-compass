@@ -577,6 +577,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
                       <StyledGeography
                         geography={geo}
+                        className="focus-ring"
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
                         aria-pressed={isInteractive ? isSelected : undefined}
@@ -586,14 +587,12 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                             fill: `url(#${hatchId})`,
                             stroke: "none",
                             strokeWidth: 0,
-                            outline: "none",
                             opacity: isDimmed ? 0.4 : fillOpacity,
                           },
                           hover: {
                             fill: "transparent",
                             stroke: "none",
                             strokeWidth: 0,
-                            outline: "none",
                             opacity: isDimmed ? 0.4 : fillOpacity,
                             cursor: isInteractive ? "pointer" : "default",
                           },
@@ -601,7 +600,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                             fill: "transparent",
                             stroke: "none",
                             strokeWidth: 0,
-                            outline: "none",
                           },
                         }}
                         onMouseEnter={(e: React.MouseEvent) =>
@@ -624,6 +622,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   <StyledGeography
                     key={geo.rsmKey}
                     geography={geo}
+                    className="focus-ring"
                     tabIndex={isInteractive ? 0 : -1}
                     aria-label={ariaLabel}
                     aria-pressed={isInteractive ? isSelected : undefined}
@@ -633,14 +632,12 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         fill,
                         stroke: "var(--map-border)",
                         strokeWidth: 0.5,
-                        outline: "none",
                         opacity: isDimmed ? 0.4 : fillOpacity,
                       },
                       hover: {
                         fill: "var(--map-hover)",
                         stroke: "var(--map-accent)",
                         strokeWidth: isInteractive ? 1 : 0.5,
-                        outline: "none",
                         opacity: isDimmed ? 0.4 : fillOpacity,
                         cursor: isInteractive ? "pointer" : "default",
                       },
@@ -648,7 +645,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         fill: "var(--map-hover)",
                         stroke: "var(--map-accent)",
                         strokeWidth: 1.5,
-                        outline: "none",
                       },
                     }}
                     onMouseEnter={(e: React.MouseEvent) =>

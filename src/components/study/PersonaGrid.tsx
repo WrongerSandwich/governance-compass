@@ -104,8 +104,8 @@ export function PersonaGrid({
           </p>
           {activeCount > 0 && (
             <button
+              className="focus-ring body-s text-mark-primary"
               onClick={() => clearAll()}
-              className="body-s text-mark-primary"
               style={{
                 background: "none",
                 border: "none",
@@ -135,9 +135,9 @@ export function PersonaGrid({
           }}
         >
           <button
+            className="focus-ring body-s"
             onClick={() => goToPage(page - 1)}
             disabled={page <= 1}
-            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -159,9 +159,9 @@ export function PersonaGrid({
             ·
           </span>
           <button
+            className="focus-ring body-s"
             onClick={() => goToPage(page + 1)}
             disabled={page >= totalPages}
-            className="body-s"
             style={{
               background: "none",
               border: "none",
