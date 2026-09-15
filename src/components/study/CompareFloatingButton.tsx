@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/Button";
+
 export interface CompareFloatingButtonProps {
   count: number; // number of pinned personas (must be ≥ 2 to render)
   onOpen: () => void;
@@ -7,9 +9,16 @@ export interface CompareFloatingButtonProps {
 }
 
 /**
- * Fixed floating pill that appears when ≥2 personas are pinned.
+ * Fixed floating tray that appears when ≥2 personas are pinned.
  * "Compare (N)" opens the compare view; "×" clears all pins.
  * Both are separate focusable targets (no nesting).
+ *
+ * The tray was a 999px pill with `overflow: hidden` framing two borderless
+ * children. Both had to go with the `Button` primitive: an outline is clipped
+ * by an ancestor's overflow clip, so the variant's focus ring would have been
+ * declared and never painted — the same defect class this task exists to fix —
+ * and a rounded-sharp button inside a pill reads as two competing frames. The
+ * separator rule went with them: `Button`'s own border now divides the two.
  */
 export function CompareFloatingButton({
   count,
@@ -27,48 +36,28 @@ export function CompareFloatingButton({
         zIndex: 20,
         display: "flex",
         alignItems: "center",
-        gap: "0",
-        borderRadius: "999px",
-        border: "1px solid var(--border-primary)",
+        gap: "4px",
+        padding: "4px",
+        borderRadius: "var(--radius)",
         backgroundColor: "var(--surface-1)",
         boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-        overflow: "hidden",
       }}
     >
-      {/* Compare button */}
-      <button
+      {/* Compare button — the one page-level call in /study (D27), so it is
+          the one control here routed through the `Button` primitive. No
+          `className`: the variant owns padding, colour and display, and an
+          appended class does not beat it. */}
+      <Button
+        variant="secondary"
         onClick={onOpen}
         aria-label={`Compare ${count} pinned personas`}
-        style={{
-          minWidth: "44px",
-          minHeight: "44px",
-          padding: "0 16px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "13px",
-          fontWeight: 500,
-          color: "var(--stone-600)",
-          letterSpacing: "0.01em",
-          whiteSpace: "nowrap",
-        }}
       >
         Compare ({count})
-      </button>
-
-      {/* Separator */}
-      <div
-        aria-hidden="true"
-        style={{
-          width: "1px",
-          height: "20px",
-          backgroundColor: "var(--border-primary)",
-          flexShrink: 0,
-        }}
-      />
+      </Button>
 
       {/* Clear button */}
       <button
+        className="focus-ring text-text-label"
         onClick={onClear}
         aria-label="Clear all pinned personas"
         title="Clear all pins"
@@ -79,8 +68,6 @@ export function CompareFloatingButton({
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "16px",
-          color: "var(--text-tertiary)",
           lineHeight: 1,
           display: "flex",
           alignItems: "center",

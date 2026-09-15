@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -60,23 +61,17 @@ const DEEP_LINKS = [
 export default function StudyOverviewPage() {
   return (
     <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-xl">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-          Synthetic Study
-        </p>
-        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6 text-balance">
-          The Synthetic Study
-        </h1>
-
-        <p className="text-[15px] text-text-secondary leading-relaxed mb-8">
-          In April 2026, we asked a language model to generate biographies for 1,002 fictional
-          people, administered the Governance Compass to each via two different models, and
-          clustered the results. This section makes that dataset available for browsing,
-          analysis, and download.
-        </p>
+      <article className="mx-auto max-w-reference">
+        <PageHeader
+          kicker="Synthetic Study"
+          title="The Synthetic Study"
+          lead={[
+            "In April 2026, we asked a language model to generate biographies for 1,002 fictional people, administered the Governance Compass to each via two different models, and clustered the results. This section makes that dataset available for browsing, analysis, and download.",
+          ]}
+        />
 
         {/* Key figures — atlas-style frontmatter */}
-        <section aria-label="Study at a glance" className="mb-12">
+        <section aria-label="Study at a glance" className="mt-8 mb-12">
           <dl
             className="grid grid-cols-2 min-[500px]:[grid-template-columns:repeat(auto-fit,minmax(90px,1fr))] items-baseline gap-x-6 gap-y-5 border-t border-b border-border-secondary py-5"
             style={{
@@ -86,20 +81,20 @@ export default function StudyOverviewPage() {
           >
             {KEY_FIGURES.map((f) => (
               <div key={f.label} className="flex flex-col">
-                <dt className="text-[28px] font-serif font-medium text-text-primary leading-none tabular-nums">
+                <dt className="display-l text-text-primary tabular-nums">
                   {f.n}
                 </dt>
-                <dd className="text-[10px] uppercase tracking-[0.08em] text-text-tertiary font-medium mt-1.5">
+                <dd className="label text-text-label font-medium mt-1.5">
                   {f.label}
                 </dd>
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-[12px] text-text-tertiary">
+          <p className="mt-3 body-xs text-text-secondary">
             <a
               href="/data/synthetic_study_v1.json"
               download
-              className="underline underline-offset-4 decoration-dotted decoration-border-secondary hover:text-text-secondary hover:decoration-text-tertiary transition-colors duration-150"
+              className="underline underline-offset-4 decoration-dotted decoration-border-secondary hover:text-text-primary hover:decoration-text-secondary transition-colors duration-150"
             >
               <span aria-hidden="true">↓</span> Full dataset — {fileSizeLabel}{" "}
               JSON
@@ -115,7 +110,7 @@ export default function StudyOverviewPage() {
           {/* Quiet pointer to child pages — surfaces discoverability without
               stealing attention from the prose sections below. The full
               editorial handoff with descriptions still lives at page bottom. */}
-          <p className="mt-1.5 text-[12px] text-text-tertiary">
+          <p className="mt-1.5 body-xs text-text-secondary">
             <span className="mr-1.5">Browse:</span>
             {DEEP_LINKS.map((link, i) => (
               <span key={link.href}>
@@ -129,7 +124,7 @@ export default function StudyOverviewPage() {
                 )}
                 <Link
                   href={link.href}
-                  className="hover:text-text-secondary underline underline-offset-4 decoration-border-secondary hover:decoration-text-tertiary transition-colors duration-150"
+                  className="hover:text-text-primary underline underline-offset-4 decoration-border-secondary hover:decoration-text-secondary transition-colors duration-150"
                 >
                   {link.title}
                 </Link>
@@ -138,10 +133,10 @@ export default function StudyOverviewPage() {
           </p>
         </section>
 
-        <div className="text-[15px] text-text-secondary leading-relaxed">
+        <div className="text-[15px] leading-[1.65] text-text-secondary">
           {/* Section: How it was built */}
           <section className="mb-10">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
+            <h2 className="display-entry text-text-primary mb-3 text-balance">
               How it was built
             </h2>
             <div className="space-y-4">
@@ -171,7 +166,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: What this study can support */}
           <section className="mb-10">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
+            <h2 className="display-entry text-text-primary mb-3 text-balance">
               What this study can support
             </h2>
             <div className="space-y-4">
@@ -196,7 +191,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: What this study cannot support */}
           <section className="mb-14">
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
+            <h2 className="display-entry text-text-primary mb-3 text-balance">
               What this study cannot support
             </h2>
             <div className="space-y-4">
@@ -223,7 +218,7 @@ export default function StudyOverviewPage() {
 
           {/* Section: Download and explore */}
           <section>
-            <h2 className="text-[20px] font-serif font-medium text-text-primary mb-3 text-balance">
+            <h2 className="display-entry text-text-primary mb-3 text-balance">
               Download and explore
             </h2>
             <div className="space-y-4">
@@ -250,22 +245,22 @@ export default function StudyOverviewPage() {
                       href={link.href}
                       className="group flex items-baseline gap-5"
                     >
-                      <span className="text-[14px] text-text-tertiary tabular-nums font-medium shrink-0">
+                      <span className="mono-meta text-text-label tabular-nums font-medium shrink-0">
                         {link.number}
                       </span>
                       <span className="flex-1">
                         <span className="flex items-baseline justify-between gap-3">
-                          <span className="text-[17px] font-serif font-medium text-text-primary group-hover:underline decoration-border-secondary underline-offset-4">
+                          <span className="display-s text-text-primary group-hover:underline decoration-border-secondary underline-offset-4">
                             {link.title}
                           </span>
                           <span
                             aria-hidden="true"
-                            className="text-text-tertiary group-hover:text-text-secondary transition-colors duration-150 shrink-0"
+                            className="text-text-label group-hover:text-text-primary transition-colors duration-150 shrink-0"
                           >
                             →
                           </span>
                         </span>
-                        <span className="block text-[14px] text-text-secondary leading-relaxed mt-1">
+                        <span className="block body-s text-text-secondary mt-1">
                           {link.description}
                         </span>
                       </span>

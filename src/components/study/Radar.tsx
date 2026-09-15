@@ -1,24 +1,40 @@
 "use client";
 
 import { axes } from "@/data/axes";
+import {
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+  splitLabel,
+  TOTAL_AXES,
+} from "@/lib/radar-geometry";
 
-const NUM_AXES = 12;
 const DEFAULT_SIZE = 240;
 
-function polarToXY(
-  cx: number,
-  cy: number,
-  r: number,
-  index: number,
-  total: number
-): { x: number; y: number } {
-  const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-  return {
-    x: cx + r * Math.cos(angle),
-    y: cy + r * Math.sin(angle),
-  };
-}
+const LABEL_FONT_SIZE = 9;
+/** Advance width of one monospace glyph, in ems. 0.60 is the advance of
+ *  every monospace face in the stack — it is what makes them monospace —
+ *  and 0.02 is the tracking the label layer adds. Measured against the
+ *  rendered chart at 5.583 units per glyph at `fontSize` 9, i.e. 0.6203em.
+ *
+ *  It is an estimate, and it is used to size a MARGIN rather than to place
+ *  anything, so an error shows up as a few units of slack and never as a
+ *  cut glyph. */
+const LABEL_ADVANCE_EM = 0.62;
+/** Breathing room past the last glyph's side bearing. */
+const LABEL_EDGE_PAD = 4;
 
+/**
+ * The `points` attribute of the score polygon.
+ *
+ * Every coordinate goes through the shared `polarToCart`, which rounds to
+ * `COORD_PLACES`. That rounding is the whole point of the migration: this
+ * component is prerendered by Node and hydrated by Chromium, whose `Math.sin`
+ * and `Math.cos` disagree in the last binary place, and the unrounded copy
+ * that used to live here logged a hydration mismatch on every load of
+ * /study/patterns.
+ */
 function radarPoints(
   scores: number[],
   cx: number,
@@ -27,17 +43,15 @@ function radarPoints(
 ): string {
   return scores
     .map((score, i) => {
-      const { x, y } = polarToXY(cx, cy, ((score + 1) / 2) * r, i, NUM_AXES);
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(score, r),
+        cx,
+        cy
+      );
       return `${x},${y}`;
     })
     .join(" ");
-}
-
-function ringPoints(cx: number, cy: number, r: number): string {
-  return Array.from({ length: NUM_AXES }, (_, i) => {
-    const { x, y } = polarToXY(cx, cy, r, i, NUM_AXES);
-    return `${x},${y}`;
-  }).join(" ");
 }
 
 export interface RadarProps {
@@ -54,7 +68,7 @@ export function Radar({
   scores,
   overlayScores,
   size = DEFAULT_SIZE,
-  colorVar = "--stone-600",
+  colorVar = "--mark-primary",
   overlayColorVar = "--model-gemini",
   axisLabels,
   className,
@@ -65,11 +79,37 @@ export function Radar({
   const labelPad = axisLabels ? 20 : 0;
   const r = size / 2 - 8 - labelPad;
 
-  // When axis labels are present, expand the viewBox on all sides so long
-  // labels (e.g. "International Engagement") don't clip at narrow viewports.
-  // SVG rendered size stays at `size` via responsive style — the radar
-  // circle scales down slightly inside the expanded viewBox to make room.
-  const labelMargin = axisLabels ? 60 : 0;
+  // Wrapped, like the results-page radar: a label runs outward from the rim,
+  // so its LENGTH is what decides the margin, and two short lines need about
+  // half the horizontal room one long one does.
+  const labelLines = axisLabels?.map(splitLabel);
+
+  // DERIVED, not guessed. This was a flat 60 under a comment claiming long
+  // labels "don't clip at narrow viewports" — they clipped at wide ones, and
+  // an SVG root's default `overflow: hidden` painted the overflow away rather
+  // than letting it spill: "International Engagement" rendered as
+  // "al Engagement" and two more lost their last word.
+  //
+  // The binding case is the label on a horizontal vertex, anchored `start` or
+  // `end` at cx ± (r + labelPad - 4) = cx ± (size/2 - 12) and running
+  // outward by its own width. So the viewBox needs `width + pad - 12` past
+  // the edge of the plot box. Every other vertex sits closer to the centre
+  // horizontally, or is `middle`-anchored and needs half as much.
+  //
+  // Widening the viewBox without widening the rendered box is not free — it
+  // is paid in effective type size, since the SVG still renders at `size` px.
+  // That is why this is derived from the labels actually passed instead of
+  // being set to a number big enough for anything: a caller with short labels
+  // gets a bigger chart, and one with none pays nothing.
+  const widestLine = Math.max(
+    0,
+    ...(labelLines?.flat().map((line) => line.length) ?? []),
+  );
+  const labelMargin = labelLines
+    ? Math.ceil(widestLine * LABEL_FONT_SIZE * LABEL_ADVANCE_EM) +
+      LABEL_EDGE_PAD -
+      12
+    : 0;
   const viewBoxMin = -labelMargin;
   const viewBoxSize = size + 2 * labelMargin;
 
@@ -91,7 +131,7 @@ export function Radar({
     >
       {/* Outer reference ring */}
       <polygon
-        points={ringPoints(cx, cy, r)}
+        points={ringPoints(r, TOTAL_AXES, cx, cy)}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
@@ -99,7 +139,7 @@ export function Radar({
       />
       {/* Mid reference ring (dashed) */}
       <polygon
-        points={ringPoints(cx, cy, r * 0.5)}
+        points={ringPoints(r * 0.5, TOTAL_AXES, cx, cy)}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
@@ -107,8 +147,8 @@ export function Radar({
         opacity={0.3}
       />
       {/* Spoke lines */}
-      {Array.from({ length: NUM_AXES }, (_, i) => {
-        const { x, y } = polarToXY(cx, cy, r, i, NUM_AXES);
+      {Array.from({ length: TOTAL_AXES }, (_, i) => {
+        const [x, y] = polarToCart(spokeAngle(i, TOTAL_AXES), r, cx, cy);
         return (
           <line
             key={i}
@@ -146,9 +186,14 @@ export function Radar({
       />
 
       {/* Axis labels at each vertex */}
-      {axisLabels &&
-        axisLabels.map((label, i) => {
-          const { x, y } = polarToXY(cx, cy, r + labelPad - 4, i, NUM_AXES);
+      {labelLines &&
+        labelLines.map((lines, i) => {
+          const [x, y] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            r + labelPad - 4,
+            cx,
+            cy
+          );
           // Anchor text based on horizontal position
           const anchor =
             Math.abs(x - cx) < 4 ? "middle" : x < cx ? "end" : "start";
@@ -159,13 +204,22 @@ export function Radar({
               y={y}
               textAnchor={anchor}
               dominantBaseline="middle"
+              fontSize={LABEL_FONT_SIZE}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "9px",
-                fill: "var(--text-tertiary)",
+                fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >
-              {label}
+              {lines.map((line, li) => (
+                <tspan
+                  key={li}
+                  x={x}
+                  dy={li === 0 ? (lines.length > 1 ? "-0.5em" : "0") : "1.1em"}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
           );
         })}

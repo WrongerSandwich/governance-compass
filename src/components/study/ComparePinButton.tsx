@@ -31,6 +31,7 @@ export function ComparePinButton({
 
   return (
     <button
+      className={`focus-ring${className ? ` ${className}` : ""}`}
       onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={isPinned}
@@ -46,14 +47,13 @@ export function ComparePinButton({
           ? "Unpin from comparison"
           : "Pin for comparison"
       }
-      className={className}
       style={{
         background: "none",
         border: "none",
         cursor: isDisabled ? "not-allowed" : "pointer",
-        color: isPinned ? "var(--stone-600)" : "var(--text-tertiary)",
+        color: isPinned ? "var(--mark-primary)" : "var(--text-label)",
         lineHeight: 1,
-        borderRadius: "3px",
+        borderRadius: "var(--radius)",
         transition: "color 120ms ease",
         opacity: isDisabled ? 0.4 : 1,
         // 44x44 hit target (WCAG 2.5.5), icon centered.

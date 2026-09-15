@@ -9,10 +9,16 @@ import React, {
 } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { X, Users } from "lucide-react";
+import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { Radar, DEFAULT_AXIS_LABELS } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
+import {
+  BUDGET_COLORS,
+  BUDGET_LABELS,
+  MINISTRY_ORDER,
+} from "@/lib/study/budgetColors";
 import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
 import { personaNeighbors } from "@/lib/study/personaNavigation";
@@ -33,6 +39,12 @@ import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** The five score-bar columns' shared sizing. `PairedAxisScale` renders only
+ *  the scale and leaves the row to its caller, where the retired local
+ *  `ScoreBar` carried this on its own root. One frozen object is safe to share
+ *  across style props — React never mutates them. */
+const TRACK_COL = { flex: 1, minWidth: "40px" } as const;
+
 /** Extract axis number from the axis_scores key "1_economic_model" → 1 */
 function axisKeyToNumber(key: string): number {
   return parseInt(key.split("_")[0], 10);
@@ -50,17 +62,6 @@ function axisScoresToArray(
   return arr;
 }
 
-/** Budget key (snake_case) → ministry name */
-const BUDGET_KEY_TO_MINISTRY: Record<string, string> = {
-  defense: "Defense",
-  public_welfare: "Public Welfare",
-  economy_growth: "Economy & Growth",
-  education_research: "Education & Research",
-  environment: "Environment",
-  justice_civil_liberties: "Justice & Civil Liberties",
-  foreign_affairs: "Foreign Affairs",
-};
-
 // ---------------------------------------------------------------------------
 // Confidence indicator
 // ---------------------------------------------------------------------------
@@ -74,7 +75,7 @@ function ConfidenceDot({
   // Previous version used cluster colors which collided semantically with
   // the ClusterBadge + axis-gradient palettes elsewhere on the page.
   const COLOR = {
-    high: "var(--stone-600)",
+    high: "var(--mark-primary)",
     moderate: "var(--warning-border)",
     low: "var(--warning)",
   } as const;
@@ -108,34 +109,11 @@ function ConfidenceDot({
 
 function BudgetStrip({ budget }: { budget: Record<string, number> }) {
   const total = Object.values(budget).reduce((s, v) => s + (v ?? 0), 0) || 50;
-  const MINISTRY_ORDER = [
-    "defense",
-    "public_welfare",
-    "economy_growth",
-    "education_research",
-    "environment",
-    "justice_civil_liberties",
-    "foreign_affairs",
-  ];
   const entries = MINISTRY_ORDER.map((key) => ({
     key,
-    name: BUDGET_KEY_TO_MINISTRY[key] ?? humanizeKey(key),
+    name: BUDGET_LABELS[key] ?? humanizeKey(key),
     value: budget[key] ?? 0,
   }));
-
-  // Pragmatic reuse of the cluster palette — 7 ministry segments need 7
-  // distinct hues, and the cluster tokens happen to provide a coherent
-  // 6-color set within the warm stone family. stone-400 rounds out the
-  // seventh. Not semantically tied to cluster identity here.
-  const COLORS = [
-    "var(--cluster-5)",
-    "var(--cluster-4)",
-    "var(--cluster-0)",
-    "var(--cluster-3)",
-    "var(--cluster-1)",
-    "var(--cluster-2)",
-    "var(--stone-400)",
-  ];
 
   return (
     <div>
@@ -143,7 +121,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
         style={{
           display: "flex",
           height: "20px",
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           overflow: "hidden",
           border: "1px solid var(--border-secondary)",
         }}
@@ -159,7 +137,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
               title={`${e.name}: ${e.value}`}
               style={{
                 width: `${pct}%`,
-                backgroundColor: COLORS[i % COLORS.length],
+                backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
             />
@@ -181,12 +159,11 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
         {entries.map((e, i) => (
           <div
             key={e.key}
+            className="mono-meta text-text-label"
             style={{
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              fontSize: "11px",
-              color: "var(--text-tertiary)",
             }}
           >
             <span
@@ -195,24 +172,22 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
                 display: "inline-block",
                 width: "8px",
                 height: "8px",
-                borderRadius: "1px",
-                backgroundColor: COLORS[i % COLORS.length],
+                borderRadius: "var(--radius)",
+                backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
             />
             <span>
               {e.name}{" "}
-              <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+              <span className="text-text-primary font-medium">
                 {e.value ?? "—"}
               </span>
             </span>
           </div>
         ))}
         <div
-          className="budget-total"
+          className="budget-total mono-meta text-text-label"
           style={{
-            fontSize: "11px",
-            color: "var(--text-tertiary)",
             marginLeft: "auto",
           }}
         >
@@ -274,12 +249,8 @@ function ModalHeader({
       <div style={{ minWidth: 0, flex: 1 }}>
         <h2
           id={titleId}
+          className="display-m text-text-primary"
           style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 500,
-            fontSize: "24px",
-            lineHeight: 1.2,
-            color: "var(--text-primary)",
             margin: 0,
             marginBottom: "4px",
           }}
@@ -287,11 +258,9 @@ function ModalHeader({
           {persona.name}
         </h2>
         <p
+          className="body-s text-text-secondary"
           style={{
-            fontSize: "13px",
-            color: "var(--text-secondary)",
             margin: 0,
-            lineHeight: 1.4,
           }}
         >
           <span className="identity-full">{identityFull}</span>
@@ -318,13 +287,13 @@ function ModalHeader({
           {n_models === 2 && (
             <a
               href="#modal-raw-responses"
+              className="mono-meta"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
-                fontSize: "11px",
                 padding: "2px 7px",
-                borderRadius: "3px",
+                borderRadius: "var(--radius)",
                 border: "0.5px solid var(--model-claude)",
                 backgroundColor:
                   "color-mix(in srgb, var(--model-claude) 8%, transparent)",
@@ -342,15 +311,15 @@ function ModalHeader({
       {/* Close button */}
       <button
         ref={closeBtnRef}
+        className="focus-ring text-text-label"
         onClick={onClose}
         aria-label="Close persona modal"
         style={{
           background: "none",
           border: "1px solid var(--border-primary)",
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           padding: "4px 6px",
           cursor: "pointer",
-          color: "var(--text-tertiary)",
           lineHeight: 1,
           flexShrink: 0,
           display: "flex",
@@ -367,26 +336,36 @@ function ModalHeader({
 // Zone 2 — Biographical block
 // ---------------------------------------------------------------------------
 
+/* The type layer of the block's repeated elements. It cannot live in the style
+   constant below: the delta's roles are Tailwind `@utility` rules and there is
+   no spelling of one inside a `style` prop.
+
+   Section headers are serif medium, sentence case, text-primary — clearly
+   differentiated from the mono uppercase field labels underneath. The delta's
+   serif scale has no 13px step, so a small serif-500 heading maps onto
+   `display-s`, the same move `model-agreement/CaseStudy.tsx`'s section heading
+   made from 14px. (`CompareView`'s persona name landed on the same role, but
+   from 16px — a different row of the mapping.) */
+const sectionHeaderClass = "display-s text-text-primary";
+const fieldLabelClass = "label text-text-label font-medium";
+const fieldValueClass = "body-s text-text-secondary";
+
+const sectionHeaderStyle: React.CSSProperties = {
+  marginBottom: "8px",
+  paddingBottom: "4px",
+  borderBottom: "0.5px solid var(--border-secondary)",
+};
+
 function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
   const { persona } = data;
-
-  // Section header styling — serif medium, sentence case, text-primary.
-  // Clearly differentiated from the 11px uppercase field labels below.
-  const sectionHeaderStyle: React.CSSProperties = {
-    fontSize: "13px",
-    fontFamily: "var(--font-serif)",
-    fontWeight: 500,
-    color: "var(--text-primary)",
-    marginBottom: "8px",
-    paddingBottom: "4px",
-    borderBottom: "0.5px solid var(--border-secondary)",
-  };
 
   const detailFields = (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {/* Situation */}
       <div>
-        <div style={sectionHeaderStyle}>Situation</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Situation
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -401,12 +380,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
+                  className={fieldLabelClass}
                   style={{
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--text-tertiary)",
                     paddingBottom: "3px",
                     paddingRight: "8px",
                     verticalAlign: "top",
@@ -416,9 +391,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
+                  className={fieldValueClass}
                   style={{
-                    fontSize: "13px",
-                    color: "var(--text-secondary)",
                     paddingBottom: "3px",
                   }}
                 >
@@ -432,7 +406,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Life context */}
       <div>
-        <div style={sectionHeaderStyle}>Life context</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Life context
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -442,12 +418,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
+                  className={fieldLabelClass}
                   style={{
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--text-tertiary)",
                     paddingBottom: "3px",
                     paddingRight: "8px",
                     verticalAlign: "top",
@@ -457,9 +429,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
+                  className={fieldValueClass}
                   style={{
-                    fontSize: "13px",
-                    color: "var(--text-secondary)",
                     paddingBottom: "3px",
                   }}
                 >
@@ -473,16 +444,19 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Governance experience */}
       <div>
-        <div style={sectionHeaderStyle}>Governance experience</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Governance experience
+        </div>
         <div
-          style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "3px" }}
+          className="body-s text-text-secondary"
+          style={{ marginBottom: "3px" }}
         >
-          <strong style={{ fontWeight: 500, color: "var(--text-primary)" }}>
+          <strong className="text-text-primary font-medium">
             {labelFor(GOVERNANCE_LABELS, persona.governance_experience)}
           </strong>
         </div>
         {persona.governance_detail && (
-          <div style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          <div className="body-s text-text-secondary">
             {persona.governance_detail}
           </div>
         )}
@@ -502,10 +476,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <div className="bio-narrative">
           {persona.life_narrative && (
             <div
+              className="body-s text-text-primary"
               style={{
-                fontSize: "14px",
-                lineHeight: 1.65,
-                color: "var(--text-primary)",
                 marginBottom: "12px",
               }}
             >
@@ -514,10 +486,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
           )}
           {persona.key_tensions && (
             <div
+              className="body-s text-text-secondary"
               style={{
-                fontSize: "13px",
-                lineHeight: 1.6,
-                color: "var(--text-secondary)",
                 borderLeft: "2px solid var(--border-primary)",
                 paddingLeft: "12px",
               }}
@@ -531,11 +501,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <div className="bio-details-desktop">{detailFields}</div>
         <details className="bio-details-mobile">
           <summary
+            className="body-s text-mark-primary font-medium"
             style={{
               cursor: "pointer",
-              fontSize: "13px",
-              color: "var(--stone-600)",
-              fontWeight: 500,
               marginTop: "12px",
               userSelect: "none",
             }}
@@ -607,56 +575,6 @@ const SEVERITY_COLORS: Record<string, string> = {
   strong: "var(--warning-text)",
 };
 
-/** Inline score bar for a single model score value */
-function ScoreBar({
-  score,
-  colorVar,
-}: {
-  score: number;
-  colorVar: string;
-}) {
-  const barPct = ((score + 1) / 2) * 100;
-  return (
-    <div
-      style={{
-        flex: 1,
-        height: "6px",
-        backgroundColor: "var(--border-secondary)",
-        borderRadius: "3px",
-        position: "relative",
-        minWidth: "40px",
-      }}
-      role="presentation"
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 0,
-          bottom: 0,
-          width: "1px",
-          backgroundColor: "var(--border-primary)",
-        }}
-        aria-hidden
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: `${barPct}%`,
-          top: "-2px",
-          width: "10px",
-          height: "10px",
-          backgroundColor: `var(${colorVar})`,
-          borderRadius: "50%",
-          transform: "translateX(-50%)",
-          border: "1.5px solid var(--surface-1)",
-        }}
-        aria-hidden
-      />
-    </div>
-  );
-}
-
 /**
  * Shown when a tension arrives without a generated narrative — e.g. a response
  * cached by a deploy that predates server-side tension descriptions. Expanding
@@ -691,21 +609,19 @@ function TensionBadge({
   };
   return (
     <button
-      className="tension-badge"
+      className="focus-ring tension-badge label-tight"
       onClick={onToggle}
       aria-expanded={isExpanded}
       aria-label={`${label} — click to ${isExpanded ? "collapse" : "expand"}`}
       style={{
         background: "none",
         border: `0.5px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
-        borderRadius: "2px",
+        borderRadius: "var(--radius)",
         padding: "0 4px",
-        fontSize: "9px",
         cursor: "pointer",
+        // Severity is computed, so the colour stays inline; `label-tight`
+        // declares none of its own.
         color: SEVERITY_COLORS[tension.severity] ?? "var(--warning)",
-        lineHeight: 1.6,
-        textTransform: "uppercase",
-        letterSpacing: "0.04em",
         flexShrink: 0,
       }}
     >
@@ -763,7 +679,7 @@ function SingleModelScoredProfile({
             scores={scoreArray}
             axisLabels={DEFAULT_AXIS_LABELS}
             size={300}
-            colorVar="--stone-600"
+            colorVar="--mark-primary"
           />
         </div>
 
@@ -794,47 +710,46 @@ function SingleModelScoredProfile({
                   }}
                 >
                   <span
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--text-tertiary)",
-                      fontFamily: "var(--font-mono)",
-                      minWidth: "18px",
-                    }}
+                    className="mono-meta text-text-label"
+                    style={{ minWidth: "18px" }}
                   >
                     {axisNum}
                   </span>
 
                   <span
-                    className="axis-name"
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--text-secondary)",
-                      flex: "0 0 120px",
-                      lineHeight: 1.3,
-                    }}
+                    className="axis-name body-xs text-text-secondary"
+                    style={{ flex: "0 0 120px" }}
                   >
                     {axisData?.name ?? key}
                   </span>
 
-                  <ScoreBar
-                    score={score}
-                    colorVar={
-                      isNeg
-                        ? "--axis-gradient-negative-strong"
-                        : "--axis-gradient-positive-strong"
-                    }
-                  />
+                  <div style={TRACK_COL}>
+                    <PairedAxisScale
+                      axisId={axisNum}
+                      poleALabel={axisData?.poleALabel ?? ""}
+                      poleBLabel={axisData?.poleBLabel ?? ""}
+                      scoreA={score}
+                      axisName={axisData?.name ?? key}
+                      // Measured across 320-1600px: see the prop's own comment.
+                      endpoints="none"
+                      markVar={
+                        isNeg
+                          ? "var(--axis-gradient-negative-strong)"
+                          : "var(--axis-gradient-positive-strong)"
+                      }
+                    />
+                  </div>
 
                   <span
+                    className="mono-meta"
                     style={{
-                      fontSize: "11px",
-                      fontFamily: "var(--font-mono)",
+                      // Computed from the sign, so it stays inline.
                       color:
                         score < -0.1
                           ? "var(--axis-gradient-negative-strong)"
                           : score > 0.1
                           ? "var(--axis-gradient-positive-strong)"
-                          : "var(--text-tertiary)",
+                          : "var(--text-label)",
                       minWidth: "38px",
                       textAlign: "right",
                     }}
@@ -857,19 +772,18 @@ function SingleModelScoredProfile({
 
                 {isExpanded && tension && (
                   <div
+                    className="body-xs"
                     style={{
                       marginLeft: "24px",
                       marginTop: "2px",
                       marginBottom: "4px",
-                      fontSize: "12px",
                       color: tension.description
                         ? "var(--text-secondary)"
-                        : "var(--text-tertiary)",
+                        : "var(--text-label)",
                       fontStyle: tension.description ? "normal" : "italic",
-                      lineHeight: 1.5,
                       padding: "6px 10px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
                     }}
                   >
@@ -887,14 +801,8 @@ function SingleModelScoredProfile({
         Object.keys(admin.raw_responses.budget).length > 0 && (
           <div style={{ marginTop: "20px" }}>
             <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                color: "var(--text-tertiary)",
-                marginBottom: "8px",
-              }}
+              className="label text-text-label font-medium"
+              style={{ marginBottom: "8px" }}
             >
               Budget allocation
             </div>
@@ -954,7 +862,7 @@ function DualModelScoredProfile({
     const abs = Math.abs(delta);
     if (abs >= 0.6) return "var(--axis-gradient-positive-strong)";
     if (abs >= 0.3) return "var(--axis-gradient-positive-mild)";
-    return "var(--text-tertiary)";
+    return "var(--text-label)";
   }
 
   return (
@@ -989,12 +897,11 @@ function DualModelScoredProfile({
             aria-label="Radar chart legend"
           >
             <div
+              className="body-xs text-text-secondary"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "5px",
-                fontSize: "11px",
-                color: "var(--text-secondary)",
               }}
             >
               <span
@@ -1003,22 +910,19 @@ function DualModelScoredProfile({
                   width: "20px",
                   height: "2px",
                   backgroundColor: "var(--model-claude)",
-                  borderRadius: "1px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.85,
                 }}
                 aria-hidden
               />
-              <span style={{ fontVariant: "small-caps", letterSpacing: "0.05em" }}>
-                Claude
-              </span>
+              <span className="label text-text-secondary">Claude</span>
             </div>
             <div
+              className="body-xs text-text-secondary"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "5px",
-                fontSize: "11px",
-                color: "var(--text-secondary)",
               }}
             >
               <span
@@ -1027,14 +931,12 @@ function DualModelScoredProfile({
                   width: "20px",
                   height: "2px",
                   backgroundColor: "var(--model-gemini)",
-                  borderRadius: "1px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.85,
                 }}
                 aria-hidden
               />
-              <span style={{ fontVariant: "small-caps", letterSpacing: "0.05em" }}>
-                Gemini
-              </span>
+              <span className="label text-text-secondary">Gemini</span>
             </div>
           </div>
         </div>
@@ -1053,33 +955,21 @@ function DualModelScoredProfile({
             }}
           >
             <span
-              style={{
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-mono)",
-                minWidth: "18px",
-              }}
+              className="mono-meta text-text-label"
+              style={{ minWidth: "18px" }}
               aria-hidden
             />
             <span
-              style={{
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                flex: "0 0 100px",
-              }}
+              className="label text-text-label"
+              style={{ flex: "0 0 100px" }}
             >
               Axis
             </span>
             <span
-              className="dual-axis-col-header"
+              className="dual-axis-col-header label"
               style={{
-                fontSize: "10px",
+                // The model colour IS the column key; `label` declares none.
                 color: "var(--model-claude)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontVariant: "small-caps",
                 flex: 1,
                 minWidth: 0,
                 textAlign: "center",
@@ -1088,13 +978,9 @@ function DualModelScoredProfile({
               Claude
             </span>
             <span
-              className="dual-axis-col-header"
+              className="dual-axis-col-header label"
               style={{
-                fontSize: "10px",
                 color: "var(--model-gemini)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontVariant: "small-caps",
                 flex: 1,
                 minWidth: 0,
                 textAlign: "center",
@@ -1103,15 +989,8 @@ function DualModelScoredProfile({
               Gemini
             </span>
             <span
-              className="dual-axis-col-header"
-              style={{
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                flex: "0 0 30px",
-                textAlign: "right",
-              }}
+              className="dual-axis-col-header label text-text-label"
+              style={{ flex: "0 0 30px", textAlign: "right" }}
             >
               Δ
             </span>
@@ -1152,24 +1031,16 @@ function DualModelScoredProfile({
                 >
                   {/* Axis number */}
                   <span
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--text-tertiary)",
-                      fontFamily: "var(--font-mono)",
-                      minWidth: "18px",
-                    }}
+                    className="mono-meta text-text-label"
+                    style={{ minWidth: "18px" }}
                   >
                     {axisNum}
                   </span>
 
                   {/* Axis name */}
                   <span
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--text-secondary)",
-                      flex: "0 0 100px",
-                      lineHeight: 1.3,
-                    }}
+                    className="body-xs text-text-secondary"
+                    style={{ flex: "0 0 100px" }}
                   >
                     {axisData?.name ?? key}
                   </span>
@@ -1185,14 +1056,23 @@ function DualModelScoredProfile({
                       gap: "4px",
                     }}
                   >
-                    <ScoreBar
-                      score={cScore}
-                      colorVar="--model-claude"
-                    />
+                    <div style={TRACK_COL}>
+                      <PairedAxisScale
+                        axisId={axisNum}
+                        poleALabel={axisData?.poleALabel ?? ""}
+                        poleBLabel={axisData?.poleBLabel ?? ""}
+                        scoreA={cScore}
+                        // The qualifier keeps the two tracks in one row from
+                        // announcing the same sentence twice.
+                        axisName={`${axisData?.name ?? key}, Claude`}
+                        // ~121px of column: see the prop's own comment.
+                        endpoints="none"
+                        markVar="var(--model-claude)"
+                      />
+                    </div>
                     <span
+                      className="mono-meta"
                       style={{
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
                         color: "var(--model-claude)",
                         minWidth: "36px",
                         textAlign: "right",
@@ -1225,14 +1105,23 @@ function DualModelScoredProfile({
                       gap: "4px",
                     }}
                   >
-                    <ScoreBar
-                      score={gScore}
-                      colorVar="--model-gemini"
-                    />
+                    <div style={TRACK_COL}>
+                      <PairedAxisScale
+                        axisId={axisNum}
+                        poleALabel={axisData?.poleALabel ?? ""}
+                        poleBLabel={axisData?.poleBLabel ?? ""}
+                        scoreA={gScore}
+                        // The qualifier keeps the two tracks in one row from
+                        // announcing the same sentence twice.
+                        axisName={`${axisData?.name ?? key}, Gemini`}
+                        // ~121px of column: see the prop's own comment.
+                        endpoints="none"
+                        markVar="var(--model-gemini)"
+                      />
+                    </div>
                     <span
+                      className="mono-meta"
                       style={{
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
                         color: "var(--model-gemini)",
                         minWidth: "36px",
                         textAlign: "right",
@@ -1256,9 +1145,8 @@ function DualModelScoredProfile({
 
                   {/* Delta column */}
                   <span
+                    className="mono-meta"
                     style={{
-                      fontSize: "11px",
-                      fontFamily: "var(--font-mono)",
                       color: deltaColor(delta),
                       flex: "0 0 38px",
                       textAlign: "right",
@@ -1289,31 +1177,18 @@ function DualModelScoredProfile({
                     }}
                   >
                     <span
-                      style={{
-                        fontSize: "11px",
-                        color: "var(--text-tertiary)",
-                        fontFamily: "var(--font-mono)",
-                        minWidth: "18px",
-                      }}
+                      className="mono-meta text-text-label"
+                      style={{ minWidth: "18px" }}
                     >
                       {axisNum}
                     </span>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
+                    <span className="body-xs text-text-secondary">
                       {axisData?.name ?? key}
                     </span>
                     {/* Δ shown inline on mobile */}
                     <span
-                      style={{
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
-                        color: deltaColor(delta),
-                        marginLeft: "auto",
-                      }}
+                      className="mono-meta"
+                      style={{ color: deltaColor(delta), marginLeft: "auto" }}
                     >
                       Δ{delta >= 0 ? "+" : ""}
                       {delta.toFixed(2)}
@@ -1330,20 +1205,26 @@ function DualModelScoredProfile({
                     }}
                   >
                     <span
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--model-claude)",
-                        fontVariant: "small-caps",
-                        minWidth: "10px",
-                      }}
+                      className="label"
+                      style={{ color: "var(--model-claude)", minWidth: "10px" }}
                     >
                       C:
                     </span>
-                    <ScoreBar score={cScore} colorVar="--model-claude" />
+                    <div style={TRACK_COL}>
+                      <PairedAxisScale
+                        axisId={axisNum}
+                        poleALabel={axisData?.poleALabel ?? ""}
+                        poleBLabel={axisData?.poleBLabel ?? ""}
+                        scoreA={cScore}
+                        axisName={`${axisData?.name ?? key}, Claude`}
+                        // ~121px of column: see the prop's own comment.
+                        endpoints="none"
+                        markVar="var(--model-claude)"
+                      />
+                    </div>
                     <span
+                      className="mono-meta"
                       style={{
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
                         color: "var(--model-claude)",
                         minWidth: "36px",
                         textAlign: "right",
@@ -1375,20 +1256,26 @@ function DualModelScoredProfile({
                     }}
                   >
                     <span
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--model-gemini)",
-                        fontVariant: "small-caps",
-                        minWidth: "10px",
-                      }}
+                      className="label"
+                      style={{ color: "var(--model-gemini)", minWidth: "10px" }}
                     >
                       G:
                     </span>
-                    <ScoreBar score={gScore} colorVar="--model-gemini" />
+                    <div style={TRACK_COL}>
+                      <PairedAxisScale
+                        axisId={axisNum}
+                        poleALabel={axisData?.poleALabel ?? ""}
+                        poleBLabel={axisData?.poleBLabel ?? ""}
+                        scoreA={gScore}
+                        axisName={`${axisData?.name ?? key}, Gemini`}
+                        // ~121px of column: see the prop's own comment.
+                        endpoints="none"
+                        markVar="var(--model-gemini)"
+                      />
+                    </div>
                     <span
+                      className="mono-meta"
                       style={{
-                        fontSize: "11px",
-                        fontFamily: "var(--font-mono)",
                         color: "var(--model-gemini)",
                         minWidth: "36px",
                         textAlign: "right",
@@ -1414,26 +1301,20 @@ function DualModelScoredProfile({
                 {/* Expanded tension details — Claude */}
                 {cExpanded && cTension && (
                   <div
+                    className="body-xs text-text-secondary"
                     style={{
                       marginLeft: "24px",
                       marginTop: "2px",
                       marginBottom: "2px",
-                      fontSize: "12px",
-                      color: "var(--text-secondary)",
-                      lineHeight: 1.5,
                       padding: "5px 8px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid var(--model-claude)`,
                     }}
                   >
                     <span
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--model-claude)",
-                        fontVariant: "small-caps",
-                        marginRight: "4px",
-                      }}
+                      className="label"
+                      style={{ color: "var(--model-claude)", marginRight: "4px" }}
                     >
                       Claude:
                     </span>
@@ -1444,26 +1325,20 @@ function DualModelScoredProfile({
                 {/* Expanded tension details — Gemini */}
                 {gExpanded && gTension && (
                   <div
+                    className="body-xs text-text-secondary"
                     style={{
                       marginLeft: "24px",
                       marginTop: "2px",
                       marginBottom: "2px",
-                      fontSize: "12px",
-                      color: "var(--text-secondary)",
-                      lineHeight: 1.5,
                       padding: "5px 8px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid var(--model-gemini)`,
                     }}
                   >
                     <span
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--model-gemini)",
-                        fontVariant: "small-caps",
-                        marginRight: "4px",
-                      }}
+                      className="label"
+                      style={{ color: "var(--model-gemini)", marginRight: "4px" }}
                     >
                       Gemini:
                     </span>
@@ -1482,15 +1357,8 @@ function DualModelScoredProfile({
           Object.keys(claudeAdmin.raw_responses.budget).length > 0 && (
             <div>
               <div
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
-                  color: "var(--model-claude)",
-                  marginBottom: "6px",
-                  fontVariant: "small-caps",
-                }}
+                className="label font-medium"
+                style={{ color: "var(--model-claude)", marginBottom: "6px" }}
               >
                 Claude — budget allocation
               </div>
@@ -1501,15 +1369,8 @@ function DualModelScoredProfile({
           Object.keys(geminiAdmin.raw_responses.budget).length > 0 && (
             <div>
               <div
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
-                  color: "var(--model-gemini)",
-                  marginBottom: "6px",
-                  fontVariant: "small-caps",
-                }}
+                className="label font-medium"
+                style={{ color: "var(--model-gemini)", marginBottom: "6px" }}
               >
                 Gemini — budget allocation
               </div>
@@ -1544,14 +1405,8 @@ function ScoredProfile({ data }: { data: PersonaDetailResponse }) {
       }}
     >
       <div
-        style={{
-          fontSize: "11px",
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.07em",
-          color: "var(--text-tertiary)",
-          marginBottom: "16px",
-        }}
+        className="label text-text-label font-medium"
+        style={{ marginBottom: "16px" }}
       >
         Scored profile
       </div>
@@ -1654,12 +1509,8 @@ function ResponsesContent({
         return (
           <div key={axisNum} style={{ marginBottom: "20px" }}>
             <div
+              className="label text-text-label font-medium"
               style={{
-                fontSize: "11px",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                color: "var(--text-tertiary)",
                 marginBottom: "8px",
                 paddingBottom: "4px",
                 borderBottom: "1px solid var(--border-tertiary)",
@@ -1675,42 +1526,28 @@ function ResponsesContent({
               return (
                 <div
                   key={r.item}
+                  className="body-xs"
                   style={{
                     display: "flex",
                     gap: "8px",
                     marginBottom: "4px",
-                    fontSize: "12px",
-                    lineHeight: 1.4,
                   }}
                 >
                   <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-tertiary)",
-                      flexShrink: 0,
-                      fontSize: "11px",
-                    }}
+                    className="mono-meta text-text-label"
+                    style={{ flexShrink: 0 }}
                   >
                     {r.item}
                   </span>
-                  <span style={{ color: "var(--text-secondary)", flex: 1 }}>
+                  <span className="text-text-secondary" style={{ flex: 1 }}>
                     {q ? q.text : r.item}
                   </span>
                   <span
-                    style={{
-                      color: "var(--text-primary)",
-                      fontWeight: 500,
-                      flexShrink: 0,
-                    }}
+                    className="text-text-primary font-medium"
+                    style={{ flexShrink: 0 }}
                   >
                     {r.choice}{" "}
-                    <span
-                      style={{
-                        fontWeight: 400,
-                        color: "var(--text-tertiary)",
-                        fontSize: "11px",
-                      }}
-                    >
+                    <span className="body-xs text-text-label font-normal">
                       (toward {poleLabel})
                     </span>
                   </span>
@@ -1726,42 +1563,28 @@ function ResponsesContent({
               return (
                 <div
                   key={r.item}
+                  className="body-xs"
                   style={{
                     display: "flex",
                     gap: "8px",
                     marginBottom: "4px",
-                    fontSize: "12px",
-                    lineHeight: 1.4,
                   }}
                 >
                   <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-tertiary)",
-                      flexShrink: 0,
-                      fontSize: "11px",
-                    }}
+                    className="mono-meta text-text-label"
+                    style={{ flexShrink: 0 }}
                   >
                     {r.item}
                   </span>
-                  <span style={{ color: "var(--text-secondary)", flex: 1 }}>
+                  <span className="text-text-secondary" style={{ flex: 1 }}>
                     {q ? q.text : r.item}
                   </span>
                   <span
-                    style={{
-                      color: "var(--text-primary)",
-                      fontWeight: 500,
-                      flexShrink: 0,
-                    }}
+                    className="text-text-primary font-medium"
+                    style={{ flexShrink: 0 }}
                   >
                     {r.choice}{" "}
-                    <span
-                      style={{
-                        fontWeight: 400,
-                        color: "var(--text-tertiary)",
-                        fontSize: "11px",
-                      }}
-                    >
+                    <span className="body-xs text-text-label font-normal">
                       ({choiceLabel})
                     </span>
                   </span>
@@ -1771,15 +1594,11 @@ function ResponsesContent({
 
             {budgetScore !== null && (
               <div
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-tertiary)",
-                  fontStyle: "italic",
-                  marginTop: "2px",
-                }}
+                className="body-xs text-text-secondary"
+                style={{ fontStyle: "italic", marginTop: "2px" }}
               >
                 Budget signal:{" "}
-                <span style={{ color: "var(--text-secondary)" }}>
+                <span className="text-text-primary">
                   {budgetScore >= 0 ? "+" : ""}
                   {budgetScore.toFixed(2)}
                 </span>
@@ -1860,6 +1679,7 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
     >
       {/* Toggle button */}
       <button
+        className="focus-ring body-s text-text-secondary font-medium"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         style={{
@@ -1871,10 +1691,13 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "13px",
-          color: "var(--text-secondary)",
-          fontWeight: 500,
           textAlign: "left",
+          // The ring draws INSIDE the border box here. This row is `width:
+          // 100%` inside `.persona-modal-container`, which is `overflow:
+          // hidden` and not horizontally scrollable, so at the utility's +2px
+          // offset the left and right verticals were cut and the ring read as
+          // two horizontal rules. Inline beats the utility's `outline-offset`.
+          outlineOffset: "-2px",
         }}
       >
         <span>View responses</span>
@@ -1902,8 +1725,13 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                 gap: "0",
                 marginBottom: "16px",
                 border: "1px solid var(--border-primary)",
-                borderRadius: "4px",
-                overflow: "hidden",
+                borderRadius: "var(--radius)",
+                // No `overflow: hidden`: an outline is clipped by an ancestor's
+                // overflow clip, and these tabs sit flush against this box's
+                // edges, so the focus ring below would have been declared and
+                // never painted. It was here to round the active tab's fill
+                // into the corners, which at the 2px radius token is a
+                // sub-pixel effect and not worth a keyboard user's indicator.
                 width: "fit-content",
               }}
             >
@@ -1916,20 +1744,24 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                   <button
                     key={model}
                     id={tabId}
+                    className="focus-ring control"
                     role="tab"
                     aria-selected={isActive}
                     aria-controls={panelId}
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => handleTabSwitch(model)}
                     onKeyDown={(e) => handleTabKeyDown(e, model)}
+                    // `fontWeight` stays inline and stays computed: the 500/400
+                    // split is the selected-tab cue, alongside the filled
+                    // background. It is not redundant with `control`'s own 500
+                    // — the inline value wins on BOTH tabs, so the role's weight
+                    // is merely duplicated on the active one and deliberately
+                    // overridden on the inactive one.
                     style={{
                       padding: "6px 18px",
                       background: isActive ? modelColor : "none",
                       border: "none",
                       cursor: "pointer",
-                      fontSize: "12px",
-                      fontVariant: "small-caps",
-                      letterSpacing: "0.05em",
                       color: isActive ? "var(--surface-1)" : "var(--text-secondary)",
                       fontWeight: isActive ? 500 : 400,
                       transition: "background 200ms ease, color 200ms ease",
@@ -2020,13 +1852,13 @@ function ModalFooter({ id }: { id: string }) {
     >
       {/* Share */}
       <button
+        className="focus-ring body-s"
         onClick={handleShare}
         style={{
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "13px",
-          color: copied ? "var(--cluster-3)" : "var(--text-tertiary)",
+          color: copied ? "var(--cluster-3)" : "var(--text-label)",
           padding: 0,
           transition: "color 150ms ease",
         }}
@@ -2041,11 +1873,10 @@ function ModalFooter({ id }: { id: string }) {
             display: "flex",
             gap: "12px",
             alignItems: "baseline",
-            fontSize: "13px",
-            color: "var(--text-tertiary)",
           }}
         >
           <button
+            className="focus-ring body-s"
             onClick={() => prevId && navigateTo(prevId)}
             disabled={!hasPrev}
             aria-label="Previous persona"
@@ -2057,7 +1888,6 @@ function ModalFooter({ id }: { id: string }) {
               color: hasPrev
                 ? "var(--text-secondary)"
                 : "var(--border-primary)",
-              fontSize: "13px",
             }}
           >
             ← Previous
@@ -2065,16 +1895,13 @@ function ModalFooter({ id }: { id: string }) {
           {currentIndex >= 0 && (
             <span
               aria-hidden="true"
-              style={{
-                fontSize: "11px",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-mono)",
-              }}
+              className="mono-meta text-text-label"
             >
               {currentIndex + 1} / {filteredIds.length}
             </span>
           )}
           <button
+            className="focus-ring body-s"
             onClick={() => nextId && navigateTo(nextId)}
             disabled={!hasNext}
             aria-label="Next persona"
@@ -2086,7 +1913,6 @@ function ModalFooter({ id }: { id: string }) {
               color: hasNext
                 ? "var(--text-secondary)"
                 : "var(--border-primary)",
-              fontSize: "13px",
             }}
           >
             Next →
@@ -2262,7 +2088,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
             maxHeight: "90vh",
             backgroundColor: "var(--surface-1)",
             border: "1px solid var(--border-secondary)",
-            borderRadius: "6px",
+            borderRadius: "var(--radius)",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -2275,16 +2101,16 @@ export function PersonaModal({ id }: PersonaModalProps) {
           {/* Loading state */}
           {loading && (
             <div
+              className="body-s text-text-secondary"
               style={{
                 padding: "60px 24px",
                 textAlign: "center",
-                color: "var(--text-tertiary)",
-                fontSize: "14px",
               }}
             >
               {/* Hidden close button so focus trap doesn't get stuck */}
               <button
                 ref={closeBtnRef}
+                className="focus-ring text-text-label"
                 onClick={handleClose}
                 aria-label="Close persona modal"
                 style={{
@@ -2293,10 +2119,9 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   right: "16px",
                   background: "none",
                   border: "1px solid var(--border-primary)",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   padding: "4px 6px",
                   cursor: "pointer",
-                  color: "var(--text-tertiary)",
                   lineHeight: 1,
                   display: "flex",
                   alignItems: "center",
@@ -2311,15 +2136,15 @@ export function PersonaModal({ id }: PersonaModalProps) {
           {/* Error state */}
           {!loading && error && (
             <div
+              className="body-s text-text-secondary"
               style={{
                 padding: "40px 24px",
                 textAlign: "center",
-                color: "var(--text-secondary)",
-                fontSize: "14px",
               }}
             >
               <button
                 ref={closeBtnRef}
+                className="focus-ring text-text-label"
                 onClick={handleClose}
                 aria-label="Close persona modal"
                 style={{
@@ -2328,10 +2153,9 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   right: "16px",
                   background: "none",
                   border: "1px solid var(--border-primary)",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   padding: "4px 6px",
                   cursor: "pointer",
-                  color: "var(--text-tertiary)",
                   lineHeight: 1,
                   display: "flex",
                   alignItems: "center",
@@ -2339,10 +2163,16 @@ export function PersonaModal({ id }: PersonaModalProps) {
               >
                 <X size={16} aria-hidden />
               </button>
-              <div style={{ marginBottom: "8px", color: "var(--text-primary)" }}>
+              <div className="text-text-primary" style={{ marginBottom: "8px" }}>
                 Could not load persona
               </div>
-              <div style={{ fontSize: "12px" }}>{error}</div>
+              {/* `role="alert"` before the colour change, not after it: the
+                  string is about to carry the same advisory amber an ordinary
+                  notice does, so the cue a sighted user had gets weaker at the
+                  same moment (phase 5, D16). */}
+              <div role="alert" className="body-xs text-warning-text">
+                {error}
+              </div>
             </div>
           )}
 
@@ -2390,7 +2220,6 @@ export function PersonaModal({ id }: PersonaModalProps) {
         .tension-abbr { display: none; }
         @media (max-width: 640px) {
           .persona-modal-container {
-            border-radius: 4px !important;
             /* 100dvh adapts to iOS URL-bar toggle; 24px gap leaves
                breathing room at top and bottom so prev/next footer
                isn't cut off by the viewport edge. */

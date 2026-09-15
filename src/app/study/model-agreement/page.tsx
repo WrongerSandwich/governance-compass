@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import { axes } from "@/data/axes";
+import { SectionNav } from "@/components/study/patterns/SectionNav";
 import { ModelAgreementClient } from "@/components/study/model-agreement/ModelAgreementClient";
 import type { PerAxisEntry, DistanceStats } from "@/components/study/model-agreement/ModelAgreementClient";
 import type { AttributePanel, AttributeCategory } from "@/components/study/model-agreement/DisagreementByAttribute";
@@ -344,56 +345,30 @@ export default async function ModelAgreementPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Page header                                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="mx-auto max-w-3xl">
-        <p className="mb-1">
-          <Link
-            href="/study"
-            className="study-kicker-link text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
-          >
-            ← Synthetic Study
-          </Link>
-        </p>
-        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6">
-          Model agreement
-        </h1>
+      <div className="mx-auto max-w-reference">
+        <PageHeader
+          kicker="← Synthetic Study"
+          kickerHref="/study"
+          title="Model agreement"
+          lead={[
+            "150 personas were administered the Governance Compass twice — once by Claude Sonnet 4.6 and once by Gemini 2.5 Flash. This page compares the two sets of scored profiles. Agreement is measured at the axis level (do the two models score the same persona similarly?), at the persona level (how far apart are they in the 12-dimensional axis space?), and against persona attributes (does the size of disagreement correlate with who the persona is?).",
+          ]}
+        />
 
-        {/* Intro — verbatim from spec */}
-        <p className="text-[17px] font-serif text-text-secondary leading-relaxed mb-6">
-          150 personas were administered the Governance Compass twice — once by
-          Claude Sonnet 4.6 and once by Gemini 2.5 Flash. This page compares the
-          two sets of scored profiles. Agreement is measured at the axis level
-          (do the two models score the same persona similarly?), at the persona
-          level (how far apart are they in the 12-dimensional axis space?), and
-          against persona attributes (does the size of disagreement correlate
-          with who the persona is?).
-        </p>
-
-        {/* Section nav — quiet atlas-style jump list.
-            Each item is an inline-block with nowrap so a single link never
-            splits mid-label. Gap-only separation (no · glyph) keeps wrapping
-            clean on narrow viewports — no orphaned dots at line starts. */}
-        <nav
-          aria-label="Sections on this page"
-          className="mb-14 flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-text-tertiary leading-relaxed"
-        >
-          {[
-            { num: "01", label: "Overall", id: "section-1" },
-            { num: "02a", label: "Per-axis correlation", id: "section-2a" },
-            { num: "02b", label: "Directional drift", id: "section-2b" },
-            { num: "03", label: "By attribute", id: "section-3" },
-            { num: "04", label: "Cases", id: "section-4" },
-            { num: "05", label: "Instrument", id: "section-5" },
-          ].map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="whitespace-nowrap hover:text-text-secondary transition-colors duration-150"
-            >
-              <span className="tabular-nums mr-1.5">{item.num}</span>
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        {/* mt-6 replaces the 24px the removed intro <p>'s `mb-6` supplied;
+            SectionNav sets only a bottom margin of its own. */}
+        <div className="mt-6">
+          <SectionNav
+            sections={[
+              { num: "01", label: "Overall", short: "Overall", id: "section-1" },
+              { num: "02a", label: "Per-axis correlation", short: "Per-axis", id: "section-2a" },
+              { num: "02b", label: "Directional drift", short: "Drift", id: "section-2b" },
+              { num: "03", label: "By attribute", short: "Attribute", id: "section-3" },
+              { num: "04", label: "Cases", short: "Cases", id: "section-4" },
+              { num: "05", label: "Instrument", short: "Instrument", id: "section-5" },
+            ]}
+          />
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}

@@ -15,8 +15,29 @@ export interface PairedAxisScaleProps {
   scoreA: number;
   /** Omit for the single-respondent variant. */
   scoreB?: number;
-  /** Endpoints sit above the track on desktop, below it when stacked. */
-  endpoints?: "above" | "below";
+  /**
+   * Endpoints sit above the track on desktop, below it when stacked.
+   *
+   * `"none"` drops the endpoint row, for a caller whose column cannot set two
+   * pole labels on one line. /study's persona modal is the case, at all five
+   * of its tracks. The widest pair — "Distributed Governance" /
+   * "Centralized Governance" — needs 301px. The modal's dual-model table
+   * leaves each of its two tracks ~121px inside a 900px dialog; its
+   * single-model track clears 301px only at viewports >=900px and in a
+   * 430-639px sliver, because between 640px and 899px the radar still takes a
+   * fixed 300px out of the row while the dialog has stopped growing. Below
+   * those widths the labels wrap to two lines each, touch with no gap, and
+   * overprint the score readout and tension badge beside them. Measured on
+   * the production build across 320-1600px.
+   *
+   * Nothing is lost to a screen reader, but not because the description
+   * replaces the labels — `describePosition` names at most ONE pole, and none
+   * at all within 0.15 of the midpoint. It is that `role="img"` on the root
+   * already kept the endpoint text out of the accessibility tree under
+   * `"above"` and `"below"` too, so the announced string is byte-identical
+   * with the row present or absent. This drops a visual affordance only.
+   */
+  endpoints?: "above" | "below" | "none";
   /**
    * Names the axis in the generated description. Pass this, not `label`.
    *
@@ -30,6 +51,22 @@ export interface PairedAxisScaleProps {
   respondentBLabel?: string;
   /** Escape hatch: replaces the generated description outright. */
   label?: string;
+  /**
+   * Overrides the domain colour on respondent A's dot.
+   *
+   * Same WRAPPED shape `getDomainMarkVar` returns — `"var(--model-claude)"`,
+   * not `"--model-claude"`, which the type enforces: a bare name wrapped a
+   * second time gives `var(var(--x))`, valid syntax that resolves to nothing
+   * and paints an invisible mark. The one caller is /study's model-agreement view,
+   * where a Claude row and a Gemini row sit under one axis name and colour is
+   * the only thing telling them apart; both model tokens already step by mode
+   * (`globals.css:191-193`), so this introduces no frozen hex.
+   *
+   * Affects the dot only. The track keeps `domain[400]`, for the reason its
+   * own comment gives, and respondent B's outlined dot is Stone 500 by the
+   * spec.
+   */
+  markVar?: `var(--${string})`;
 }
 
 /**
@@ -129,9 +166,10 @@ export function PairedAxisScale({
   respondentALabel = "Respondent A",
   respondentBLabel = "Respondent B",
   label,
+  markVar,
 }: PairedAxisScaleProps) {
   const domain = DOMAIN_COLORS[getDomainForAxis(axisId)];
-  const endpointRow = (
+  const endpointRow = endpoints === "none" ? null : (
     <div
       className={`flex justify-between label-tight text-text-label ${
         endpoints === "above" ? "mb-1" : "mt-1.5"
@@ -182,7 +220,7 @@ export function PairedAxisScale({
           data-respondent="a"
           aria-hidden="true"
           className="absolute top-0.5 h-2.5 w-2.5 -translate-x-1/2 rounded-full"
-          style={{ left: `${scoreToTrackPercent(scoreA)}%`, backgroundColor: getDomainMarkVar(axisId) }}
+          style={{ left: `${scoreToTrackPercent(scoreA)}%`, backgroundColor: markVar ?? getDomainMarkVar(axisId) }}
         />
       </div>
       {endpoints === "below" && endpointRow}

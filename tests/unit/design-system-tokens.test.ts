@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getDomainMarkVar } from "@/lib/design-tokens";
-import { sourceFiles } from "../helpers/source-files";
+import {
+  classNameTokenLists,
+  sourceFiles,
+  stripComments,
+} from "../helpers/source-files";
 
 // Comments are stripped once, here, so every helper below sees declaration
 // text only. block() is the reason this belongs at the top rather than inside
@@ -199,6 +203,27 @@ function offenders(pattern: RegExp, replacement: string): string[] {
   });
 }
 
+/**
+ * Radius values delta 02 exempts, named rather than pattern-matched: a
+ * circle is not a rounded rectangle and a pill is not either, so neither
+ * moves onto the token.
+ */
+const ALLOWED_RADII = new Set(["50%", "999px", "var(--radius)"]);
+
+/**
+ * Files the two radius guards below scan. Rooted at `src` rather than at
+ * the section being swept: measured across all of `src` there are zero
+ * offenders, so the wider root costs nothing today and permanently covers
+ * the sections earlier phases swept, which until now leaned only on the
+ * value-specific 12px/8px guards above.
+ *
+ * These roots must never grow to include `tests/`. The guards below spell
+ * out the literals they ban in their own comments, and a text scan cannot
+ * tell code from prose about code — a root that reached this file would
+ * redden it on its own explanation, or (worse) be satisfied by it forever.
+ */
+const radiusScanFiles = sourceFiles(resolve(process.cwd(), "src"));
+
 describe("near-square corners (design delta 02)", () => {
   it("has retired every 12px and 8px radius class literal from src", () => {
     // Covers the arbitrary-value spelling (rounded-[8px]), Tailwind's default
@@ -242,6 +267,57 @@ describe("near-square corners (design delta 02)", () => {
     // globals.css is where later phases add shared styling, and the two tests
     // above only scan .tsx files.
     expect(globalsCss).not.toMatch(/border-radius:\s*(?:12|8)px/);
+  });
+
+  it("spells every quoted style-prop radius in src as the token", () => {
+    // The two shipped cases in this block catch 12px and 8px, which is what
+    // the rest of the codebase had. /study had none of those and 39 of
+    // something else — 1, 2, 3, 4 and 6px, five spellings of one intent, all
+    // invisible to a guard written around the two values the sweep removed.
+    // 34 of the 39 were the quoted style-prop form this case reads; the
+    // unquoted and CSS-syntax spellings are the case below, and the two are
+    // complementary halves rather than one broad scan and one narrow one.
+    //
+    // All three quote styles, matching the 12px/8px case above: a literal
+    // that only a single-quote scan would see is exactly the one that gets
+    // written next.
+    expect(radiusScanFiles.length).toBeGreaterThan(0);
+
+    const offenders = radiusScanFiles.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      return [...text.matchAll(/borderRadius: *(["'`])([^"'`]*)\1/g)]
+        .map(([, , value]) => value)
+        .filter((value) => !ALLOWED_RADII.has(value))
+        .map((value) => `${relative(process.cwd(), file)}: ${value}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("spells every unquoted and CSS-syntax radius in src as the token", () => {
+    // Two spellings the case above cannot see, both of which /study had: the
+    // unquoted numeric form React accepts, and the CSS property inside a
+    // <style>{`…`}</style> block. Five of the 39, and the ones a sweep
+    // written around whichever spelling came first leaves standing.
+    //
+    // The CSS terminator is [;}] rather than ;, so an unterminated final
+    // declaration in a block is still seen.
+    expect(radiusScanFiles.length).toBeGreaterThan(0);
+
+    const offenders = radiusScanFiles.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      const unquoted = [...text.matchAll(/borderRadius: *([^"'`\s][^,\n}]*)/g)]
+        .map(([, value]) => value.trim().replace(/,$/, ""))
+        .filter((value) => !ALLOWED_RADII.has(value));
+      const css = [...text.matchAll(/border-radius: *([^;}]+)[;}]/g)]
+        .map(([, value]) => value.trim().replace(/\s*!important$/, "").trim())
+        .filter((value) => !ALLOWED_RADII.has(value));
+      return [...unquoted, ...css].map(
+        (value) => `${relative(process.cwd(), file)}: ${value}`,
+      );
+    });
+
+    expect(offenders).toEqual([]);
   });
 });
 
@@ -356,16 +432,27 @@ describe("data marks step by mode (design delta 06)", () => {
     expect(theme["--container-results"]).toBe("820px");
   });
 
-  it("names all four page widths as tokens, so none is spelled as a literal", () => {
-    // Phase 4 left two of the four as Tailwind literals. A width spelled
-    // `max-w-2xl` reads as a generic size rather than as "the quiz column",
-    // so a later phase retunes one page and silently desyncs it from the
-    // other on the same measure. 660 is mock 7c's; 672 is what `max-w-2xl`
-    // already resolved to, so that one is a rename and must not move.
+  it("names all five page measures as tokens, so none is spelled as a literal", () => {
+    // A width spelled `max-w-3xl` reads as a generic size rather than as
+    // "the study column", so a later phase retunes one page and silently
+    // desyncs it from another on the same measure. 1200 is the persona
+    // browser's: it is the only measure in the product wider than the chrome
+    // shell, and it is wider on purpose (D26) — a two-column data browser,
+    // not a prose page.
     expect(theme["--container-shell"]).toBe("1040px");
     expect(theme["--container-results"]).toBe("820px");
     expect(theme["--container-reference"]).toBe("660px");
     expect(theme["--container-quiz"]).toBe("672px");
+    expect(theme["--container-browse"]).toBe("1200px");
+  });
+
+  it("keeps the browser measure the widest, since that is the only reason it exists", () => {
+    // If a later retune drops --container-browse to or below the shell, the
+    // token has stopped earning its place and should be deleted rather than
+    // left as a second name for 1040px.
+    const px = (name: string) => Number.parseInt(theme[name], 10);
+
+    expect(px("--container-browse")).toBeGreaterThan(px("--container-shell"));
   });
 
   it("holds the quiz column on its token rather than the generic Tailwind size", () => {
@@ -428,9 +515,9 @@ describe("body-xs (design delta 04)", () => {
   });
 });
 
-/** Every page and component this phase swept. `/study` is deferred (D21) and
- *  is deliberately absent — widening this list to it is phase 5b's job, not a
- *  tidy-up. */
+/** Every page and component the delta has swept. Issue #151's instruction is
+ *  to widen this "as each directory lands", so phase 5b appends /study's
+ *  three directories rather than opening a parallel list. */
 const SWEPT = [
   "src/app/archetypes",
   "src/app/references",
@@ -446,13 +533,33 @@ const SWEPT = [
   "src/components/annotations",
   "src/components/PageHeader.tsx",
   "src/components/ReferenceCta.tsx",
+  // Phase 5b. `src/lib/study` is included deliberately even though it is
+  // pure logic today and clean against all six guards — it is where a
+  // colour or a class would go if one of these charts grew a helper, and a
+  // directory is cheaper to add now than to remember later.
+  "src/app/study",
+  "src/components/study",
+  "src/lib/study",
 ];
+
+/** 1-based line number of a byte offset, for an actionable failure message. */
+function lineOf(text: string, index: number): number {
+  return text.slice(0, index).split("\n").length;
+}
 
 function sweptSources(): { file: string; text: string }[] {
   const sources = SWEPT.flatMap((entry) => {
     const path = resolve(process.cwd(), entry);
     const files = entry.endsWith(".tsx") ? [path] : sourceFiles(path);
-    return files.map((file) => ({ file, text: readFileSync(file, "utf8") }));
+    // Comments out, once, for every guard below: a whole-file text scan
+    // cannot tell a declaration from prose about a declaration, and this
+    // block bans literals that its own explanations have to name. Without
+    // this, `src/lib/study/budgetColors.ts` reddens the raw-hex case on two
+    // hexes that appear only inside a doc comment.
+    return files.map((file) => ({
+      file,
+      text: stripComments(readFileSync(file, "utf8")),
+    }));
   });
 
   // Every guard below is `expect(offenders).toEqual([])` over a flatMap, and
@@ -482,7 +589,7 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     // that the guards work does not transfer to the guards that shipped.
     const swept = sweptSources().map(({ file }) => relative(process.cwd(), file));
 
-    expect(swept.length).toBeGreaterThanOrEqual(20);
+    expect(swept.length).toBeGreaterThanOrEqual(50);
     for (const anchor of [
       "src/app/questions/page.tsx",
       "src/app/compare/page.tsx",
@@ -492,6 +599,9 @@ describe("phase 5 sweep holds (design delta D20)", () => {
       "src/components/groups/GroupRadar.tsx",
       "src/components/ReferenceCta.tsx",
       "src/components/PageHeader.tsx",
+      "src/app/study/patterns/page.tsx",
+      "src/components/study/PersonaModal.tsx",
+      "src/components/study/WorldMap.tsx",
     ]) {
       expect(swept, `sweep does not reach ${anchor}`).toContain(anchor);
     }
@@ -537,21 +647,36 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     // that instead INHERIT their rest colour from a labelled parent were made
     // explicit rather than left invisible here — a guard that silently skips
     // the shape it was written for is the failure mode this phase kept hitting.
-    const LABEL_ROLES = /\b(?:label|label-nav|label-eyebrow|label-tight|mono-meta)(?![\w-])/;
+    const LABEL_ROLES = new Set([
+      "label",
+      "label-nav",
+      "label-eyebrow",
+      "label-tight",
+      "mono-meta",
+    ]);
 
+    // Read per ELEMENT, off class TOKENS, in every spelling of the attribute.
+    // The shipped version scanned `/className="[^"]*"/`, which is the quoted
+    // form only — so `SectionNav`, whose classes are a ternary inside a
+    // template literal, was invisible to it. Measured: restoring the aliased
+    // hover there left this case GREEN and only the section's own render test
+    // caught it. Same lesson as the ramp and the `<style>` block: match the
+    // token, not the syntax.
     const offenders = sweptSources().flatMap(({ file, text }) => {
       const hits: string[] = [];
-      for (const cls of text.match(/className="[^"]*"/g) ?? []) {
-        for (const hover of cls.match(/hover:([a-z]+-[a-z0-9-]+)/g) ?? []) {
-          const target = hover.slice("hover:".length);
-          const bare = new RegExp(`(?<!hover:)\\b${target}(?![\\w-])`);
-          if (bare.test(cls)) hits.push(`${hover} over itself`);
+      for (const tokens of classNameTokenLists(text)) {
+        const resting = new Set(tokens.filter((token) => !token.includes(":")));
+        for (const token of tokens) {
+          if (!token.startsWith("hover:")) continue;
+          const target = token.slice("hover:".length);
+          if (!/^[a-z]+-[a-z0-9-]+$/.test(target)) continue;
+          if (resting.has(target)) hits.push(`${token} over itself`);
           for (const [a, b] of ALIASES) {
             const [rest, want] = target === b ? [a, b] : target === a ? [b, a] : [null, null];
             if (!rest) continue;
-            const explicit = new RegExp(`(?<!hover:)\\b${rest}(?![\\w-])`).test(cls);
-            const byRole = rest === "text-text-label" && LABEL_ROLES.test(cls);
-            if (explicit || byRole) hits.push(`hover:${want} over ${rest}`);
+            const byRole =
+              rest === "text-text-label" && tokens.some((t) => LABEL_ROLES.has(t));
+            if (resting.has(rest) || byRole) hits.push(`hover:${want} over ${rest}`);
           }
         }
       }
@@ -623,7 +748,36 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     // is entirely hand-rolled — which is what all nine of the replaced sites
     // were — and nothing finer. A per-element guard would need a parse, not a
     // scan.
+    //
+    // /study's chrome controls are hand-rolled by decision, not by
+    // accident (phase 5b, D27): pagination arrows, a modal close x, pin
+    // toggles, tab chips and tension badges. `Button` is a page-level CTA
+    // with 34px of horizontal padding, and routing an icon toggle through
+    // it produces a 60px-wide close control in the corner of a dialog.
+    // Adding a fourth "quiet" variant was the other option and was
+    // rejected — the delta specifies three tiers in as many words.
+    //
+    // What these files ARE held to is the ring, which is the thing that was
+    // actually broken: see `tests/unit/study-controls.test.ts`, *gives every
+    // hand-rolled control a focus ring*. That case is per ELEMENT, so it is
+    // strictly stronger than this one, and it is why excluding them here
+    // costs nothing.
+    //
+    // `CompareFloatingButton.tsx` is named for completeness and is a no-op
+    // today: it imports `Button` for its page-level CTA and hand-rolls only
+    // the dismiss control beside it, so the per-FILE check above already
+    // passes it. Deleting it from this list would not change the result;
+    // keeping it records that its bare control is deliberate too.
+    const HAND_ROLLED_CHROME = [
+      "PersonaModal.tsx",
+      "PersonasPageClient.tsx",
+      "CompareView.tsx",
+      "PersonaGrid.tsx",
+      "CompareFloatingButton.tsx",
+      "ComparePinButton.tsx",
+    ];
     const offenders = sweptSources().flatMap(({ file, text }) => {
+      if (HAND_ROLLED_CHROME.some((name) => file.endsWith(name))) return [];
       if (!/<button\b/.test(text)) return [];
       return text.includes('from "@/components/Button"')
         ? []
@@ -645,6 +799,158 @@ describe("phase 5 sweep holds (design delta D20)", () => {
       if (SVG_CAPPED.some((name) => file.endsWith(name))) return [];
       const match = text.match(/max-w-(?:2xl|3xl|xl)(?![\w-])/);
       return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("names no custom property that globals.css has never declared", () => {
+    // `var(--text-xs, 10px)` appeared at ten sites and five of them
+    // disagreed with the other five about the fallback. Every one rendered
+    // its fallback, and a reader saw a token name and believed there was a
+    // token. Generalised past --text-xs: any `var(--foo)` a swept file names
+    // must exist in the stylesheet.
+    //
+    // Two scope notes, both measured against the whole of src/ rather than
+    // reasoned about:
+    //
+    // 1. The pattern requires a CLOSING `)` or a `,` after the name, which
+    //    excludes the dynamic form built by interpolating an id into the
+    //    token name. Without that, three prefixes (cluster, map density and
+    //    model) report as undeclared at nine sites, all of them correct
+    //    code. A guard that cries wolf on correct code gets deleted, so it
+    //    does not see the dynamic form at all — and cannot, without
+    //    evaluating the template.
+    // 2. Three properties are declared outside globals.css and are named
+    //    here rather than pattern-matched, so that adding a fourth is a
+    //    deliberate act.
+    const DECLARED_ELSEWHERE = new Set([
+      "--font-source-serif", // next/font, injected on <html>
+      "--petal-opacity", // set inline per petal by RadarChart
+      "--tw-outline-style", // Tailwind internal
+    ]);
+    const declared = new Set([
+      ...Object.keys(light),
+      ...Object.keys(dark),
+      ...Object.keys(theme),
+      ...DECLARED_ELSEWHERE,
+    ]);
+
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const named = [...text.matchAll(/var\((--[a-z0-9-]+)\s*[,)]/g)].map((m) => m[1]);
+      return [...new Set(named)]
+        .filter((name) => !declared.has(name))
+        .map((name) => `${relative(process.cwd(), file)}: ${name}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the frozen mark tones out of every inline style in the section", () => {
+    // The shipped ramp guard above matches `text|bg|border-stone-NNN`, which
+    // is a TAILWIND CLASS. /study names the ramp inline instead, wrapped in
+    // `var(...)`, at twelve sites across twelve files — invisible to that
+    // guard in every one of them.
+    //
+    // 600 and 400 are the mark tones, and a mark must step by mode:
+    // `--mark-primary` is the 600 tone in light and the 400 tone in dark, so
+    // either literal freezes it to one of the two.
+    //
+    // 900 and 50 are deliberately NOT banned. They appear in `TensionMatrix`
+    // and `WorldMap` as ink printed ON a filled cell, where the colour is
+    // chosen for contrast against the fill rather than as a mark — the same
+    // category D24 carves out for chart text. Ban them and the only way to
+    // pass is to make that ink illegible.
+    //
+    // BOTH SPELLINGS, and the second is the one that hides. A component can
+    // hold the bare NAME and interpolate it into `var(...)` at the point of
+    // use, which no scan for the wrapped form can match. Task 6's
+    // implementer found one of those in a file no task's list covered. This
+    // is the third time in this phase a guard has been blind to a spelling
+    // rather than to a site: the `<style>`-block hover was the first, the
+    // inline-vs-class ramp the second. The lesson is the same each time —
+    // match the TOKEN, not the syntax somebody happened to write it in.
+    //
+    // This case no longer has to mind its own comment: `sweptSources()`
+    // strips comments, and `tests/` is not a swept root anyway. Task 6's
+    // implementer reddened this guard against its own prose before that was
+    // true, reworded around it, and then — correctly — mutation-tested the
+    // case rather than accepting the green, because a guard that went green
+    // when you edited a COMMENT has told you nothing about the code.
+    //
+    // One file is exempt, and the exemption is narrow on purpose. Task 8
+    // extracted the mini budget strip's seven ministry fills — duplicated
+    // byte for byte between `PersonaModal` and `CompareView` — into a single
+    // module. Six are cluster tokens; the seventh is the 400 tone, and Task 7
+    // showed token by token that every mode-stepping value in the stylesheet
+    // collides with one of the six beside it. The resolution was NOT to mint
+    // a seventh colour — spec "Scope and constraints" opens with "No new
+    // colours" — because the premise that collision analysis never tested is
+    // the one that settles it: that tone is MODE-INVARIANT. It is declared
+    // once in `:root` and never redefined in the dark block, so it does not
+    // freeze a mark to one mode; there is no mark here to freeze. It is one
+    // categorical fill among seven whose only job is to differ from the six
+    // beside it — the same reasoning that leaves 900 and 50 unbanned above.
+    const MARK_TONE_EXEMPT = new Set(["src/lib/study/budgetColors.ts"]);
+
+    // FOUND BY THIS GUARD, NOT DECIDED BY ANYONE. Widening the case to the
+    // whole sweep — which is what it should be, since the defect is a
+    // spelling and not a section — turns up the same frozen literal at
+    // seventeen sites in four files phase 5 swept. Phase 5's ramp guard
+    // reads classes only, so it never saw them, and this is the first scan
+    // that could. They are listed rather than fixed because phase 5b's remit
+    // is /study and repainting four shipped charts is a visual change that
+    // belongs to its own task; the entry is reported upward as debt.
+    //
+    // Grow these lists, do not weaken the guard. Naming the files keeps the
+    // ban live on the other sixty-five; loosening the pattern would not, and
+    // deleting an entry is how a reader learns the debt was paid.
+    const PHASE_5_INLINE_RAMP = new Set([
+      "src/components/comparison/ComparisonRadar.tsx",
+      "src/components/comparison/BudgetComparison.tsx",
+      "src/components/groups/GroupRadar.tsx",
+      "src/components/groups/GroupScoreBar.tsx",
+    ]);
+
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const rel = relative(process.cwd(), file);
+      if (MARK_TONE_EXEMPT.has(rel) || PHASE_5_INLINE_RAMP.has(rel)) return [];
+      // Global, so a file with four frozen fills reports four. Every other
+      // case in this block reports one site per file, which is survivable
+      // when the fix is one edit and misleading when it is twelve.
+      return [...text.matchAll(/--stone-(?:600|400)\b/g)].map(
+        (match) => `${rel}:${lineOf(text, match.index!)} ${match[0]}`,
+      );
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("holds the type floor on every swept HTML element", () => {
+    // 11px is the delta's hard floor. /study had about twenty-five HTML
+    // sites under it — 10px and 9px, inline and as classes.
+    //
+    // SCOPE, and it is a real one: this reads `fontSize:` in style objects
+    // and arbitrary-value text size classes. SVG <text> sizes its labels
+    // with a numeric `fontSize` ATTRIBUTE, which this pattern does not
+    // match, and that is deliberate per D24 rather than an accident of the
+    // regex — read that decision before "fixing" this to catch them.
+    //
+    // Every px LENGTH in the value, not just a value that IS one. The
+    // spelling this section actually shipped was `var(--text-xs, 10px)` at
+    // ten sites: a size that renders at 10px through a fallback, and one a
+    // `fontSize: "10px"` pattern cannot see. Measured against all of the
+    // swept files, reading the whole value adds no false positive.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const sizes = [
+        ...[...text.matchAll(/fontSize: *"([^"]*)"/g)].flatMap(([, value]) =>
+          [...value.matchAll(/([\d.]+)px/g)].map((m) => Number(m[1])),
+        ),
+        ...[...text.matchAll(/text-\[([\d.]+)px\]/g)].map((m) => Number(m[1])),
+      ];
+      return sizes
+        .filter((px) => px < 11)
+        .map((px) => `${relative(process.cwd(), file)}: ${px}px`);
     });
 
     expect(offenders).toEqual([]);

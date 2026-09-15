@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import Link from "next/link";
 import { ClusterCard } from "@/components/study/patterns/ClusterCard";
 import { ArchetypeDistribution } from "@/components/study/patterns/ArchetypeDistribution";
 import type { ArchetypeDistributionRow } from "@/components/study/patterns/ArchetypeDistribution";
@@ -17,6 +16,7 @@ import type { TensionMatrixDatum } from "@/components/study/TensionMatrix";
 import { HorizontalBarChart } from "@/components/study/HorizontalBarChart";
 import type { HorizontalBarChartRow } from "@/components/study/HorizontalBarChart";
 import { SectionNav } from "@/components/study/patterns/SectionNav";
+import { PageHeader } from "@/components/PageHeader";
 import { CLUSTERS } from "@/data/syntheticStudyClusters";
 import { archetypes } from "@/data/archetypes";
 import { axes } from "@/data/axes";
@@ -30,6 +30,7 @@ import type {
 import type { ClusterId, RegionKey } from "@/lib/study/types";
 import { REGION_LABELS } from "@/lib/study/types";
 import { joinWithAnd } from "@/lib/study/modelAgreementProse";
+import { getDomainMarkVar } from "@/lib/design-tokens";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,14 +81,6 @@ interface TensionPatternsFile {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Domain fill color for ViolinOrRidge series (hex, from design-tokens DOMAIN_COLORS). */
-function domainColorFor(axisId: number): string {
-  if (axisId <= 2) return "#85735e";   // Economic Organization — Stone 600
-  if (axisId <= 6) return "#6b7d8a";  // Power and Authority — Slate 600
-  if (axisId <= 9) return "#7a8b6e";  // Society and Identity — Sage 600
-  return "#96716b";                    // The State in the World — Clay 600
-}
 
 /** Convert the flat axis_1..axis_12 centroid into a number[12] ordered array. */
 function centroidToAxisScores(c: ClusterCentroid): number[] {
@@ -219,7 +212,7 @@ export default async function PatternsPage() {
       label: `${axis.id}. ${axis.name}`,
       bins: histData ? histData.bins.map((b) => b.count) : [],
       mean: histData?.mean,
-      domainColor: domainColorFor(axis.id),
+      domainColor: getDomainMarkVar(axis.id),
     };
   });
 
@@ -312,42 +305,33 @@ export default async function PatternsPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Page header                                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="mx-auto max-w-3xl">
-        <p className="mb-1">
-          <Link
-            href="/study"
-            className="study-kicker-link text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
-          >
-            ← Synthetic Study
-          </Link>
-        </p>
-        <h1 className="text-[clamp(32px,5vw,38px)] font-serif font-medium text-text-primary leading-tight mb-6 text-balance">
-          Patterns
-        </h1>
-
-        {/* Intro — same serif-heading scale as page title per spec */}
-        <p className="text-[17px] font-serif text-text-secondary leading-relaxed mb-6">
-          This page characterizes the 1,002 personas as a population. Six
-          clusters emerged from the scored profiles; the twelve hand-crafted
-          archetypes were then compared against them. The sections below
-          describe the clusters, where they concentrate regionally and
-          demographically, the shape of each axis across the population, and
-          which axis pairs covary.
-        </p>
+      <div className="mx-auto max-w-reference">
+        <PageHeader
+          kicker="← Synthetic Study"
+          kickerHref="/study"
+          title="Patterns"
+          lead={[
+            "This page characterizes the 1,002 personas as a population. Six clusters emerged from the scored profiles; the twelve hand-crafted archetypes were then compared against them. The sections below describe the clusters, where they concentrate regionally and demographically, the shape of each axis across the population, and which axis pairs covary.",
+          ]}
+        />
 
         {/* Section nav — quiet atlas-style jump list with scroll-spy.
             Full and short labels rendered as sibling <span>s; CSS swaps
             them below 768px to keep the nav from wrapping into 4+ rows. */}
-        <SectionNav
-          sections={[
-            { num: "01", label: "Clusters", short: "Clusters", id: "section-1" },
-            { num: "02", label: "Archetype distribution", short: "Archetypes", id: "section-2" },
-            { num: "03", label: "Regional & demographic", short: "Regional", id: "section-3" },
-            { num: "04", label: "Axis distributions", short: "Distributions", id: "section-4" },
-            { num: "05", label: "Correlations", short: "Correlations", id: "section-5" },
-            { num: "06", label: "Tensions", short: "Tensions", id: "section-6" },
-          ]}
-        />
+        {/* mt-6 replaces the 24px the removed intro <p>'s `mb-6` supplied;
+            SectionNav sets only a bottom margin of its own. */}
+        <div className="mt-6">
+          <SectionNav
+            sections={[
+              { num: "01", label: "Clusters", short: "Clusters", id: "section-1" },
+              { num: "02", label: "Archetype distribution", short: "Archetypes", id: "section-2" },
+              { num: "03", label: "Regional & demographic", short: "Regional", id: "section-3" },
+              { num: "04", label: "Axis distributions", short: "Distributions", id: "section-4" },
+              { num: "05", label: "Correlations", short: "Correlations", id: "section-5" },
+              { num: "06", label: "Tensions", short: "Tensions", id: "section-6" },
+            ]}
+          />
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -358,8 +342,8 @@ export default async function PatternsPage() {
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-6">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-6">
+          <h2 className="display-entry text-text-primary text-balance">
             The six clusters
           </h2>
         </div>
@@ -395,7 +379,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose beneath the card grid */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Three clusters lean collectivist-egalitarian (C1, C3, C4), two lean
             traditionalist or authority-oriented (C2, C5), and one sits near the
@@ -416,8 +400,8 @@ export default async function PatternsPage() {
         className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary text-balance">
             Archetype distribution
           </h2>
         </div>
@@ -431,7 +415,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Six archetypes have nonzero populations; six have none. The six
             empirical-zero archetypes — The Social Democrat, The Green
@@ -466,8 +450,8 @@ export default async function PatternsPage() {
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary text-balance">
             Regional and demographic aggregates
           </h2>
         </div>
@@ -512,14 +496,7 @@ export default async function PatternsPage() {
                 variant="density"
                 breakpoints={[49, 89, 112, 133]}
               />
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-xs, 11px)",
-                  color: "var(--text-tertiary)",
-                  margin: 0,
-                }}
-              >
+              <p className="label-tight text-text-label" style={{ margin: 0 }}>
                 Persona density by region
               </p>
             </div>
@@ -543,14 +520,7 @@ export default async function PatternsPage() {
                 variant="cluster"
                 clusterIds={[0, 1, 2, 3, 4, 5]}
               />
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-xs, 11px)",
-                  color: "var(--text-tertiary)",
-                  margin: 0,
-                }}
-              >
+              <p className="label-tight text-text-label" style={{ margin: 0 }}>
                 Dominant cluster by region
               </p>
             </div>
@@ -558,7 +528,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose for 3a */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Western Europe and Eastern Europe/Central Asia both show strong C2
             (Nationalist Populist) dominance at 38% and 37% respectively — the
@@ -580,8 +550,8 @@ export default async function PatternsPage() {
           className="mx-auto mt-12"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
-            <h3 className="text-[17px] font-serif font-medium text-text-primary">
+          <div className="mx-auto max-w-reference mb-4">
+            <h3 className="display-s text-text-primary">
               Cultural diversity across regions
             </h3>
           </div>
@@ -617,7 +587,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose for 3b */}
-        <div className="mx-auto max-w-2xl mt-6 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-6 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Cultural Diversity (Axis 8, pluralism ↔ cohesion) shows the widest
             regional range of any axis: {(axis8Max - axis8Min).toFixed(2)} from
@@ -653,8 +623,8 @@ export default async function PatternsPage() {
           className="mx-auto mt-12"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-6">
-            <h3 className="text-[17px] font-serif font-medium text-text-primary">
+          <div className="mx-auto max-w-reference mb-6">
+            <h3 className="display-s text-text-primary">
               Demographic distributions
             </h3>
           </div>
@@ -668,7 +638,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose for 3c — verified and adjusted from spec */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             The demographic aggregates show weaker patterning than the regional
             ones — with two notable exceptions. Governance experience is the
@@ -695,8 +665,8 @@ export default async function PatternsPage() {
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary text-balance">
             Axis-level distributions
           </h2>
         </div>
@@ -721,7 +691,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Most axes are unimodal — the population spreads along a continuum
             without clear bimodality. The exceptions worth naming: Axes 3
@@ -757,8 +727,8 @@ export default async function PatternsPage() {
         className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary text-balance">
             Correlations
           </h2>
         </div>
@@ -790,7 +760,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose — same on both */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             A few axis pairs covary strongly enough to note. Axis 7 (Social
             Change) correlates most tightly with Axis 9 (Human Nature) at r =
@@ -822,8 +792,8 @@ export default async function PatternsPage() {
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary text-balance">
             Tension patterns
           </h2>
         </div>
@@ -835,16 +805,10 @@ export default async function PatternsPage() {
           className="mx-auto mb-10"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
+          <div className="mx-auto max-w-reference mb-4">
             <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
+              className="label text-text-label"
+              style={{ marginBottom: "8px" }}
             >
               Overall tension rate by axis (Claude / Gemini)
             </p>
@@ -869,19 +833,16 @@ export default async function PatternsPage() {
           className="mx-auto"
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
-          <div className="mx-auto max-w-2xl mb-4">
+          <div className="mx-auto max-w-reference mb-4">
+            <p className="label text-text-label" style={{ marginBottom: "4px" }}>
+              Tension rate by axis × cluster
+            </p>
             <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
+              className="body-xs text-text-secondary"
+              style={{ marginBottom: "8px" }}
             >
-              Tension rate by axis × cluster. Overall column splits
-              Claude/Gemini; cluster columns show a model-combined rate.
+              Overall column splits Claude/Gemini; cluster columns show a
+              model-combined rate.
             </p>
           </div>
           <div style={{ overflowX: "auto" }}>
@@ -898,7 +859,7 @@ export default async function PatternsPage() {
         </div>
 
         {/* Prose */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Tensions surface when a persona&apos;s forced-choice answer pulls one
             direction and their budget allocation pulls another on the same axis.
@@ -932,17 +893,6 @@ export default async function PatternsPage() {
           </p>
         </div>
       </section>
-
-      {/* Mobile refinements. Full+short section-nav labels swap on width;
-          charts themselves are responsive via SVG viewBox, so no scroll
-          fade hint is needed. */}
-      <style>{`
-        .section-nav-short { display: none; }
-        @media (max-width: 767px) {
-          .section-nav-full { display: none; }
-          .section-nav-short { display: inline; }
-        }
-      `}</style>
     </main>
   );
 }

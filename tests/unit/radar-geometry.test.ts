@@ -269,7 +269,7 @@ describe("normaliseByAxisId", () => {
 
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { sourceFiles } from "../helpers/source-files";
+import { sourceFiles, stripComments } from "../helpers/source-files";
 
 describe("radar geometry has one home (design delta phase 5)", () => {
   it("leaves no component with its own copy of the polar helpers", () => {
@@ -327,6 +327,87 @@ describe("radar geometry has one home (design delta phase 5)", () => {
     for (const chart of charts) {
       const text = readFileSync(resolve(process.cwd(), chart), "utf8");
       expect(text).not.toContain("getDomainColor600");
+    }
+  });
+});
+
+describe("no component keeps its own polar helper", () => {
+  it("leaves no private copy of the polar conversion anywhere in src", () => {
+    // Phase 5 closed four of five. The fifth is /study's, spelled
+    // `polarToXY` with the arguments in a different order, which is why a
+    // grep for `polarToCart` did not find it. The consequence is not
+    // stylistic: an unrounded coordinate serialises differently in Node and
+    // in Chromium, and React logs a hydration mismatch on every render of
+    // /study/patterns.
+    const files = sourceFiles(resolve(process.cwd(), "src"));
+    // A sweep whose file list resolved to nothing would report success.
+    expect(files.length).toBeGreaterThan(50);
+
+    const offenders = files.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      if (file.endsWith("radar-geometry.ts")) return [];
+      const match = text.match(/function polarTo[A-Za-z]*\(/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("routes every file that does its own trig through the shared module", () => {
+    // The case above asserts a NAME, and the premise of its own comment is
+    // that the fifth copy hid BECAUSE it was spelled differently. A copy
+    // written `const polarToXY = (…) =>`, or named `toXY` or `vertexAt`,
+    // walks straight past it. So assert the property the name was only ever
+    // a proxy for: a file that computes a polar coordinate at all has to get
+    // the shared, ROUNDED conversion from one place.
+    //
+    // `radar-geometry.ts` is the one home and is exempt. Everything else
+    // that reaches for the trig must import it — which is a weaker claim
+    // than "must not use it" and a deliberately weaker one: `RadarChart`
+    // legitimately nudges a label by a few pixels along the same angle the
+    // module gave it, and banning the call outright would force that offset
+    // into the shared module or into a magic constant.
+    const files = sourceFiles(resolve(process.cwd(), "src"));
+    expect(files.length).toBeGreaterThan(50);
+
+    // The effective population, asserted. Without this the case reads every
+    // file in src/, finds that none of them does its own trig, and reports
+    // success — which is also what it would report if `Math.cos(` were
+    // misspelled. One file qualifies today; a floor of one is the honest
+    // number and it is the number that has to move before the guard can go
+    // quiet by accident.
+    const trigFiles = files.filter(
+      (file) =>
+        !file.endsWith("radar-geometry.ts") &&
+        stripComments(readFileSync(file, "utf8")).includes("Math.cos("),
+    );
+    expect(
+      trigFiles.length,
+      "no file outside radar-geometry.ts does its own trig — the guard below reads nothing",
+    ).toBeGreaterThanOrEqual(1);
+
+    const offenders = trigFiles.flatMap((file) => {
+      const text = stripComments(readFileSync(file, "utf8"));
+      return text.includes('from "@/lib/radar-geometry"')
+        ? []
+        : [relative(process.cwd(), file)];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("rounds every coordinate the study radar emits", () => {
+    // The mismatch is in the last binary place, so the assertion is on the
+    // DECIMAL LENGTH, not on a value — a value assertion passes on an
+    // unrounded number that happens to be short.
+    const points = ringPoints(80, TOTAL_AXES, 120, 120).split(" ");
+
+    expect(points).toHaveLength(TOTAL_AXES);
+    for (const point of points) {
+      for (const coord of point.split(",")) {
+        const decimals = coord.split(".")[1] ?? "";
+        expect(decimals.length, `${coord} is not rounded`).toBeLessThanOrEqual(COORD_PLACES);
+      }
     }
   });
 });

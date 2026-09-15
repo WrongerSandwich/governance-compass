@@ -28,8 +28,12 @@ export function ArchetypeBadgeStudy({
   clusterId,
   className,
 }: ArchetypeBadgeStudyProps) {
+  // Falls back to the mark tone, which steps Stone 600 -> 400 on a dark
+  // ground. The Stone 600 ramp entry is that tone's frozen LIGHT value
+  // (spec delta 06), and naming it here — even in a comment — is the spelling
+  // the section guard exists to keep out.
   const colorVar =
-    clusterId !== undefined ? `--cluster-${clusterId}` : "--stone-600";
+    clusterId !== undefined ? `--cluster-${clusterId}` : "--mark-primary";
 
   const chipStyle: React.CSSProperties = {
     display: "inline-flex",
@@ -37,7 +41,7 @@ export function ArchetypeBadgeStudy({
     alignItems: "flex-start",
     gap: 0,
     padding: "2px 7px",
-    borderRadius: "3px",
+    borderRadius: "var(--radius)",
     border: `0.5px solid var(${colorVar})`,
     backgroundColor: `color-mix(in srgb, var(${colorVar}) 8%, transparent)`,
     textDecoration: "none",
@@ -46,23 +50,19 @@ export function ArchetypeBadgeStudy({
   const inner = (
     <>
       <span
+        className="label font-medium"
         style={{
-          fontSize: "11px",
           fontVariant: "small-caps",
-          letterSpacing: "0.03em",
           color: `var(${colorVar})`,
-          fontWeight: 500,
-          lineHeight: 1.4,
           display: "block",
         }}
       >
         {archetypeName}
         {matchStrength && (
           <span
+            className="text-text-secondary font-normal"
             style={{
               fontVariant: "normal",
-              fontWeight: 400,
-              color: "var(--text-tertiary)",
               marginLeft: "0.3em",
             }}
           >
@@ -71,11 +71,9 @@ export function ArchetypeBadgeStudy({
         )}
       </span>
       <span
+        className="mono-meta text-text-label"
         style={{
-          fontSize: "10px",
           fontStyle: "italic",
-          color: "var(--text-tertiary)",
-          lineHeight: 1.3,
           display: "block",
         }}
       >

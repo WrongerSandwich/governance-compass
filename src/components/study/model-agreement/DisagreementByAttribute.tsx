@@ -37,7 +37,7 @@ export function DisagreementByAttribute({
         const rows: HorizontalBarChartRow[] = panel.categories.map((cat) => ({
           label: cat.label,
           value: cat.mean_distance,
-          color: "var(--stone-600)",
+          color: "var(--mark-primary)",
           secondaryLabel: `n=${cat.n}`,
         }));
 
@@ -47,7 +47,7 @@ export function DisagreementByAttribute({
         const referenceRow: HorizontalBarChartRow = {
           label: "Overall mean",
           value: overallMean,
-          color: "var(--text-tertiary)",
+          color: "var(--text-secondary)",
           secondaryLabel: overallMean.toFixed(2),
           dottedIfZero: false,
         };
@@ -59,14 +59,8 @@ export function DisagreementByAttribute({
         return (
           <div key={panel.attribute}>
             <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
+              className="label text-text-label"
+              style={{ marginBottom: "8px" }}
             >
               {panel.title}
             </p>

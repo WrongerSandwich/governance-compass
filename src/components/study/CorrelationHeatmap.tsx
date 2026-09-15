@@ -65,10 +65,11 @@ export function CorrelationHeatmap({
           y={LABEL_PAD + row * cellSize + cellSize / 2}
           textAnchor="end"
           dominantBaseline="middle"
+          fontSize={FONT_SIZE}
+          letterSpacing="0.02em"
           style={{
-            fontSize: `${FONT_SIZE}px`,
-            fill: "var(--text-secondary)",
-            fontFamily: "var(--font-sans)",
+            fill: "var(--text-label)",
+            fontFamily: "var(--font-mono)",
           }}
         >
           {label}
@@ -84,10 +85,11 @@ export function CorrelationHeatmap({
           textAnchor="end"
           dominantBaseline="middle"
           transform={`translate(${LABEL_PAD + col * cellSize + cellSize / 2}, ${LABEL_PAD + gridSize + 6}) rotate(-45)`}
+          fontSize={FONT_SIZE}
+          letterSpacing="0.02em"
           style={{
-            fontSize: `${FONT_SIZE}px`,
-            fill: "var(--text-secondary)",
-            fontFamily: "var(--font-sans)",
+            fill: "var(--text-label)",
+            fontFamily: "var(--font-mono)",
           }}
         >
           {label}
@@ -127,8 +129,9 @@ export function CorrelationHeatmap({
                   y={y + cellSize / 2}
                   textAnchor="middle"
                   dominantBaseline="middle"
+                  fontSize={10}
+                  letterSpacing="0.02em"
                   style={{
-                    fontSize: "10px",
                     fill: "var(--surface-1)",
                     fontFamily: "var(--font-mono)",
                     pointerEvents: "none",

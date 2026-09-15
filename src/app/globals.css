@@ -275,6 +275,14 @@
      incidental Tailwind size. */
   --container-quiz: 672px;
 
+  /* Persona browser width. The only measure in the product wider than the
+     chrome shell, and the exception is earned rather than inherited:
+     /study/personas is a two-column data browser with a filter sidebar, and
+     at 1040px it loses a column of the persona grid at every breakpoint
+     above 960px. It replaces an inline `maxWidth: "1200px"` — the last page
+     measure in the codebase spelled as a literal. */
+  --container-browse: 1200px;
+
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;

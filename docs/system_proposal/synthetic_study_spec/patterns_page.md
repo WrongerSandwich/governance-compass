@@ -17,7 +17,14 @@ Six sections. All included for v1 — compression decisions can be made after la
 
 ## Top-of-page intro
 
-Two sentences, set in the same serif-heading scale as the page title. No mission framing, no reading guide.
+Two sentences, set as the page lead — 15px sans, via the shared `PageHeader`.
+Originally specified as "the same serif-heading scale as the page title"; the
+design system delta (`docs/superpowers/specs/2026-09-08-design-system-delta-design.md`,
+delta 01) puts prose in sans and reserves serif for headings plus the one
+italic caption role, and phase 5b put all four study pages on the same header
+block as the five reference pages. See that phase's plan, D31.
+
+No mission framing, no reading guide.
 
 > This page characterizes the 1,002 personas as a population. Six clusters emerged from the scored profiles; the twelve hand-crafted archetypes were then compared against them. The sections below describe the clusters, where they concentrate regionally and demographically, the shape of each axis across the population, and which axis pairs covary.
 

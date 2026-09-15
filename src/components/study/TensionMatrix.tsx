@@ -19,13 +19,27 @@ export interface TensionMatrixProps {
   className?: string;
 }
 
-const AXIS_LABEL_WIDTH = 180;
+// 220, not 180: same as the ridge plot's gutter, and for the same reason —
+// these are the full axis names in mono, and 180 clipped the longest two.
+const AXIS_LABEL_WIDTH = 220;
 const MODEL_LABEL_WIDTH = 44;
 const COL_HEADER_HEIGHT = 44;
 const MODEL_ROW_HEIGHT = 24;
 // Axis group: two sub-rows (claude + gemini) + 6px gap between groups
 const AXIS_GROUP_HEIGHT = MODEL_ROW_HEIGHT * 2 + 6;
 const AXIS_GAP = 4;
+// The column headers are rotated -45 and anchored at the start, so the last
+// one ("Overall") runs up and to the RIGHT of the final column. 2 units of
+// slack was already half a character short of holding it; in mono it is ten
+// short, and an SVG root clips by default, so the tail just disappears.
+//
+// It feeds `totalWidth`, which has a second consumer: the tooltip's right
+// stop, `Math.min(tooltip.x + 10, totalWidth - 238)`. Raising this from 2
+// moved that stop right by the same 16 units, which is the intended
+// relationship — the tooltip should stay inside the box the headers
+// define — but it is not obvious from the name, so: changing this moves
+// the tooltip clamp too.
+const COL_HEADER_OVERHANG = 18;
 
 const MODELS: Array<"claude" | "gemini"> = ["claude", "gemini"];
 
@@ -63,7 +77,8 @@ export function TensionMatrix({
   const nClusters = clusterLabels.length;
   const colW = cellSize;
 
-  const totalWidth = AXIS_LABEL_WIDTH + MODEL_LABEL_WIDTH + nClusters * colW + 2;
+  const totalWidth =
+    AXIS_LABEL_WIDTH + MODEL_LABEL_WIDTH + nClusters * colW + COL_HEADER_OVERHANG;
   const totalHeight = COL_HEADER_HEIGHT + nAxes * (AXIS_GROUP_HEIGHT + AXIS_GAP);
 
   function cellX(clusterIdx: number): number {
@@ -121,10 +136,11 @@ export function TensionMatrix({
             y={0}
             transform={`translate(${x}, ${COL_HEADER_HEIGHT - 4}) rotate(-45)`}
             textAnchor="start"
+            fontSize={11}
+            letterSpacing="0.02em"
             style={{
-              fontSize: "11px",
-              fill: "var(--text-secondary)",
-              fontFamily: "var(--font-sans)",
+              fill: "var(--text-label)",
+              fontFamily: "var(--font-mono)",
             }}
           >
             {label}
@@ -145,10 +161,11 @@ export function TensionMatrix({
               y={groupTopY + AXIS_GROUP_HEIGHT / 2}
               textAnchor="end"
               dominantBaseline="middle"
+              fontSize={12}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "12px",
-                fill: "var(--text-primary)",
-                fontFamily: "var(--font-sans)",
+                fill: "var(--text-label)",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {axisLabel}
@@ -168,8 +185,9 @@ export function TensionMatrix({
                     y={rowY + MODEL_ROW_HEIGHT / 2}
                     textAnchor="end"
                     dominantBaseline="middle"
+                    fontSize={10}
+                    letterSpacing="0.02em"
                     style={{
-                      fontSize: "10px",
                       fill: modelColor,
                       fontFamily: "var(--font-mono)",
                       fontStyle: "italic",
@@ -210,8 +228,9 @@ export function TensionMatrix({
                             y={rowY + MODEL_ROW_HEIGHT / 2}
                             textAnchor="middle"
                             dominantBaseline="middle"
+                            fontSize={9}
+                            letterSpacing="0.02em"
                             style={{
-                              fontSize: "9px",
                               fill: "var(--surface-1)",
                               fontFamily: "var(--font-mono)",
                               pointerEvents: "none",
@@ -259,8 +278,9 @@ export function TensionMatrix({
             x={Math.min(tooltip.x + 10, totalWidth - 238)}
             y={Math.max(tooltip.y - 12, 18)}
             dominantBaseline="middle"
+            fontSize={11}
+            letterSpacing="0.02em"
             style={{
-              fontSize: "11px",
               fill: "var(--stone-50)",
               fontFamily: "var(--font-mono)",
             }}

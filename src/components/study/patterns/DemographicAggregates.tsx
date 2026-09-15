@@ -86,15 +86,8 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-xs, 11px)",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          color: "var(--text-tertiary)",
-          fontWeight: 500,
-          margin: 0,
-        }}
+        className="label text-text-label font-medium"
+        style={{ margin: 0 }}
       >
         {title}
       </p>
@@ -108,7 +101,6 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
           return (
             <div
               key={row.category}
-              className="demo-agg-row"
               style={{
                 display: "grid",
                 gridTemplateColumns: "clamp(96px, 28%, 150px) minmax(0, 1fr) 40px",
@@ -118,11 +110,8 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
             >
               {/* Category label */}
               <span
-                className="demo-agg-label"
+                className="body-xs text-text-secondary"
                 style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-xs, 11px)",
-                  color: "var(--text-secondary)",
                   textAlign: "right",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -137,9 +126,9 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
                 style={{
                   display: "flex",
                   height: "20px",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   overflow: "hidden",
-                  border: "1px solid var(--surface-2, #e5e5e5)",
+                  border: "1px solid var(--surface-2)",
                 }}
                 role="img"
                 aria-label={`${label} cluster distribution: ${CLUSTER_IDS.map(
@@ -165,12 +154,8 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
 
               {/* Count annotation */}
               <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs, 10px)",
-                  color: "var(--text-tertiary)",
-                  whiteSpace: "nowrap",
-                }}
+                className="mono-meta text-text-label"
+                style={{ whiteSpace: "nowrap" }}
               >
                 n={row.count}
               </span>
@@ -207,20 +192,14 @@ function ClusterLegend() {
             style={{
               width: 14,
               height: 14,
-              borderRadius: 2,
+              borderRadius: "var(--radius)",
               background: `var(--cluster-${c})`,
               border: "1px solid var(--map-border)",
               flexShrink: 0,
             }}
             aria-hidden
           />
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-xs, 10px)",
-              color: "var(--text-secondary)",
-            }}
-          >
+          <span className="mono-meta text-text-secondary">
             C{c}
           </span>
         </div>

@@ -42,40 +42,18 @@ export function TopCorrelationsList({
           marginBottom: "4px",
         }}
       >
-        <span
-          style={{
-            flex: "1 1 0",
-            fontSize: "9px",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            color: "var(--text-tertiary)",
-            fontFamily: "var(--font-sans)",
-          }}
-        >
+        <span className="label text-text-label" style={{ flex: "1 1 0" }}>
           Axis pair
         </span>
         <span
-          style={{
-            width: "48px",
-            fontSize: "9px",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            color: "var(--text-tertiary)",
-            fontFamily: "var(--font-mono)",
-            textAlign: "right",
-          }}
+          className="label text-text-label"
+          style={{ width: "48px", textAlign: "right" }}
         >
           r
         </span>
         <span
-          style={{
-            width: `${BAR_MAX_WIDTH}px`,
-            fontSize: "9px",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            color: "var(--text-tertiary)",
-            fontFamily: "var(--font-sans)",
-          }}
+          className="label text-text-label"
+          style={{ width: `${BAR_MAX_WIDTH}px` }}
         >
           magnitude
         </span>
@@ -100,25 +78,19 @@ export function TopCorrelationsList({
           >
             {/* Pair label */}
             <span
-              style={{
-                flex: "1 1 0",
-                fontSize: "11px",
-                color: "var(--text-primary)",
-                fontFamily: "var(--font-sans)",
-                lineHeight: "1.3",
-              }}
+              className="body-xs text-text-primary"
+              style={{ flex: "1 1 0" }}
             >
               {labels[i]}{" "}
-              <span style={{ color: "var(--text-tertiary)" }}>↔</span>{" "}
+              <span className="text-text-label">↔</span>{" "}
               {labels[j]}
             </span>
 
             {/* r value */}
             <span
+              className="mono-meta"
               style={{
                 width: "48px",
-                fontSize: "10px",
-                fontFamily: "var(--font-mono)",
                 color: isPositive
                   ? "var(--axis-gradient-positive-strong)"
                   : "var(--axis-gradient-negative-strong)",
@@ -136,7 +108,7 @@ export function TopCorrelationsList({
                 width: `${BAR_MAX_WIDTH}px`,
                 height: "8px",
                 backgroundColor: "var(--surface-2)",
-                borderRadius: "2px",
+                borderRadius: "var(--radius)",
                 flexShrink: 0,
                 overflow: "hidden",
               }}
@@ -147,7 +119,7 @@ export function TopCorrelationsList({
                   width: `${barWidth}px`,
                   height: "100%",
                   backgroundColor: barColor,
-                  borderRadius: "2px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.8,
                 }}
               />

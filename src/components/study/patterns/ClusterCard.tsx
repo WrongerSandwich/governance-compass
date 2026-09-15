@@ -63,27 +63,20 @@ export function ClusterCard({
         {/* Text column */}
         <div>
           <p
-            style={{
-              fontSize: "17px",
-              fontFamily: "var(--font-serif)",
-              fontWeight: 500,
-              color: "var(--text-primary)",
-              lineHeight: 1.3,
-              marginBottom: "4px",
-            }}
+            className="display-s text-text-primary"
+            style={{ marginBottom: "4px" }}
           >
-            <span style={{ color: `var(${colorVar})` }}>{clusterData.code}</span>
+            <span className="mono-meta" style={{ color: `var(${colorVar})` }}>
+              {clusterData.code}
+            </span>
             {" — "}
             {clusterData.label}
           </p>
 
           {/* Size + share — sans, not mono */}
           <p
-            style={{
-              fontSize: "12px",
-              color: "var(--text-tertiary)",
-              marginBottom: "14px",
-            }}
+            className="body-xs text-text-secondary"
+            style={{ marginBottom: "14px" }}
           >
             {clusterData.size} personas · {shareFormatted}%
           </p>
@@ -91,14 +84,8 @@ export function ClusterCard({
           {/* Nearest archetype */}
           <div style={{ marginBottom: "14px" }}>
             <p
-              style={{
-                fontSize: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--text-tertiary)",
-                fontWeight: 500,
-                marginBottom: "5px",
-              }}
+              className="label text-text-label font-medium"
+              style={{ marginBottom: "5px" }}
             >
               Nearest archetype
             </p>
@@ -114,14 +101,8 @@ export function ClusterCard({
           {/* Defining axes */}
           <div>
             <p
-              style={{
-                fontSize: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--text-tertiary)",
-                fontWeight: 500,
-                marginBottom: "5px",
-              }}
+              className="label text-text-label font-medium"
+              style={{ marginBottom: "5px" }}
             >
               Defining axes
             </p>
@@ -138,20 +119,12 @@ export function ClusterCard({
               {topAxesProse.map((axis, i) => (
                 <li
                   key={i}
-                  style={{
-                    fontSize: "13px",
-                    color: "var(--text-secondary)",
-                    lineHeight: 1.5,
-                    paddingLeft: "12px",
-                    position: "relative",
-                  }}
+                  className="body-s text-text-secondary"
+                  style={{ paddingLeft: "12px", position: "relative" }}
                 >
                   <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      color: "var(--text-tertiary)",
-                    }}
+                    className="text-text-secondary"
+                    style={{ position: "absolute", left: 0 }}
                   >
                     ·
                   </span>

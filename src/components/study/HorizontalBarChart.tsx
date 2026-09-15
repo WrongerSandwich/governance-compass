@@ -17,8 +17,22 @@ export interface HorizontalBarChartProps {
   barHeight?: number;
   zeroLineColor?: string;
   /** Width reserved for the left-side label column, in SVG units.
-   *  Default 140 works for most charts; increase when row labels are
-   *  long (e.g. archetype names like "Authoritarian Traditionalist"). */
+   *  Default 172 holds the longest label the small panel charts carry
+   *  ("Post-colonial transition", 164 units in the mono label face).
+   *
+   *  RAISE IT PER CALLER, not here. Widening the viewBox without widening
+   *  the rendered box costs effective type size at every OTHER call site:
+   *  the six DisagreementByAttribute panels sit in a
+   *  `minmax(320px, 1fr)` grid, so a default of 208 scaled them from
+   *  0.904 to 0.767 and took an 11-unit row label from 9.94 rendered px
+   *  to 8.44. That scale factor is the whole premise of D24's exemption
+   *  from the 11px floor, so spending it on charts with no clipping
+   *  problem is the one thing this chart must not do.
+   *
+   *  A full axis name ("10. International Engagement") is 191.6 units and
+   *  needs 208 — the two per-axis charts on /study/model-agreement pass
+   *  that explicitly, and they render unscaled in a 1120px shell where it
+   *  is free. */
   labelWidth?: number;
   /** Width of the bar-plot area, in SVG units. Default 200 keeps small
    *  charts compact; increase when the chart has a wide container to
@@ -41,7 +55,7 @@ export function HorizontalBarChart({
   range,
   barHeight = 24,
   zeroLineColor = "var(--border-secondary)",
-  labelWidth = 140,
+  labelWidth = 172,
   barAreaWidth = 200,
   secondaryWidth = 44,
   ariaLabel,
@@ -104,7 +118,7 @@ export function HorizontalBarChart({
       {rows.map((row, i) => {
         const y = PADDING_TOP + i * rowStride;
         const barY = y + rowStride / 2 - barHeight / 2;
-        const defaultColor = row.color ?? "var(--stone-600)";
+        const defaultColor = row.color ?? "var(--mark-primary)";
 
         // Bar x and width
         let barX: number;
@@ -127,10 +141,11 @@ export function HorizontalBarChart({
               y={barY + barHeight / 2}
               textAnchor="end"
               dominantBaseline="middle"
+              fontSize={11}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "11px",
-                fill: "var(--text-primary)",
-                fontFamily: "var(--font-sans)",
+                fill: "var(--text-label)",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {row.label}
@@ -143,10 +158,11 @@ export function HorizontalBarChart({
                 y={barY + barHeight / 2 + 11}
                 textAnchor="end"
                 dominantBaseline="middle"
+                fontSize={9}
+                letterSpacing="0.02em"
                 style={{
-                  fontSize: "9px",
-                  fill: "var(--text-tertiary)",
-                  fontFamily: "var(--font-sans)",
+                  fill: "var(--text-label)",
+                  fontFamily: "var(--font-mono)",
                   fontStyle: "italic",
                 }}
               >
@@ -185,9 +201,10 @@ export function HorizontalBarChart({
                 x={LABEL_WIDTH + BAR_AREA_WIDTH + 6}
                 y={barY + barHeight / 2}
                 dominantBaseline="middle"
+                fontSize={10}
+                letterSpacing="0.02em"
                 style={{
-                  fontSize: "10px",
-                  fill: "var(--text-tertiary)",
+                  fill: "var(--text-label)",
                   fontFamily: "var(--font-mono)",
                 }}
               >

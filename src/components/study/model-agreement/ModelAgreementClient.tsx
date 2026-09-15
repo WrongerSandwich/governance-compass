@@ -92,10 +92,10 @@ function ColorKey({
               width: "12px",
               height: "12px",
               background: color,
-              borderRadius: "2px",
+              borderRadius: "var(--radius)",
             }}
           />
-          <span className="text-[11px] text-text-tertiary">{label}</span>
+          <span className="mono-meta text-text-label">{label}</span>
         </div>
       ))}
     </div>
@@ -117,14 +117,14 @@ function StatFigure({
 }) {
   return (
     <div className="flex flex-col">
-      <div className="text-[32px] font-serif font-medium text-text-primary leading-none tabular-nums">
+      <div className="display-l text-text-primary tabular-nums">
         {value}
       </div>
-      <div className="text-[10px] uppercase tracking-[0.08em] text-text-tertiary font-medium mt-2">
+      <div className="label text-text-label font-medium mt-2">
         {label}
       </div>
       {note && (
-        <div className="text-[11px] text-text-tertiary mt-1 leading-snug">
+        <div className="body-xs text-text-secondary mt-1">
           {note}
         </div>
       )}
@@ -224,8 +224,8 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary">
             Overall agreement
           </h2>
         </div>
@@ -263,7 +263,7 @@ export function ModelAgreementClient({
 
           {/* Histogram — centered within its container to avoid orphaned gutter */}
           <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-            <p className="text-[11px] text-text-tertiary mb-2 italic">
+            <p className="caption-italic mb-2">
               Distribution of per-persona Euclidean distances (n=150).
             </p>
             <Histogram
@@ -272,7 +272,7 @@ export function ModelAgreementClient({
               xLabel="Euclidean distance"
               yLabel="Personas"
               height={180}
-              barColor="var(--stone-600)"
+              barColor="var(--mark-primary)"
               overlays={[
                 {
                   value: mean,
@@ -292,7 +292,7 @@ export function ModelAgreementClient({
         </div>
 
         {/* Prose */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Across the 150 shared personas, Claude and Gemini score the same
             persona at a mean Euclidean distance of {mean.toFixed(2)} in the
@@ -323,8 +323,8 @@ export function ModelAgreementClient({
         className="mb-20"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary">
             Per-axis correlation
           </h2>
         </div>
@@ -350,16 +350,22 @@ export function ModelAgreementClient({
             ]}
           />
 
+          {/* labelWidth 208, not the 172 default: a full axis name
+              ("10. International Engagement") is 191.6 units in the mono
+              label face. It is set per caller because widening the viewBox
+              costs rendered type size wherever the chart is scaled down,
+              and this one renders unscaled in a 1120px shell. */}
           <HorizontalBarChart
             rows={rRows}
             range={[0, 1]}
             barHeight={24}
+            labelWidth={208}
             ariaLabel="Pearson r between Claude and Gemini scores per axis"
           />
         </div>
 
         {/* Prose — verified against data */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Agreement varies substantially by axis.{" "}
             {strongAxes.length > 0 && (
@@ -410,11 +416,11 @@ export function ModelAgreementClient({
           borderBottomWidth: "0.5px",
         }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <p className="text-[10px] uppercase tracking-[0.1em] text-warning-text font-medium mb-2">
+        <div className="mx-auto max-w-reference mb-8">
+          <p className="label text-warning-text font-medium mb-2">
             Load-bearing finding
           </p>
-          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+          <h2 className="display-entry text-text-primary">
             Directional drift
           </h2>
           <p
@@ -440,12 +446,13 @@ export function ModelAgreementClient({
             diverging={true}
             range={[-0.4, 0.4]}
             barHeight={24}
+            labelWidth={208}
             ariaLabel="Mean Gemini-minus-Claude score difference per axis"
           />
         </div>
 
         {/* Prose — verified: 11/12 corrected from spec's 10/12 */}
-        <div className="mx-auto max-w-2xl mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-8 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             Gemini scores personas higher than Claude on {geminiHigherCount} of
             the twelve axes.
@@ -507,14 +514,14 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary">
             Where disagreement concentrates
           </h2>
         </div>
 
         {/* Scoping prose */}
-        <div className="mx-auto max-w-2xl mb-10 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mb-10 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             The following analysis examines whether the size of Claude-Gemini
             disagreement varies with who the persona is. Before the findings:
@@ -538,7 +545,7 @@ export function ModelAgreementClient({
         </div>
 
         {/* Findings prose — rewritten from data */}
-        <div className="mx-auto max-w-2xl mt-10 text-sm text-text-secondary leading-relaxed space-y-4">
+        <div className="mx-auto max-w-reference mt-10 text-sm text-text-secondary leading-relaxed space-y-4">
           <p>
             With that scope in mind: regional variation is substantial. Western
             Europe sits at the low end (mean distance 1.11), followed by East
@@ -606,8 +613,8 @@ export function ModelAgreementClient({
         className="mb-14"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary">
+        <div className="mx-auto max-w-reference mb-8">
+          <h2 className="display-entry text-text-primary">
             Individual cases
           </h2>
           <p className="text-sm text-text-secondary leading-relaxed mt-4" style={{ maxWidth: "42rem" }}>
@@ -648,8 +655,8 @@ export function ModelAgreementClient({
         className="mb-16"
         style={{ scrollMarginTop: "72px" }}
       >
-        <div className="mx-auto max-w-2xl">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary mb-8">
+        <div className="mx-auto max-w-reference">
+          <h2 className="display-entry text-text-primary mb-8">
             What this means for the instrument
           </h2>
           <div className="text-sm text-text-secondary leading-relaxed space-y-4">

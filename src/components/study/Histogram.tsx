@@ -27,7 +27,7 @@ export function Histogram({
   xLabel,
   yLabel,
   height = 160,
-  barColor = "var(--stone-600)",
+  barColor = "var(--mark-primary)",
   overlays,
   ariaLabel,
   className,
@@ -121,8 +121,9 @@ export function Histogram({
             <text
               x={x + 3}
               y={PADDING.top + 8}
+              fontSize={9}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "9px",
                 fill: color,
                 fontFamily: "var(--font-mono)",
               }}
@@ -170,9 +171,10 @@ export function Histogram({
               x={x}
               y={PADDING.top + plotH + 13}
               textAnchor="middle"
+              fontSize={9}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "9px",
-                fill: "var(--text-tertiary)",
+                fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >
@@ -200,9 +202,10 @@ export function Histogram({
               y={y}
               textAnchor="end"
               dominantBaseline="middle"
+              fontSize={9}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "9px",
-                fill: "var(--text-tertiary)",
+                fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >
@@ -218,10 +221,11 @@ export function Histogram({
           x={PADDING.left + plotW / 2}
           y={height - 4}
           textAnchor="middle"
+          fontSize={10}
+          letterSpacing="0.02em"
           style={{
-            fontSize: "10px",
-            fill: "var(--text-secondary)",
-            fontFamily: "var(--font-sans)",
+            fill: "var(--text-label)",
+            fontFamily: "var(--font-mono)",
           }}
         >
           {xLabel}
@@ -235,10 +239,11 @@ export function Histogram({
           y={0}
           textAnchor="middle"
           transform={`translate(10, ${PADDING.top + plotH / 2}) rotate(-90)`}
+          fontSize={10}
+          letterSpacing="0.02em"
           style={{
-            fontSize: "10px",
-            fill: "var(--text-secondary)",
-            fontFamily: "var(--font-sans)",
+            fill: "var(--text-label)",
+            fontFamily: "var(--font-mono)",
           }}
         >
           {yLabel}

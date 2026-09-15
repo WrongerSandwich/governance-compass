@@ -107,7 +107,10 @@ export function TransnationalTile({
 
   return (
     <div
-      className={`transnational-tile ${className}`}
+      // `focus-ring` because this tile is `role="button" tabIndex={0}` with no
+      // focus affordance of its own — the same defect D28 removes from the
+      // map's region paths, in the tile that sits beside it.
+      className={`focus-ring transnational-tile label-tight text-text-primary ${className}`}
       title={tooltipContent}
       aria-label={tooltipContent.replace(/\n/g, ", ")}
       role={isInteractive ? "button" : undefined}
@@ -118,7 +121,7 @@ export function TransnationalTile({
       style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: "6px",
+        borderRadius: "var(--radius)",
         border: isSelected
           ? "1.5px solid var(--map-accent)"
           : "1px solid var(--map-border)",
@@ -126,14 +129,17 @@ export function TransnationalTile({
         opacity,
         cursor: isInteractive ? "pointer" : "default",
         padding: "0.5rem 0.75rem",
-        fontSize: "var(--text-xs, 11px)",
-        fontFamily: "var(--font-mono)",
-        color: "var(--text-primary)",
-        letterSpacing: "0.04em",
-        textTransform: "uppercase",
         userSelect: "none",
-        outline: isSelected ? `2px solid var(--map-accent)` : undefined,
-        outlineOffset: isSelected ? "2px" : undefined,
+        // The selection cue is a box-shadow, not an outline, so that it leaves
+        // `outline` free for the focus ring. As an inline `outline` it beat the
+        // utility's rule outright, and a selected tile that gained focus was
+        // byte-identical to the same tile blurred — a state with a visible
+        // indicator but no perceivable FOCUS, which is the thing this ring
+        // exists to make visible. Shadow and outline coexist, so selected and
+        // focused now reads as accent shadow plus stone ring; and a shadow is
+        // not clipped by this tile's own `overflow: hidden`, which is there for
+        // the hatch overlay.
+        boxShadow: isSelected ? "0 0 0 2px var(--map-accent)" : undefined,
       }}
     >
       {/* Hatch overlay for low-dominance cluster mode */}

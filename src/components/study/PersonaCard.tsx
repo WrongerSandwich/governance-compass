@@ -66,12 +66,8 @@ export function PersonaCard({
             }}
           >
             <span
+              className="display-s text-text-primary"
               style={{
-                fontFamily: "var(--font-serif)",
-                fontWeight: 500,
-                fontSize: "16px",
-                lineHeight: 1.25,
-                color: "var(--text-primary)",
                 minWidth: 0,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -84,9 +80,8 @@ export function PersonaCard({
               <span
                 aria-label="Both models"
                 title="Both models — administered by Claude and Gemini"
+                className="mono-meta text-text-label"
                 style={{
-                  fontSize: "11px",
-                  color: "var(--text-tertiary)",
                   flexShrink: 0,
                   lineHeight: 1,
                   userSelect: "none",
@@ -99,10 +94,8 @@ export function PersonaCard({
           <span
             aria-label={cluster.label}
             title={`${cluster.code} — ${cluster.label}`}
+            className="label font-medium"
             style={{
-              fontSize: "10px",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
               color: `var(${cluster.colorVar})`,
               fontVariantNumeric: "tabular-nums",
               flexShrink: 0,
@@ -112,12 +105,8 @@ export function PersonaCard({
           </span>
         </div>
         <div
-          style={{
-            fontSize: "13px",
-            color: "var(--text-secondary)",
-            lineHeight: 1.4,
-            marginTop: "3px",
-          }}
+          className="body-s text-text-secondary"
+          style={{ marginTop: "3px" }}
         >
           Age {persona.age} · {region}
         </div>

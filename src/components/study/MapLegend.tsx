@@ -82,7 +82,7 @@ function Swatch({
         style={{
           width: 24,
           height: 16,
-          borderRadius: 3,
+          borderRadius: "var(--radius)",
           background: fill,
           border: "1px solid var(--map-border)",
           flexShrink: 0,
@@ -91,10 +91,8 @@ function Swatch({
       />
       {label && (
         <span
+          className="mono-meta text-text-secondary"
           style={{
-            fontSize: "var(--text-xs, 10px)",
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-secondary)",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -106,10 +104,8 @@ function Swatch({
       )}
       {sublabel && (
         <span
+          className="body-xs text-text-secondary"
           style={{
-            fontSize: "var(--text-xs, 10px)",
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-tertiary)",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -196,9 +192,6 @@ export function MapLegend(props: MapLegendProps) {
   const lowValue = formatSigned(min);
   const highValue = formatSigned(max);
   const endpointLabelStyle: React.CSSProperties = {
-    fontSize: "var(--text-xs, 10px)",
-    fontFamily: "var(--font-mono)",
-    color: "var(--text-tertiary)",
     whiteSpace: "nowrap",
   };
   return (
@@ -223,7 +216,7 @@ export function MapLegend(props: MapLegendProps) {
               height: 12,
               background: s.fill,
               border: "1px solid var(--map-border)",
-              borderRadius: 2,
+              borderRadius: "var(--radius)",
             }}
           />
         ))}
@@ -235,10 +228,10 @@ export function MapLegend(props: MapLegendProps) {
           alignItems: "baseline",
         }}
       >
-        <span style={endpointLabelStyle}>
+        <span className="mono-meta text-text-label" style={endpointLabelStyle}>
           ← {lowLabel} {lowValue}
         </span>
-        <span style={endpointLabelStyle}>
+        <span className="mono-meta text-text-label" style={endpointLabelStyle}>
           {highValue} {highLabel} →
         </span>
       </div>
