@@ -182,17 +182,45 @@ describe("the compare view joins the label layer", () => {
 describe("the persona modal's chrome joins the label layer", () => {
   const FILE = "src/components/study/PersonaModal.tsx";
 
+  /** Block and line comments out, so a text scan reads code and not prose.
+   *  The `[^:]` guard keeps a `//` inside a URL literal from eating the rest
+   *  of its line. */
+  function stripComments(text: string): string {
+    return text
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  }
+
   it("marks the modal's error state so it is not carried by colour alone", () => {
     // Phase 5's D16 amendment: `text-red-600` was swapped for the warning
     // ink at six sites on the premise that every one already had
     // `role="alert"` or a live region, and that premise was false at three
-    // of them. The modal's fetch-error string has neither today, and it is
-    // about to become the same amber as an advisory notice — so the cue a
-    // sighted user had gets weaker at the same moment. The role goes on
-    // first.
-    const text = read(FILE);
-    const errorBlock = text.slice(Math.max(0, text.indexOf("{error}") - 600), text.indexOf("{error}"));
+    // of them. The modal's fetch-error string had neither, and it now
+    // carries the same amber an advisory notice does — so the cue a sighted
+    // user had would get weaker with nothing put in its place.
+    //
+    // Bound to the OPENING TAG of the element that renders `{error}`, on a
+    // comment-stripped copy. The first spelling of this assertion scanned
+    // 600 raw characters back from `{error}`, which swallowed the comment
+    // standing beside the attribute and passed on the prose alone — the same
+    // way Task 6 reddened its own guard by writing a banned literal into a
+    // test comment (resolved at 7f91af8). A whole-file text scan cannot tell
+    // a comment from code, so the test has to.
+    const text = stripComments(read(FILE));
 
-    expect(errorBlock).toContain('role="alert"');
+    const at = text.indexOf("{error}");
+    expect(at, "nothing in the modal renders {error}").toBeGreaterThan(-1);
+
+    // Back to the nearest `<`: with comments gone, that is the start of the
+    // opening tag enclosing the expression, and nothing else.
+    const openingTag = text.slice(text.lastIndexOf("<", at), at);
+    expect(openingTag, "expected an element opening tag").toMatch(
+      /^<[a-zA-Z][^<]*>\s*$/,
+    );
+
+    expect(openingTag).toContain('role="alert"');
+    // The half that makes the role load-bearing: D16's swap is what removed
+    // the colour cue, and the two have to arrive on the same element.
+    expect(openingTag).toContain("text-warning-text");
   });
 });

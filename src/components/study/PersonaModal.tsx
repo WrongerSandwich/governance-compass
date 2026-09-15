@@ -352,9 +352,11 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
   // Clearly differentiated from the 11px uppercase field labels below.
   //
   // The delta's serif scale has no 13px step; a small serif-500 heading maps
-  // onto `display-s`, which is the move `CompareView`'s persona name already
-  // made from 14px. The rule that stays true is the one the comment above
-  // states — serif against the mono field labels underneath.
+  // onto `display-s`, the same move `model-agreement/CaseStudy.tsx`'s section
+  // heading made from 14px. (`CompareView`'s persona name landed on the same
+  // role, but from 16px — a different row of the mapping.) The rule that stays
+  // true is the one the comment above states — serif against the mono field
+  // labels underneath.
   const sectionHeaderClass = "display-s text-text-primary";
   const sectionHeaderStyle: React.CSSProperties = {
     marginBottom: "8px",
