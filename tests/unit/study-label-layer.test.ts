@@ -270,3 +270,40 @@ describe("the persona modal's scored profile converges on the shared scale", () 
     expect(text).toContain('from "@/components/PairedAxisScale"');
   });
 });
+
+describe("the study charts' text joins the label layer", () => {
+  const CHARTS = [
+    "src/components/study/Histogram.tsx",
+    "src/components/study/ViolinOrRidge.tsx",
+    "src/components/study/TensionMatrix.tsx",
+    "src/components/study/HorizontalBarChart.tsx",
+    "src/components/study/CorrelationHeatmap.tsx",
+    "src/components/study/Radar.tsx",
+  ];
+
+  it("fills no chart label from the sub-AA tertiary token", () => {
+    // These are the sites the class-scanning half of the shipped guard could
+    // never reach: `fill` takes no Tailwind colour class, so SVG text names
+    // its token inline or not at all.
+    const offenders = CHARTS.flatMap((file) =>
+      read(file).includes("var(--text-tertiary)") ? [file] : [],
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the charts' own sizes, which is the exemption D24 grants", () => {
+    // Not an oversight and not laziness. All six SVGs are
+    // `width: 100%; maxWidth: <intrinsic>px` over a viewBox, so a label
+    // sized in user units renders at or BELOW its nominal size and shrinks
+    // with the viewport — an 11px floor in rendered device pixels is
+    // unsatisfiable without either stopping the charts scaling or moving
+    // every tick into overlaid HTML. The shipped /results charts carry
+    // fontSize={9} and {6.5} for the same reason, reviewed and landed. This
+    // case exists so that a later reader finds a decision here rather than
+    // an inconsistency.
+    const sized = CHARTS.filter((file) => /fontSize/.test(read(file)));
+
+    expect(sized).toEqual(CHARTS);
+  });
+});

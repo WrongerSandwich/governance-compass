@@ -15,7 +15,12 @@ export interface ViolinOrRidgeProps {
   className?: string;
 }
 
-const LABEL_WIDTH = 180;
+// 220, not 180: the series labels are the full axis names ("10. International
+// Engagement") and they moved from sans to mono with the label layer, which is
+// about 20% wider at the same size. At 180 the longest two clipped their axis
+// NUMBER off the left edge of the viewBox — silently, because an SVG root
+// clips by default. D24 keeps the user-unit size, so the gutter grows instead.
+const LABEL_WIDTH = 220;
 const PLOT_WIDTH = 540;
 const OVERLAP = 8; // px of vertical overlap between adjacent ridges
 
@@ -87,9 +92,10 @@ export function ViolinOrRidge({
               x={x}
               y={svgHeight - 8}
               textAnchor="middle"
+              fontSize={11}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "11px",
-                fill: "var(--text-tertiary)",
+                fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >
@@ -108,7 +114,7 @@ export function ViolinOrRidge({
         const centerY = idx * stride + ridgeHeight / 2;
         const halfH = ridgeHeight * 0.42; // max amplitude
 
-        const fillColor = s.domainColor ?? "var(--stone-600)";
+        const fillColor = s.domainColor ?? "var(--mark-primary)";
 
         // Build SVG path: left to right along bins, then back along the baseline
         // Each bin maps to a point at its center x, y = centerY - normalized * halfH
@@ -164,8 +170,9 @@ export function ViolinOrRidge({
                   x={meanX + 4}
                   y={centerY - 4}
                   dominantBaseline="middle"
+                  fontSize={10}
+                  letterSpacing="0.02em"
                   style={{
-                    fontSize: "10px",
                     fill: fillColor,
                     fontFamily: "var(--font-mono)",
                   }}
@@ -181,10 +188,11 @@ export function ViolinOrRidge({
               y={centerY}
               textAnchor="end"
               dominantBaseline="middle"
+              fontSize={12}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "12px",
-                fill: "var(--text-secondary)",
-                fontFamily: "var(--font-sans)",
+                fill: "var(--text-label)",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {s.label}

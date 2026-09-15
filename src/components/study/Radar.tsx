@@ -164,9 +164,10 @@ export function Radar({
               y={y}
               textAnchor={anchor}
               dominantBaseline="middle"
+              fontSize={9}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "9px",
-                fill: "var(--text-tertiary)",
+                fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >

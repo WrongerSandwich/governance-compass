@@ -17,8 +17,12 @@ export interface HorizontalBarChartProps {
   barHeight?: number;
   zeroLineColor?: string;
   /** Width reserved for the left-side label column, in SVG units.
-   *  Default 140 works for most charts; increase when row labels are
-   *  long (e.g. archetype names like "Authoritarian Traditionalist"). */
+   *  Default 208 holds a full axis name ("10. International Engagement")
+   *  in the mono label face; increase when row labels are longer still.
+   *  It was 140 while the labels were sans, and 140 clipped the three
+   *  longest axis names on /study/model-agreement even then — an SVG root
+   *  clips by default, so the overflow read as a shorter label rather than
+   *  as a broken one. */
   labelWidth?: number;
   /** Width of the bar-plot area, in SVG units. Default 200 keeps small
    *  charts compact; increase when the chart has a wide container to
@@ -41,7 +45,7 @@ export function HorizontalBarChart({
   range,
   barHeight = 24,
   zeroLineColor = "var(--border-secondary)",
-  labelWidth = 140,
+  labelWidth = 208,
   barAreaWidth = 200,
   secondaryWidth = 44,
   ariaLabel,
@@ -104,7 +108,7 @@ export function HorizontalBarChart({
       {rows.map((row, i) => {
         const y = PADDING_TOP + i * rowStride;
         const barY = y + rowStride / 2 - barHeight / 2;
-        const defaultColor = row.color ?? "var(--stone-600)";
+        const defaultColor = row.color ?? "var(--mark-primary)";
 
         // Bar x and width
         let barX: number;
@@ -127,10 +131,11 @@ export function HorizontalBarChart({
               y={barY + barHeight / 2}
               textAnchor="end"
               dominantBaseline="middle"
+              fontSize={11}
+              letterSpacing="0.02em"
               style={{
-                fontSize: "11px",
-                fill: "var(--text-primary)",
-                fontFamily: "var(--font-sans)",
+                fill: "var(--text-label)",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {row.label}
@@ -143,10 +148,11 @@ export function HorizontalBarChart({
                 y={barY + barHeight / 2 + 11}
                 textAnchor="end"
                 dominantBaseline="middle"
+                fontSize={9}
+                letterSpacing="0.02em"
                 style={{
-                  fontSize: "9px",
-                  fill: "var(--text-tertiary)",
-                  fontFamily: "var(--font-sans)",
+                  fill: "var(--text-label)",
+                  fontFamily: "var(--font-mono)",
                   fontStyle: "italic",
                 }}
               >
@@ -185,9 +191,10 @@ export function HorizontalBarChart({
                 x={LABEL_WIDTH + BAR_AREA_WIDTH + 6}
                 y={barY + barHeight / 2}
                 dominantBaseline="middle"
+                fontSize={10}
+                letterSpacing="0.02em"
                 style={{
-                  fontSize: "10px",
-                  fill: "var(--text-tertiary)",
+                  fill: "var(--text-label)",
                   fontFamily: "var(--font-mono)",
                 }}
               >
