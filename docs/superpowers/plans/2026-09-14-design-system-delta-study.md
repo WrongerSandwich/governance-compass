@@ -32,6 +32,7 @@ Phases 1 (#132, PR #140), 2 (#133, PR #143), 3 (#134, PR #145), 4 (#135, PR #150
 - **`focus-ring` for every interactive element.** `/study` currently has **zero** uses of it across 22 hand-rolled `<button>`s, and `WorldMap` actively suppresses the ring with `outline: "none"` on paths that are `tabIndex={0} role="button"`. See D28.
 - The codebase's single responsive breakpoint is `min-[560px]`. `/study` carries its own at 480/768/960/1200px inside `<style>` blocks for the browser layout; those are a layout grid, not type, and are out of scope.
 - Vitest collects only `tests/**/*.test.ts` and `scripts/__tests__/**/*.test.ts`, never `.tsx`. Component tests use `createElement` with a `@vitest-environment jsdom` docblock.
+- **Do not import `@testing-library/react`.** It is listed in `package.json` and its `@testing-library/dom` peer is **not installed**, so a spec that imports it fails to *collect* — a whole-file error that reads as something other than a missing dependency. Discovered in Task 2, after the first draft of this plan specified it. Every jsdom spec in this repo hand-rolls a `createRoot` + `act` harness; `tests/unit/paired-axis-scale.test.ts` is the canonical copy, and its `render()` returns the container **directly**, not `{ container }`.
 - **`vmForks` shares a module registry per worker.** Any spec that calls `vi.mock` must `vi.resetModules()` and dynamically `import()` the component under test.
 - **Assert class tokens, never substrings.** `expect(el.className).toContain("label")` also passes on `label-nav`. Split on whitespace, or use `element.classList`, and assert with `toContain` on the resulting array.
 - **Pin a value when, if it were wrong, nothing else would fail and the wrongness would be silent.** Skip anything a repo-wide guardrail already covers. This phase is ~250 mechanical site edits; per-site assertions would be noise. The guard block in Task 14 is the coverage; the per-task tests pin only the handful of things a text scan cannot see — a structural swap, a converged component, a removed `outline: none`.
@@ -196,14 +197,39 @@ Create `tests/unit/study-chrome.test.ts`:
 /**
  * @vitest-environment jsdom
  */
-import { createElement } from "react";
+import { act, createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { readFileSync } from "node:fs";
 import { resolve, relative } from "node:path";
-import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { sourceFiles } from "../helpers/source-files";
 
-afterEach(cleanup);
+// NOT @testing-library/react. It is in package.json but its
+// `@testing-library/dom` peer is not installed, so a spec importing it fails
+// to COLLECT — a whole-file error, not a test failure, which reads as
+// something else entirely. Every jsdom spec in this repo uses the
+// createRoot + act harness below; copy it from
+// `tests/unit/paired-axis-scale.test.ts`, which is the canonical version.
+// Note it returns the container DIRECTLY, not `{ container }`.
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const mounted: { container: HTMLDivElement; root: Root }[] = [];
+
+function render(element: React.ReactNode) {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  act(() => root.render(element));
+  mounted.push({ container, root });
+  return container;
+}
+
+afterEach(() => {
+  for (const { container, root } of mounted.splice(0)) {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
 
 /** Class tokens as an array. `toContain` on a raw className string passes on
  *  substrings — `"label"` matches `label-nav` — which shipped three bugs
@@ -268,15 +294,16 @@ describe("the study index page", () => {
   it("renders its kicker and title on the delta's roles", async () => {
     const { default: StudyOverviewPage } = await import("@/app/study/page");
 
-    render(createElement(StudyOverviewPage));
+    const container = render(createElement(StudyOverviewPage));
 
-    const heading = screen.getByRole("heading", { level: 1, name: "The Synthetic Study" });
+    const heading = container.querySelector("h1")!;
+    expect(heading.textContent).toBe("The Synthetic Study");
     expect(classes(heading)).toContain("display-page");
 
     // The kicker is an eyebrow here, not a back-link: /study IS the section
     // landing, so there is nothing above it to link to. Its three children
     // pass `kickerHref`.
-    const kicker = document.querySelector("[data-page-kicker]");
+    const kicker = container.querySelector("[data-page-kicker]");
     expect(kicker).not.toBeNull();
     expect(classes(kicker!)).toContain("label-eyebrow");
     expect(kicker!.querySelector("a")).toBeNull();
@@ -332,7 +359,7 @@ Then, within the same file:
 | 132 | `hover:text-text-secondary … hover:decoration-text-tertiary …` | `hover:text-text-primary … hover:decoration-text-secondary …` |
 | 141 | `text-[15px] text-text-secondary leading-relaxed` | `text-[15px] leading-[1.65] text-text-secondary` |
 | 144, 174, 199, 226 | `text-[20px] font-serif font-medium text-text-primary mb-3 text-balance` | `display-entry text-text-primary mb-3 text-balance` |
-| 253 | `text-[14px] text-text-tertiary tabular-nums font-medium shrink-0` | `mono-meta text-text-label tabular-nums shrink-0` |
+| 253 | `text-[14px] text-text-tertiary tabular-nums font-medium shrink-0` | `mono-meta text-text-label tabular-nums font-medium shrink-0` — **`font-medium` is kept.** The first draft of this row dropped it, contradicting the Global Constraint two paragraphs above it ("keep it only where the site already had it"), and Task 2's implementer followed the row rather than the constraint and flagged the conflict. The row is now right; the constraint always was. |
 | 258 | `text-[17px] font-serif font-medium text-text-primary group-hover:underline …` | `display-s text-text-primary group-hover:underline …` |
 | 263 | `text-text-tertiary group-hover:text-text-secondary …` | `text-text-label group-hover:text-text-primary …` |
 | 268 | `block text-[14px] text-text-secondary leading-relaxed mt-1` | `block body-s text-text-secondary mt-1` |
@@ -437,13 +464,13 @@ describe("the study section nav", () => {
   it("puts the nav on the label layer with a hover that moves in both modes", async () => {
     const { SectionNav } = await import("@/components/study/patterns/SectionNav");
 
-    render(
+    const container = render(
       createElement(SectionNav, {
         sections: [{ num: "01", label: "Clusters", short: "Clusters", id: "section-1" }],
       }),
     );
 
-    const link = screen.getByRole("link", { name: /Clusters/ });
+    const link = container.querySelector('a[href="#section-1"]')!;
     const cls = classes(link);
 
     expect(cls).toContain("label-nav");
@@ -1136,7 +1163,7 @@ Append to `tests/unit/paired-axis-scale.test.ts`:
     // /study's model-agreement rows are told apart by colour and by nothing
     // else — a Claude track and a Gemini track sit in one row under one axis
     // name. Domain colour would make them identical.
-    const { container } = render(
+    const container = render(
       createElement(PairedAxisScale, {
         axisId: 1,
         poleALabel: "Market",
@@ -1157,7 +1184,7 @@ Append to `tests/unit/paired-axis-scale.test.ts`:
   it("still defaults to the axis's domain when no override is given", () => {
     // The three shipped consumers pass no markVar. If the default ever
     // regresses to a literal, this is the only thing that notices.
-    const { container } = render(
+    const container = render(
       createElement(PairedAxisScale, {
         axisId: 1,
         poleALabel: "Market",
@@ -1175,7 +1202,7 @@ Append to `tests/unit/paired-axis-scale.test.ts`:
     // The track is not the mark. Its comment in the component says its 400
     // tone is identical in both modes, which is why it is a literal — and a
     // caller overriding the DOT's colour is saying something about the dot.
-    const { container } = render(
+    const container = render(
       createElement(PairedAxisScale, {
         axisId: 1,
         poleALabel: "Market",
