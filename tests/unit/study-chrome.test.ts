@@ -127,3 +127,39 @@ describe("the study index page", () => {
     expect(source.text).not.toContain("text-[10px]");
   });
 });
+
+describe("the study section nav", () => {
+  it("is declared once, not once per page", () => {
+    // /study/model-agreement inlined its own copy: same aria-label, same
+    // 11px type, no scroll-spy. The divergence was already visible — one
+    // nav highlighted the section you were reading and the other did not.
+    const offenders = STUDY_SOURCES.flatMap(({ file, text }) =>
+      file !== "src/components/study/patterns/SectionNav.tsx" &&
+      text.includes('aria-label="Sections on this page"')
+        ? [file]
+        : [],
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("puts the nav on the label layer with a hover that moves in both modes", async () => {
+    const { SectionNav } = await import("@/components/study/patterns/SectionNav");
+
+    const container = render(
+      createElement(SectionNav, {
+        sections: [{ num: "01", label: "Clusters", short: "Clusters", id: "section-1" }],
+      }),
+    );
+
+    const link = container.querySelector('a[href="#section-1"]')!;
+    const cls = classes(link);
+
+    expect(cls).toContain("label-nav");
+    // --text-label and --text-secondary are the same hex in light mode, so
+    // the shipped `hover:text-text-secondary` animated between two identical
+    // colours on a light page. --text-primary differs in both modes.
+    expect(cls).toContain("hover:text-text-primary");
+    expect(cls).not.toContain("hover:text-text-secondary");
+  });
+});

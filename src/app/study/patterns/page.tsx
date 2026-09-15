@@ -923,17 +923,6 @@ export default async function PatternsPage() {
           </p>
         </div>
       </section>
-
-      {/* Mobile refinements. Full+short section-nav labels swap on width;
-          charts themselves are responsive via SVG viewBox, so no scroll
-          fade hint is needed. */}
-      <style>{`
-        .section-nav-short { display: none; }
-        @media (max-width: 767px) {
-          .section-nav-full { display: none; }
-          .section-nav-short { display: inline; }
-        }
-      `}</style>
     </main>
   );
 }
