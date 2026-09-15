@@ -2170,6 +2170,22 @@ straight past it — and the premise of that test's own comment is that the fift
 file under `src/` that contains `Math.cos(` must import `@/lib/radar-geometry`.** That
 is the invariant; `polarTo*` was only ever a proxy for it.
 
+**This guard as specified has a hole, found by Task 14's reviewer and left open on
+purpose so the next person closes it deliberately.** "Imports the module" is satisfied by
+a file that *already* imports it — and a sixth copy is most likely to appear in exactly
+such a file, because that is where the geometry work happens. Demonstrated: adding
+`const vertexAt = (a, r) => [Math.cos(a) * r, Math.sin(a) * r]` to `Radar.tsx` survives
+both this guard and the `polarTo*` name guard. The mutation row happens to pick
+`PersonaGrid.tsx`, which does not import the module, so the row reproduces while the hole
+stays open — and a mutation that passes for a reason other than the one you think is
+worth less than no mutation at all.
+
+Closing it properly means a shape check rather than an import check: `Math.cos(` must not
+appear inside a function body that also contains `Math.sin(`. Note too that the guard's
+effective population is currently **two** files in all of `src/` — `radar-geometry.ts`
+itself and `RadarChart.tsx` — so it needs a floor or it is one refactor away from
+guarding nothing.
+
 **Mutate both.** For guard one, revert one `<text>` fill to `var(--text-secondary)` — it
 must red, and the current test does not. For guard two, add
 `const vertexAt = (a, r) => [Math.cos(a) * r, Math.sin(a) * r]` to a study component —
