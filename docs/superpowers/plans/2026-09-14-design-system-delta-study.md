@@ -165,6 +165,8 @@ npx vitest run tests/unit/design-system-tokens.test.ts
 
 Expected: PASS, whole file.
 
+**On this task's second test.** `rounds every coordinate the study radar emits` calls `ringPoints` from `radar-geometry` directly, so it passes whether or not `Radar.tsx` uses it — it was green before the component was touched and would stay green if the private helper came back. Keep it as a guard on the shared module, but do not mistake it for evidence about the component. The real guard is the source scan above it, and the real evidence is the before/after render diff Step 5 asks for.
+
 - [ ] **Step 5: Commit**
 
 ```bash
@@ -1662,7 +1664,7 @@ function radarPoints(scores: number[], cx: number, cy: number, r: number): strin
       // `((score + 1) / 2) * r`. Confirm against the module before trusting
       // this line — if the two differ, the module is right and the shape
       // moving slightly is the fix, not a regression.
-      const { x, y } = polarToCart(spokeAngle(i, TOTAL_AXES), scoreToRadius(score, r), cx, cy);
+      const [x, y] = polarToCart(spokeAngle(i, TOTAL_AXES), scoreToRadius(score, r), cx, cy);
       return `${x},${y}`;
     })
     .join(" ");
@@ -1778,6 +1780,8 @@ Twenty sites; `grep -n 'fill:' src/components/study/{Histogram,ViolinOrRidge,Ten
 Two sites also change family: `Histogram:221`/`:238` and `CorrelationHeatmap:68`/`:87` are `var(--font-sans)` and become mono, per delta 01's "every axis endpoint, count, and status becomes uppercase monospace."
 
 **One non-text site in these files, found by Task 5's implementer and routed here because it is their file:** `HorizontalBarChart.tsx:107`, `const defaultColor = row.color ?? "var(--stone-600)"` — the frozen mark tone as a fallback fill. It is currently unreached, because every caller now passes a colour explicitly, which is exactly why it would survive a visual check and a green suite indefinitely. It becomes `var(--mark-primary)`. Task 14's section-wide guard would red on it otherwise.
+
+**Two more in the same list, found by Task 12's implementer and belonging here for the same reason:** `Histogram.tsx:30` (`barColor = "var(--stone-600)"`) and `ViolinOrRidge.tsx:111` (`s.domainColor ?? "var(--stone-600)"`). Both are default-parameter or fallback fills, both are in this task's file list, and neither was named by any task's routing note until now — the sixth scope gap this phase has found, and the fourth found by someone other than the author of the table it should have been in. Both become `var(--mark-primary)`. After this task, `src/components/study` must be clean of the mark tones in every spelling; verify that with the brief's sweep rather than trusting this list.
 
 - [ ] **Step 4: Run the tests**
 
