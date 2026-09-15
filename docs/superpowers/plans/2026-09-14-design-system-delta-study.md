@@ -1321,6 +1321,7 @@ The scored-profile block's remaining type sites, per the role mapping:
 | 1782 | secondary | `text-text-secondary` |
 | 957 | `return "var(--text-tertiary)"` in `deltaColor` | `return "var(--text-label)"` |
 | 2029 | `copied ? "var(--cluster-3)" : "var(--text-tertiary)"` | `copied ? "var(--cluster-3)" : "var(--text-label)"` |
+| 766 | `colorVar="--stone-600"` — the frozen mark tone as a **bare name**, interpolated into `var(...)` later | `"--mark-primary"`. Routed here by Task 6's implementer. The bare spelling is why it survived: a scan for `var(--stone-600)` cannot match it. |
 
 Then append the whole-file assertions to `tests/unit/study-label-layer.test.ts`:
 
@@ -1665,6 +1666,8 @@ The axis-label positions at `:151` take `polarToCart(spokeAngle(i, TOTAL_AXES), 
 
 `NUM_AXES` at `:4` is now a third exported name for twelve; delete it and use `TOTAL_AXES`.
 
+**One non-geometry fix belongs in this file too, routed here by Task 6's implementer:** `Radar.tsx:57` defaults `colorVar = "--stone-600"` — the frozen mark tone, written as a **bare name** and interpolated into `var(...)` at the point of use. Change the default to `"--mark-primary"`. The bare spelling is the reason this survived: a scan for `var(--stone-600)` cannot see it.
+
 - [ ] **Step 4: Run the tests**
 
 ```bash
@@ -1908,8 +1911,17 @@ Append inside the same `describe` block:
     // chosen for contrast against the fill rather than as a mark — the same
     // category D24 carves out for chart text. Ban them and the only way to
     // pass is to make that ink illegible.
+    // BOTH SPELLINGS, and the second is the one that hides. A component can
+    // hold the bare NAME — `colorVar = "--stone-600"` — and interpolate it
+    // into `var(...)` at the point of use, which no scan for
+    // `var(--stone-600)` can match. Task 6's implementer found one of those
+    // in a file no task's list covered. This is the third time in this phase
+    // a guard has been blind to a spelling rather than to a site: the
+    // `<style>`-block hover was the first, the inline-vs-class ramp the
+    // second. The lesson is the same each time — match the TOKEN, not the
+    // syntax somebody happened to write it in.
     const offenders = sweptSources().flatMap(({ file, text }) => {
-      const match = text.match(/var\(--stone-(?:600|400)\)/);
+      const match = text.match(/--stone-(?:600|400)\b/);
       return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
     });
 
@@ -2022,6 +2034,7 @@ Specific things to look at rather than glance past, because each is a place a un
 - The modal's axis rows after Task 9: the dots should now sit where their numeric readouts say, and a score of ±1.00 should sit **on** the track rather than half off its end. That is the defect the convergence fixes and it is visible at a glance once you know to look.
 - The three prose pages narrowing from 768px to 660px: confirm nothing that assumed the wider measure now wraps badly — the correlation and tension charts on `/study/patterns` are the widest things on those pages.
 - **`ClusterCard`'s title line**, flagged by Task 4's implementer and deliberately left as-is: the cluster code `C2` dropped from an inherited 17px serif to 11px `mono-meta` while the name beside it stayed `display-s`, joined by an em dash. A mono code beside a serif name is the house idiom (`/archetypes` pairs a mono `NN` with its entry name), so this follows the role mapping — but whether `C2 — The Communitarian` still reads as one phrase across that size step is a question only a browser answers. The same pattern recurs on `PersonaCard` and `ClusterBadge` in Task 6, so decide it once here and apply the answer to all three.
+- **`MapLegend`'s cluster sublabels are truncated to about 15 of 34 characters** by an 80px `maxWidth`, and were before this phase — "Institutional authority and growth" has never fitted. Task 6 moved them off the mono label layer onto `body-xs` (they are a phrase, not a key), which recovers some width, but the cap is a legend layout question this phase deliberately did not reopen. Decide whether it wants fixing, and in which phase.
 - **The kicker weight**, on all four pages: `PageHeader` sets no `font-weight` and the four hand-rolled kickers all carried 500. `/study` now matches the five reference pages. Confirm that reads as deliberate rather than washed out.
 
 - [ ] **Step 3: Amend the study spec (D31)**
