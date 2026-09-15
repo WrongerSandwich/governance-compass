@@ -1934,9 +1934,29 @@ Append inside the same `describe` block:
     // and then — correctly — mutation-tested the case afterwards rather than
     // accepting the green, because a guard that went green when you edited a
     // COMMENT has told you nothing about the code.
+    // One file is exempt, and the exemption is narrow on purpose. Task 8
+    // extracted the mini budget strip's seven ministry fills — duplicated
+    // byte for byte between `PersonaModal` and `CompareView` — into a single
+    // module. Six are `--cluster-*`; the seventh is Stone 400, and Task 7
+    // showed token by token that every mode-stepping value in the stylesheet
+    // collides with one of the six beside it. The resolution was NOT to mint
+    // a seventh colour — spec "Scope and constraints" opens with "No new
+    // colours" — because the premise that collision analysis never tested is
+    // the one that settles it: Stone 400 is MODE-INVARIANT. It is declared
+    // once in `:root` and never redefined in the dark block, so it does not
+    // freeze a mark to one mode; there is no mark here to freeze. It is one
+    // categorical fill among seven whose only job is to differ from the six
+    // beside it — the same reasoning that leaves 900 and 50 unbanned above.
+    //
+    // Grow this list, do not weaken the guard. Exempting the file keeps the
+    // ban live on the other ~47; loosening the pattern would not.
+    const MARK_TONE_EXEMPT = new Set(["src/lib/study/budgetColors.ts"]);
+
     const offenders = sweptSources().flatMap(({ file, text }) => {
+      const rel = relative(process.cwd(), file);
+      if (MARK_TONE_EXEMPT.has(rel)) return [];
       const match = text.match(/--stone-(?:600|400)\b/);
-      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+      return match ? [`${rel}: ${match[0]}`] : [];
     });
 
     expect(offenders).toEqual([]);
@@ -1990,6 +2010,7 @@ A source-scanning guard fails by passing vacuously, and a green run proves nothi
 | M9 | Restore `hover:text-text-secondary` on `SectionNav`'s inactive link | `never gives an element a hover that resolves to its resting value` **and** Task 3's nav case | |
 | M10 | Restore `function ScoreBar` and one call site in `PersonaModal.tsx` | Task 9's `declares no local score bar of its own` | |
 | M11a | Restore `var(--stone-600)` as one chart fill in `DisagreementByAttribute.tsx` | `keeps the frozen mark tones out of every inline style in the section` | |
+| M11b | Empty `MARK_TONE_EXEMPT` to `new Set()` | The same mark-tone case, on `src/lib/study/budgetColors.ts`. An exemption that reddens nothing when you remove it is exempting nothing — either the file no longer holds the literal, or the guard cannot see the directory it lives in. Both are worth knowing. | |
 | M11 | Restore the `.study-kicker-link:hover` rule in `PersonasPageClient.tsx`'s `<style>` block | Task 2's `retires the kicker class whose hover was invisible in light mode` — and **confirm the shipped hover guard stays GREEN on it**, because that is the point of the separate case | |
 | M12 | Empty the three new `SWEPT` entries, leaving phase 5's fourteen | The two **new** cases in Step 3 must still pass (phase 5's files satisfy them), so this row is checking something different: that the anchor case in Step 1 reddens. | |
 | M13 | Empty `SWEPT` to `[]` | **Every** case in the block, via `sweptSources()`'s throw | |
