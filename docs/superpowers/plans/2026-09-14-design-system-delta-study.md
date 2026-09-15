@@ -2097,6 +2097,46 @@ Then rewrite Task 11's three assertions to use them, comparing tokens with
 - Move a button's `className` after its `onClick` → must stay GREEN.
 - Drop `focus-ring` from one button → must be RED.
 
+- [ ] **Step 3d: Add the two positive guards this plan forgot to ask for**
+
+Tasks 12 and 13 both shipped with guards that only ever say what must *not* be there.
+Their reviewer demonstrated the cost: reverting `Histogram.tsx:174`'s fill to
+`var(--text-secondary)` leaves all 924 tests green. The substance of Task 13 — that SVG
+chart text actually carries the label layer — is asserted nowhere.
+
+Worse, Task 13's second test is vacuous in the way this plan has warned every
+implementer about since Task 2:
+
+```ts
+const sized = CHARTS.filter((file) => /fontSize/.test(read(file)));
+expect(sized).toEqual(CHARTS);
+```
+
+`/fontSize/` matches the string anywhere in the file, including in a comment. Both tests
+were prescribed verbatim in this plan, so both are the author's defect and not the
+implementers'.
+
+**Guard one — the label layer is actually applied.** For each of the six chart files,
+assert that every `<text>` element carries `fontFamily: "var(--font-mono)"`, a
+`letterSpacing` of `0.02em`, and a `fill` drawn from the permitted set
+(`var(--text-label)`, `var(--surface-1)`, `var(--stone-50)`, or a computed expression).
+Parse the elements rather than scanning the file: a whole-file scan cannot tell you that
+*every* one carries it, only that *some* line does. Use the `jsxOpeningTags` helper from
+Step 3c, which already scans to the first `>` at brace depth 0.
+
+**Guard two — no sixth copy of the polar conversion, in any spelling.** Task 12's
+`/function polarTo[A-Za-z]*\(/` catches the one spelling the fifth copy happened to
+use. A copy written `const polarToXY = (…) =>`, or named `toXY` or `vertexAt`, walks
+straight past it — and the premise of that test's own comment is that the fifth copy hid
+*because it was spelled differently*. Assert the property instead of the name: **every
+file under `src/` that contains `Math.cos(` must import `@/lib/radar-geometry`.** That
+is the invariant; `polarTo*` was only ever a proxy for it.
+
+**Mutate both.** For guard one, revert one `<text>` fill to `var(--text-secondary)` — it
+must red, and the current test does not. For guard two, add
+`const vertexAt = (a, r) => [Math.cos(a) * r, Math.sin(a) * r]` to a study component —
+it must red, and the current test does not.
+
 - [ ] **Step 4: Run the whole block**
 
 ```bash
