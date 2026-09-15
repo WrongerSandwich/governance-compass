@@ -99,4 +99,16 @@ describe("model agreement joins the label layer", () => {
       expect(cls, "caption-italic already sets its colour").not.toMatch(/\btext-text-/);
     }
   });
+
+  it("fills the model-agreement charts from the stepping mark, not the frozen ramp", () => {
+    // `var(--stone-600)` is the mark's LIGHT value. A bar filled with it is
+    // one brown in both modes, while every other mark in the product steps
+    // 600 -> 400 on a dark ground (spec delta 06). Both sites are chart
+    // fills passed as props, so no class-scanning guard could see them.
+    const offenders = FILES.flatMap((file) =>
+      read(file).includes("var(--stone-600)") ? [file] : [],
+    );
+
+    expect(offenders).toEqual([]);
+  });
 });

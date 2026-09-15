@@ -272,7 +272,7 @@ export function ModelAgreementClient({
               xLabel="Euclidean distance"
               yLabel="Personas"
               height={180}
-              barColor="var(--stone-600)"
+              barColor="var(--mark-primary)"
               overlays={[
                 {
                   value: mean,

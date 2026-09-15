@@ -37,7 +37,7 @@ export function DisagreementByAttribute({
         const rows: HorizontalBarChartRow[] = panel.categories.map((cat) => ({
           label: cat.label,
           value: cat.mean_distance,
-          color: "var(--stone-600)",
+          color: "var(--mark-primary)",
           secondaryLabel: `n=${cat.n}`,
         }));
 
