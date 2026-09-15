@@ -1920,6 +1920,14 @@ Append inside the same `describe` block:
     // `<style>`-block hover was the first, the inline-vs-class ramp the
     // second. The lesson is the same each time — match the TOKEN, not the
     // syntax somebody happened to write it in.
+    //
+    // MIND YOUR OWN COMMENT. This is a whole-file text scan and cannot tell
+    // a declaration from a comment, so writing the banned literal in the
+    // prose above reddens this guard against the file it lives in. Task 6's
+    // implementer hit exactly that, reworded to "the Stone 600 ramp entry",
+    // and then — correctly — mutation-tested the case afterwards rather than
+    // accepting the green, because a guard that went green when you edited a
+    // COMMENT has told you nothing about the code.
     const offenders = sweptSources().flatMap(({ file, text }) => {
       const match = text.match(/--stone-(?:600|400)\b/);
       return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
