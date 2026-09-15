@@ -59,6 +59,16 @@ describe("the study section's controls are reachable without a mouse", () => {
     //    `data-testid="focus-ring"` — passed this guard with no ring of its
     //    own. Tokens, never substrings: the rule this plan has enforced on
     //    every implementer since Task 2, written into a task's own test text.
+    // The brief's own vacuity rule, applied one level down from the file list.
+    // The case above anchors the FILES; nothing anchored the ELEMENTS, so
+    // mistyping the tag argument made every list `[]` and all three cases in
+    // this spec green while reading nothing.
+    const allButtons = STUDY.flatMap(({ text }) => jsxOpeningTags(text, "button"));
+    expect(
+      allButtons.length,
+      "no <button> found — the guard below reads nothing",
+    ).toBeGreaterThanOrEqual(21);
+
     const offenders = STUDY.flatMap(({ file, text }) => {
       const buttons = jsxOpeningTags(text, "button");
       const ringless = buttons.filter(

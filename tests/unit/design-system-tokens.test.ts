@@ -542,6 +542,11 @@ const SWEPT = [
   "src/lib/study",
 ];
 
+/** 1-based line number of a byte offset, for an actionable failure message. */
+function lineOf(text: string, index: number): number {
+  return text.slice(0, index).split("\n").length;
+}
+
 function sweptSources(): { file: string; text: string }[] {
   const sources = SWEPT.flatMap((entry) => {
     const path = resolve(process.cwd(), entry);
@@ -910,8 +915,12 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     const offenders = sweptSources().flatMap(({ file, text }) => {
       const rel = relative(process.cwd(), file);
       if (MARK_TONE_EXEMPT.has(rel) || PHASE_5_INLINE_RAMP.has(rel)) return [];
-      const match = text.match(/--stone-(?:600|400)\b/);
-      return match ? [`${rel}: ${match[0]}`] : [];
+      // Global, so a file with four frozen fills reports four. Every other
+      // case in this block reports one site per file, which is survivable
+      // when the fix is one edit and misleading when it is twelve.
+      return [...text.matchAll(/--stone-(?:600|400)\b/g)].map(
+        (match) => `${rel}:${lineOf(text, match.index!)} ${match[0]}`,
+      );
     });
 
     expect(offenders).toEqual([]);

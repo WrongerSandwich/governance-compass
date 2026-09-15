@@ -370,10 +370,24 @@ describe("no component keeps its own polar helper", () => {
     const files = sourceFiles(resolve(process.cwd(), "src"));
     expect(files.length).toBeGreaterThan(50);
 
-    const offenders = files.flatMap((file) => {
-      if (file.endsWith("radar-geometry.ts")) return [];
+    // The effective population, asserted. Without this the case reads every
+    // file in src/, finds that none of them does its own trig, and reports
+    // success — which is also what it would report if `Math.cos(` were
+    // misspelled. One file qualifies today; a floor of one is the honest
+    // number and it is the number that has to move before the guard can go
+    // quiet by accident.
+    const trigFiles = files.filter(
+      (file) =>
+        !file.endsWith("radar-geometry.ts") &&
+        stripComments(readFileSync(file, "utf8")).includes("Math.cos("),
+    );
+    expect(
+      trigFiles.length,
+      "no file outside radar-geometry.ts does its own trig — the guard below reads nothing",
+    ).toBeGreaterThanOrEqual(1);
+
+    const offenders = trigFiles.flatMap((file) => {
       const text = stripComments(readFileSync(file, "utf8"));
-      if (!text.includes("Math.cos(")) return [];
       return text.includes('from "@/lib/radar-geometry"')
         ? []
         : [relative(process.cwd(), file)];
