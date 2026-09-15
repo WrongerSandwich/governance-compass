@@ -29,7 +29,7 @@ export function PageHeader({ kicker, kickerHref, title, lead }: PageHeaderProps)
         {kickerHref ? (
           <Link
             href={kickerHref}
-            className="label-eyebrow no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+            className="label-eyebrow no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
           >
             {kicker}
           </Link>

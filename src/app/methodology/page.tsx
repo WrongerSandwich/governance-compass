@@ -24,7 +24,7 @@ export default function MethodologyPage() {
             <span key={s.id}>
               <a
                 href={`#${s.id}`}
-                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+                className="no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
               >
                 {s.label}
               </a>
@@ -198,7 +198,7 @@ export default function MethodologyPage() {
           secondary={
             <Link
               href="/questions"
-              className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+              className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               or view the complete question bank
             </Link>

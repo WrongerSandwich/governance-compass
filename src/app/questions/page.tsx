@@ -108,7 +108,7 @@ export default function QuestionsPage() {
           <div>
             <a
               href="#budget"
-              className="label font-medium text-text-label no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+              className="label font-medium text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               Chancellor&apos;s Budget
             </a>
@@ -338,7 +338,7 @@ export default function QuestionsPage() {
           secondary={
             <Link
               href="/methodology"
-              className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+              className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               or read the methodology
             </Link>

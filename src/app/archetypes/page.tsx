@@ -143,7 +143,7 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
 function AxisPositions({ prototype }: { prototype: number[] }) {
   return (
     <details className="group mt-4">
-      <summary className="list-none inline-flex items-center gap-1.5 label text-text-label font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none focus-ring">
+      <summary className="list-none inline-flex items-center gap-1.5 label text-text-label font-medium cursor-pointer hover:text-text-primary transition-colors duration-150 select-none focus-ring">
         <span
           aria-hidden="true"
           className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
@@ -382,7 +382,7 @@ export default function ArchetypesPage() {
             <>
               <Link
                 href="/references"
-                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
               >
                 Back to references
               </Link>
@@ -391,14 +391,14 @@ export default function ArchetypesPage() {
               </span>
               <a
                 href="#top"
-                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
               >
                 ↑ Back to top
               </a>
               <ReturningUserLink
                 as="span"
                 wrapperClassName="inline"
-                className="no-underline hover:text-text-secondary transition-colors duration-150 focus-ring"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
                 label="← Back to your results"
                 prefix={
                   <span aria-hidden="true" className="opacity-40 mx-2">

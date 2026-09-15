@@ -516,6 +516,51 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("never gives an element a hover that resolves to its resting value", () => {
+    // Two of these shipped in this phase before review caught them, by two
+    // different routes, so the guard covers the class rather than the pair.
+    //
+    // The blunt case: a card resting on `bg-surface-2` with
+    // `hover:bg-surface-2`. Same token, same value, nothing happens.
+    //
+    // The subtle case, and the reason this is a guard and not a code review
+    // note: `--text-label` is `var(--stone-700)` and `--text-secondary` is
+    // `#6e5a48` — the SAME hex in light mode, different in dark. So
+    // `text-text-label hover:text-text-secondary` animates for 150ms between
+    // two identical colours on a light page and works fine on a dark one.
+    // No class-name assertion catches it, because both classes are correct in
+    // isolation; only knowing they are aliases does. Hover targets on the
+    // label layer go to `text-text-primary`, which differs in both modes.
+    const ALIASES: [string, string][] = [["text-text-label", "text-text-secondary"]];
+    // A className carrying one of these sits on the label layer even without
+    // naming `text-text-label`, because each role declares that colour. Sites
+    // that instead INHERIT their rest colour from a labelled parent were made
+    // explicit rather than left invisible here — a guard that silently skips
+    // the shape it was written for is the failure mode this phase kept hitting.
+    const LABEL_ROLES = /\b(?:label|label-nav|label-eyebrow|label-tight|mono-meta)(?![\w-])/;
+
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const hits: string[] = [];
+      for (const cls of text.match(/className="[^"]*"/g) ?? []) {
+        for (const hover of cls.match(/hover:([a-z]+-[a-z0-9-]+)/g) ?? []) {
+          const target = hover.slice("hover:".length);
+          const bare = new RegExp(`(?<!hover:)\\b${target}(?![\\w-])`);
+          if (bare.test(cls)) hits.push(`${hover} over itself`);
+          for (const [a, b] of ALIASES) {
+            const [rest, want] = target === b ? [a, b] : target === a ? [b, a] : [null, null];
+            if (!rest) continue;
+            const explicit = new RegExp(`(?<!hover:)\\b${rest}(?![\\w-])`).test(cls);
+            const byRole = rest === "text-text-label" && LABEL_ROLES.test(cls);
+            if (explicit || byRole) hits.push(`hover:${want} over ${rest}`);
+          }
+        }
+      }
+      return hits.map((h) => `${relative(process.cwd(), file)}: ${h}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   it("keeps the frozen Stone ramp off every swept surface", () => {
     const offenders = sweptSources().flatMap(({ file, text }) => {
       const match = text.match(/(?:text|bg|border)-stone-\d{2,3}(?![\w-])/);

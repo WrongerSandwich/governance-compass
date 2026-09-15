@@ -114,7 +114,7 @@ function CompareResults() {
           <div className="mb-6">
             <Link
               href={`/results?r=${encodedA}`}
-              className="label-nav text-text-label no-underline hover:text-text-secondary transition-colors duration-150 mb-3 inline-block focus-ring"
+              className="label-nav text-text-label no-underline hover:text-text-primary transition-colors duration-150 mb-3 inline-block focus-ring"
             >
               &larr; Back to your results
             </Link>
