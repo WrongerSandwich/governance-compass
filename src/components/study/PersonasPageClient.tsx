@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 import { WorldMap } from "@/components/study/WorldMap";
 import { TransnationalTile } from "@/components/study/TransnationalTile";
 import { PersonaFilters } from "@/components/study/PersonaFilters";
@@ -10,6 +9,7 @@ import { PersonaGrid } from "@/components/study/PersonaGrid";
 import { PersonaModal } from "@/components/study/PersonaModal";
 import { CompareFloatingButton } from "@/components/study/CompareFloatingButton";
 import { CompareView } from "@/components/study/CompareView";
+import { PageHeader } from "@/components/PageHeader";
 import { PersonasProvider } from "@/lib/study/PersonasContext";
 import { useStudyFilters } from "@/lib/study/filterState";
 import {
@@ -519,50 +519,16 @@ function PersonasPageClientInner({
 
   return (
     <PersonasProvider filteredIds={filteredIds}>
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 48px" }}>
-        {/* Page header */}
-        <div style={{ padding: "24px 0 20px" }}>
-          <p style={{ marginBottom: "4px" }}>
-            <Link
-              href="/study"
-              className="study-kicker-link"
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--text-tertiary)",
-                fontWeight: 500,
-                textDecoration: "none",
-                transition: "color 120ms ease",
-              }}
-            >
-              ← Synthetic Study
-            </Link>
-          </p>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 500,
-              fontSize: "clamp(32px, 5vw, 38px)",
-              lineHeight: 1.15,
-              color: "var(--text-primary)",
-              marginBottom: "8px",
-            }}
-          >
-            Personas
-          </h1>
-          <p
-            style={{
-              fontSize: "15px",
-              fontFamily: "var(--font-serif)",
-              color: "var(--text-secondary)",
-              lineHeight: 1.5,
-            }}
-          >
-            A gazetteer of the {catalog.length.toLocaleString()} personas
-            Gemini generated for the April 2026 study, faceted by region,
-            governance context, and demographic attributes.
-          </p>
+      <main className="mx-auto max-w-browse px-4 pb-12">
+        <div className="pt-6 pb-5">
+          <PageHeader
+            kicker="← Synthetic Study"
+            kickerHref="/study"
+            title="Personas"
+            lead={[
+              `A gazetteer of the ${catalog.length.toLocaleString()} personas Gemini generated for the April 2026 study, faceted by region, governance context, and demographic attributes.`,
+            ]}
+          />
         </div>
 
         {/* Map + Transnational tile: side-by-side on desktop, stacked on mobile.
@@ -688,9 +654,6 @@ function PersonasPageClientInner({
       )}
 
       <style>{`
-        .study-kicker-link:hover {
-          color: var(--text-secondary);
-        }
         .map-tile-layout {
           flex-direction: column;
         }
