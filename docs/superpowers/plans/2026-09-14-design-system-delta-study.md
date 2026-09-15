@@ -46,6 +46,12 @@ Phases 1 (#132, PR #140), 2 (#133, PR #143), 3 (#134, PR #145), 4 (#135, PR #150
 
 ## The role mapping
 
+> **Every line number in this document — in the role-mapping tables below, and in
+> every task's `**Files:**` list — is as of `360bfaf`.** They have all moved. They are
+> deliberately not renumbered: each row also names a property signature, which does not
+> shift, and if a line number and a signature disagree the signature wins. Find it with
+> `grep -n`. (Confirmed against the shipped tree in Task 15 Step 4.)
+
 Every task from 2 to 9 applies this table. It is written once, here, rather than restated per task. Where a task's site does not appear in it, the task says so explicitly.
 
 | What the code says today | Role class | Note |
@@ -1388,7 +1394,30 @@ git commit -m "feat(design): converge the persona modal's score bar on PairedAxi
 
 The delta spec says `/study` "already use[s] no `rounded-*` classes at all and need[s] no sweep." That is true of *classes* and false of the section: there are **40 inline `borderRadius` literals**, and the shipped guard at `design-system-tokens.test.ts:223` (*has retired every 12px and 8px inline border radius from src*) misses all of them because none is 12 or 8.
 
-The spelling census: `3px` ×15, `6px` ×4, `2px` ×6, `1px` ×3, `4px` ×1, `50%` ×2, `999px` ×1, `var(--radius)` ×1.
+The spelling census, **corrected in Task 15 Step 4 against `360bfaf` rather than left as
+drafted**. The drafted line read "`3px` ×15, `6px` ×4, `2px` ×6, `1px` ×3, `4px` ×1,
+`50%` ×2, `999px` ×1, `var(--radius)` ×1" — 33 sites, every count low, and it named only
+the quoted style-prop form. Measured:
+
+| Spelling | Count on `360bfaf` |
+| --- | --- |
+| `borderRadius: "3px"` | 18 |
+| `borderRadius: "2px"` | 7 |
+| `borderRadius: "6px"` | 5 |
+| `borderRadius: "1px"` | 4 |
+| `borderRadius: "4px"` | 1 |
+| `borderRadius: 2` / `borderRadius: 3` (unquoted numeric) | 3 |
+| `border-radius:` inside a JSX `<style>` block | 2 |
+| `borderRadius: "50%"` | 2 (exempt) |
+| `borderRadius: "999px"` | 1 (exempt) |
+| `borderRadius: "var(--radius)"` | 1 (already the token) |
+
+**44 sites, 41 of them to convert.** The 35 the Step-1 guard sees are the quoted
+non-exempt ones; the other six need the two extra guards Task 10's reviewer added
+(`e66c287`). Two of the exemptions no longer exist in the shipped tree and neither
+was deleted by Task 10: `999px` was `CompareFloatingButton`'s pill, which Task 11 Step 5
+routed through `Button`, and one `50%` was the private `ScoreBar`'s dot, which Task 9
+retired. The shipped tree therefore holds 39 `var(--radius)` and a single `50%`.
 
 - **`3px`, `4px`, `6px`, `2px`, `1px` → `var(--radius)`.** All five are the same intent — a softened rectangle — spelled five ways. `2px` is already the delta's value and becomes the token anyway, because a literal that happens to match today is the one that silently stops matching when `--radius` moves.
 - **`50%` and `999px` stay.** Circles and pills are unaffected by delta 02, in as many words. `50%` is the persona avatar and the scale dot; `999px` is the floating compare pill.
@@ -1430,7 +1459,14 @@ Append to the `describe("near-square corners (design delta 02)", …)` block in 
 npx vitest run tests/unit/design-system-tokens.test.ts -t "study section as the token"
 ```
 
-Expected: FAIL with **35 offenders** listed — measured, not derived. (The census above totals 40, of which 2 are `50%`, 1 is `999px` and 1 is already `var(--radius)`, which would predict 36. It does not, and the file is right; if your number is neither 35 nor 36, say so in Task 15 Step 4 rather than adjusting the guard.)
+Expected: FAIL with **35 offenders** listed — measured, not derived.
+
+**Result (Task 15 Step 4): 35, confirmed.** The corrected census above resolves the
+arithmetic the drafted note could not: 39 quoted `borderRadius` literals on `360bfaf`,
+less 2 `50%`, 1 `999px` and 1 already-`var(--radius)`, is exactly 35. The six sites the
+drafted census missed entirely — three unquoted numerics and two CSS-syntax declarations
+inside `<style>` blocks — are invisible to *this* guard by construction, which is why
+Task 10's reviewer added a second one for them.
 
 - [ ] **Step 3: Sweep the radii**
 
@@ -1545,6 +1581,8 @@ npx vitest run tests/unit/study-controls.test.ts
 ```
 
 Expected: FAIL on the last two — six files in the ringless list, and `expected 18 to be 12` for the map. Eighteen is the measured count on `360bfaf`: six branches, three state keys each. Four of those branches are non-interactive and keep theirs, so twelve survive.
+
+**Result (Task 15 Step 4): the after-count is 12, confirmed** — `grep -c 'outline: "none"' src/components/study/WorldMap.tsx` returns 12 on the shipped tree, and mutation M6 shows the assertion reddens when a thirteenth is added back to an interactive branch.
 
 - [ ] **Step 3: Fix the map**
 
@@ -2151,22 +2189,34 @@ A source-scanning guard fails by passing vacuously, and a green run proves nothi
 
 | # | Mutation | Must redden | Result |
 |---|---|---|---|
-| M1 | Restore `color: "var(--text-tertiary)"` on one span in `CompareView.tsx` | `keeps the sub-AA tertiary text token off every swept surface` | |
-| M2 | Restore `#85735e` in `patterns/page.tsx` | `admits no raw hex on a swept surface` **and** Task 4's `routes the cluster domain colours through the stepping mark variable` | |
-| M3 | Restore `fontSize: "10px"` on one `ClusterCard` label | `holds the type floor on every swept HTML element` **and** Task 4's `leaves no inline font size on any of them` | |
-| M4 | Restore `fontSize: "var(--text-xs, 10px)"` in `DemographicAggregates.tsx` | `names no custom property that globals.css has never declared` **and** the floor case | |
-| M5 | Restore `max-w-3xl` in `model-agreement/page.tsx` | `caps every swept page on a width token` **and** Task 2's `caps each study page on the measure its content is` | |
-| M6 | Restore `outline: "none"` in one interactive `WorldMap` branch | Task 11's `stops painting over the focus ring on the map's region paths` | |
-| M7 | Drop `focus-ring` from one `PersonaGrid` button | Task 11's `gives every hand-rolled control a focus ring` | |
-| M8 | Reintroduce `function polarToXY` in `Radar.tsx` | Task 12's `leaves no private copy of the polar conversion anywhere in src` | |
-| M9 | Restore `hover:text-text-secondary` on `SectionNav`'s inactive link | `never gives an element a hover that resolves to its resting value` **and** Task 3's nav case | |
-| M10 | Restore `function ScoreBar` and one call site in `PersonaModal.tsx` | Task 9's `declares no local score bar of its own` | |
-| M11a | Restore `var(--stone-600)` as one chart fill in `DisagreementByAttribute.tsx` | `keeps the frozen mark tones out of every inline style in the section` | |
-| M11b | Empty `MARK_TONE_EXEMPT` to `new Set()` | The same mark-tone case, on `src/lib/study/budgetColors.ts`. An exemption that reddens nothing when you remove it is exempting nothing — either the file no longer holds the literal, or the guard cannot see the directory it lives in. Both are worth knowing. | |
-| M11 | Restore the `.study-kicker-link:hover` rule in `PersonasPageClient.tsx`'s `<style>` block | Task 2's `retires the kicker class whose hover was invisible in light mode` — and **confirm the shipped hover guard stays GREEN on it**, because that is the point of the separate case | |
-| M12 | Empty the three new `SWEPT` entries, leaving phase 5's fourteen | The two **new** cases in Step 3 must still pass (phase 5's files satisfy them), so this row is checking something different: that the anchor case in Step 1 reddens. | |
-| M12b | Make `stripComments` a no-op (`return text`) | Nothing in the block, which is the finding. The stripper's own coverage is the pair of checks in Step 3b, not this table — note the result and move on. |  |
-| M13 | Empty `SWEPT` to `[]` | **Every** case in the block, via `sweptSources()`'s throw | |
+| M1 | Restore `color: "var(--text-tertiary)"` on one span in `CompareView.tsx` | `keeps the sub-AA tertiary text token off every swept surface` | **RED** (1 failed / 38) |
+| M2 | Restore `#85735e` in `patterns/page.tsx` | `admits no raw hex on a swept surface` **and** Task 4's `routes the cluster domain colours through the stepping mark variable` | **RED on both** (1/38, 1/19) |
+| M3 | Restore `fontSize: "10px"` on one `ClusterCard` label | `holds the type floor on every swept HTML element` **and** Task 4's `leaves no inline font size on any of them` | **RED on both** (1/38; 1 of the 3 same-named cases, 2 still pass) |
+| M4 | Restore `fontSize: "var(--text-xs, 10px)"` in `DemographicAggregates.tsx` | `names no custom property that globals.css has never declared` **and** the floor case | **RED on both** (1/38 each) |
+| M5 | Restore `max-w-3xl` in `model-agreement/page.tsx` | `caps every swept page on a width token` **and** Task 2's `caps each study page on the measure its content is` | **RED on both** (1/38, 1/7) |
+| M6 | Restore `outline: "none"` in one interactive `WorldMap` branch | Task 11's `stops painting over the focus ring on the map's region paths` | **RED** (1/3; `expected 13 to be 12`) |
+| M7 | Drop `focus-ring` from one `PersonaGrid` button | Task 11's `gives every hand-rolled control a focus ring` | **RED** (1/3) |
+| M8 | Reintroduce `function polarToXY` in `Radar.tsx` | Task 12's `leaves no private copy of the polar conversion anywhere in src` | **RED** (1/23) |
+| M9 | Restore `hover:text-text-secondary` on `SectionNav`'s inactive link | `never gives an element a hover that resolves to its resting value` **and** Task 3's nav case | **RED on both** (1/38, 1/7) |
+| M10 | Restore `function ScoreBar` and one call site in `PersonaModal.tsx` | Task 9's `declares no local score bar of its own` | **RED** (1/19) |
+| M11a | Restore `var(--stone-600)` as one chart fill in `DisagreementByAttribute.tsx` | `keeps the frozen mark tones out of every inline style in the section` | **RED** (1/38) |
+| M11b | Empty `MARK_TONE_EXEMPT` to `new Set()` | The same mark-tone case, on `src/lib/study/budgetColors.ts`. An exemption that reddens nothing when you remove it is exempting nothing — either the file no longer holds the literal, or the guard cannot see the directory it lives in. Both are worth knowing. | **RED** (1/38) — the exemption is live and is exempting exactly what it says |
+| M11c | Empty `PHASE_5_INLINE_RAMP` to `new Set()` | The same mark-tone case, on the four phase-5 files under *Deferred to later phases*. | **RED** (1/38) — the seventeen frozen marks are really there, and the debt entry is not hypothetical. **This row did not exist in the drafted table**; the deferred section cited it, so Task 15 Step 4 added it and ran it. |
+| M11 | Restore the `.study-kicker-link:hover` rule in `PersonasPageClient.tsx`'s `<style>` block | Task 2's `retires the kicker class whose hover was invisible in light mode` — and **confirm the shipped hover guard stays GREEN on it**, because that is the point of the separate case | **RED** on Task 2's case (1/7); **GREEN** on the shipped hover guard, as predicted. The `<style>`-block defect is covered by exactly one case, and the shipped guard is structurally blind to it. |
+| M12 | Empty the three new `SWEPT` entries, leaving phase 5's fourteen | The two **new** cases in Step 3 must still pass (phase 5's files satisfy them), so this row is checking something different: that the anchor case in Step 1 reddens. | **RED** on `actually reaches the swept files`; **GREEN** on all three new Step-3 cases, as predicted. The widening took effect and the anchors are what prove it. |
+| M12b | Make `stripComments` a no-op (`return text`) | Nothing in the block, which is the finding. The stripper's own coverage is the pair of checks in Step 3b, not this table — note the result and move on. | **RED — the prediction was wrong, and usefully so.** `admits no raw hex on a swept surface` fails (1 failed / 37 passed), on `src/lib/study/budgetColors.ts`, whose two hexes live only in a doc comment. That is the case `sweptSources()`'s own comment names as its reason for existing, so the stripper *does* have coverage inside this block after all — one case, on one file. `study-label-layer`, `study-chrome` and `study-controls` all stay green, so the rest of the prediction holds. |
+| M13 | Empty `SWEPT` to `[]` | **Every** case in the block, via `sweptSources()`'s throw | **RED × 11** (11 failed / 27 passed) — all eleven `sweptSources()`-backed cases, and no others |
+
+**Method, because a mutation run is itself a thing that can pass vacuously.** Every row
+was applied by exact string replacement against a uniquely-occurring anchor, and the
+driver refused any anchor that matched zero or two sites (M6's first anchor matched
+twice and was replaced with a unique one rather than being applied to whichever came
+first). Each run was checked for *validity* before its verdict was recorded: the file
+had to actually differ from `HEAD` after the edit, vitest had to report a non-zero test
+total, and the file had to be byte-identical to `HEAD` again after the revert. A run
+that reported "no test files found", or a total of zero, was recorded as **VOID** rather
+than as survived — phase 5's lesson that a broken mutation reads as whichever answer you
+were hoping for. The suite was re-run clean afterwards: 929 passing across 71 files.
 
 M11 and M12 are the two easiest to skip and the two worth most. M11 is the only evidence that the `<style>`-block defect is covered by something, since the shipped hover guard reads `className` attributes and is *structurally incapable* of seeing it — if M11 reddens the shipped guard too, then the guard is stronger than this plan claims and that is worth writing down. M12 distinguishes "the new guards work" from "the new guards are pointed at the new files"; a phase that widened a list and never checked the widening took effect is phase 5's M7 with a different name.
 
@@ -2188,7 +2238,7 @@ git commit -m "test(design): widen the sweep guards to the synthetic study secti
 - Modify: `docs/superpowers/plans/2026-09-14-design-system-delta-study.md` (this file)
 - Modify: `CLAUDE.md` if any statement in it is now false
 
-- [ ] **Step 1: Run every gate**
+- [x] **Step 1: Run every gate**
 
 ```bash
 npm test
@@ -2200,12 +2250,33 @@ npm run test:e2e
 
 Expected: all green. Record the final test count — the baseline was 887 across 68 files.
 
+**Result, measured on `4f508d2`:**
+
+| Gate | Result |
+| --- | --- |
+| `npm test` | **929 passing across 71 files** (+42 tests, +3 files on the baseline) |
+| `npm run typecheck` | clean |
+| `npm run lint` | clean at `--max-warnings=0` |
+| `npm run build` | succeeds; `prebuild` runs both preprocessing scripts and all 25 routes prerender |
+| `npm run test:e2e` | **22 passing** in 1.0 min, including all six `study-*` specs |
+
+Two things worth writing down rather than leaving for the next reader to rediscover:
+
+- **`study-persona-tensions.spec.ts` did not need its selector fixed.** Step 1's note
+  predicted a possible strict-mode violation from Task 9's generated `aria-label`s. Both
+  of its cases pass unchanged — `PairedAxisScale` sets `role="img"` on its root, which
+  keeps the axis labels out of the tension badges' name space.
+- **`next start` needs `AUTH_TRUST_HOST=true` locally.** Without it every page logs an
+  `UntrustedHost` error from `/api/auth/session`. It is an environment artifact of
+  running the production server outside Vercel (`next dev` sets it implicitly) and has
+  nothing to do with this phase, but it makes a console check unreadable until you set it.
+
 Three things to expect rather than debug:
 - `npm run build` runs `prebuild`, which executes `scripts/build-synthetic-study.ts` and `build-geo.ts`. Neither is touched by this phase; if one fails, it is an environment problem, not a regression.
 - E2E needs port 3000 free and no stray dev server. A wall of local e2e failures is usually another dev server, not this diff.
 - `tests/e2e/study-*.spec.ts` select by role and accessible name throughout, so they should be unaffected. `study-persona-tensions.spec.ts` matches tension badges by the name `/^(mild|moderate|strong) tension on axis \d+/`, which Task 9 does not change — but Task 9 *does* add a generated `aria-label` to every axis scale in the modal, so a name-based selector that was previously unique may now match more than one element. If a spec reddens with a strict-mode violation, that is why, and the fix is in the spec's selector, not in the component.
 
-- [ ] **Step 2: Verify the section by eye, on the production build**
+- [x] **Step 2: Verify the section by eye, on the production build**
 
 `next dev` reload-loops under a driven browser and resets React state, so this check runs against `npm run build && npm run start` — not the dev server. No unit test in this repo computes a custom property (jsdom does not), so **nothing above proves the section renders correctly in dark mode**; this step is the only thing that does, and it is not optional.
 
@@ -2226,7 +2297,84 @@ Specific things to look at rather than glance past, because each is a place a un
 - **`MapLegend`'s cluster sublabels are truncated to about 15 of 34 characters** by an 80px `maxWidth`, and were before this phase — "Institutional authority and growth" has never fitted. Task 6 moved them off the mono label layer onto `body-xs` (they are a phrase, not a key), which recovers some width, but the cap is a legend layout question this phase deliberately did not reopen. Decide whether it wants fixing, and in which phase.
 - **The kicker weight**, on all four pages: `PageHeader` sets no `font-weight` and the four hand-rolled kickers all carried 500. `/study` now matches the five reference pages. Confirm that reads as deliberate rather than washed out.
 
-- [ ] **Step 3: Amend the study spec (D31)**
+**Result.** Walked on `npm run build && npm run start`, driven with Playwright at
+`colorScheme: "light"` and `"dark"`, screenshots and computed-style measurements kept.
+
+*What was confirmed.*
+
+- **Dark mode inverts on all four pages.** `body` background goes `rgb(239,233,227)` →
+  `rgb(23,18,13)`; `--surface-1` `#fff` → `#2a2118`; `--text-label` `#6e5a48` →
+  `#9d8b78`; `--text-secondary` `#6e5a48` → `#cdbfb2`; `--mark-primary` `#85735e` →
+  `#b5a594`. The light-mode alias trap is real and visible in that last pair: the two
+  text tokens are the same hex in light and two different ones in dark, so a wrong pick
+  would only ever have shown up here.
+- **No hydration warning anywhere.** `/study/patterns` in both schemes logs nothing but
+  the two Vercel-analytics 404s that every local run produces. Task 12's fix holds.
+- **`PairedAxisScale`'s dots land where their readouts say.** Eight measured rows in the
+  single-model modal, dot centre as a percentage of track width against
+  `50 + score * 44`: `-0.05`→47.8 (predicted 47.8), `+0.60`→76.4 (76.4), `-0.85`→12.6
+  (12.6), `-0.90`→10.4 (10.4), the rest within 0.25%. **`-1.00` sits at 6.0% of a 319px
+  track, i.e. 14.1px of clearance inside the track's left end** — fully on the track,
+  which is the defect the convergence fixes.
+- **Every control takes a visible ring, including the map's region paths.** 165 tab
+  stops across the four pages, **zero ringless**. Nine map regions were focused and all
+  nine resolved `outline: rgb(133,115,94) solid 2px` on a `path.rsm-geography.focus-ring`
+  — a stone rectangle around the region's bounding box, plainly distinct from the
+  region-shaped hover fill.
+- **The scroll-spy works** on both section navs: `aria-current="location"` moves and the
+  link colour steps `#6e5a48` → `#3d2e1f`. It leaves no link current in the bands
+  between sections and at the very top, which is observer behaviour rather than a fault.
+- **The charts survived the mono conversion.** `ViolinOrRidge`'s widened 220-unit gutter
+  holds "10. International Engagement" whole; `TensionMatrix`'s rotated `Overall` header
+  is complete; `HorizontalBarChart`'s row labels are uncut at every call site.
+- **The narrowing to 660px costs nothing.** `document.scrollWidth` matches
+  `clientWidth` on `/study` and `/study/patterns` at 360, 480, 768, 960, 1024 and 1440px.
+  The wide charts are deliberately inside `overflow-x: auto` scrollers with their own
+  `min-width`, so they pan rather than clip.
+
+*What was found and is NOT this phase's doing — see "Deferred to later phases".* The
+correlation heatmap's column labels render outside their own `viewBox` and are invisible;
+`/study/model-agreement` scrolls sideways by 16px between ~641 and ~1150px; the
+histogram's mean and median markers overprint each other.
+
+*The four open questions, decided.*
+
+1. **`ClusterCard`'s title line: keep it.** Measured, the step is 11px `mono-meta`
+   weight 500 → 17px `display-s` serif, sharing one line box and one baseline, joined by
+   an em dash set at the serif size. 1.55× is a normal identifier-to-name step and the
+   dash does the bridging; at 3× zoom in both schemes it reads as one phrase, and it is
+   the same idiom `/archetypes` uses for its mono `NN`. **Applies unchanged to
+   `PersonaCard` and `ClusterBadge`**, where the code is right-aligned or inline with no
+   dash and the question barely arises. One observation rather than an objection: the
+   code takes the cluster's own mark tone, which measures 3.78:1 on the light page
+   ground — that is the site-wide `--mark-primary`, not something this phase introduced,
+   and it reads better in dark than in light.
+2. **`MapLegend`'s truncation: fix it, in the layout phase, not here.** Measured on the
+   production build, all six cluster sublabels are clipped and **each shows 30–42% of
+   its text** (e.g. `non-interventionism and collective provision`, 267px of content in
+   an 80px box — 30%), with **no `title` attribute**, so the hidden text is unavailable
+   to a mouse and to assistive technology alike. It is not fixable by raising the cap:
+   six swatches share a 532px legend, so ~85px per column is all there is, and the
+   descriptors need ~200px. It needs a different legend layout — swatch-left rows in two
+   columns, or dropping the descriptor for a hover/`title` — which is a layout decision
+   and belongs with delta 04.
+3. **The compare view's fourth panel: fix it, and it is worse than Task 7 measured.**
+   Confirmed at 1200px: the tray's inner track is `clientWidth` 1098 against
+   `scrollWidth` 1359 inside an `overflow: hidden`, so roughly 60% of the fourth panel is
+   unreachable. Two things Task 7 did not record. **At 1440px it is byte-identical** —
+   1098/1359 — so the tray does not grow with the viewport and no desktop width helps.
+   And **three pins already clip at 1024px** (990/1017, 27px), which the plan's note
+   implies is a four-pin problem. Four pins is a supported state reachable from the URL,
+   so this is a real defect; it is pre-existing and the driver is the 297px badge row,
+   so it is a layout fix, not a type one.
+4. **The kicker weight: deliberate, leave it.** Measured on all four study pages and on
+   `/axes`, `/methodology` and `/archetypes`: every one of the seven resolves to the
+   identical `label-eyebrow text-text-label mb-4`, 11px, **weight 400**, mono, 1.54px
+   tracking, `rgb(110,90,72)`. There is nothing to decide — `/study` is not lighter than
+   the reference pages, it *is* the reference pages' kicker. The 500 it dropped was the
+   outlier.
+
+- [x] **Step 3: Amend the study spec (D31)**
 
 In `docs/system_proposal/synthetic_study_spec/patterns_page.md`, replace line 20:
 
@@ -2241,7 +2389,7 @@ block as the five reference pages. See that phase's plan, D31.
 
 Check `overview_page.md`, `model_agreement_page.md` and `persona_modal.md` for the same claim before moving on — `persona_modal.md:26` says the persona name is "large, serif, prominent," which **remains true** (`display-m` is serif) and needs no edit.
 
-- [ ] **Step 4: Reconcile this plan with what shipped**
+- [x] **Step 4: Reconcile this plan with what shipped**
 
 Phase 5's own self-review found the plan and the artifact had drifted in three separate ways, and the lesson was that a plan read after the fact is taken as a record. Walk the tasks and correct anything that is now false:
 - Every line number in the tables is against `360bfaf` and every one has moved. Do not renumber them — say once, at the top of the role mapping section, that they are as-of-`360bfaf`. (It already does; confirm the wording survived.)
@@ -2250,9 +2398,32 @@ Phase 5's own self-review found the plan and the artifact had drifted in three s
 - Fill in the **Result** column of Task 14's mutation table, every row.
 - Anything a review changed goes in a `## Review fixes` section at the bottom, not silently into the task that "should" have done it.
 
-- [ ] **Step 5: Check `CLAUDE.md` for statements this phase falsified**
+- [x] **Step 5: Check `CLAUDE.md` for statements this phase falsified**
 
 The Key Directories entry for `src/components/study/` and the Architecture Notes on the study section describe structure, not styling, and should both still be true. The Design Context's claim that domain colour marks "appear only on the results page radar/axis breakdown" was already false of `/study` before this phase and is still false after it — `/study/patterns` colours its cluster radars by domain. Either correct that sentence or, if the intent was "the general palette admits no other hues," reword it to say that. Do not leave it as-is on the grounds that this phase did not introduce it.
+
+**Result — three checks, two edits.**
+
+- `src/components/study/` Key Directories entry and the study Architecture Notes:
+  **both still true**, confirmed against the shipped tree. The per-persona modal still
+  fetches from `GET /api/study/persona/[id]`, the derived JSON still drives the four
+  pages, the `study:filters` sessionStorage mirror is unchanged, and the
+  `← Section` kicker breadcrumb claim is now *more* true than it was, since all four
+  study pages carry it through `PageHeader` rather than three hand-spelled copies.
+- **The domain-mark sentence was rewritten.** It claimed the marks "appear only on the
+  results page radar/axis breakdown". Counting consumers of `getDomainMarkVar` /
+  `DOMAIN_COLORS` / `getDomainForAxis` in `src/`, that was false of `/axes`,
+  `/questions`, `/compare`, the home page, `ComparisonRadar`, `ComparisonScoreBar` and
+  `PairedAxisScale` **before this phase touched anything** — `/study/patterns` only made
+  it falser. The intent was plainly the second reading the step offers, so the sentence
+  now states the rule ("domain marks are data, permitted wherever an axis is drawn; the
+  palette outside that job is Stone and the warning family") and names where they appear,
+  with a parenthetical saying what it used to claim and why it changed.
+- **One entry went slightly stale and was corrected.** `src/lib/study/` was described as
+  "pure logic"; it now also holds the budget strip's ministry fills (Task 8 extracted
+  them there), three hooks and a context provider. Worth fixing precisely because Task
+  14's `SWEPT` comment reasons about that directory being "where a colour would go if one
+  of these charts grew a helper" — it has.
 
 - [ ] **Step 6: Open the PR**
 
@@ -2266,6 +2437,50 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 ---
 
 ## Deferred to later phases
+
+**Three pre-existing layout defects the Task 15 visual walk turned up.** None is this
+phase's doing — each was verified byte-identical at `360bfaf` or measured to a cause the
+phase never touched — and none is fixable within a type-only conversion. They are
+recorded here so that the next reader finds them as known debt rather than as a
+regression.
+
+1. **`CorrelationHeatmap`'s column labels are rendered outside the `viewBox` and are
+   therefore invisible.** `svgH = LABEL_PAD + gridSize` (400), while the rotated bottom
+   labels are placed at `LABEL_PAD + gridSize + 6` (406). An SVG root clips by default,
+   so all twelve are painted away silently, and the 64 units of `LABEL_PAD` reserved for
+   them show up as a band of dead space *above* the matrix instead. Identical at
+   `360bfaf`, geometry untouched by Task 13. The matrix is lower-triangular so a reader
+   can infer column *j* from row *j*, which is why nobody has noticed; it is still a
+   chart missing one of its two axes.
+2. **`/study/model-agreement` scrolls sideways by 16px between roughly 641 and 1150px.**
+   `CaseStudy`'s `.case-study-grid` is `grid-template-columns: 30% 35% 35%` with
+   `gap: 24px` — the percentages already total 100%, so the gaps add 48px on top and the
+   third column overhangs its container. Measured at 768, 960 and 1024px:
+   `documentElement.scrollWidth` exceeds `clientWidth` by 16 and eight `<p>` elements sit
+   past the viewport edge. Byte-identical at `360bfaf`. Above ~1150px the container caps
+   at 1120 and the overhang hides in the gutter; below 640px the component's own media
+   query stacks to `1fr`. The fix is `minmax(0, 30fr) minmax(0, 35fr) minmax(0, 35fr)`
+   or `calc()`-ed percentages, and it is one line.
+3. **`Histogram`'s mean and median markers overprint each other into an illegible blob.**
+   On `/study/model-agreement` the two markers sit at 1.51 and 1.46 on a 0.1–3.5 scale —
+   about 10 rendered px apart — and each label is roughly 50px wide, so `mean 1.51` and
+   `median 1.46` interleave character by character. The labels were already mono 9px at
+   `360bfaf`; Task 13 added `letterSpacing: 0.02em`, which widens them by about 2% and
+   makes a pre-existing collision marginally worse. Wants a collision-aware placement
+   (stagger the two labels vertically, or drop one when they are within *n* px), which is
+   chart logic rather than type.
+
+**`MapLegend`'s 80px cap and the compare view's fourth panel — the two Step 2 open
+questions that resolved as "fix, but not here".** Both are measured in Task 15 Step 2
+and both are layout, so both belong with delta 04 rather than with a type sweep.
+
+- `MapLegend`'s six cluster sublabels each show **30–42%** of their text, with no
+  `title` attribute to recover the rest. Raising the cap cannot fix it: six swatches
+  share a 532px legend and the descriptors need ~200px each. It needs a legend layout.
+- `/study/personas`'s compare tray clips its fourth panel at `clientWidth` 1098 against
+  `scrollWidth` 1359, **identically at 1200 and at 1440px** — the tray does not grow
+  with the viewport — and **three pins already clip 27px at 1024px**. Four pins is a
+  supported, URL-reachable state. The driver is the 297px cluster+archetype badge row.
 
 **Seventeen frozen mark tones in four files that phases 1-5 already swept.** Task 14's
 mark-tone guard, applied over the whole of `SWEPT` as prescribed rather than scoped to
@@ -2393,3 +2608,38 @@ Checked against `docs/superpowers/specs/2026-09-08-design-system-delta-design.md
 **Type consistency.** `PageHeader`'s props (`kicker`, `kickerHref?`, `title`, `lead?: string[]`) are used under those names in Task 2 and match the shipped component. `SectionNavProps.sections` entries are `{ num, label, short, id }` in both Task 3 call sites, and `short` is required — the model-agreement nav had no short labels, so Task 3 supplies six. `PairedAxisScaleProps.markVar?: string` takes the **wrapped** `var(--x)` form in its definition (Task 9 Step 3), its two tests (Step 1) and all five call sites (Step 4); this was wrong in the first draft, where the prop took a bare name while `getDomainMarkVar` returned a wrapped one, and a caller following Task 4's original wording would have emitted `var(var(--domain-economic))` — valid syntax, resolves to nothing, renders a transparent mark, and no test in this plan would have caught it. The dot and track selectors (`[data-respondent="a"]`, `[data-track]`) are the shipped ones, verified against the component rather than invented for the test.
 
 **Known gap, inherited and widened.** As in phases 4 and 5: no unit test covers the *rendered* dark-mode appearance of anything here, because jsdom computes no custom properties. The tokens are asserted on both sides in the stylesheet and the call sites are asserted to name a stepping token rather than a frozen one, but the composition of the two is verified only by hand, in Task 15 Step 2. This phase widens the gap because it moves ~250 sites onto tokens at once. Step 2 is the coverage, and it is why it is written as a checklist rather than as "check it looks right."
+
+---
+
+## Review fixes
+
+Written in Task 15 Step 4 by walking `main..HEAD`. **Everything below is something a
+review found after the task that "should" have caught it had already committed.** It
+lives here rather than being folded back into the task, so that a later reader can see
+what the plan missed as distinct from what it asked for. Plan-only corrections (the
+twenty-odd `docs:` commits that routed a site to a different task, corrected a decision,
+or fixed a snippet) are already folded into the tasks above and are not repeated here;
+these are the ones that changed the **shipped artifact**.
+
+| Task | What the review changed | Commit |
+| --- | --- | --- |
+| 2 | The deep-link number on `/study` lost its medium weight in the conversion. `font-medium` is legal beside `mono-meta` and the site already had it; the sweep dropped it. | `cb3f81f` |
+| 3 | `SectionNav` kept a hook class that matched no CSS rule and whose name no longer described anything. | `4e93a35` |
+| 4 | The axis × cluster caption — 108 characters of prose — had been sent to the `label` role because the table row lumped it with its three-word sibling. Split into a `label` key plus a `body-xs` sentence. Two more dead hook classes (`demo-agg-row`, `demo-agg-label`) went with it. | `856b152` |
+| 5 | Two chart fills still named `var(--stone-600)`: `ModelAgreementClient`'s histogram `barColor` and `DisagreementByAttribute`'s row colour. Both are props rather than classes, so no shipped guard saw them. | `1d9ef5f` |
+| 6 | `ClusterBadge` was described in the task as holding only a `borderRadius`; it held `fontSize`, `lineHeight` and a computed colour, and no test's file list reached it. Its type went to `body-xs`, and `MapLegend`'s cluster sublabel came **off** the mono label layer for the same reason — it is a phrase, not a key. | `0c74923` |
+| 8 | The `{error}` guard was anchored to a window that included its own explanatory comment, so it would have stayed green after the attribute it guards was deleted. Rebound to the attribute. | `b35c043` |
+| 8 | The ministry order was separated from the fills it indexes; co-located so the two cannot drift. | `fdd7d8e` |
+| 9 | The previous commit suppressed the endpoint row on the four dual-model tracks on the strength of one desktop measurement and kept it on the single-model track. Swept across 320–1600px on the production build, the single track collides too. All five tracks now pass `endpoints="none"`, and D29 and the deferral entry carry the measurement. | `f246bb5` |
+| 10 | Both radius guards were rooted at the two `/study` directories and matched one spelling. Rooted at `src` and widened to the spellings they missed — `borderRadius: '3px'` (single quotes), the backtick form, and a CSS declaration with no trailing `;`. Three more sites, and permanent cover for the sections phases 1–5 swept. | `e66c287` |
+| 11 | Three places where a ring was declared and something painted over it or clipped it — the same failure class Task 11 exists to remove, found *inside Task 11's own commit*. `TransnationalTile`'s inline `outline` selection cue beat the utility outright, so a selected tile that gained focus was byte-identical to the same tile blurred; it moved to `box-shadow`. | `246a61c` |
+| 13 | Task 13's gutter widening was applied as a default rather than per caller, which cost 23% of the scale factor on the six `DisagreementByAttribute` panels that had no clipping problem — and that scale factor is the whole premise of D24's exemption from the 11px floor. `labelWidth` went back to 172 with the two wide callers passing 208 explicitly. `Radar`'s axis labels also gained the wrapping `/results` already had, via `splitLabel` moving into `radar-geometry` rather than being copied. | `2b0894c` |
+| 14 | The wider mark-tone guard found seventeen frozen `var(--stone-600)` marks in four files phases 1–5 had already swept. Recorded as a named exclusion with the reasoning in code, and reported upward as debt rather than repainted inside a guards task. | `4f508d2` |
+| 15 | The mutation table shipped with an empty Result column and no `M11c`, while the *Deferred to later phases* section already cited `M11c` as evidence. Row added, all seventeen rows run, results written in. `M12b`'s prediction turned out to be wrong: the comment stripper **does** have coverage inside this block, on one case and one file. | this step |
+
+**The one review finding that is not in the table.** D28's first draft said a keyboard
+user tabbing `WorldMap` got *no focus indicator at all*. That was false — `WorldMap`
+maps `onFocus` onto the hover state, so they got a cue indistinguishable from mouse
+hover, which is still not a conforming indicator but is a different and smaller claim.
+The fix did not change; only the severity did. It is recorded in D28 itself rather than
+here because the decision, not the artifact, was what was wrong.

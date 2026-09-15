@@ -43,7 +43,7 @@ npm run test:e2e      # E2E tests (playwright, starts the dev server itself)
 - `docs/superpowers/plans/2026-04-20-synthetic-study-section.md` — Synthetic study section plan (shipped); the "Deferred / non-blocking backlog" section at the bottom lists consciously-punted follow-ups
 - `src/app/study/` — Synthetic Study section: four public pages (index, /personas, /patterns, /model-agreement) presenting findings from the 1,002-persona AI-generated respondent dataset
 - `src/components/study/` — All visualization and UI components specific to the Synthetic Study section (WorldMap, CorrelationHeatmap, TensionMatrix, PersonaGrid, PersonaModal, etc.)
-- `src/lib/study/` — Study-specific pure logic: data loaders, filter helpers, match-strength buckets, question lookup, types
+- `src/lib/study/` — Study-specific logic shared across the section: data loaders, filter helpers, match-strength buckets, question lookup, types, the budget strip's ministry fills, plus a handful of hooks and one context provider
 - `data/synthetic_study/` — Raw pipeline outputs for the synthetic study (personas, scored profiles, cluster labels, model agreement, tension patterns). Do not modify — regenerate upstream.
 - `public/study/derived/` — Build-time preprocessed JSON consumed by the pages (slim catalog, regional/demographic aggregates, axis histograms, correlation matrix, case-study picks). Regenerated via `npm run build:study`.
 - `public/data/synthetic_study_v1.json` — The ~6 MB public download JSON, assembled at build time. Derived JSON (here and under `public/study/derived/`) is written minified; `/study` reads the exact byte count from `download_meta.json`.
@@ -74,7 +74,9 @@ Politically engaged individuals seeking nuanced understanding of their governanc
   - **Stone (primary accent)** — Stone 600 (`#85735e`), used for emphasis, selected states, data marks, and the single warm hue that unifies the palette.
   - **Warning (advisory accent)** — the `--warning` token family (amber `#d97706` / `--warning-bg` / `--warning-border` / `--warning-text`), reserved for editorial notices and caution states: spoilers, unanswered-question flags, tension callouts, low-match warnings. Never decorative.
 
-  Domain color marks (slate, sage, clay) appear only on the results page radar/axis breakdown and are not part of the general palette. No other hues are permitted.
+  Domain color marks (slate, sage, clay) are **data**, not palette: they encode which of the three axis domains a mark belongs to, and they are permitted wherever an axis is drawn — the results radar and axis breakdown, `PairedAxisScale` everywhere it appears, `/axes`, `/questions`, `/compare`, the home page, and `/study/patterns`' cluster radars and ridge plots. They carry meaning, so they never appear as decoration and never on chrome. Outside that job the palette is Stone and the warning family; no other hues are permitted.
+
+  (This sentence previously said the domain marks appear "only on the results page radar/axis breakdown." That was already false of at least six other surfaces before the `/study` sweep, so phase 5b rewrote it to state the rule it was reaching for rather than the count it got wrong.)
 
   Serious without being cold. Information-dense without being overwhelming.
 - **Anti-references:** BuzzFeed-style quizzes (no gamification, no share-bait), political party sites (no partisan color, no persuasion design), social media platforms (no feeds, no engagement metrics, no notification patterns).
