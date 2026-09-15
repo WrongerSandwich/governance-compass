@@ -834,12 +834,15 @@ export default async function PatternsPage() {
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-reference mb-4">
+            <p className="label text-text-label" style={{ marginBottom: "4px" }}>
+              Tension rate by axis × cluster
+            </p>
             <p
-              className="label text-text-label"
+              className="body-xs text-text-secondary"
               style={{ marginBottom: "8px" }}
             >
-              Tension rate by axis × cluster. Overall column splits
-              Claude/Gemini; cluster columns show a model-combined rate.
+              Overall column splits Claude/Gemini; cluster columns show a
+              model-combined rate.
             </p>
           </div>
           <div style={{ overflowX: "auto" }}>

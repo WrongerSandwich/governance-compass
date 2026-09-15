@@ -101,7 +101,6 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
           return (
             <div
               key={row.category}
-              className="demo-agg-row"
               style={{
                 display: "grid",
                 gridTemplateColumns: "clamp(96px, 28%, 150px) minmax(0, 1fr) 40px",
@@ -111,7 +110,7 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
             >
               {/* Category label */}
               <span
-                className="demo-agg-label body-xs text-text-secondary"
+                className="body-xs text-text-secondary"
                 style={{
                   textAlign: "right",
                   whiteSpace: "nowrap",
