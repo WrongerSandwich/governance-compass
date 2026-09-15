@@ -56,9 +56,8 @@ export function PersonaGrid({
       {/* Results count / status line */}
       {personas.length > 0 && (
         <p
+          className="body-xs text-text-secondary"
           style={{
-            fontSize: "12px",
-            color: "var(--text-tertiary)",
             marginBottom: "8px",
             borderTop: "0.5px solid var(--border-secondary)",
             paddingTop: "6px",
@@ -94,12 +93,10 @@ export function PersonaGrid({
       {/* Empty state */}
       {personas.length === 0 && (
         <div
+          className="body-s text-text-secondary"
           style={{
             padding: "3rem 1rem",
             textAlign: "center",
-            color: "var(--text-secondary)",
-            fontSize: "14px",
-            lineHeight: 1.6,
           }}
         >
           <p style={{ marginBottom: "10px" }}>
@@ -108,11 +105,10 @@ export function PersonaGrid({
           {activeCount > 0 && (
             <button
               onClick={() => clearAll()}
+              className="body-s text-mark-primary"
               style={{
                 background: "none",
                 border: "none",
-                color: "var(--stone-600)",
-                fontSize: "13px",
                 cursor: "pointer",
                 textDecoration: "underline",
                 textUnderlineOffset: "3px",
@@ -129,26 +125,25 @@ export function PersonaGrid({
       {totalPages > 1 && (
         <nav
           aria-label="Pagination"
+          className="mono-meta text-text-label"
           style={{
             display: "flex",
             alignItems: "baseline",
             justifyContent: "center",
             gap: "14px",
             marginTop: "28px",
-            fontSize: "13px",
-            color: "var(--text-tertiary)",
           }}
         >
           <button
             onClick={() => goToPage(page - 1)}
             disabled={page <= 1}
+            className="body-s"
             style={{
               background: "none",
               border: "none",
               cursor: page <= 1 ? "default" : "pointer",
               color:
                 page <= 1 ? "var(--border-primary)" : "var(--text-secondary)",
-              fontSize: "13px",
               padding: 0,
             }}
           >
@@ -166,6 +161,7 @@ export function PersonaGrid({
           <button
             onClick={() => goToPage(page + 1)}
             disabled={page >= totalPages}
+            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -174,7 +170,6 @@ export function PersonaGrid({
                 page >= totalPages
                   ? "var(--border-primary)"
                   : "var(--text-secondary)",
-              fontSize: "13px",
               padding: 0,
             }}
           >

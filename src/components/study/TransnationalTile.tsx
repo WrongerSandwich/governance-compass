@@ -107,7 +107,7 @@ export function TransnationalTile({
 
   return (
     <div
-      className={`transnational-tile ${className}`}
+      className={`transnational-tile label-tight text-text-primary ${className}`}
       title={tooltipContent}
       aria-label={tooltipContent.replace(/\n/g, ", ")}
       role={isInteractive ? "button" : undefined}
@@ -126,11 +126,6 @@ export function TransnationalTile({
         opacity,
         cursor: isInteractive ? "pointer" : "default",
         padding: "0.5rem 0.75rem",
-        fontSize: "var(--text-xs, 11px)",
-        fontFamily: "var(--font-mono)",
-        color: "var(--text-primary)",
-        letterSpacing: "0.04em",
-        textTransform: "uppercase",
         userSelect: "none",
         outline: isSelected ? `2px solid var(--map-accent)` : undefined,
         outlineOffset: isSelected ? "2px" : undefined,

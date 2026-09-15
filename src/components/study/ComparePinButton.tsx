@@ -51,7 +51,7 @@ export function ComparePinButton({
         background: "none",
         border: "none",
         cursor: isDisabled ? "not-allowed" : "pointer",
-        color: isPinned ? "var(--stone-600)" : "var(--text-tertiary)",
+        color: isPinned ? "var(--mark-primary)" : "var(--text-label)",
         lineHeight: 1,
         borderRadius: "3px",
         transition: "color 120ms ease",

@@ -39,6 +39,7 @@ export function CompareFloatingButton({
       <button
         onClick={onOpen}
         aria-label={`Compare ${count} pinned personas`}
+        className="control text-mark-primary"
         style={{
           minWidth: "44px",
           minHeight: "44px",
@@ -46,10 +47,6 @@ export function CompareFloatingButton({
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "13px",
-          fontWeight: 500,
-          color: "var(--stone-600)",
-          letterSpacing: "0.01em",
           whiteSpace: "nowrap",
         }}
       >
@@ -72,6 +69,7 @@ export function CompareFloatingButton({
         onClick={onClear}
         aria-label="Clear all pinned personas"
         title="Clear all pins"
+        className="text-text-label"
         style={{
           minWidth: "44px",
           minHeight: "44px",
@@ -79,8 +77,6 @@ export function CompareFloatingButton({
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "16px",
-          color: "var(--text-tertiary)",
           lineHeight: 1,
           display: "flex",
           alignItems: "center",

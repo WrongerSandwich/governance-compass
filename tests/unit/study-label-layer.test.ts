@@ -112,3 +112,43 @@ describe("model agreement joins the label layer", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe("the persona browser chrome joins the label layer", () => {
+  const FILES = [
+    "src/components/study/PersonasPageClient.tsx",
+    "src/components/study/PersonaFilters.tsx",
+    "src/components/study/PersonaGrid.tsx",
+    "src/components/study/PersonaCard.tsx",
+    "src/components/study/ArchetypeBadgeStudy.tsx",
+    "src/components/study/MapLegend.tsx",
+    "src/components/study/TransnationalTile.tsx",
+    "src/components/study/CompareFloatingButton.tsx",
+  ];
+
+  it("leaves no inline font size on any of them", () => {
+    const offenders = FILES.flatMap((file) => {
+      const sizes = inlineFontSizes(read(file));
+      return sizes.length ? [`${file}: ${sizes.join(", ")}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("puts the mark tone on the token that steps by mode", () => {
+    // `var(--stone-600)` is the mark's LIGHT value, frozen. --mark-primary
+    // is the same value in light and Stone 400 in dark.
+    //
+    // SCOPE: this case covers only this task's files. It is NOT the guard —
+    // Task 14's section-wide one is. The file-list shape was the plan's
+    // original design and it was wrong: Task 5's implementer found a
+    // `var(--stone-600)` chart fill in `DisagreementByAttribute.tsx` that no
+    // task's list contained, so nothing would ever have caught it. Twelve
+    // files in the section carry the spelling. A per-task list can only ever
+    // guard the files somebody already remembered.
+    const offenders = [...FILES, "src/components/study/ComparePinButton.tsx"].flatMap((file) =>
+      read(file).includes("var(--stone-600)") ? [file] : [],
+    );
+
+    expect(offenders).toEqual([]);
+  });
+});

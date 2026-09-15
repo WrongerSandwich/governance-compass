@@ -40,10 +40,15 @@ const CLUSTER_LABELS: Record<ClusterId, string> = {
 // Styles
 // ---------------------------------------------------------------------------
 
+/* The type layer of the panel's repeated elements. It cannot live in the
+   style constants below: the delta's roles are Tailwind `@utility` rules and
+   there is no spelling of one inside a `style` prop. Each constant keeps only
+   what is left of it — layout. */
+const fieldLabelClass = "body-xs text-text-secondary font-medium";
+const fieldControlClass = "body-s text-text-primary";
+const groupLabelClass = "label text-text-label font-medium";
+
 const fieldLabelStyle: CSSProperties = {
-  fontSize: "11px",
-  fontWeight: 500,
-  color: "var(--text-secondary)",
   display: "block",
   marginBottom: "4px",
 };
@@ -51,22 +56,18 @@ const fieldLabelStyle: CSSProperties = {
 const selectStyle: CSSProperties = {
   width: "100%",
   padding: "5px 8px",
-  fontSize: "0.8125rem",
   border: "1px solid var(--border-primary)",
   borderRadius: "3px",
   backgroundColor: "var(--surface-1)",
-  color: "var(--text-primary)",
   appearance: "auto",
 };
 
 const inputStyle: CSSProperties = {
   width: "100%",
   padding: "5px 8px",
-  fontSize: "0.8125rem",
   border: "1px solid var(--border-primary)",
   borderRadius: "3px",
   backgroundColor: "var(--surface-1)",
-  color: "var(--text-primary)",
   boxSizing: "border-box",
 };
 
@@ -75,11 +76,6 @@ const fieldStyle: CSSProperties = {
 };
 
 const groupLabelStyle: CSSProperties = {
-  fontSize: "10px",
-  fontWeight: 500,
-  textTransform: "uppercase",
-  letterSpacing: "0.1em",
-  color: "var(--text-tertiary)",
   paddingTop: "14px",
   paddingBottom: "10px",
   borderTop: "0.5px solid var(--border-secondary)",
@@ -101,7 +97,7 @@ function Group({
 }) {
   return (
     <section>
-      <div style={{ ...groupLabelStyle, ...(first ? { marginTop: 0, paddingTop: 0, borderTop: "none" } : {}) }}>
+      <div className={groupLabelClass} style={{ ...groupLabelStyle, ...(first ? { marginTop: 0, paddingTop: 0, borderTop: "none" } : {}) }}>
         {label}
       </div>
       {children}
@@ -173,7 +169,7 @@ export function PersonaFilters({
           surfaces active filters + Clear all, so no panel-level header is
           needed here. */}
       <div style={fieldStyle}>
-        <label style={fieldLabelStyle} htmlFor="filter-q">
+        <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-q">
           Name
         </label>
         <input
@@ -182,6 +178,7 @@ export function PersonaFilters({
           placeholder="Search by name…"
           value={queryDraft}
           onChange={(e) => onQueryChange(e.target.value)}
+          className={fieldControlClass}
           style={inputStyle}
         />
       </div>
@@ -192,7 +189,7 @@ export function PersonaFilters({
       <Group label="Geography">
         {regions.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-region">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-region">
               Region
             </label>
             <select
@@ -203,6 +200,7 @@ export function PersonaFilters({
                 if (v) setFilter("region", v);
                 else clearFilter("region");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All regions</option>
@@ -217,7 +215,7 @@ export function PersonaFilters({
 
         {urbanRuralCategories.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-urban-rural">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-urban-rural">
               Setting
             </label>
             <select
@@ -228,6 +226,7 @@ export function PersonaFilters({
                 if (v) setFilter("urban_rural", v);
                 else clearFilter("urban_rural");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All</option>
@@ -247,7 +246,7 @@ export function PersonaFilters({
       <Group label="Profile">
         {clusters.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-cluster">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-cluster">
               Cluster
             </label>
             <select
@@ -261,6 +260,7 @@ export function PersonaFilters({
                   setFilter("cluster", parseInt(v, 10) as ClusterId);
                 else clearFilter("cluster");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All clusters</option>
@@ -275,7 +275,7 @@ export function PersonaFilters({
 
         {archetypes.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-archetype">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-archetype">
               Nearest archetype
             </label>
             <select
@@ -286,6 +286,7 @@ export function PersonaFilters({
                 if (v) setFilter("archetype", v);
                 else clearFilter("archetype");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All archetypes</option>
@@ -300,7 +301,7 @@ export function PersonaFilters({
 
         {governanceCategories.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-governance">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-governance">
               Governance experience
             </label>
             <select
@@ -311,6 +312,7 @@ export function PersonaFilters({
                 if (v) setFilter("governance", v);
                 else clearFilter("governance");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All</option>
@@ -324,7 +326,7 @@ export function PersonaFilters({
         )}
 
         <div style={fieldStyle}>
-          <label style={fieldLabelStyle} htmlFor="filter-shared">
+          <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-shared">
             Model coverage
           </label>
           <select
@@ -337,6 +339,7 @@ export function PersonaFilters({
                 | "non_shared_only";
               setFilter("shared", v);
             }}
+            className={fieldControlClass}
             style={selectStyle}
           >
             <option value="all">All personas</option>
@@ -351,7 +354,7 @@ export function PersonaFilters({
       {/* ---------------------------------------------------------------- */}
       <Group label="Demographics">
         <div style={fieldStyle}>
-          <span style={fieldLabelStyle}>Age range</span>
+          <span className={fieldLabelClass} style={fieldLabelStyle}>Age range</span>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <input
               type="number"
@@ -361,13 +364,10 @@ export function PersonaFilters({
               max={ageRange[1]}
               value={ageMinDraft}
               onChange={(e) => onAgeMinChange(e.target.value)}
+              className={fieldControlClass}
               style={{ ...inputStyle, width: "72px" }}
             />
-            <span
-              style={{ color: "var(--text-tertiary)", fontSize: "0.8125rem" }}
-            >
-              –
-            </span>
+            <span className="body-s text-text-secondary">–</span>
             <input
               type="number"
               aria-label="Maximum age"
@@ -376,6 +376,7 @@ export function PersonaFilters({
               max={ageRange[1]}
               value={ageMaxDraft}
               onChange={(e) => onAgeMaxChange(e.target.value)}
+              className={fieldControlClass}
               style={{ ...inputStyle, width: "72px" }}
             />
           </div>
@@ -383,7 +384,7 @@ export function PersonaFilters({
 
         {genderCategories.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-gender">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-gender">
               Gender
             </label>
             <select
@@ -394,6 +395,7 @@ export function PersonaFilters({
                 if (v) setFilter("gender", v);
                 else clearFilter("gender");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All</option>
@@ -408,7 +410,7 @@ export function PersonaFilters({
 
         {educationCategories.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-education">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-education">
               Education
             </label>
             <select
@@ -419,6 +421,7 @@ export function PersonaFilters({
                 if (v) setFilter("education", v);
                 else clearFilter("education");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All</option>
@@ -433,7 +436,7 @@ export function PersonaFilters({
 
         {economicCategories.length > 0 && (
           <div style={fieldStyle}>
-            <label style={fieldLabelStyle} htmlFor="filter-economic">
+            <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-economic">
               Economic position
             </label>
             <select
@@ -444,6 +447,7 @@ export function PersonaFilters({
                 if (v) setFilter("economic", v);
                 else clearFilter("economic");
               }}
+              className={fieldControlClass}
               style={selectStyle}
             >
               <option value="">All</option>
@@ -459,7 +463,7 @@ export function PersonaFilters({
 
       {/* Sort — standalone at bottom */}
       <div style={{ ...fieldStyle, marginTop: "18px", paddingTop: "14px", borderTop: "0.5px solid var(--border-secondary)" }}>
-        <label style={fieldLabelStyle} htmlFor="filter-sort">
+        <label className={fieldLabelClass} style={fieldLabelStyle} htmlFor="filter-sort">
           Sort by
         </label>
         <select
@@ -469,6 +473,7 @@ export function PersonaFilters({
             const v = e.target.value as "name" | "age" | "region" | "cluster";
             setFilter("sort", v);
           }}
+          className={fieldControlClass}
           style={selectStyle}
         >
           <option value="name">Name (A–Z)</option>
