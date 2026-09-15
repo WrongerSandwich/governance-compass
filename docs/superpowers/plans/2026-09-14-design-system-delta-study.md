@@ -2174,6 +2174,35 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 ## Deferred to later phases
 
+**SVG corner radii (`rx`) are a sixth spelling that no sweep has ever covered.**
+Task 10 tokenised 39 radius literals in five spellings and Task 10's reviewer then found
+three more the task's grep list never named: `TensionMatrix.tsx:204` (`rx={1}`),
+`TensionMatrix.tsx:254` (`rx={2}`), `HorizontalBarChart.tsx:177` (`rx={1}`).
+
+This is not a Task 10 regression, which is why it is deferred rather than routed. The
+already-swept sections carry it too — `ComparisonRadar.tsx:273` (`rx={4}`) and
+`RadarChart.tsx:214` (`rx={2}`) both survived phases 1 through 5 untouched — so it is a
+phase-wide blind spot, not a `/study` one.
+
+It also cannot be fixed the obvious way. `rx="var(--radius)"` as an SVG *attribute* does
+not resolve; it would have to be `style={{ rx: "var(--radius)" }}`, which csstype does
+declare but which is a different mechanism from every other site in the sweep. Whoever
+takes this should decide once, for all five sites across three phases' worth of
+components, whether SVG corners join the token at all — and note that at a 2px token the
+visual difference from `rx={1}` or `rx={2}` is nearly nil, so "leave them, and say so in
+the spec" is a legitimate answer.
+
+**`/study`'s links do not carry `focus-ring`, and the rest of the site's do.** Task 11's
+implementer audited this: six `<Link>`s and one `<a>` in `/study`, plus roughly thirteen
+`<input>`/`<select>`s in `PersonaFilters.tsx`. **None of them is a defect** — not one
+suppresses its outline, so every one keeps the user-agent focus ring and no control is
+indicator-less. But the site-wide convention puts `focus-ring` on links at 56 call sites,
+and `/study` is inconsistent with it.
+
+No task in this plan owns links, and Task 11 is explicitly about buttons and the map's
+`outline: "none"` defect. Widening it mid-task would have been the scope creep this phase
+has refused three times already. Left for whoever does the link pass.
+
 **Pole labels on the modal's scored-profile tracks.** Task 9 passes `endpoints="none"`
 at all five sites, which is exact parity with the retired `ScoreBar` (it drew no
 endpoint text either) and is why the task ships no layout change at all. But the labels
