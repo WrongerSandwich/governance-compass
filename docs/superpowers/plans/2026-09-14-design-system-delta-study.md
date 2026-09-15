@@ -2048,6 +2048,55 @@ silent: add `// fontSize: "13px"` to a swept file and confirm `inlineFontSizes` 
 green; add a real `fontSize: "13px"` and confirm it reddens. A stripper that ate the
 code as well as the comment passes the first check and fails only the second.
 
+- [ ] **Step 3c: Fix the focus-ring guard this plan shipped as a substring test**
+
+Task 11's assertion, as written in this plan and shipped verbatim at
+`tests/unit/study-controls.test.ts:44`, is `!b.includes("focus-ring")`. That is a
+substring test, and `focus-ring-child` is a **real sibling utility** declared at
+`globals.css:590` — so a button carrying only `focus-ring-child`, or a
+`data-testid="focus-ring"`, or a JSX comment naming it, passes the guard with no focus
+ring of its own. A concrete false pass, not a hypothetical.
+
+This is the plan's own bug, and it is the rule the plan has been enforcing on every
+implementer since Task 2: **assert class tokens, never substrings.** Writing the
+violation into a task's verbatim test text is how a house rule dies.
+
+Tokenise it. And while you are there, take the other half of the same assertion's
+weakness, which Task 11's implementer flagged: the window regex `/<button\b[^>]*>/gs`
+stops at the first `>` in the tag, which in JSX is the first `=>` inside an attribute
+expression — so for 9 of 21 buttons the readable window ends before `className`. That
+cannot cause a false pass (a short window only hides a className that is there), but it
+makes attribute ordering load-bearing across 21 call sites, enforced by a test whose
+failure message does not say so.
+
+Add to `tests/helpers/source-files.ts`, beside `sourceFiles` and `stripComments`:
+
+```ts
+/**
+ * Opening tags for a JSX element, scanned to the first `>` at brace depth 0 and
+ * outside string literals.
+ *
+ * The naive `/<button\b[^>]*>/g` ends at the `>` of an `onClick={() => …}` arrow,
+ * which truncates the tag for any element whose handlers precede its className. That
+ * cannot produce a false pass, but it silently makes attribute order load-bearing —
+ * and a guard that reddens on a reorder, with a message that says only "3 of 3",
+ * costs more to debug than it is worth.
+ */
+export function jsxOpeningTags(text: string, tag: string): string[];
+
+/** Whitespace-split class tokens from a JSX opening tag (`className="a b c"`). */
+export function classTokens(openingTag: string): string[];
+```
+
+Then rewrite Task 11's three assertions to use them, comparing tokens with
+`.includes("focus-ring")` **on the split array** rather than on the raw tag text.
+
+**Mutate all three**, and note that one of these mutations is the point of the exercise:
+- Give a button `focus-ring-child` and nothing else → must be RED. (Green here means you
+  tokenised the wrong string.)
+- Move a button's `className` after its `onClick` → must stay GREEN.
+- Drop `focus-ring` from one button → must be RED.
+
 - [ ] **Step 4: Run the whole block**
 
 ```bash
