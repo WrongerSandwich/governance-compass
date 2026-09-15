@@ -1985,6 +1985,58 @@ Append inside the same `describe` block:
   });
 ```
 
+- [ ] **Step 3b: Stop every text-scanning guard from reading its own comments**
+
+This phase has now written the same defect three times, and it is worth fixing the
+class rather than catching a fourth instance. Task 6 wrote a banned literal into a test
+comment and reddened its own guard. Task 8 wrote `role="alert"` into a comment sitting
+inside its assertion's window, which turned a guard that had just gone green for the
+right reason into one that would stay green after the attribute was deleted. The
+mark-tone case above carries a MIND YOUR OWN COMMENT warning for exactly this reason,
+which is a note asking future authors to be careful where a function would do the job.
+
+The shape is general: **every guard in this suite is a text scan over source, and none
+of them strip comments.** That cuts both ways — a comment can satisfy a guard that
+should have failed, and a commented-out `fontSize: "13px"` can redden a task that is
+genuinely complete, with a failure message that reads as a missed conversion.
+`inlineFontSizes()` in `tests/unit/study-label-layer.test.ts` has that second exposure
+today.
+
+Add to `tests/helpers/source-files.ts`, next to `sourceFiles`:
+
+```ts
+/**
+ * Strip `//` and block comments from TS/TSX source.
+ *
+ * Every source-scanning guard in this suite bans a literal — a hex, a token
+ * name, a class — and a whole-file text scan cannot tell a declaration from
+ * prose about a declaration. Without this, a guard passes on its own
+ * explanatory comment (Task 8 shipped exactly that) and reddens on a
+ * commented-out line that ships nothing (`inlineFontSizes` could).
+ *
+ * Deliberately not a parser. It skips string and template literals so that a
+ * `//` inside a URL or a `/*` inside a regex does not eat the rest of the
+ * file, and that is the whole of its ambition. Guards run over source we
+ * control; if a file ever defeats it, the fix is to simplify the file.
+ */
+export function stripComments(text: string): string;
+```
+
+Then route the existing scans through it: `read()` in `study-label-layer.test.ts`,
+`sweptSources()` in `design-system-tokens.test.ts`, and the source reads in
+`study-chrome.test.ts`. Task 8's `{error}` guard already strips inline — delete its
+local copy and import this one.
+
+**Preserve the byte offsets, or fix what depends on them.** Task 8's guard slices
+backwards from `{error}` to the nearest `<`, so a stripper that collapses a comment to
+nothing rather than to whitespace shifts every index after it. Replacing comment bodies
+with spaces of equal length keeps every offset stable and costs nothing.
+
+**Then mutate it**, because a stripper is itself a text scan and the failure mode is
+silent: add `// fontSize: "13px"` to a swept file and confirm `inlineFontSizes` stays
+green; add a real `fontSize: "13px"` and confirm it reddens. A stripper that ate the
+code as well as the comment passes the first check and fails only the second.
+
 - [ ] **Step 4: Run the whole block**
 
 ```bash
@@ -2013,6 +2065,7 @@ A source-scanning guard fails by passing vacuously, and a green run proves nothi
 | M11b | Empty `MARK_TONE_EXEMPT` to `new Set()` | The same mark-tone case, on `src/lib/study/budgetColors.ts`. An exemption that reddens nothing when you remove it is exempting nothing — either the file no longer holds the literal, or the guard cannot see the directory it lives in. Both are worth knowing. | |
 | M11 | Restore the `.study-kicker-link:hover` rule in `PersonasPageClient.tsx`'s `<style>` block | Task 2's `retires the kicker class whose hover was invisible in light mode` — and **confirm the shipped hover guard stays GREEN on it**, because that is the point of the separate case | |
 | M12 | Empty the three new `SWEPT` entries, leaving phase 5's fourteen | The two **new** cases in Step 3 must still pass (phase 5's files satisfy them), so this row is checking something different: that the anchor case in Step 1 reddens. | |
+| M12b | Make `stripComments` a no-op (`return text`) | Nothing in the block, which is the finding. The stripper's own coverage is the pair of checks in Step 3b, not this table — note the result and move on. |  |
 | M13 | Empty `SWEPT` to `[]` | **Every** case in the block, via `sweptSources()`'s throw | |
 
 M11 and M12 are the two easiest to skip and the two worth most. M11 is the only evidence that the `<style>`-block defect is covered by something, since the shipped hover guard reads `className` attributes and is *structurally incapable* of seeing it — if M11 reddens the shipped guard too, then the guard is stronger than this plan claims and that is worth writing down. M12 distinguishes "the new guards work" from "the new guards are pointed at the new files"; a phase that widened a list and never checked the widening took effect is phase 5's M7 with a different name.
