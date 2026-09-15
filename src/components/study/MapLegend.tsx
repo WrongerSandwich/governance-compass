@@ -104,7 +104,7 @@ function Swatch({
       )}
       {sublabel && (
         <span
-          className="label-tight text-text-label"
+          className="body-xs text-text-secondary"
           style={{
             whiteSpace: "nowrap",
             overflow: "hidden",

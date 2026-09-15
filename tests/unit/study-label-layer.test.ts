@@ -119,6 +119,7 @@ describe("the persona browser chrome joins the label layer", () => {
     "src/components/study/PersonaFilters.tsx",
     "src/components/study/PersonaGrid.tsx",
     "src/components/study/PersonaCard.tsx",
+    "src/components/study/ClusterBadge.tsx",
     "src/components/study/ArchetypeBadgeStudy.tsx",
     "src/components/study/MapLegend.tsx",
     "src/components/study/TransnationalTile.tsx",
@@ -147,6 +148,17 @@ describe("the persona browser chrome joins the label layer", () => {
     // guard the files somebody already remembered.
     const offenders = [...FILES, "src/components/study/ComparePinButton.tsx"].flatMap((file) =>
       read(file).includes("var(--stone-600)") ? [file] : [],
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("names the mark token in every spelling, not just the wrapped one", () => {
+    // `"--stone-600"` interpolated into `var(...)` later is invisible to a
+    // scan for `var(--stone-600)`. Same token, same defect, different
+    // spelling — which is how it survived into a file nobody's list covered.
+    const offenders = FILES.flatMap((file) =>
+      /--stone-600/.test(read(file)) ? [file] : [],
     );
 
     expect(offenders).toEqual([]);

@@ -32,12 +32,16 @@ export function ClusterBadge({
     </>
   );
 
+  // `body-xs` rather than the mono label layer: the chip carries a cluster
+  // descriptor ("Distributed governance") beside its code, and a label role is
+  // for a key, not a phrase. The colour stays inline because it is computed
+  // from the cluster. Composed with the caller's class, never overwriting it.
+  const chipClass = className ? `body-xs ${className}` : "body-xs";
+
   const chipStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "baseline",
     gap: 0,
-    fontSize: "11px",
-    lineHeight: 1.4,
     padding: "1px 6px",
     borderRadius: "3px",
     border: `0.5px solid var(${colorVar})`,
@@ -49,7 +53,7 @@ export function ClusterBadge({
 
   if (resolvedHref === null) {
     return (
-      <span style={chipStyle} className={className}>
+      <span style={chipStyle} className={chipClass}>
         {inner}
       </span>
     );
@@ -59,7 +63,7 @@ export function ClusterBadge({
     <Link
       href={resolvedHref}
       style={chipStyle}
-      className={className}
+      className={chipClass}
     >
       {inner}
     </Link>

@@ -29,7 +29,9 @@ export function ArchetypeBadgeStudy({
   className,
 }: ArchetypeBadgeStudyProps) {
   // Falls back to the mark tone, which steps Stone 600 -> 400 on a dark
-  // ground. `--stone-600` is that tone's frozen LIGHT value (spec delta 06).
+  // ground. The Stone 600 ramp entry is that tone's frozen LIGHT value
+  // (spec delta 06), and naming it here — even in a comment — is the spelling
+  // the section guard exists to keep out.
   const colorVar =
     clusterId !== undefined ? `--cluster-${clusterId}` : "--mark-primary";
 
