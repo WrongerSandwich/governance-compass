@@ -7,6 +7,7 @@ import { Radar } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
+import { BUDGET_COLORS } from "@/lib/study/budgetColors";
 import { useEscapeKey } from "@/lib/study/useEscapeKey";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
@@ -34,16 +35,6 @@ const BUDGET_LABELS: Record<string, string> = {
   justice_civil_liberties: "Justice & Civil Liberties",
   foreign_affairs: "Foreign Affairs",
 };
-
-const BUDGET_COLORS = [
-  "var(--cluster-5)",
-  "var(--cluster-4)",
-  "var(--cluster-0)",
-  "var(--cluster-3)",
-  "var(--cluster-1)",
-  "var(--cluster-2)",
-  "var(--stone-400)",
-];
 
 function axisKeyToNumber(key: string): number {
   return parseInt(key.split("_")[0], 10);

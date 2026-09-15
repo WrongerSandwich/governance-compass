@@ -178,3 +178,21 @@ describe("the compare view joins the label layer", () => {
     expect(read(FILE)).not.toContain("var(--text-tertiary)");
   });
 });
+
+describe("the persona modal's chrome joins the label layer", () => {
+  const FILE = "src/components/study/PersonaModal.tsx";
+
+  it("marks the modal's error state so it is not carried by colour alone", () => {
+    // Phase 5's D16 amendment: `text-red-600` was swapped for the warning
+    // ink at six sites on the premise that every one already had
+    // `role="alert"` or a live region, and that premise was false at three
+    // of them. The modal's fetch-error string has neither today, and it is
+    // about to become the same amber as an advisory notice — so the cue a
+    // sighted user had gets weaker at the same moment. The role goes on
+    // first.
+    const text = read(FILE);
+    const errorBlock = text.slice(Math.max(0, text.indexOf("{error}") - 600), text.indexOf("{error}"));
+
+    expect(errorBlock).toContain('role="alert"');
+  });
+});

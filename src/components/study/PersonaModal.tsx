@@ -13,6 +13,7 @@ import { Radar, DEFAULT_AXIS_LABELS } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
+import { BUDGET_COLORS } from "@/lib/study/budgetColors";
 import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
 import { personaNeighbors } from "@/lib/study/personaNavigation";
@@ -123,20 +124,6 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
     value: budget[key] ?? 0,
   }));
 
-  // Pragmatic reuse of the cluster palette — 7 ministry segments need 7
-  // distinct hues, and the cluster tokens happen to provide a coherent
-  // 6-color set within the warm stone family. stone-400 rounds out the
-  // seventh. Not semantically tied to cluster identity here.
-  const COLORS = [
-    "var(--cluster-5)",
-    "var(--cluster-4)",
-    "var(--cluster-0)",
-    "var(--cluster-3)",
-    "var(--cluster-1)",
-    "var(--cluster-2)",
-    "var(--stone-400)",
-  ];
-
   return (
     <div>
       <div
@@ -159,7 +146,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
               title={`${e.name}: ${e.value}`}
               style={{
                 width: `${pct}%`,
-                backgroundColor: COLORS[i % COLORS.length],
+                backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
             />
@@ -181,12 +168,11 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
         {entries.map((e, i) => (
           <div
             key={e.key}
+            className="mono-meta text-text-label"
             style={{
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              fontSize: "11px",
-              color: "var(--text-tertiary)",
             }}
           >
             <span
@@ -196,23 +182,21 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
                 width: "8px",
                 height: "8px",
                 borderRadius: "1px",
-                backgroundColor: COLORS[i % COLORS.length],
+                backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
             />
             <span>
               {e.name}{" "}
-              <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+              <span className="text-text-primary font-medium">
                 {e.value ?? "—"}
               </span>
             </span>
           </div>
         ))}
         <div
-          className="budget-total"
+          className="budget-total mono-meta text-text-label"
           style={{
-            fontSize: "11px",
-            color: "var(--text-tertiary)",
             marginLeft: "auto",
           }}
         >
@@ -274,12 +258,8 @@ function ModalHeader({
       <div style={{ minWidth: 0, flex: 1 }}>
         <h2
           id={titleId}
+          className="display-m text-text-primary"
           style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 500,
-            fontSize: "24px",
-            lineHeight: 1.2,
-            color: "var(--text-primary)",
             margin: 0,
             marginBottom: "4px",
           }}
@@ -287,11 +267,9 @@ function ModalHeader({
           {persona.name}
         </h2>
         <p
+          className="body-s text-text-secondary"
           style={{
-            fontSize: "13px",
-            color: "var(--text-secondary)",
             margin: 0,
-            lineHeight: 1.4,
           }}
         >
           <span className="identity-full">{identityFull}</span>
@@ -318,11 +296,11 @@ function ModalHeader({
           {n_models === 2 && (
             <a
               href="#modal-raw-responses"
+              className="mono-meta"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
-                fontSize: "11px",
                 padding: "2px 7px",
                 borderRadius: "3px",
                 border: "0.5px solid var(--model-claude)",
@@ -344,13 +322,13 @@ function ModalHeader({
         ref={closeBtnRef}
         onClick={onClose}
         aria-label="Close persona modal"
+        className="text-text-label"
         style={{
           background: "none",
           border: "1px solid var(--border-primary)",
           borderRadius: "3px",
           padding: "4px 6px",
           cursor: "pointer",
-          color: "var(--text-tertiary)",
           lineHeight: 1,
           flexShrink: 0,
           display: "flex",
@@ -372,11 +350,13 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
   // Section header styling — serif medium, sentence case, text-primary.
   // Clearly differentiated from the 11px uppercase field labels below.
+  //
+  // The delta's serif scale has no 13px step; a small serif-500 heading maps
+  // onto `display-s`, which is the move `CompareView`'s persona name already
+  // made from 14px. The rule that stays true is the one the comment above
+  // states — serif against the mono field labels underneath.
+  const sectionHeaderClass = "display-s text-text-primary";
   const sectionHeaderStyle: React.CSSProperties = {
-    fontSize: "13px",
-    fontFamily: "var(--font-serif)",
-    fontWeight: 500,
-    color: "var(--text-primary)",
     marginBottom: "8px",
     paddingBottom: "4px",
     borderBottom: "0.5px solid var(--border-secondary)",
@@ -386,7 +366,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {/* Situation */}
       <div>
-        <div style={sectionHeaderStyle}>Situation</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Situation
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -401,12 +383,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
+                  className="label text-text-label font-medium"
                   style={{
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--text-tertiary)",
                     paddingBottom: "3px",
                     paddingRight: "8px",
                     verticalAlign: "top",
@@ -416,9 +394,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
+                  className="body-s text-text-secondary"
                   style={{
-                    fontSize: "13px",
-                    color: "var(--text-secondary)",
                     paddingBottom: "3px",
                   }}
                 >
@@ -432,7 +409,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Life context */}
       <div>
-        <div style={sectionHeaderStyle}>Life context</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Life context
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {[
@@ -442,12 +421,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
+                  className="label text-text-label font-medium"
                   style={{
-                    fontSize: "11px",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--text-tertiary)",
                     paddingBottom: "3px",
                     paddingRight: "8px",
                     verticalAlign: "top",
@@ -457,9 +432,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
+                  className="body-s text-text-secondary"
                   style={{
-                    fontSize: "13px",
-                    color: "var(--text-secondary)",
                     paddingBottom: "3px",
                   }}
                 >
@@ -473,16 +447,19 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
 
       {/* Governance experience */}
       <div>
-        <div style={sectionHeaderStyle}>Governance experience</div>
+        <div className={sectionHeaderClass} style={sectionHeaderStyle}>
+          Governance experience
+        </div>
         <div
-          style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "3px" }}
+          className="body-s text-text-secondary"
+          style={{ marginBottom: "3px" }}
         >
-          <strong style={{ fontWeight: 500, color: "var(--text-primary)" }}>
+          <strong className="text-text-primary font-medium">
             {labelFor(GOVERNANCE_LABELS, persona.governance_experience)}
           </strong>
         </div>
         {persona.governance_detail && (
-          <div style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          <div className="body-s text-text-secondary">
             {persona.governance_detail}
           </div>
         )}
@@ -502,10 +479,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <div className="bio-narrative">
           {persona.life_narrative && (
             <div
+              className="body-s text-text-primary"
               style={{
-                fontSize: "14px",
-                lineHeight: 1.65,
-                color: "var(--text-primary)",
                 marginBottom: "12px",
               }}
             >
@@ -514,10 +489,8 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
           )}
           {persona.key_tensions && (
             <div
+              className="body-s text-text-secondary"
               style={{
-                fontSize: "13px",
-                lineHeight: 1.6,
-                color: "var(--text-secondary)",
                 borderLeft: "2px solid var(--border-primary)",
                 paddingLeft: "12px",
               }}
@@ -531,11 +504,9 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
         <div className="bio-details-desktop">{detailFields}</div>
         <details className="bio-details-mobile">
           <summary
+            className="body-s text-mark-primary font-medium"
             style={{
               cursor: "pointer",
-              fontSize: "13px",
-              color: "var(--stone-600)",
-              fontWeight: 500,
               marginTop: "12px",
               userSelect: "none",
             }}
@@ -763,7 +734,7 @@ function SingleModelScoredProfile({
             scores={scoreArray}
             axisLabels={DEFAULT_AXIS_LABELS}
             size={300}
-            colorVar="--stone-600"
+            colorVar="--mark-primary"
           />
         </div>
 
@@ -1862,6 +1833,7 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        className="body-s text-text-secondary font-medium"
         style={{
           width: "100%",
           display: "flex",
@@ -1871,9 +1843,6 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "13px",
-          color: "var(--text-secondary)",
-          fontWeight: 500,
           textAlign: "left",
         }}
       >
@@ -1922,14 +1891,12 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => handleTabSwitch(model)}
                     onKeyDown={(e) => handleTabKeyDown(e, model)}
+                    className="control"
                     style={{
                       padding: "6px 18px",
                       background: isActive ? modelColor : "none",
                       border: "none",
                       cursor: "pointer",
-                      fontSize: "12px",
-                      fontVariant: "small-caps",
-                      letterSpacing: "0.05em",
                       color: isActive ? "var(--surface-1)" : "var(--text-secondary)",
                       fontWeight: isActive ? 500 : 400,
                       transition: "background 200ms ease, color 200ms ease",
@@ -2021,11 +1988,11 @@ function ModalFooter({ id }: { id: string }) {
       {/* Share */}
       <button
         onClick={handleShare}
+        className="body-s"
         style={{
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "13px",
           color: copied ? "var(--cluster-3)" : "var(--text-tertiary)",
           padding: 0,
           transition: "color 150ms ease",
@@ -2037,18 +2004,18 @@ function ModalFooter({ id }: { id: string }) {
       {/* Prev / Next — text-only, matches the Personas pagination pattern. */}
       {filteredIds.length > 1 && (
         <div
+          className="body-s text-text-label"
           style={{
             display: "flex",
             gap: "12px",
             alignItems: "baseline",
-            fontSize: "13px",
-            color: "var(--text-tertiary)",
           }}
         >
           <button
             onClick={() => prevId && navigateTo(prevId)}
             disabled={!hasPrev}
             aria-label="Previous persona"
+            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -2057,7 +2024,6 @@ function ModalFooter({ id }: { id: string }) {
               color: hasPrev
                 ? "var(--text-secondary)"
                 : "var(--border-primary)",
-              fontSize: "13px",
             }}
           >
             ← Previous
@@ -2065,11 +2031,7 @@ function ModalFooter({ id }: { id: string }) {
           {currentIndex >= 0 && (
             <span
               aria-hidden="true"
-              style={{
-                fontSize: "11px",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-mono)",
-              }}
+              className="mono-meta text-text-label"
             >
               {currentIndex + 1} / {filteredIds.length}
             </span>
@@ -2078,6 +2040,7 @@ function ModalFooter({ id }: { id: string }) {
             onClick={() => nextId && navigateTo(nextId)}
             disabled={!hasNext}
             aria-label="Next persona"
+            className="body-s"
             style={{
               background: "none",
               border: "none",
@@ -2086,7 +2049,6 @@ function ModalFooter({ id }: { id: string }) {
               color: hasNext
                 ? "var(--text-secondary)"
                 : "var(--border-primary)",
-              fontSize: "13px",
             }}
           >
             Next →
@@ -2275,11 +2237,10 @@ export function PersonaModal({ id }: PersonaModalProps) {
           {/* Loading state */}
           {loading && (
             <div
+              className="body-s text-text-secondary"
               style={{
                 padding: "60px 24px",
                 textAlign: "center",
-                color: "var(--text-tertiary)",
-                fontSize: "14px",
               }}
             >
               {/* Hidden close button so focus trap doesn't get stuck */}
@@ -2287,6 +2248,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
                 ref={closeBtnRef}
                 onClick={handleClose}
                 aria-label="Close persona modal"
+                className="text-text-label"
                 style={{
                   position: "absolute",
                   top: "16px",
@@ -2296,7 +2258,6 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   borderRadius: "3px",
                   padding: "4px 6px",
                   cursor: "pointer",
-                  color: "var(--text-tertiary)",
                   lineHeight: 1,
                   display: "flex",
                   alignItems: "center",
@@ -2311,17 +2272,17 @@ export function PersonaModal({ id }: PersonaModalProps) {
           {/* Error state */}
           {!loading && error && (
             <div
+              className="body-s text-text-secondary"
               style={{
                 padding: "40px 24px",
                 textAlign: "center",
-                color: "var(--text-secondary)",
-                fontSize: "14px",
               }}
             >
               <button
                 ref={closeBtnRef}
                 onClick={handleClose}
                 aria-label="Close persona modal"
+                className="text-text-label"
                 style={{
                   position: "absolute",
                   top: "16px",
@@ -2331,7 +2292,6 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   borderRadius: "3px",
                   padding: "4px 6px",
                   cursor: "pointer",
-                  color: "var(--text-tertiary)",
                   lineHeight: 1,
                   display: "flex",
                   alignItems: "center",
@@ -2339,10 +2299,16 @@ export function PersonaModal({ id }: PersonaModalProps) {
               >
                 <X size={16} aria-hidden />
               </button>
-              <div style={{ marginBottom: "8px", color: "var(--text-primary)" }}>
+              <div className="text-text-primary" style={{ marginBottom: "8px" }}>
                 Could not load persona
               </div>
-              <div style={{ fontSize: "12px" }}>{error}</div>
+              {/* `role="alert"` before the colour change, not after it: the
+                  string is about to carry the same advisory amber an ordinary
+                  notice does, so the cue a sighted user had gets weaker at the
+                  same moment (phase 5, D16). */}
+              <div role="alert" className="body-xs text-warning-text">
+                {error}
+              </div>
             </div>
           )}
 
