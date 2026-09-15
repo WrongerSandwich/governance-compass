@@ -2214,7 +2214,6 @@ export function PersonaModal({ id }: PersonaModalProps) {
         .tension-abbr { display: none; }
         @media (max-width: 640px) {
           .persona-modal-container {
-            border-radius: var(--radius) !important;
             /* 100dvh adapts to iOS URL-bar toggle; 24px gap leaves
                breathing room at top and bottom so prev/next footer
                isn't cut off by the viewport edge. */

@@ -199,6 +199,27 @@ function offenders(pattern: RegExp, replacement: string): string[] {
   });
 }
 
+/**
+ * Radius values delta 02 exempts, named rather than pattern-matched: a
+ * circle is not a rounded rectangle and a pill is not either, so neither
+ * moves onto the token.
+ */
+const ALLOWED_RADII = new Set(["50%", "999px", "var(--radius)"]);
+
+/**
+ * Files the two radius guards below scan. Rooted at `src` rather than at
+ * the section being swept: measured across all of `src` there are zero
+ * offenders, so the wider root costs nothing today and permanently covers
+ * the sections earlier phases swept, which until now leaned only on the
+ * value-specific 12px/8px guards above.
+ *
+ * These roots must never grow to include `tests/`. The guards below spell
+ * out the literals they ban in their own comments, and a text scan cannot
+ * tell code from prose about code — a root that reached this file would
+ * redden it on its own explanation, or (worse) be satisfied by it forever.
+ */
+const radiusScanFiles = sourceFiles(resolve(process.cwd(), "src"));
+
 describe("near-square corners (design delta 02)", () => {
   it("has retired every 12px and 8px radius class literal from src", () => {
     // Covers the arbitrary-value spelling (rounded-[8px]), Tailwind's default
@@ -244,56 +265,49 @@ describe("near-square corners (design delta 02)", () => {
     expect(globalsCss).not.toMatch(/border-radius:\s*(?:12|8)px/);
   });
 
-  it("spells every non-circular radius in the study section as the token", () => {
+  it("spells every quoted style-prop radius in src as the token", () => {
     // The two shipped cases in this block catch 12px and 8px, which is what
-    // the rest of the codebase had. /study had none of those and forty of
+    // the rest of the codebase had. /study had none of those and 39 of
     // something else — 1, 2, 3, 4 and 6px, five spellings of one intent, all
     // invisible to a guard written around the two values the sweep removed.
+    // 34 of the 39 were the quoted style-prop form this case reads; the
+    // unquoted and CSS-syntax spellings are the case below, and the two are
+    // complementary halves rather than one broad scan and one narrow one.
     //
-    // 50% and 999px are exempt and named rather than pattern-matched: a
-    // circle is not a rounded rectangle and delta 02 says so.
-    const ALLOWED = new Set(["50%", "999px", "var(--radius)"]);
-    const studyFiles = [
-      ...sourceFiles(resolve(process.cwd(), "src/app/study")),
-      ...sourceFiles(resolve(process.cwd(), "src/components/study")),
-    ];
-    // A flatMap over an empty list is an empty list, so a guard whose roots
-    // stopped resolving would report success forever.
-    expect(studyFiles.length).toBeGreaterThan(0);
+    // All three quote styles, matching the 12px/8px case above: a literal
+    // that only a single-quote scan would see is exactly the one that gets
+    // written next.
+    expect(radiusScanFiles.length).toBeGreaterThan(0);
 
-    const offenders = studyFiles.flatMap((file) => {
+    const offenders = radiusScanFiles.flatMap((file) => {
       const text = readFileSync(file, "utf8");
-      return (text.match(/borderRadius: *"([^"]*)"/g) ?? [])
-        .map((m) => m.replace(/borderRadius: *"|"$/g, ""))
-        .filter((value) => !ALLOWED.has(value))
+      return [...text.matchAll(/borderRadius: *(["'`])([^"'`]*)\1/g)]
+        .map(([, , value]) => value)
+        .filter((value) => !ALLOWED_RADII.has(value))
         .map((value) => `${relative(process.cwd(), file)}: ${value}`);
     });
 
     expect(offenders).toEqual([]);
   });
 
-  it("spells the study section's unquoted and CSS-syntax radii as the token", () => {
-    // Two spellings the scan above cannot see, both live in /study: the
-    // unquoted numeric form React accepts (borderRadius: 3) and the CSS
-    // property inside a <style>{`…`}</style> block (border-radius: 3px).
-    // Same intent, same delta — and an unswept spelling is exactly the one
-    // that survives a sweep written around the spelling somebody happened
-    // to use first.
-    const ALLOWED = new Set(["50%", "999px", "var(--radius)"]);
-    const studyFiles = [
-      ...sourceFiles(resolve(process.cwd(), "src/app/study")),
-      ...sourceFiles(resolve(process.cwd(), "src/components/study")),
-    ];
-    expect(studyFiles.length).toBeGreaterThan(0);
+  it("spells every unquoted and CSS-syntax radius in src as the token", () => {
+    // Two spellings the case above cannot see, both of which /study had: the
+    // unquoted numeric form React accepts, and the CSS property inside a
+    // <style>{`…`}</style> block. Five of the 39, and the ones a sweep
+    // written around whichever spelling came first leaves standing.
+    //
+    // The CSS terminator is [;}] rather than ;, so an unterminated final
+    // declaration in a block is still seen.
+    expect(radiusScanFiles.length).toBeGreaterThan(0);
 
-    const offenders = studyFiles.flatMap((file) => {
+    const offenders = radiusScanFiles.flatMap((file) => {
       const text = readFileSync(file, "utf8");
       const unquoted = [...text.matchAll(/borderRadius: *([^"'`\s][^,\n}]*)/g)]
         .map(([, value]) => value.trim().replace(/,$/, ""))
-        .filter((value) => !ALLOWED.has(value));
-      const css = [...text.matchAll(/border-radius: *([^;]+);/g)]
-        .map(([, value]) => value.replace(/!important$/, "").trim())
-        .filter((value) => !ALLOWED.has(value));
+        .filter((value) => !ALLOWED_RADII.has(value));
+      const css = [...text.matchAll(/border-radius: *([^;}]+)[;}]/g)]
+        .map(([, value]) => value.trim().replace(/\s*!important$/, "").trim())
+        .filter((value) => !ALLOWED_RADII.has(value));
       return [...unquoted, ...css].map(
         (value) => `${relative(process.cwd(), file)}: ${value}`,
       );
