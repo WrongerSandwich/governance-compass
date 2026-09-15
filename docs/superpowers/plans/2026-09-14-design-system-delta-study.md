@@ -1767,6 +1767,8 @@ Twenty sites; `grep -n 'fill:' src/components/study/{Histogram,ViolinOrRidge,Ten
 
 Two sites also change family: `Histogram:221`/`:238` and `CorrelationHeatmap:68`/`:87` are `var(--font-sans)` and become mono, per delta 01's "every axis endpoint, count, and status becomes uppercase monospace."
 
+**One non-text site in these files, found by Task 5's implementer and routed here because it is their file:** `HorizontalBarChart.tsx:107`, `const defaultColor = row.color ?? "var(--stone-600)"` — the frozen mark tone as a fallback fill. It is currently unreached, because every caller now passes a colour explicitly, which is exactly why it would survive a visual check and a green suite indefinitely. It becomes `var(--mark-primary)`. Task 14's section-wide guard would red on it otherwise.
+
 - [ ] **Step 4: Run the tests**
 
 ```bash
