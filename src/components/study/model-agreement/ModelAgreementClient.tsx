@@ -92,7 +92,7 @@ function ColorKey({
               width: "12px",
               height: "12px",
               background: color,
-              borderRadius: "2px",
+              borderRadius: "var(--radius)",
             }}
           />
           <span className="mono-meta text-text-label">{label}</span>

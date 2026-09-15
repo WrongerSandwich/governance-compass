@@ -243,6 +243,64 @@ describe("near-square corners (design delta 02)", () => {
     // above only scan .tsx files.
     expect(globalsCss).not.toMatch(/border-radius:\s*(?:12|8)px/);
   });
+
+  it("spells every non-circular radius in the study section as the token", () => {
+    // The two shipped cases in this block catch 12px and 8px, which is what
+    // the rest of the codebase had. /study had none of those and forty of
+    // something else — 1, 2, 3, 4 and 6px, five spellings of one intent, all
+    // invisible to a guard written around the two values the sweep removed.
+    //
+    // 50% and 999px are exempt and named rather than pattern-matched: a
+    // circle is not a rounded rectangle and delta 02 says so.
+    const ALLOWED = new Set(["50%", "999px", "var(--radius)"]);
+    const studyFiles = [
+      ...sourceFiles(resolve(process.cwd(), "src/app/study")),
+      ...sourceFiles(resolve(process.cwd(), "src/components/study")),
+    ];
+    // A flatMap over an empty list is an empty list, so a guard whose roots
+    // stopped resolving would report success forever.
+    expect(studyFiles.length).toBeGreaterThan(0);
+
+    const offenders = studyFiles.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      return (text.match(/borderRadius: *"([^"]*)"/g) ?? [])
+        .map((m) => m.replace(/borderRadius: *"|"$/g, ""))
+        .filter((value) => !ALLOWED.has(value))
+        .map((value) => `${relative(process.cwd(), file)}: ${value}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("spells the study section's unquoted and CSS-syntax radii as the token", () => {
+    // Two spellings the scan above cannot see, both live in /study: the
+    // unquoted numeric form React accepts (borderRadius: 3) and the CSS
+    // property inside a <style>{`…`}</style> block (border-radius: 3px).
+    // Same intent, same delta — and an unswept spelling is exactly the one
+    // that survives a sweep written around the spelling somebody happened
+    // to use first.
+    const ALLOWED = new Set(["50%", "999px", "var(--radius)"]);
+    const studyFiles = [
+      ...sourceFiles(resolve(process.cwd(), "src/app/study")),
+      ...sourceFiles(resolve(process.cwd(), "src/components/study")),
+    ];
+    expect(studyFiles.length).toBeGreaterThan(0);
+
+    const offenders = studyFiles.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      const unquoted = [...text.matchAll(/borderRadius: *([^"'`\s][^,\n}]*)/g)]
+        .map(([, value]) => value.trim().replace(/,$/, ""))
+        .filter((value) => !ALLOWED.has(value));
+      const css = [...text.matchAll(/border-radius: *([^;]+);/g)]
+        .map(([, value]) => value.replace(/!important$/, "").trim())
+        .filter((value) => !ALLOWED.has(value));
+      return [...unquoted, ...css].map(
+        (value) => `${relative(process.cwd(), file)}: ${value}`,
+      );
+    });
+
+    expect(offenders).toEqual([]);
+  });
 });
 
 describe("focus ring", () => {

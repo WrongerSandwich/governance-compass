@@ -108,7 +108,7 @@ export function TopCorrelationsList({
                 width: `${BAR_MAX_WIDTH}px`,
                 height: "8px",
                 backgroundColor: "var(--surface-2)",
-                borderRadius: "2px",
+                borderRadius: "var(--radius)",
                 flexShrink: 0,
                 overflow: "hidden",
               }}
@@ -119,7 +119,7 @@ export function TopCorrelationsList({
                   width: `${barWidth}px`,
                   height: "100%",
                   backgroundColor: barColor,
-                  borderRadius: "2px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.8,
                 }}
               />

@@ -118,7 +118,7 @@ export function TransnationalTile({
       style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: "6px",
+        borderRadius: "var(--radius)",
         border: isSelected
           ? "1.5px solid var(--map-accent)"
           : "1px solid var(--map-border)",

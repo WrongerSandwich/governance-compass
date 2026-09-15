@@ -57,7 +57,7 @@ const selectStyle: CSSProperties = {
   width: "100%",
   padding: "5px 8px",
   border: "1px solid var(--border-primary)",
-  borderRadius: "3px",
+  borderRadius: "var(--radius)",
   backgroundColor: "var(--surface-1)",
   appearance: "auto",
 };
@@ -66,7 +66,7 @@ const inputStyle: CSSProperties = {
   width: "100%",
   padding: "5px 8px",
   border: "1px solid var(--border-primary)",
-  borderRadius: "3px",
+  borderRadius: "var(--radius)",
   backgroundColor: "var(--surface-1)",
   boxSizing: "border-box",
 };

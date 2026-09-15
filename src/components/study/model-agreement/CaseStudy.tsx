@@ -56,7 +56,7 @@ function ModelLegend() {
             style={{
               width: "10px",
               height: "10px",
-              borderRadius: "2px",
+              borderRadius: "var(--radius)",
               background: color,
               flexShrink: 0,
             }}

@@ -126,7 +126,7 @@ function StackedBarChart({ title, rows, attribute }: StackedBarChartProps) {
                 style={{
                   display: "flex",
                   height: "20px",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   overflow: "hidden",
                   border: "1px solid var(--surface-2)",
                 }}
@@ -192,7 +192,7 @@ function ClusterLegend() {
             style={{
               width: 14,
               height: 14,
-              borderRadius: 2,
+              borderRadius: "var(--radius)",
               background: `var(--cluster-${c})`,
               border: "1px solid var(--map-border)",
               flexShrink: 0,

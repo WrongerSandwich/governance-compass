@@ -847,7 +847,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
           background: var(--stone-900);
           color: var(--stone-50);
           padding: 6px 10px;
-          border-radius: 3px;
+          border-radius: var(--radius);
           font-family: var(--font-sans);
           font-size: 12px;
           line-height: 1.35;

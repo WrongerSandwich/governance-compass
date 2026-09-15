@@ -53,7 +53,7 @@ export function ComparePinButton({
         cursor: isDisabled ? "not-allowed" : "pointer",
         color: isPinned ? "var(--mark-primary)" : "var(--text-label)",
         lineHeight: 1,
-        borderRadius: "3px",
+        borderRadius: "var(--radius)",
         transition: "color 120ms ease",
         opacity: isDisabled ? 0.4 : 1,
         // 44x44 hit target (WCAG 2.5.5), icon centered.

@@ -121,7 +121,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
         style={{
           display: "flex",
           height: "20px",
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           overflow: "hidden",
           border: "1px solid var(--border-secondary)",
         }}
@@ -172,7 +172,7 @@ function BudgetStrip({ budget }: { budget: Record<string, number> }) {
                 display: "inline-block",
                 width: "8px",
                 height: "8px",
-                borderRadius: "1px",
+                borderRadius: "var(--radius)",
                 backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
@@ -293,7 +293,7 @@ function ModalHeader({
                 alignItems: "center",
                 gap: "4px",
                 padding: "2px 7px",
-                borderRadius: "3px",
+                borderRadius: "var(--radius)",
                 border: "0.5px solid var(--model-claude)",
                 backgroundColor:
                   "color-mix(in srgb, var(--model-claude) 8%, transparent)",
@@ -317,7 +317,7 @@ function ModalHeader({
         style={{
           background: "none",
           border: "1px solid var(--border-primary)",
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           padding: "4px 6px",
           cursor: "pointer",
           lineHeight: 1,
@@ -616,7 +616,7 @@ function TensionBadge({
       style={{
         background: "none",
         border: `0.5px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
-        borderRadius: "2px",
+        borderRadius: "var(--radius)",
         padding: "0 4px",
         cursor: "pointer",
         // Severity is computed, so the colour stays inline; `label-tight`
@@ -783,7 +783,7 @@ function SingleModelScoredProfile({
                       fontStyle: tension.description ? "normal" : "italic",
                       padding: "6px 10px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid ${SEVERITY_COLORS[tension.severity] ?? "var(--warning)"}`,
                     }}
                   >
@@ -910,7 +910,7 @@ function DualModelScoredProfile({
                   width: "20px",
                   height: "2px",
                   backgroundColor: "var(--model-claude)",
-                  borderRadius: "1px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.85,
                 }}
                 aria-hidden
@@ -931,7 +931,7 @@ function DualModelScoredProfile({
                   width: "20px",
                   height: "2px",
                   backgroundColor: "var(--model-gemini)",
-                  borderRadius: "1px",
+                  borderRadius: "var(--radius)",
                   opacity: 0.85,
                 }}
                 aria-hidden
@@ -1308,7 +1308,7 @@ function DualModelScoredProfile({
                       marginBottom: "2px",
                       padding: "5px 8px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid var(--model-claude)`,
                     }}
                   >
@@ -1332,7 +1332,7 @@ function DualModelScoredProfile({
                       marginBottom: "2px",
                       padding: "5px 8px",
                       backgroundColor: "var(--surface-2)",
-                      borderRadius: "3px",
+                      borderRadius: "var(--radius)",
                       borderLeft: `2px solid var(--model-gemini)`,
                     }}
                   >
@@ -1719,7 +1719,7 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                 gap: "0",
                 marginBottom: "16px",
                 border: "1px solid var(--border-primary)",
-                borderRadius: "4px",
+                borderRadius: "var(--radius)",
                 overflow: "hidden",
                 width: "fit-content",
               }}
@@ -2077,7 +2077,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
             maxHeight: "90vh",
             backgroundColor: "var(--surface-1)",
             border: "1px solid var(--border-secondary)",
-            borderRadius: "6px",
+            borderRadius: "var(--radius)",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -2108,7 +2108,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   right: "16px",
                   background: "none",
                   border: "1px solid var(--border-primary)",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   padding: "4px 6px",
                   cursor: "pointer",
                   lineHeight: 1,
@@ -2142,7 +2142,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
                   right: "16px",
                   background: "none",
                   border: "1px solid var(--border-primary)",
-                  borderRadius: "3px",
+                  borderRadius: "var(--radius)",
                   padding: "4px 6px",
                   cursor: "pointer",
                   lineHeight: 1,
@@ -2209,7 +2209,7 @@ export function PersonaModal({ id }: PersonaModalProps) {
         .tension-abbr { display: none; }
         @media (max-width: 640px) {
           .persona-modal-container {
-            border-radius: 4px !important;
+            border-radius: var(--radius) !important;
             /* 100dvh adapts to iOS URL-bar toggle; 24px gap leaves
                breathing room at top and bottom so prev/next footer
                isn't cut off by the viewport edge. */

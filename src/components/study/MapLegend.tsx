@@ -82,7 +82,7 @@ function Swatch({
         style={{
           width: 24,
           height: 16,
-          borderRadius: 3,
+          borderRadius: "var(--radius)",
           background: fill,
           border: "1px solid var(--map-border)",
           flexShrink: 0,
@@ -216,7 +216,7 @@ export function MapLegend(props: MapLegendProps) {
               height: 12,
               background: s.fill,
               border: "1px solid var(--map-border)",
-              borderRadius: 2,
+              borderRadius: "var(--radius)",
             }}
           />
         ))}

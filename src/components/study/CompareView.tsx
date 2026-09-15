@@ -57,7 +57,7 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
         style={{
           display: "flex",
           height: "16px",
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           overflow: "hidden",
           border: "1px solid var(--border-secondary)",
         }}
@@ -103,7 +103,7 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
                 display: "inline-block",
                 width: "6px",
                 height: "6px",
-                borderRadius: "1px",
+                borderRadius: "var(--radius)",
                 backgroundColor: BUDGET_COLORS[i % BUDGET_COLORS.length],
                 flexShrink: 0,
               }}
@@ -163,7 +163,7 @@ function PersonaPanel({
         margin: 0,
         padding: "16px",
         border: "1px solid var(--border-secondary)",
-        borderRadius: "6px",
+        borderRadius: "var(--radius)",
         backgroundColor: "var(--surface-1)",
         display: "flex",
         flexDirection: "column",
@@ -186,7 +186,7 @@ function PersonaPanel({
           cursor: "pointer",
           padding: "4px",
           lineHeight: 1,
-          borderRadius: "3px",
+          borderRadius: "var(--radius)",
           display: "flex",
           alignItems: "center",
         }}
@@ -284,7 +284,7 @@ function PersonaPanel({
                   style={{
                     height: "3px",
                     backgroundColor: "var(--border-secondary)",
-                    borderRadius: "2px",
+                    borderRadius: "var(--radius)",
                     overflow: "hidden",
                   }}
                 >
@@ -293,7 +293,7 @@ function PersonaPanel({
                       width: `${barPct}%`,
                       height: "100%",
                       backgroundColor: "var(--mark-primary)",
-                      borderRadius: "2px",
+                      borderRadius: "var(--radius)",
                     }}
                   />
                 </div>
@@ -342,7 +342,7 @@ function PanelSkeleton({ id }: { id: string }) {
       style={{
         padding: "16px",
         border: "1px solid var(--border-secondary)",
-        borderRadius: "6px",
+        borderRadius: "var(--radius)",
         backgroundColor: "var(--surface-1)",
         minHeight: "200px",
         display: "flex",
@@ -362,7 +362,7 @@ function PanelError({ id }: { id: string }) {
       style={{
         padding: "16px",
         border: "1px solid var(--border-secondary)",
-        borderRadius: "6px",
+        borderRadius: "var(--radius)",
         backgroundColor: "var(--surface-1)",
         minHeight: "100px",
         display: "flex",
@@ -503,7 +503,7 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
             style={{
               background: "none",
               border: "1px solid var(--border-primary)",
-              borderRadius: "3px",
+              borderRadius: "var(--radius)",
               padding: "4px 8px",
               cursor: "pointer",
               display: "flex",

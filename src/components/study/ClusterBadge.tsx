@@ -43,7 +43,7 @@ export function ClusterBadge({
     alignItems: "baseline",
     gap: 0,
     padding: "1px 6px",
-    borderRadius: "3px",
+    borderRadius: "var(--radius)",
     border: `0.5px solid var(${colorVar})`,
     color: `var(${colorVar})`,
     backgroundColor: `color-mix(in srgb, var(${colorVar}) 10%, transparent)`,

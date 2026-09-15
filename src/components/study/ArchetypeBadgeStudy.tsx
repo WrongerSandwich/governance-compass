@@ -41,7 +41,7 @@ export function ArchetypeBadgeStudy({
     alignItems: "flex-start",
     gap: 0,
     padding: "2px 7px",
-    borderRadius: "3px",
+    borderRadius: "var(--radius)",
     border: `0.5px solid var(${colorVar})`,
     backgroundColor: `color-mix(in srgb, var(${colorVar}) 8%, transparent)`,
     textDecoration: "none",
