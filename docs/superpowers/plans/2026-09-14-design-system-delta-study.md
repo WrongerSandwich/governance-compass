@@ -591,7 +591,8 @@ Apply **the role mapping table** (above) to each site. The tables here give the 
 | --- | --- | --- |
 | 86-89 | `domainColorFor()` returning `#85735e` / `#6b7d8a` / `#7a8b6e` / `#96716b` | Delete the function; call `getDomainMarkVar(axisId)`. It already returns the wrapped `var(--domain-…)` form — do **not** wrap it again. Four frozen hexes that cannot step to their 400 tone on dark (spec delta 06). |
 | 516, 547 | `fontFamily: sans, fontSize: "var(--text-xs, 11px)", color: "var(--text-tertiary)"` on an axis caption | `className="label-tight text-text-label"`, drop all four properties from the style object |
-| 840, 874 | `fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-tertiary)", fontFamily: sans` | `className="label text-text-label"` |
+| 840 | `fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-tertiary)", fontFamily: sans` — a short chart key | `className="label text-text-label"` |
+| 874 | The same properties, but the content is **two sentences, 108 characters** | **Split it.** `Tension rate by axis × cluster` → `label text-text-label`; the rest → a sibling `<p className="body-xs text-text-secondary">`. The first draft of this table lumped this site in with its short sibling above, and Task 4's implementer correctly flagged the result: a 108-character description in uppercase mono at 0.12em is ~40% wider than it was and hard to read. Spec delta 01 says prose "stays sans" and the mono layer "frames but never enters." **A label role is for a key, not for a sentence** — apply that test to every site in Tasks 5-9 too, not just this one. |
 | 362, 420, 470, 699, 761, 826 | `text-[22px] font-serif font-medium text-text-primary text-balance` | `display-entry text-text-primary text-balance` |
 | 584, 657 | `text-[17px] font-serif font-medium text-text-primary` | `display-s text-text-primary` |
 
@@ -1987,6 +1988,8 @@ Specific things to look at rather than glance past, because each is a place a un
 - The charts after Task 13: mono tick labels are wider than the sans ones they replace, so a tick row that just fit may now collide. `Histogram`, `ViolinOrRidge` and `CorrelationHeatmap` are the three with the tightest label rows.
 - The modal's axis rows after Task 9: the dots should now sit where their numeric readouts say, and a score of ±1.00 should sit **on** the track rather than half off its end. That is the defect the convergence fixes and it is visible at a glance once you know to look.
 - The three prose pages narrowing from 768px to 660px: confirm nothing that assumed the wider measure now wraps badly — the correlation and tension charts on `/study/patterns` are the widest things on those pages.
+- **`ClusterCard`'s title line**, flagged by Task 4's implementer and deliberately left as-is: the cluster code `C2` dropped from an inherited 17px serif to 11px `mono-meta` while the name beside it stayed `display-s`, joined by an em dash. A mono code beside a serif name is the house idiom (`/archetypes` pairs a mono `NN` with its entry name), so this follows the role mapping — but whether `C2 — The Communitarian` still reads as one phrase across that size step is a question only a browser answers. The same pattern recurs on `PersonaCard` and `ClusterBadge` in Task 6, so decide it once here and apply the answer to all three.
+- **The kicker weight**, on all four pages: `PageHeader` sets no `font-weight` and the four hand-rolled kickers all carried 500. `/study` now matches the five reference pages. Confirm that reads as deliberate rather than washed out.
 
 - [ ] **Step 3: Amend the study spec (D31)**
 
