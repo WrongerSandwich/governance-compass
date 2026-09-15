@@ -73,14 +73,8 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
   return (
     <div>
       <div
-        style={{
-          fontSize: "11px",
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.07em",
-          color: "var(--text-tertiary)",
-          marginBottom: "5px",
-        }}
+        className="label text-text-label font-medium"
+        style={{ marginBottom: "5px" }}
       >
         Budget
       </div>
@@ -122,12 +116,11 @@ function MiniBudgetStrip({ budget }: { budget: Record<string, number> }) {
         {entries.map((e, i) => (
           <div
             key={e.key}
+            className="mono-meta text-text-label"
             style={{
               display: "flex",
               alignItems: "center",
               gap: "3px",
-              fontSize: "10px",
-              color: "var(--text-tertiary)",
             }}
           >
             <span
@@ -208,6 +201,7 @@ function PersonaPanel({
         onClick={onUnpin}
         aria-label={`Remove ${persona.name} from comparison`}
         title="Remove from comparison"
+        className="text-text-label"
         style={{
           position: "absolute",
           top: "10px",
@@ -215,7 +209,6 @@ function PersonaPanel({
           background: "none",
           border: "none",
           cursor: "pointer",
-          color: "var(--text-tertiary)",
           padding: "4px",
           lineHeight: 1,
           borderRadius: "3px",
@@ -230,32 +223,19 @@ function PersonaPanel({
       <div style={{ paddingRight: "24px" }}>
         <h3
           id={headingId}
+          className="display-s text-text-primary"
           style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 500,
-            fontSize: "16px",
-            lineHeight: 1.3,
-            color: "var(--text-primary)",
             margin: 0,
             marginBottom: "3px",
           }}
         >
           {persona.name}
         </h3>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "var(--text-secondary)",
-            lineHeight: 1.4,
-          }}
-        >
-          {identityLine}
-        </div>
+        <div className="body-xs text-text-secondary">{identityLine}</div>
         {n_models === 2 && (
           <div
+            className="mono-meta text-text-label"
             style={{
-              fontSize: "10px",
-              color: "var(--text-tertiary)",
               marginTop: "3px",
               fontStyle: "italic",
             }}
@@ -285,14 +265,8 @@ function PersonaPanel({
       {/* Axis score rows */}
       <div>
         <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: "var(--text-tertiary)",
-            marginBottom: "6px",
-          }}
+          className="label text-text-label font-medium"
+          style={{ marginBottom: "6px" }}
         >
           Axes
         </div>
@@ -313,9 +287,8 @@ function PersonaPanel({
                   }}
                 >
                   <span
+                    className="body-xs text-text-secondary"
                     style={{
-                      fontSize: "11px",
-                      color: "var(--text-secondary)",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -325,12 +298,8 @@ function PersonaPanel({
                     {axis.name}
                   </span>
                   <span
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--text-primary)",
-                      fontFamily: "var(--font-mono)",
-                      flexShrink: 0,
-                    }}
+                    className="mono-meta text-text-primary"
+                    style={{ flexShrink: 0 }}
                   >
                     {score >= 0 ? "+" : ""}
                     {score.toFixed(2)}
@@ -348,7 +317,7 @@ function PersonaPanel({
                     style={{
                       width: `${barPct}%`,
                       height: "100%",
-                      backgroundColor: "var(--stone-600)",
+                      backgroundColor: "var(--mark-primary)",
                       borderRadius: "2px",
                     }}
                   />
@@ -368,17 +337,15 @@ function PersonaPanel({
       <div style={{ marginTop: "auto", paddingTop: "4px" }}>
         <button
           onClick={onViewFull}
+          className="control text-mark-primary"
           style={{
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: "12px",
-            color: "var(--stone-600)",
             padding: 0,
             display: "inline-flex",
             alignItems: "center",
             gap: "4px",
-            fontWeight: 500,
           }}
         >
           View full profile
@@ -396,13 +363,12 @@ function PersonaPanel({
 function PanelSkeleton({ id }: { id: string }) {
   return (
     <div
+      className="body-s text-text-secondary"
       style={{
         padding: "16px",
         border: "1px solid var(--border-secondary)",
         borderRadius: "6px",
         backgroundColor: "var(--surface-1)",
-        fontSize: "13px",
-        color: "var(--text-tertiary)",
         minHeight: "200px",
         display: "flex",
         alignItems: "center",
@@ -417,13 +383,12 @@ function PanelSkeleton({ id }: { id: string }) {
 function PanelError({ id }: { id: string }) {
   return (
     <div
+      className="body-s text-text-secondary"
       style={{
         padding: "16px",
         border: "1px solid var(--border-secondary)",
         borderRadius: "6px",
         backgroundColor: "var(--surface-1)",
-        fontSize: "13px",
-        color: "var(--text-tertiary)",
         minHeight: "100px",
         display: "flex",
         alignItems: "center",
@@ -546,24 +511,12 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
           }}
         >
           <div>
-            <span
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--text-tertiary)",
-                fontWeight: 500,
-              }}
-            >
+            <span className="label text-text-label font-medium">
               Comparing
             </span>
             <span
-              style={{
-                marginLeft: "8px",
-                fontSize: "14px",
-                fontWeight: 500,
-                color: "var(--text-primary)",
-              }}
+              className="body-s text-text-primary font-medium"
+              style={{ marginLeft: "8px" }}
             >
               {count} persona{count !== 1 ? "s" : ""}
             </span>
@@ -571,17 +524,16 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
           <button
             onClick={onClose}
             aria-label="Close compare view"
+            className="body-s text-text-secondary"
             style={{
               background: "none",
               border: "1px solid var(--border-primary)",
               borderRadius: "3px",
               padding: "4px 8px",
               cursor: "pointer",
-              color: "var(--text-secondary)",
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              fontSize: "13px",
             }}
           >
             <X size={14} aria-hidden />

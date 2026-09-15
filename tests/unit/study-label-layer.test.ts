@@ -164,3 +164,17 @@ describe("the persona browser chrome joins the label layer", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe("the compare view joins the label layer", () => {
+  const FILE = "src/components/study/CompareView.tsx";
+
+  it("leaves no inline font size", () => {
+    expect(inlineFontSizes(read(FILE))).toEqual([]);
+  });
+
+  it("leaves no reference to the sub-AA tertiary token", () => {
+    // Nine sites, all inline, so the class-scanning half of the shipped
+    // guard would have missed every one.
+    expect(read(FILE)).not.toContain("var(--text-tertiary)");
+  });
+});
