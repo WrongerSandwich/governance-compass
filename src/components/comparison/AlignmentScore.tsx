@@ -14,10 +14,10 @@ export function AlignmentScore({ score }: AlignmentScoreProps) {
           : "Overall alignment unavailable: no shared axes"
       }
     >
-      <div className="text-[36px] font-serif font-medium text-text-primary">
+      <div data-alignment-value className="display-l text-text-primary">
         {hasScore ? `${score}%` : "—"}
       </div>
-      <div className="text-text-tertiary text-sm mt-1">
+      <div data-alignment-label className="label-eyebrow text-text-label mt-2">
         {hasScore ? "Overall alignment" : "No shared axes to compare"}
       </div>
     </div>

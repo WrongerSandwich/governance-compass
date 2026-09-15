@@ -76,7 +76,7 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
  *  container and this centred column diverge by design. Extracted so a metric
  *  change lands in one
  *  place rather than drifting across the question screens. */
-const QUESTION_SHELL = "mx-auto max-w-2xl pt-9 pb-[52px]";
+const QUESTION_SHELL = "mx-auto max-w-quiz pt-9 pb-[52px]";
 
 // ---------- recovery ----------
 

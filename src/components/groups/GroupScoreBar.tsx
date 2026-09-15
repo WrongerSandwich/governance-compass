@@ -97,7 +97,7 @@ export function GroupScoreBar({
         />
       )}
       {average === null && (
-        <div className="flex justify-between text-xs text-text-tertiary mt-1">
+        <div className="flex justify-between text-xs text-text-label mt-1">
           <span>{poleALabel}</span>
           <span>No data</span>
           <span>{poleBLabel}</span>

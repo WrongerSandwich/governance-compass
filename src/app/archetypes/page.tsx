@@ -10,6 +10,14 @@ import {
 import { axes } from "@/data/axes";
 import { ExternalLink, isExternalHref } from "@/components/ExternalLink";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
+import { PageHeader, SpoilerNote } from "@/components/PageHeader";
+import { ReferenceCta } from "@/components/ReferenceCta";
+import {
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+} from "@/lib/radar-geometry";
 
 const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   empirical: "●",
@@ -17,20 +25,61 @@ const EMERGENCE_GLYPH: Record<ArchetypeEmergence, string> = {
   theoretical: "○",
 };
 
-function EmergenceGlyph({ emergence }: { emergence: ArchetypeEmergence }) {
-  const fullLabel = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
+/** The legend's one-line gloss per tier.
+ *
+ *  Deliberately not `EMERGENCE_TOOLTIPS`, which is the long form the glyph's
+ *  `title` carries — three of those in a row is a wall of prose where mock 7c
+ *  draws three lines. Same facts, legend length. */
+const PROVENANCE_BLURB: Record<ArchetypeEmergence, string> = {
+  empirical: "identified from an empirical cluster in the April 2026 synthetic study",
+  refined: "hand-crafted, then adjusted toward a matching empirical centroid",
+  theoretical: "grounded in comparative political philosophy, no empirical match surfaced",
+};
+
+/** The provenance mark, in one of two name modes.
+ *
+ *  The page draws this glyph at three sites and each needs a different amount
+ *  of announcing, so the name is a prop rather than a constant:
+ *
+ *  - The index carries `"short"`. The glyph sits inside the row's <a>, so its
+ *    name is part of the link's, and the tier is otherwise unreachable there.
+ *    The tier NAME is enough: "01 Radical Egalitarian Emerged from data".
+ *  - The entry heading and the legend carry `"none"`. Both print the tier in
+ *    words within a line and a half of the mark, so a name here makes a screen
+ *    reader say the same tier twice in a row.
+ *
+ *  `title` is set at all three, and is deliberately never the accessible name.
+ *  It is a mouse affordance for the long-form gloss. The pre-fix component set
+ *  `title` and an identical `aria-label` — `aria-label` wins the name
+ *  computation, but NVDA and JAWS surface `title` as the accessible
+ *  *description*, so several AT configurations read the 215-character string
+ *  and then read it again. */
+function EmergenceGlyph({
+  emergence,
+  name = "short",
+}: {
+  emergence: ArchetypeEmergence;
+  name?: "short" | "none";
+}) {
+  const full = `${EMERGENCE_LABELS[emergence]}. ${EMERGENCE_TOOLTIPS[emergence]}`;
   return (
     <span
-      role="img"
-      title={fullLabel}
-      aria-label={fullLabel}
+      {...(name === "none"
+        ? { "aria-hidden": true as const }
+        : { role: "img", "aria-label": EMERGENCE_LABELS[emergence] })}
+      title={full}
       className="text-[14px] leading-none cursor-help"
-      style={{ color: "var(--stone-600)" }}
+      style={{ color: "var(--mark-primary)" }}
     >
       {EMERGENCE_GLYPH[emergence]}
     </span>
   );
 }
+
+/** Axis id -> axis. `axes.find()` inside the prototype map ran 144 times per
+ *  render of this page, and its `!` threw at render time the moment axis ids
+ *  stopped being a dense 1..12. */
+const axisById = new Map(axes.map((a) => [a.id, a]));
 
 const RADAR_SIZE = 72;
 const RADAR_CX = RADAR_SIZE / 2;
@@ -38,27 +87,20 @@ const RADAR_CY = RADAR_SIZE / 2;
 const RADAR_R = 30;
 const AXIS_COUNT = 12;
 
-function radarPoints(prototype: number[]): string {
-  return prototype
+function MiniRadar({ prototype }: { prototype: number[] }) {
+  const outerRing = ringPoints(RADAR_R, AXIS_COUNT, RADAR_CX, RADAR_CY);
+  const midRing = ringPoints(RADAR_R * 0.5, AXIS_COUNT, RADAR_CX, RADAR_CY);
+  const shape = prototype
     .map((score, i) => {
-      const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-      const r = ((score + 1) / 2) * RADAR_R;
-      return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
+      const [x, y] = polarToCart(
+        spokeAngle(i, AXIS_COUNT),
+        scoreToRadius(score, RADAR_R),
+        RADAR_CX,
+        RADAR_CY,
+      );
+      return `${x},${y}`;
     })
     .join(" ");
-}
-
-function MiniRadar({ prototype }: { prototype: number[] }) {
-  const ringPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
-    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-    return `${RADAR_CX + RADAR_R * Math.cos(angle)},${RADAR_CY + RADAR_R * Math.sin(angle)}`;
-  }).join(" ");
-
-  const midRingPoints = Array.from({ length: AXIS_COUNT }, (_, i) => {
-    const angle = (i / AXIS_COUNT) * 2 * Math.PI - Math.PI / 2;
-    const r = RADAR_R * 0.5;
-    return `${RADAR_CX + r * Math.cos(angle)},${RADAR_CY + r * Math.sin(angle)}`;
-  }).join(" ");
 
   return (
     <svg
@@ -67,29 +109,99 @@ function MiniRadar({ prototype }: { prototype: number[] }) {
       aria-hidden="true"
     >
       <polygon
-        points={ringPoints}
+        points={outerRing}
+        fill="none"
+        style={{ stroke: "var(--border-secondary)" }}
+        strokeWidth={0.6}
+      />
+      <polygon
+        points={midRing}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
-        opacity={0.6}
-      />
-      <polygon
-        points={midRingPoints}
-        fill="none"
-        style={{ stroke: "var(--border-secondary)" }}
-        strokeWidth={0.4}
         strokeDasharray="1.5 1.5"
-        opacity={0.35}
       />
       <polygon
-        points={radarPoints(prototype)}
-        style={{ fill: "var(--stone-600)", stroke: "var(--stone-600)" }}
+        points={shape}
+        data-prototype-shape
+        style={{ fill: "var(--mark-primary)", stroke: "var(--mark-primary)" }}
         fillOpacity={0.14}
-        strokeOpacity={0.6}
         strokeWidth={1}
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+/** The per-entry "Axis positions" disclosure.
+ *
+ *  Local, alongside `MiniRadar` and `TraditionsProse` — the file already
+ *  establishes named render helpers as its idiom, and this block was 59 lines
+ *  of `section > div > details > div > map > div > div > div > div` with four
+ *  interacting inline geometry computations at the bottom of it. Changing one
+ *  of the bars meant counting closing tags inside a nested map. */
+function AxisPositions({ prototype }: { prototype: number[] }) {
+  return (
+    <details className="group mt-4">
+      <summary className="list-none inline-flex items-center gap-1.5 label text-text-label font-medium cursor-pointer hover:text-text-primary transition-colors duration-150 select-none focus-ring">
+        <span
+          aria-hidden="true"
+          className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
+        >
+          ▸
+        </span>
+        Axis positions
+      </summary>
+      <div className="mt-3 space-y-1">
+        {prototype.map((value, idx) => {
+          const axis = axisById.get(idx + 1);
+          if (!axis) return null;
+          return (
+            <div key={axis.id}>
+              <div className="flex items-baseline justify-between mb-0.5">
+                <span className="text-xs text-text-secondary">{axis.name}</span>
+                <span className="mono-meta text-text-label tabular-nums">
+                  {value > 0 ? "+" : ""}
+                  {value.toFixed(1)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label text-right truncate">
+                  {axis.poleALabel.split(" ")[0]}
+                </span>
+                <div
+                  className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
+                  style={{ backgroundColor: "var(--border-secondary)" }}
+                >
+                  {value !== 0 && (
+                    <div
+                      className="absolute top-0 h-full rounded-[3px]"
+                      style={{
+                        backgroundColor: "var(--mark-primary)",
+                        opacity: 0.4,
+                        left: value < 0 ? `${50 + value * 50}%` : "50%",
+                        width: `${Math.abs(value) * 50}%`,
+                      }}
+                    />
+                  )}
+                  <div
+                    className="absolute top-0 h-full"
+                    style={{
+                      left: "50%",
+                      width: "1px",
+                      backgroundColor: "var(--border-primary)",
+                    }}
+                  />
+                </div>
+                <span className="hidden min-[560px]:inline w-16 shrink-0 text-[11px] text-text-label truncate">
+                  {axis.poleBLabel.split(" ")[0]}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </details>
   );
 }
 
@@ -104,7 +216,7 @@ function TraditionsProse({
     <ReactMarkdown
       components={{
         p: ({ children }) => (
-          <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+          <p className="body-s text-text-secondary mb-3">
             {leadIn}
             {children}
           </p>
@@ -138,283 +250,166 @@ export default function ArchetypesPage() {
     (a, b) => a.displayOrder - b.displayOrder
   );
 
-  // Map each archetype to its 1-based position (01..12) in displayOrder so the
-  // number stays stable across grouped / flat presentations.
-  const numberFor = new Map<string, number>(
-    sortedArchetypes.map((a, i) => [a.id, i + 1])
-  );
-
-  const navGroups = EMERGENCE_ORDER.map((tier) => ({
-    tier,
-    items: sortedArchetypes.filter((a) => a.emergence === tier),
-  })).filter((g) => g.items.length > 0);
-
   return (
-    <main className="min-h-screen px-4 py-12">
-      <article id="top" className="mx-auto max-w-2xl">
-        <p className="mb-1">
-          <Link
-            href="/references"
-            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
-          >
-            ← Reference
-          </Link>
-        </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
-          Governance archetypes
-        </h1>
-        <p className="text-sm text-text-secondary leading-relaxed mb-3">
-          After scoring, your 12-axis profile is compared against {archetypes.length} archetype
-          prototypes &mdash; idealized profiles representing coherent governance
-          philosophies. You are assigned to the nearest archetype and shown your
-          degree of match, your second-nearest, and a description of each
-          archetype&apos;s internal logic.
-        </p>
-        <p className="text-sm text-text-secondary leading-relaxed mb-8">
-          Each entry lists the governance traditions and movements that have
-          historically expressed that orientation. Most prototypes are
-          theoretically derived from comparative political philosophy; a subset
-          have been refined toward — or in one case identified directly from
-          — empirical clusters surfaced in an April 2026 synthetic population
-          study.
-        </p>
+    <main id="top" className="min-h-screen pt-11 pb-10">
+      <div data-archetypes-header className="mx-auto max-w-reference px-6">
+        <PageHeader
+          kicker="← Reference"
+          kickerHref="/references"
+          title="Governance archetypes"
+          lead={[
+            `After scoring, your twelve-axis profile is compared against ${archetypes.length} archetype prototypes — idealized profiles representing coherent governance philosophies. You are assigned to the nearest, and shown your degree of match, your second-nearest, and a description of each archetype's internal logic.`,
+            "Each entry lists the traditions and movements that have historically expressed that orientation. Most prototypes are derived from comparative political philosophy; a subset have been refined toward — or in one case identified directly from — empirical clusters in an April 2026 synthetic population study.",
+          ]}
+        />
 
-        {/* Spoiler notice — flat, border-stripe only, to match the full-bleed surface system */}
-        <div
-          className="border-l-2 pl-4 py-1 my-8"
-          style={{ borderLeftColor: "var(--warning)" }}
-        >
-          <p className="text-sm text-text-secondary leading-relaxed">
-            <em className="font-serif italic text-warning-text">A note before reading —</em>{" "}
+        <div className="mt-[26px] mb-[30px]">
+          <SpoilerNote leadIn="A note before reading —">
             archetype descriptions may influence how you answer. If you
             haven&apos;t taken the assessment yet, we recommend{" "}
             <Link
               href="/quiz"
-              className="text-text-primary font-medium underline decoration-border-primary underline-offset-2 hover:decoration-text-secondary transition-colors duration-150"
+              className="text-text-primary font-medium underline decoration-border-primary underline-offset-2 hover:decoration-text-secondary transition-colors duration-150 focus-ring"
             >
               completing it first
             </Link>
             .
-          </p>
+          </SpoilerNote>
         </div>
 
-        {/* Provenance legend — scannable key for the \u25cf/\u25d0/\u25cb marks */}
-        <div className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2">
-            Provenance
-          </p>
-          <ul className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-text-secondary">
-            <li className="inline-flex items-baseline gap-1.5">
-              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>●</span>
-              <span>
-                <span className="font-medium text-text-primary">Emerged from data</span>
-                {" — "}identified from an empirical cluster in the April 2026 synthetic study
-              </span>
-            </li>
-            <li className="inline-flex items-baseline gap-1.5">
-              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>◐</span>
-              <span>
-                <span className="font-medium text-text-primary">Refined with data</span>
-                {" — "}hand-crafted, then adjusted toward a matching empirical centroid
-              </span>
-            </li>
-            <li className="inline-flex items-baseline gap-1.5">
-              <span aria-hidden="true" style={{ color: "var(--stone-600)" }}>○</span>
-              <span>
-                <span className="font-medium text-text-primary">Theoretically derived</span>
-                {" — "}grounded in comparative political philosophy, no empirical match surfaced
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Archetype nav — grouped by provenance tier */}
-        <nav className="mb-10 space-y-5" aria-label="Archetype list">
-          {navGroups.map(({ tier, items }) => (
-            <div key={tier}>
-              <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-2 inline-flex items-baseline gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="text-[11px]"
-                  style={{ color: "var(--stone-600)" }}
-                >
-                  {EMERGENCE_GLYPH[tier]}
-                </span>
+        <p data-provenance-label className="label-eyebrow text-text-label mb-3">
+          Provenance
+        </p>
+        <div className="flex flex-col gap-[7px] mb-[30px]">
+          {EMERGENCE_ORDER.map((tier) => (
+            <p
+              key={tier}
+              data-provenance-row
+              className="text-[13px] leading-[1.6] text-text-secondary"
+            >
+              <EmergenceGlyph emergence={tier} name="none" />{" "}
+              <span data-provenance-tier className="label-nav font-medium text-text-primary">
                 {EMERGENCE_LABELS[tier]}
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-                {items.map((a) => (
-                  <a
-                    key={a.id}
-                    href={`#${a.id}`}
-                    className="text-text-tertiary hover:text-text-primary transition-colors duration-150 flex items-baseline gap-1.5"
-                  >
-                    <span className="font-mono tabular-nums text-[10px] opacity-50">
-                      {String(numberFor.get(a.id)).padStart(2, "0")}
-                    </span>
-                    {a.name.replace(/^The\s+/, "")}
-                  </a>
-                ))}
-              </div>
-            </div>
+              </span>
+              {" — "}
+              {PROVENANCE_BLURB[tier]}
+            </p>
+          ))}
+        </div>
+
+        <p className="label-eyebrow text-text-label mb-3">
+          {sortedArchetypes.length === 12 ? "Twelve archetypes" : "The archetypes"}
+        </p>
+        <nav
+          data-archetype-index
+          className="grid grid-cols-2 gap-x-7 gap-y-1.5 mb-2"
+          aria-label="Archetype list"
+        >
+          {sortedArchetypes.map((a, i) => (
+            <a
+              key={a.id}
+              href={`#${a.id}`}
+              className="flex items-baseline gap-2 text-[13px] text-text-secondary no-underline py-[3px] hover:text-text-primary transition-colors duration-150 focus-ring"
+            >
+              <span data-index-number className="font-mono text-[11px] text-text-label tabular-nums">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span>{a.name.replace(/^The\s+/, "")}</span>
+              <EmergenceGlyph emergence={a.emergence} />
+            </a>
           ))}
         </nav>
+      </div>
 
-        {/* Archetype entries — full-bleed zebra rows, no card radius */}
-        <div className="archetype-list -mx-4">
-          {sortedArchetypes.map((archetype, i) => (
-            <section
-              key={archetype.id}
-              id={archetype.id}
-              className={`archetype-entry px-4 py-6 scroll-mt-20 ${
-                i % 2 === 1 ? "bg-surface-2" : ""
-              }`}
-            >
-              <header className="flex gap-4 mb-3">
+      <div data-archetypes-band className="mt-7 border-t border-border-secondary">
+        {sortedArchetypes.map((archetype, i) => (
+          <section
+            key={archetype.id}
+            id={archetype.id}
+            data-archetype-entry
+            className={`border-b border-border-secondary scroll-mt-20 ${
+              i % 2 === 1 ? "bg-surface-2" : "bg-surface-1"
+            }`}
+          >
+            <div data-entry-inner className="mx-auto max-w-reference px-6 pt-[30px] pb-8">
+              <header className="flex gap-5 items-start mb-3.5">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="font-mono text-[13px] text-text-tertiary tabular-nums">
+                  <div className="flex items-baseline gap-2.5 flex-wrap">
+                    <span
+                      data-entry-number
+                      className="font-mono text-xs text-text-label tabular-nums"
+                    >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h2 className="text-[18px] font-serif font-medium text-text-primary leading-tight">
-                      {archetype.name}
-                    </h2>
-                    <EmergenceGlyph emergence={archetype.emergence} />
+                    <h2 className="display-entry text-text-primary">{archetype.name}</h2>
+                    <EmergenceGlyph emergence={archetype.emergence} name="none" />
                   </div>
+                  <p data-entry-tier className="label-nav text-text-label mt-1.5">
+                    {EMERGENCE_LABELS[archetype.emergence]}
+                  </p>
                 </div>
                 <MiniRadar prototype={archetype.prototype} />
               </header>
 
-              <p className="text-sm text-text-secondary leading-relaxed mb-3">
+              <p className="text-[14.5px] leading-[1.65] text-text-secondary mb-3">
                 {archetype.description}
               </p>
 
-              {/* Internal tension — serif italic lead-in */}
-              <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
-                <em className="font-serif italic text-text-primary">
-                  Internal tension.
-                </em>{" "}
+              <p className="body-s text-text-secondary mb-3">
+                <em data-lead-in className="font-serif italic text-text-primary">Internal tension.</em>{" "}
                 {archetype.characteristicTension}
               </p>
 
-              {/* Traditions — serif italic lead-in injected into the markdown <p> */}
               <TraditionsProse
                 traditions={archetype.traditions}
                 leadIn={
                   <>
-                    <em className="font-serif italic text-text-primary">
-                      Traditions.
-                    </em>{" "}
+                    <em data-lead-in className="font-serif italic text-text-primary">Traditions.</em>{" "}
                   </>
                 }
               />
 
-              {/* Axis positions — disclosure with caret */}
-              <details className="group mt-3">
-                <summary className="list-none inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium cursor-pointer hover:text-text-secondary transition-colors duration-150 select-none">
-                  <span
-                    aria-hidden="true"
-                    className="inline-block text-[13px] leading-none transition-transform duration-150 group-open:rotate-90"
-                  >
-                    ▸
-                  </span>
-                  Axis positions
-                </summary>
-                <div className="mt-3 space-y-1">
-                  {archetype.prototype.map((value, idx) => {
-                    const axis = axes.find((a) => a.id === idx + 1)!;
-                    return (
-                      <div key={axis.id}>
-                        <div className="flex items-baseline justify-between mb-0.5">
-                          <span className="text-xs text-text-secondary">
-                            {axis.name}
-                          </span>
-                          <span className="text-[11px] font-mono text-text-tertiary tabular-nums">
-                            {value > 0 ? "+" : ""}
-                            {value.toFixed(1)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[10px] text-text-tertiary text-right truncate">
-                            {axis.poleALabel.split(" ")[0]}
-                          </span>
-                          <div
-                            className="flex-1 h-[6px] rounded-[3px] relative overflow-hidden"
-                            style={{ backgroundColor: "var(--border-secondary)" }}
-                          >
-                            {value !== 0 && (
-                              <div
-                                className="absolute top-0 h-full rounded-[3px]"
-                                style={{
-                                  backgroundColor: "var(--stone-600)",
-                                  opacity: 0.4,
-                                  left:
-                                    value < 0
-                                      ? `${50 + value * 50}%`
-                                      : "50%",
-                                  width: `${Math.abs(value) * 50}%`,
-                                }}
-                              />
-                            )}
-                            <div
-                              className="absolute top-0 h-full"
-                              style={{
-                                left: "50%",
-                                width: "1px",
-                                backgroundColor: "var(--border-primary)",
-                              }}
-                            />
-                          </div>
-                          <span className="hidden min-[480px]:inline w-16 shrink-0 text-[10px] text-text-tertiary truncate">
-                            {axis.poleBLabel.split(" ")[0]}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </details>
-            </section>
-          ))}
-        </div>
+              <AxisPositions prototype={archetype.prototype} />
+            </div>
+          </section>
+        ))}
+      </div>
 
-        {/* Footer — ghost CTA above a single inline row of tertiary nav links */}
-        <div className="border-t border-border-secondary mt-12 pt-6 text-center">
-          <Link
-            href="/quiz"
-            className="inline-block border border-border-primary text-text-primary py-2.5 px-7 rounded-sharp text-sm font-medium hover:border-text-secondary hover:text-text-primary transition-colors duration-150"
-          >
-            Begin assessment
-          </Link>
-          <nav
-            aria-label="Page navigation"
-            className="mt-4 flex flex-wrap justify-center items-baseline gap-x-2 text-xs text-text-tertiary"
-          >
-            <Link
-              href="/references"
-              className="hover:text-text-secondary transition-colors duration-150"
-            >
-              back to references
-            </Link>
-            <span aria-hidden="true" className="text-text-tertiary/60">·</span>
-            <a
-              href="#top"
-              className="hover:text-text-secondary transition-colors duration-150"
-            >
-              ↑ back to top
-            </a>
-            <ReturningUserLink
-              as="span"
-              wrapperClassName="inline-flex items-baseline gap-x-2"
-              className="hover:text-text-secondary transition-colors duration-150"
-              label="← back to your results"
-              prefix={
-                <span aria-hidden="true" className="text-text-tertiary/60">·</span>
-              }
-            />
-          </nav>
-        </div>
-      </article>
+      <div className="mx-auto max-w-reference px-6">
+        <ReferenceCta
+          secondaryLabel="Page navigation"
+          secondary={
+            <>
+              <Link
+                href="/references"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
+              >
+                Back to references
+              </Link>
+              <span aria-hidden="true" className="opacity-40 mx-2">
+                ·
+              </span>
+              <a
+                href="#top"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
+              >
+                ↑ Back to top
+              </a>
+              <ReturningUserLink
+                as="span"
+                wrapperClassName="inline"
+                className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
+                label="← Back to your results"
+                prefix={
+                  <span aria-hidden="true" className="opacity-40 mx-2">
+                    ·
+                  </span>
+                }
+              />
+            </>
+          }
+        />
+      </div>
     </main>
   );
 }

@@ -356,6 +356,28 @@ describe("data marks step by mode (design delta 06)", () => {
     expect(theme["--container-results"]).toBe("820px");
   });
 
+  it("names all four page widths as tokens, so none is spelled as a literal", () => {
+    // Phase 4 left two of the four as Tailwind literals. A width spelled
+    // `max-w-2xl` reads as a generic size rather than as "the quiz column",
+    // so a later phase retunes one page and silently desyncs it from the
+    // other on the same measure. 660 is mock 7c's; 672 is what `max-w-2xl`
+    // already resolved to, so that one is a rename and must not move.
+    expect(theme["--container-shell"]).toBe("1040px");
+    expect(theme["--container-results"]).toBe("820px");
+    expect(theme["--container-reference"]).toBe("660px");
+    expect(theme["--container-quiz"]).toBe("672px");
+  });
+
+  it("holds the quiz column on its token rather than the generic Tailwind size", () => {
+    const quizFlow = readFileSync(
+      resolve(process.cwd(), "src/components/quiz/QuizFlow.tsx"),
+      "utf8",
+    );
+
+    expect(quizFlow).toContain("max-w-quiz");
+    expect(quizFlow).not.toContain("max-w-2xl");
+  });
+
   it("maps each axis to its domain's mark variable", () => {
     // Axis 1-2 economic, 3-6 power, 7-9 society, 10-12 world. Asserted across
     // all twelve rather than one per domain, because an off-by-one in
@@ -403,5 +425,228 @@ describe("body-xs (design delta 04)", () => {
     expect(utility!.body).toMatch(/font-family:\s*var\(--font-sans\)/);
     // Declares no colour: it is layered with a text-* class at every call site.
     expect(utility!.body).not.toMatch(/color:/);
+  });
+});
+
+/** Every page and component this phase swept. `/study` is deferred (D21) and
+ *  is deliberately absent — widening this list to it is phase 5b's job, not a
+ *  tidy-up. */
+const SWEPT = [
+  "src/app/archetypes",
+  "src/app/references",
+  "src/app/axes",
+  "src/app/questions",
+  "src/app/methodology",
+  "src/app/compare",
+  "src/app/groups",
+  "src/app/account",
+  "src/app/auth",
+  "src/components/comparison",
+  "src/components/groups",
+  "src/components/annotations",
+  "src/components/PageHeader.tsx",
+  "src/components/ReferenceCta.tsx",
+];
+
+function sweptSources(): { file: string; text: string }[] {
+  const sources = SWEPT.flatMap((entry) => {
+    const path = resolve(process.cwd(), entry);
+    const files = entry.endsWith(".tsx") ? [path] : sourceFiles(path);
+    return files.map((file) => ({ file, text: readFileSync(file, "utf8") }));
+  });
+
+  // Every guard below is `expect(offenders).toEqual([])` over a flatMap, and
+  // `[].flatMap(...)` is `[]` — so an empty sweep leaves all six green while
+  // reading nothing. Measured: emptying SWEPT to `[]` reddened none of the
+  // six until this throw existed. Raising it here rather than asserting it in
+  // each guard keeps the vacuity check in the one place all six share.
+  if (sources.length === 0) {
+    throw new Error("SWEPT resolved to no files — every guard below would pass vacuously");
+  }
+
+  return sources;
+}
+
+describe("phase 5 sweep holds (design delta D20)", () => {
+  it("actually reaches the swept files, so the six guards below cannot pass vacuously", () => {
+    // SWEPT is the single point of failure for all six guards at once, and
+    // every one of them is `expect(offenders).toEqual([])` over a flatMap —
+    // which is green on an empty file list. Naming a directory that does not
+    // exist is the safe failure (`sourceFiles` throws, loudly). Naming one
+    // that exists and holds nothing relevant is the silent one, and no guard
+    // below can detect it. This case is the only thing that does, so it is
+    // load-bearing for the whole block rather than a tidiness check.
+    //
+    // Anchors, not just a count: these are the files the phase's own
+    // mutation testing targets. If the sweep cannot see them, the evidence
+    // that the guards work does not transfer to the guards that shipped.
+    const swept = sweptSources().map(({ file }) => relative(process.cwd(), file));
+
+    expect(swept.length).toBeGreaterThanOrEqual(20);
+    for (const anchor of [
+      "src/app/questions/page.tsx",
+      "src/app/compare/page.tsx",
+      "src/app/compare/[profileId1]/[profileId2]/page.tsx",
+      "src/app/auth/signin/page.tsx",
+      "src/components/annotations/AnnotationEditor.tsx",
+      "src/components/groups/GroupRadar.tsx",
+      "src/components/ReferenceCta.tsx",
+      "src/components/PageHeader.tsx",
+    ]) {
+      expect(swept, `sweep does not reach ${anchor}`).toContain(anchor);
+    }
+  });
+
+  it("keeps the sub-AA tertiary text token off every swept surface", () => {
+    // 3.28:1 on surface-1, in BOTH modes. The label layer takes
+    // `text-text-label`; prose takes `text-text-secondary`. There is no
+    // remaining use for this token on these pages.
+    //
+    // BOTH spellings. The Tailwind class is how it appears on an element;
+    // `var(--text-tertiary)` is how it appears in an inline style, which is
+    // the form SVG text needs because `fill` takes no Tailwind colour class.
+    // ComparisonRadar's hover tooltip survived this phase's sweep in exactly
+    // that form, past a class-only version of this guard, and was found by
+    // reading rather than by a test.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(/text-text-tertiary|var\(--text-tertiary\)/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("never gives an element a hover that resolves to its resting value", () => {
+    // Two of these shipped in this phase before review caught them, by two
+    // different routes, so the guard covers the class rather than the pair.
+    //
+    // The blunt case: a card resting on `bg-surface-2` with
+    // `hover:bg-surface-2`. Same token, same value, nothing happens.
+    //
+    // The subtle case, and the reason this is a guard and not a code review
+    // note: `--text-label` is `var(--stone-700)` and `--text-secondary` is
+    // `#6e5a48` — the SAME hex in light mode, different in dark. So
+    // `text-text-label hover:text-text-secondary` animates for 150ms between
+    // two identical colours on a light page and works fine on a dark one.
+    // No class-name assertion catches it, because both classes are correct in
+    // isolation; only knowing they are aliases does. Hover targets on the
+    // label layer go to `text-text-primary`, which differs in both modes.
+    const ALIASES: [string, string][] = [["text-text-label", "text-text-secondary"]];
+    // A className carrying one of these sits on the label layer even without
+    // naming `text-text-label`, because each role declares that colour. Sites
+    // that instead INHERIT their rest colour from a labelled parent were made
+    // explicit rather than left invisible here — a guard that silently skips
+    // the shape it was written for is the failure mode this phase kept hitting.
+    const LABEL_ROLES = /\b(?:label|label-nav|label-eyebrow|label-tight|mono-meta)(?![\w-])/;
+
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const hits: string[] = [];
+      for (const cls of text.match(/className="[^"]*"/g) ?? []) {
+        for (const hover of cls.match(/hover:([a-z]+-[a-z0-9-]+)/g) ?? []) {
+          const target = hover.slice("hover:".length);
+          const bare = new RegExp(`(?<!hover:)\\b${target}(?![\\w-])`);
+          if (bare.test(cls)) hits.push(`${hover} over itself`);
+          for (const [a, b] of ALIASES) {
+            const [rest, want] = target === b ? [a, b] : target === a ? [b, a] : [null, null];
+            if (!rest) continue;
+            const explicit = new RegExp(`(?<!hover:)\\b${rest}(?![\\w-])`).test(cls);
+            const byRole = rest === "text-text-label" && LABEL_ROLES.test(cls);
+            if (explicit || byRole) hits.push(`hover:${want} over ${rest}`);
+          }
+        }
+      }
+      return hits.map((h) => `${relative(process.cwd(), file)}: ${h}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps the frozen Stone ramp off every swept surface", () => {
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(/(?:text|bg|border)-stone-\d{2,3}(?![\w-])/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("admits no hue outside Stone and the warning family", () => {
+    // The palette is two accents. This catches a Tailwind colour utility from
+    // any other family — red, green, blue, amber-by-name — which is how both
+    // `text-red-600` and the `#b5942e` spoiler got in.
+    const banned =
+      /(?:text|bg|border)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?![\w-])/;
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(banned);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("admits no raw hex on a swept surface", () => {
+    // `#b5942e` and `#85735e` both shipped as inline literals on /questions.
+    // A hex cannot invert, and an inline style is invisible to every
+    // class-scanning guard above it.
+    //
+    // Deliberately broad: this is a whole-file text scan, so it also reddens
+    // on a hex in a comment, a URL fragment or an SVG attribute. That is not a
+    // false positive worth narrowing away — a hex written anywhere in these
+    // files is one copy-paste from being a hex in a `style` prop, and no
+    // swept file currently needs one. Narrow it only when a site arrives that
+    // genuinely does, and say here what the narrowed pattern stops catching.
+    //
+    // SCOPE: six or eight digits (eight covers `#00000020`-style alpha). It
+    // does NOT catch three-digit shorthand — `#fff` slips through, which
+    // matters because hard-coded white ink was one of the defects this phase
+    // removed. Extending to `{3,8}` was measured against every swept file and
+    // false-positives on nothing today, but it collides with plausible future
+    // anchor hrefs (`#def`, `#add`, `#fee` are all valid hex), and a guard
+    // that cries wolf on an `href` gets deleted. Six-digit collisions
+    // (`#decade`, `#facade`) are the accepted residual risk.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("routes every swept control through the button primitive", () => {
+    // A hand-rolled control is not merely inconsistent: all nine that this
+    // phase replaced froze their hover fill on `bg-stone-100`, a near-white
+    // flash on a dark page.
+    //
+    // SCOPE, stated so this is not mistaken for more than it is: the check is
+    // per FILE, not per element. A file holding one `<Button>` and one bare
+    // `<button>` passes, because the import is present. It catches a file that
+    // is entirely hand-rolled — which is what all nine of the replaced sites
+    // were — and nothing finer. A per-element guard would need a parse, not a
+    // scan.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      if (!/<button\b/.test(text)) return [];
+      return text.includes('from "@/components/Button"')
+        ? []
+        : [relative(process.cwd(), file)];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("caps every swept page on a width token rather than a Tailwind size", () => {
+    // ComparisonRadar and GroupRadar are excluded from THIS case only. Their
+    // `max-w-xl` caps an `<svg>`, not a page measure, so it is not drift of
+    // the kind the width tokens exist to prevent — and minting a
+    // `max-w-radar` token to satisfy a text scan would trade this drift risk
+    // for a worse one: a chart cap that silently tracks a page measure.
+    // Both files remain subject to every other guard in this block.
+    const SVG_CAPPED = ["ComparisonRadar.tsx", "GroupRadar.tsx"];
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      if (SVG_CAPPED.some((name) => file.endsWith(name))) return [];
+      const match = text.match(/max-w-(?:2xl|3xl|xl)(?![\w-])/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
   });
 });

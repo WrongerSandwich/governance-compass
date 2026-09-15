@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/Button";
 import { PairedAxisScale } from "@/components/PairedAxisScale";
 import { ReturningUserLink } from "@/components/ReturningUserLink";
 import { axes } from "@/data/axes";
-import { DOMAIN_COLORS, getDomainColor600, type DomainKey } from "@/lib/design-tokens";
+import { DOMAIN_COLORS, getDomainMarkVar, type DomainKey } from "@/lib/design-tokens";
 // Read at build time from committed derived JSON. This is a server component,
 // so `data/synthetic_study/` never reaches a client bundle. The two respondents
 // are real personas held anonymous — the panel says "Illustrative profile" and
@@ -156,7 +156,7 @@ export default function Home() {
                   key={axis.id}
                   data-divergence-item
                   className="border-l-2 pl-3"
-                  style={{ borderColor: getDomainColor600(axis.id) }}
+                  style={{ borderColor: getDomainMarkVar(axis.id) }}
                 >
                   <p className="font-serif font-medium text-sm">{axis.name}</p>
                   <p className="mt-1 text-[12.5px] leading-[1.55] text-text-secondary">

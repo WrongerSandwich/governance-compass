@@ -1612,9 +1612,11 @@ describe("results chrome drift guards", () => {
   it("routes every data mark through the stepping tokens", () => {
     // getDomainColor600 returns a fixed hex, which cannot invert. Delta 06
     // steps every dot, track, rule and domain label to its 400 tone on a dark
-    // ground. The reference pages (/axes, /questions) keep the fixed accessor
-    // deliberately — they are D6-deferred and their 600 tone is intended in
-    // both modes — so this guard is scoped to this feature.
+    // ground. This guard is scoped to the results feature only. Phase 5 swept
+    // /axes and /questions onto DOMAIN_MARK_VARS too — the comment that used
+    // to sit here claimed they kept the fixed accessor deliberately, which
+    // stopped being true the moment those tasks landed. Task 13's directory-
+    // wide guard is what covers them; this one is not it.
     expect(offenceCounts(/getDomainColor600|DOMAIN_COLORS\[[^\]]+\]\[600\]/g)).toEqual({});
 
     // The positive half, so the assertion above cannot pass by every domain

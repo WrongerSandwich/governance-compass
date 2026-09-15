@@ -3,7 +3,9 @@ import { axes } from "@/data/axes";
 import { forcedChoiceItems } from "@/data/forced-choice-items";
 import { scaledItems } from "@/data/scaled-items";
 import { ministries, ministryAxisMappings } from "@/data/ministries";
-import { DOMAIN_COLORS, type DomainKey } from "@/lib/design-tokens";
+import { DOMAIN_COLORS, DOMAIN_MARK_VARS, type DomainKey } from "@/lib/design-tokens";
+import { PageHeader, SpoilerNote } from "@/components/PageHeader";
+import { ReferenceCta } from "@/components/ReferenceCta";
 
 const DOMAIN_KEYS: DomainKey[] = ["economic", "power", "society", "world"];
 
@@ -56,34 +58,23 @@ export default function QuestionsPage() {
   }));
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-2xl">
-        <p className="mb-1">
-          <Link
-            href="/references"
-            className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium no-underline hover:text-text-secondary transition-colors duration-150"
-          >
-            ← Reference
-          </Link>
-        </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-3">
-          Question bank
-        </h1>
+    <main className="min-h-screen px-6 pt-11 pb-10">
+      <article className="mx-auto max-w-reference">
+        <PageHeader kicker="← Reference" kickerHref="/references" title="Question bank" />
 
-        {/* Spoiler notice */}
-        <div className="border-l-2 rounded-sharp px-4 py-3 mb-8" style={{ borderLeftColor: "#b5942e", backgroundColor: "rgba(181, 148, 46, 0.08)" }}>
-          <p className="text-sm text-text-secondary leading-relaxed">
+        <div className="mt-[26px] mb-[30px]">
+          <SpoilerNote>
             This page lists every question in the assessment and shows how each
             one maps to the scoring model. If you haven&apos;t taken the quiz
             yet, we recommend{" "}
             <Link
               href="/quiz"
-              className="text-text-primary font-medium hover:text-text-secondary transition-colors duration-150"
+              className="text-text-primary font-medium underline decoration-border-primary underline-offset-2 hover:decoration-text-secondary transition-colors duration-150 focus-ring"
             >
               completing it first
             </Link>{" "}
             &mdash; seeing the questions in advance may influence your responses.
-          </p>
+          </SpoilerNote>
         </div>
 
         {/* Axis nav */}
@@ -95,8 +86,9 @@ export default function QuestionsPage() {
             <div key={domain.key}>
               <a
                 href={`#${domain.key}`}
-                className="text-[11px] uppercase tracking-[0.08em] font-medium hover:opacity-80 transition-opacity duration-150"
-                style={{ color: DOMAIN_COLORS[domain.key][600] }}
+                data-domain-mark
+                className="label font-medium no-underline hover:opacity-80 transition-opacity duration-150 focus-ring"
+                style={{ color: DOMAIN_MARK_VARS[domain.key] }}
               >
                 {DOMAIN_COLORS[domain.key].name}
               </a>
@@ -105,7 +97,7 @@ export default function QuestionsPage() {
                   <a
                     key={axis.id}
                     href={`#axis-${axis.id}`}
-                    className="text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+                    className="text-text-secondary no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
                   >
                     {axis.name}
                   </a>
@@ -116,7 +108,7 @@ export default function QuestionsPage() {
           <div>
             <a
               href="#budget"
-              className="text-[11px] uppercase tracking-[0.08em] font-medium text-text-tertiary hover:text-text-secondary transition-colors duration-150"
+              className="label font-medium text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               Chancellor&apos;s Budget
             </a>
@@ -128,8 +120,9 @@ export default function QuestionsPage() {
           {domainGroups.map((domain) => (
             <section key={domain.key} id={domain.key}>
               <h2
-                className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-6"
-                style={{ color: DOMAIN_COLORS[domain.key][600] }}
+                data-domain-mark
+                className="label font-medium border-b border-border-secondary pb-2 mb-6"
+                style={{ color: DOMAIN_MARK_VARS[domain.key] }}
               >
                 {DOMAIN_COLORS[domain.key].name}
               </h2>
@@ -141,17 +134,17 @@ export default function QuestionsPage() {
 
                   return (
                     <div key={axis.id} id={`axis-${axis.id}`}>
-                      <h3 className="text-[17px] font-serif font-medium text-text-primary mb-0.5">
+                      <h3 className="display-s text-text-primary mb-0.5">
                         {axis.name}
                       </h3>
-                      <p className="text-xs font-serif italic text-text-tertiary mb-5">
+                      <p className="caption-italic mb-5">
                         {axis.poleALabel} &harr; {axis.poleBLabel}
                       </p>
 
                       {/* Forced-choice items */}
                       {fcItems.length > 0 && (
                         <div className="mb-6">
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-3">
+                          <p className="label text-text-label font-medium mb-3">
                             Forced-choice items
                           </p>
                           <div className="space-y-4">
@@ -159,9 +152,9 @@ export default function QuestionsPage() {
                               <div
                                 key={fc.id}
                                 className="border border-border-secondary rounded-sharp px-4 py-3 border-l-2"
-                                style={{ borderLeftColor: DOMAIN_COLORS[domain.key][600] }}
+                                style={{ borderLeftColor: DOMAIN_MARK_VARS[domain.key] }}
                               >
-                                <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary mb-2.5">
+                                <p className="label text-text-label font-medium mb-2.5">
                                   {ABSTRACTION_LABELS[fc.abstractionLevel]}
                                 </p>
                                 <div className="space-y-3">
@@ -173,7 +166,10 @@ export default function QuestionsPage() {
                                       {fc.bodyA}
                                     </p>
                                     <p className="mt-1.5">
-                                      <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5">
+                                      <span
+                                        data-scoring-chip
+                                        className="inline-block mono-meta text-text-label bg-surface-2 rounded-sharp px-1.5 py-0.5"
+                                      >
                                         &rarr; {axis.poleALabel} (&minus;1.0)
                                       </span>
                                     </p>
@@ -187,7 +183,10 @@ export default function QuestionsPage() {
                                       {fc.bodyB}
                                     </p>
                                     <p className="mt-1.5">
-                                      <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5">
+                                      <span
+                                        data-scoring-chip
+                                        className="inline-block mono-meta text-text-label bg-surface-2 rounded-sharp px-1.5 py-0.5"
+                                      >
                                         &rarr; {axis.poleBLabel} (+1.0)
                                       </span>
                                     </p>
@@ -202,7 +201,7 @@ export default function QuestionsPage() {
                       {/* Scaled items */}
                       {scItems.length > 0 && (
                         <div>
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-3">
+                          <p className="label text-text-label font-medium mb-3">
                             Scaled items
                           </p>
                           <div className="space-y-4">
@@ -232,7 +231,7 @@ export default function QuestionsPage() {
                                         key={n}
                                         className="flex gap-3 text-sm"
                                       >
-                                        <span className="shrink-0 w-5 text-xs text-text-tertiary tabular-nums pt-0.5 text-right">
+                                        <span className="shrink-0 w-5 text-xs text-text-secondary tabular-nums pt-0.5 text-right">
                                           {n}
                                         </span>
                                         <div className="flex-1 min-w-0">
@@ -245,7 +244,10 @@ export default function QuestionsPage() {
                                               &mdash; {detail}
                                             </span>
                                           )}
-                                          <span className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5 ml-1.5 align-middle">
+                                          <span
+                                            data-scoring-chip
+                                            className="inline-block mono-meta text-text-label bg-surface-2 rounded-sharp px-1.5 py-0.5 ml-1.5 align-middle"
+                                          >
                                             {scoreLabel}
                                           </span>
                                         </div>
@@ -269,8 +271,8 @@ export default function QuestionsPage() {
         {/* Chancellor's Budget section */}
         <section id="budget" className="mt-12">
           <h2
-            className="text-[11px] uppercase tracking-[0.08em] font-medium border-b border-border-secondary pb-1.5 mb-6"
-            style={{ color: "#85735e" }}
+            className="label font-medium border-b border-border-secondary pb-2 mb-6"
+            style={{ color: "var(--mark-primary)" }}
           >
             Chancellor&apos;s Budget
           </h2>
@@ -288,7 +290,7 @@ export default function QuestionsPage() {
             four axes have no budget mapping at all. See the{" "}
             <Link
               href="/methodology#scoring"
-              className="text-text-primary font-medium hover:text-text-secondary transition-colors duration-150"
+              className="text-text-primary font-medium hover:text-text-secondary transition-colors duration-150 focus-ring"
             >
               scoring methodology
             </Link>{" "}
@@ -312,7 +314,8 @@ export default function QuestionsPage() {
                     {mappings.map(({ axis, pole }) => (
                       <span
                         key={axis.id}
-                        className="inline-block text-[11px] font-mono text-text-tertiary bg-surface-2 rounded px-1.5 py-0.5"
+                        data-scoring-chip
+                        className="inline-block mono-meta text-text-label bg-surface-2 rounded-sharp px-1.5 py-0.5"
                       >
                         &rarr; {axis.name} &mdash; toward {pole}
                       </span>
@@ -323,33 +326,24 @@ export default function QuestionsPage() {
             ))}
           </div>
 
-          <p className="text-xs text-text-tertiary leading-relaxed border-l-2 border-border-secondary pl-3 mt-6">
+          <p className="text-xs text-text-secondary leading-relaxed border-l-2 border-border-secondary pl-3 mt-6">
             Axes without budget mapping (3: Governance Structure, 7: Social
             Change, 8: Cultural Diversity, 9: Human Nature) are scored entirely
             from forced-choice and scaled responses.
           </p>
         </section>
 
-        {/* Footer */}
-        <div className="border-t border-border-secondary mt-12 pt-6">
-          <div className="text-center">
+        <ReferenceCta
+          label="Take the assessment"
+          secondary={
             <Link
-              href="/quiz"
-              className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
+              href="/methodology"
+              className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
             >
-              Take the assessment
+              or read the methodology
             </Link>
-            <p className="mt-3 text-xs text-text-tertiary">
-              or{" "}
-              <Link
-                href="/methodology"
-                className="hover:text-text-secondary transition-colors duration-150"
-              >
-                read the methodology
-              </Link>
-            </p>
-          </div>
-        </div>
+          }
+        />
       </article>
     </main>
   );

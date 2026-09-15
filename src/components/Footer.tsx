@@ -8,7 +8,7 @@ export function Footer() {
             href="https://github.com/WrongerSandwich/governance-compass"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-text-secondary transition-colors duration-150 focus-ring"
+            className="text-text-label hover:text-text-primary transition-colors duration-150 focus-ring"
           >
             Source on GitHub
           </a>
@@ -18,7 +18,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Licence: PolyForm Noncommercial"
-            className="hover:text-text-secondary transition-colors duration-150 focus-ring"
+            className="text-text-label hover:text-text-primary transition-colors duration-150 focus-ring"
           >
             PolyForm Noncommercial
           </a>

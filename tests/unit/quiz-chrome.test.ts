@@ -454,7 +454,7 @@ describe("QuizFlow chrome", () => {
     const container = await renderPhaseOne();
     const shell = container.querySelector("[data-quiz-shell]")!;
 
-    expect(classes(shell)).toContain("max-w-2xl");
+    expect(classes(shell)).toContain("max-w-quiz");
     expect(classes(shell)).toContain("pt-9");
     expect(classes(shell)).toContain("pb-[52px]");
     // Gutters live on <main>, so the column lines up with the wordmark.

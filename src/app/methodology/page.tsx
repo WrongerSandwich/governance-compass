@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
+import { ReferenceCta } from "@/components/ReferenceCta";
 
 const SECTIONS = [
   { id: "formats", label: "Three ways of asking" },
@@ -10,28 +12,35 @@ const SECTIONS = [
 
 export default function MethodologyPage() {
   return (
-    <main className="min-h-screen px-4 py-12">
-      <article className="mx-auto max-w-2xl">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary font-medium mb-1">
-          Methodology
-        </p>
-        <h1 className="text-[28px] font-serif font-medium text-text-primary leading-tight mb-4">
-          How The Governance Compass works
-        </h1>
+    <main className="min-h-screen px-6 pt-11 pb-10">
+      <article className="mx-auto max-w-reference">
+        <PageHeader kicker="Methodology" title="How The Governance Compass works" />
 
-        <nav className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-tertiary mb-8" aria-label="Page sections">
+        <nav
+          className="flex flex-wrap gap-x-4 gap-y-1 label-nav text-text-label mt-6 mb-9"
+          aria-label="Page sections"
+        >
           {SECTIONS.map((s, i) => (
             <span key={s.id}>
-              <a href={`#${s.id}`} className="hover:text-text-secondary transition-colors duration-150">{s.label}</a>
-              {i < SECTIONS.length - 1 && <span className="ml-3 opacity-30">&middot;</span>}
+              <a
+                href={`#${s.id}`}
+                className="no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
+              >
+                {s.label}
+              </a>
+              {i < SECTIONS.length - 1 && (
+                <span aria-hidden="true" className="ml-4 opacity-30">
+                  ·
+                </span>
+              )}
             </span>
           ))}
         </nav>
 
-        <div className="space-y-10 text-sm text-text-secondary leading-relaxed">
+        <div className="space-y-10 body-s text-text-secondary">
           {/* Section 1 */}
           <section id="formats">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="display-entry text-text-primary mb-3">
               Three ways of asking
             </h2>
             <div className="space-y-4">
@@ -55,7 +64,7 @@ export default function MethodologyPage() {
 
           {/* Section 4 */}
           <section id="scoring">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="display-entry text-text-primary mb-3">
               How scoring works
             </h2>
             <div className="space-y-4">
@@ -86,7 +95,7 @@ export default function MethodologyPage() {
 
           {/* Section 5 */}
           <section id="crosscultural">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="display-entry text-text-primary mb-3">
               Designing for cross-cultural portability
             </h2>
             <div className="space-y-4">
@@ -104,7 +113,7 @@ export default function MethodologyPage() {
 
           {/* Section 6 */}
           <section id="limitations">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="display-entry text-text-primary mb-3">
               Limitations and what comes next
             </h2>
             <div className="space-y-4">
@@ -131,7 +140,7 @@ export default function MethodologyPage() {
 
           {/* Section 7 */}
           <section id="sources">
-            <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+            <h2 className="display-entry text-text-primary mb-3">
               Sources
             </h2>
             <div className="space-y-4">
@@ -185,23 +194,16 @@ export default function MethodologyPage() {
           </section>
         </div>
 
-        <div className="border-t border-border-secondary mt-12 pt-8 text-center">
-          <p className="text-sm text-text-secondary mb-4">
-            Ready to see where you stand?
-          </p>
-          <Link
-            href="/quiz"
-            className="inline-block bg-stone-600 text-white py-3 px-8 rounded-sharp text-sm font-medium hover:bg-stone-700 transition-colors duration-150"
-          >
-            Begin the assessment
-          </Link>
-          <p className="mt-3 text-xs text-text-tertiary">
-            or{" "}
-            <Link href="/questions" className="hover:text-text-secondary transition-colors duration-150">
-              view the complete question bank
+        <ReferenceCta
+          secondary={
+            <Link
+              href="/questions"
+              className="text-text-label no-underline hover:text-text-primary transition-colors duration-150 focus-ring"
+            >
+              or view the complete question bank
             </Link>
-          </p>
-        </div>
+          }
+        />
       </article>
     </main>
   );

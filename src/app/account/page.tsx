@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/Button";
 import {
   hasUnsavedResults,
   lastResultsProfileId,
@@ -152,7 +153,7 @@ export default function AccountPage() {
   if (status === "loading") {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-text-tertiary">Loading...</p>
+        <p className="text-text-secondary">Loading...</p>
       </main>
     );
   }
@@ -169,19 +170,19 @@ export default function AccountPage() {
 
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-[22px] font-serif font-medium text-text-primary mb-1">Account</h1>
-        <p className="text-text-tertiary text-sm mb-8">{session?.user?.email}</p>
+      <div className="max-w-reference mx-auto">
+        <h1 className="display-m text-text-primary mb-1">Account</h1>
+        <p className="mono-meta text-text-label mb-8">{session?.user?.email}</p>
 
         {/* Profile link / claim */}
         <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-3">
+          <h2 className="display-s text-text-primary mb-3">
             Your profile
           </h2>
           {profileId ? (
             <Link
               href={`/results/${profileId}`}
-              className="text-stone-600 hover:text-stone-800 text-sm"
+              className="body-s text-text-secondary hover:text-text-primary transition-colors duration-150 focus-ring"
             >
               View your results &rarr;
             </Link>
@@ -192,12 +193,9 @@ export default function AccountPage() {
                 assessment and save your results to access them here.
               </p>
               {unsavedResults && (
-                <button
-                  onClick={handleSaveResults}
-                  className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
-                >
+                <Button variant="secondary" onClick={handleSaveResults}>
                   Save current results to account
-                </button>
+                </Button>
               )}
               {saveStatus && (
                 <p className="text-sm mt-2 text-text-secondary">{saveStatus}</p>
@@ -208,17 +206,17 @@ export default function AccountPage() {
 
         {/* Axis visibility */}
         <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-1">
+          <h2 className="display-s text-text-primary mb-1">
             Privacy
           </h2>
-          <p className="text-sm text-text-tertiary mb-4">
+          <p className="text-sm text-text-secondary mb-4">
             Hide governance axes from comparisons. Hidden axes
             won&apos;t appear when others compare with you.
           </p>
           <div className="space-y-5">
             {Object.entries(axesByDomain).map(([domain, domainAxes]) => (
               <div key={domain}>
-                <h3 className="text-[11px] uppercase tracking-[0.08em] text-stone-800 font-medium mb-2">
+                <h3 className="label font-medium text-text-label mb-2">
                   {domain}
                 </h3>
                 <div className="space-y-1">
@@ -233,7 +231,7 @@ export default function AccountPage() {
                         checked={!a.hidden}
                         disabled={pendingVisibilityAxes.has(a.axisId)}
                         onChange={() => toggleVisibility(a.axisId, !a.hidden)}
-                        className="rounded border-border-primary text-stone-600 focus-ring"
+                        className="rounded border-border-primary accent-[var(--mark-primary)] focus-ring"
                       />
                     </label>
                   ))}
@@ -242,7 +240,7 @@ export default function AccountPage() {
             ))}
           </div>
           {visibilityError && (
-            <p role="alert" className="mt-3 text-sm text-red-600">
+            <p role="alert" className="mt-3 text-sm text-warning-text">
               {visibilityError}
             </p>
           )}
@@ -250,7 +248,7 @@ export default function AccountPage() {
 
         {/* Groups */}
         <section className="bg-surface-1 rounded-sharp border border-border-secondary p-6 mb-6">
-          <h2 className="text-[18px] font-serif font-medium text-text-primary mb-4">
+          <h2 className="display-s text-text-primary mb-4">
             Groups
           </h2>
           {groups.length > 0 ? (
@@ -259,17 +257,17 @@ export default function AccountPage() {
                 <Link
                   key={g.id}
                   href={`/groups/${g.id}`}
-                  className="block bg-surface-2 rounded-sharp p-3 hover:bg-stone-100 transition-colors duration-150"
+                  className="block bg-surface-2 rounded-sharp p-3 hover:bg-surface-1 transition-colors duration-150 focus-ring"
                 >
                   <div className="font-medium text-text-primary">{g.name}</div>
-                  <div className="text-xs text-text-tertiary">
+                  <div className="text-xs text-text-secondary">
                     {g.memberCount} members &middot; {g.inviteCode}
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-tertiary mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               You&apos;re not in any groups yet.
             </p>
           )}
@@ -285,12 +283,9 @@ export default function AccountPage() {
                 placeholder="Group name"
                 className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
-              <button
-                onClick={handleCreateGroup}
-                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
-              >
+              <Button variant="secondary" onClick={handleCreateGroup}>
                 Create
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -305,16 +300,13 @@ export default function AccountPage() {
                 placeholder="Invite code (e.g., ABCD-1234)"
                 className="flex-1 rounded-sharp border border-border-primary px-3 py-2 text-sm bg-surface-1 text-text-primary focus-ring"
               />
-              <button
-                onClick={handleJoinGroup}
-                className="border border-stone-600 text-stone-600 px-4 py-2 rounded-sharp text-sm font-medium hover:bg-stone-100 transition-colors duration-150"
-              >
+              <Button variant="secondary" onClick={handleJoinGroup}>
                 Join
-              </button>
+              </Button>
             </div>
           </div>
           {groupActionError && (
-            <p role="alert" className="mt-3 text-sm text-red-600">
+            <p role="alert" className="mt-3 text-sm text-warning-text">
               {groupActionError}
             </p>
           )}
