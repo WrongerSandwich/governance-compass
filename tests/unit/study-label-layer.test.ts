@@ -248,8 +248,15 @@ describe("the persona modal's scored profile converges on the shared scale", () 
     expect(inlineFontSizes(read(FILE))).toEqual([]);
   });
 
-  it("leaves no reference to the sub-AA tertiary token", () => {
-    expect(read(FILE)).not.toContain("var(--text-tertiary)");
+  it("leaves no reference to the sub-AA tertiary token, in any spelling", () => {
+    // The TOKEN, not one syntax for it. Three spellings reach the same
+    // colour and a scan for any one of them misses the other two:
+    // `var(--text-tertiary)`, the bare `"--text-tertiary"` a caller
+    // interpolates into `var(...)` later, and the Tailwind class
+    // `text-text-tertiary`. Note the class carries a SINGLE hyphen before
+    // `text-tertiary`, so a `/--text-tertiary/` pattern — the obvious
+    // widening — silently misses it. Both alternatives are mutation-checked.
+    expect(read(FILE)).not.toMatch(/(?:--|text-)text-tertiary/);
   });
 
   it("declares no local score bar of its own", () => {

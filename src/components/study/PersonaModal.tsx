@@ -39,6 +39,12 @@ import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** The five score-bar columns' shared sizing. `PairedAxisScale` renders only
+ *  the scale and leaves the row to its caller, where the retired local
+ *  `ScoreBar` carried this on its own root. One frozen object is safe to share
+ *  across style props — React never mutates them. */
+const TRACK_COL = { flex: 1, minWidth: "40px" } as const;
+
 /** Extract axis number from the axis_scores key "1_economic_model" → 1 */
 function axisKeyToNumber(key: string): number {
   return parseInt(key.split("_")[0], 10);
@@ -717,16 +723,15 @@ function SingleModelScoredProfile({
                     {axisData?.name ?? key}
                   </span>
 
-                  {/* The row owns the track's width: PairedAxisScale renders
-                      only the scale and leaves sizing to its caller, where the
-                      retired local ScoreBar carried its own flex. */}
-                  <div style={{ flex: 1, minWidth: "40px" }}>
+                  <div style={TRACK_COL}>
                     <PairedAxisScale
                       axisId={axisNum}
                       poleALabel={axisData?.poleALabel ?? ""}
                       poleBLabel={axisData?.poleBLabel ?? ""}
                       scoreA={score}
                       axisName={axisData?.name ?? key}
+                      // Measured across 320-1600px: see the prop's own comment.
+                      endpoints="none"
                       markVar={
                         isNeg
                           ? "var(--axis-gradient-negative-strong)"
@@ -1051,7 +1056,7 @@ function DualModelScoredProfile({
                       gap: "4px",
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: "40px" }}>
+                    <div style={TRACK_COL}>
                       <PairedAxisScale
                         axisId={axisNum}
                         poleALabel={axisData?.poleALabel ?? ""}
@@ -1100,7 +1105,7 @@ function DualModelScoredProfile({
                       gap: "4px",
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: "40px" }}>
+                    <div style={TRACK_COL}>
                       <PairedAxisScale
                         axisId={axisNum}
                         poleALabel={axisData?.poleALabel ?? ""}
@@ -1205,7 +1210,7 @@ function DualModelScoredProfile({
                     >
                       C:
                     </span>
-                    <div style={{ flex: 1, minWidth: "40px" }}>
+                    <div style={TRACK_COL}>
                       <PairedAxisScale
                         axisId={axisNum}
                         poleALabel={axisData?.poleALabel ?? ""}
@@ -1256,7 +1261,7 @@ function DualModelScoredProfile({
                     >
                       G:
                     </span>
-                    <div style={{ flex: 1, minWidth: "40px" }}>
+                    <div style={TRACK_COL}>
                       <PairedAxisScale
                         axisId={axisNum}
                         poleALabel={axisData?.poleALabel ?? ""}
@@ -1542,7 +1547,7 @@ function ResponsesContent({
                     style={{ flexShrink: 0 }}
                   >
                     {r.choice}{" "}
-                    <span className="mono-meta text-text-secondary font-normal">
+                    <span className="body-xs text-text-label font-normal">
                       (toward {poleLabel})
                     </span>
                   </span>
@@ -1579,7 +1584,7 @@ function ResponsesContent({
                     style={{ flexShrink: 0 }}
                   >
                     {r.choice}{" "}
-                    <span className="mono-meta text-text-secondary font-normal">
+                    <span className="body-xs text-text-label font-normal">
                       ({choiceLabel})
                     </span>
                   </span>
@@ -1593,7 +1598,7 @@ function ResponsesContent({
                 style={{ fontStyle: "italic", marginTop: "2px" }}
               >
                 Budget signal:{" "}
-                <span className="text-text-secondary">
+                <span className="text-text-primary">
                   {budgetScore >= 0 ? "+" : ""}
                   {budgetScore.toFixed(2)}
                 </span>
