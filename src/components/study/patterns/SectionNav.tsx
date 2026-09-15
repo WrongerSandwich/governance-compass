@@ -45,7 +45,7 @@ export function SectionNav({ sections }: SectionNavProps) {
     <>
       <nav
         aria-label="Sections on this page"
-        className="patterns-section-nav mb-14 flex flex-wrap gap-x-6 gap-y-2"
+        className="mb-14 flex flex-wrap gap-x-6 gap-y-2"
       >
         {sections.map((item) => {
           const isActive = activeId === item.id;
