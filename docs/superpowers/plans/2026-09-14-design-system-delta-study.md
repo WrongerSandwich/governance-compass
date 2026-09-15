@@ -366,6 +366,8 @@ Then, within the same file:
 
 The `dl` at line 79 keeps its `style={{ borderTopWidth: "0.5px", borderBottomWidth: "0.5px" }}` — that is a rule weight, not type, and D23 leaves it alone.
 
+**Three type properties disappear on all four pages when `PageHeader` is adopted, and they are accepted rather than overlooked.** The kicker loses `font-weight: 500` (`label-eyebrow` declares no weight, and neither do the five reference pages that already use this component — so this makes `/study` match them rather than diverge). Two of the h1s lose `text-balance` and their `leading-tight` / `lineHeight: 1.15`, because `display-page` sets `text-wrap: pretty` at `line-height: 1.06`. Adopting a shared component means adopting its rhythm; overriding any of the three at the call site would re-create the per-page divergence the component exists to end.
+
 - [ ] **Step 4: Convert `/study/patterns` and `/study/model-agreement`**
 
 Both carry the identical header block. In `src/app/study/patterns/page.tsx`, replace lines 313-334 (the `<p>` kicker, the `<h1>`, and the serif intro `<p>`) with:
@@ -388,7 +390,7 @@ Add `import { PageHeader } from "@/components/PageHeader";` and drop the now-unu
 
 In `src/app/study/model-agreement/page.tsx`, replace lines 345-367 the same way, with `title="Model agreement"` and the existing intro sentence as the single `lead` entry. Its inline section-nav (`:377-400`) is Task 3's.
 
-Every `max-w-3xl` and `max-w-2xl` in both files becomes `max-w-reference`. That is 20 sites in `patterns/page.tsx` and 1 in `model-agreement/page.tsx`; `ModelAgreementClient`'s 10 are Task 5's.
+Every `max-w-3xl` and `max-w-2xl` in both files becomes `max-w-reference`. That is **19** sites in `patterns/page.tsx` (1 × `3xl` + 18 × `2xl`) and 1 in `model-agreement/page.tsx`; `ModelAgreementClient`'s **11** are Task 5's. Both counts were wrong in the first draft (20 and 10) and are now measured.
 
 - [ ] **Step 5: Convert `/study/personas`**
 
@@ -542,6 +544,8 @@ In `src/app/study/model-agreement/page.tsx`, delete lines 377-400 and render the
 ```
 
 `short` is required by `SectionNavItem`, and the inline version had no short labels — the six above are the abbreviations the CSS swap at 768px needs. Add `import { SectionNav } from "@/components/study/patterns/SectionNav";`.
+
+**Carry the gap over.** Task 2 prepended `mt-6` to this inline `<nav>`'s className to replace the 24px bottom margin of the intro paragraph that `PageHeader` absorbed. Deleting lines 377-400 deletes that `mt-6` with them. Re-supply it the way Task 2 did on `/study/patterns` — wrap the `<SectionNav>` in `<div className="mt-6">` — because `SectionNav` takes only a `sections` prop and giving it a `className` prop to solve a margin is the wrong shape.
 
 `SectionNav` is `"use client"` and `model-agreement/page.tsx` is a server component; rendering a client component from a server component is the normal direction and needs no change. The `.section-nav-full` / `.section-nav-short` CSS lives in `patterns/page.tsx`'s `<style>` block — move it into `SectionNav.tsx`'s own `<style>` so the second consumer inherits it. Grep for `section-nav-full` to find it.
 
@@ -764,7 +768,9 @@ git commit -m "feat(design): put the patterns page on the delta's label layer"
 - Modify: `src/components/study/model-agreement/DisagreementByAttribute.tsx`
 - Test: `tests/unit/study-label-layer.test.ts`
 
-**`ModelAgreementClient.tsx`** — mostly class-based already, so this is a retargeting rather than a conversion. 10 `max-w-2xl` → `max-w-reference`.
+**`ModelAgreementClient.tsx`** — mostly class-based already, so this is a retargeting rather than a conversion. **11** `max-w-2xl` → `max-w-reference`.
+
+> **Hand-off from Task 2, and it is the kind that gets lost.** Task 2's third test case — `caps each study page on the measure its content is` in `tests/unit/study-chrome.test.ts` — had to be **scoped to the four shell files**, because these 11 sites could not pass it yet. While scoped, it guards four files and stops guarding the other ~40 study components against a new `max-w-2xl` appearing. **This task must widen it back** to all of `STUDY_SOURCES` once the 11 are converted, not merely convert the 11. Read the comment the task-2 implementer left in that case; it names this condition.
 
 | Line | Today | Target |
 | --- | --- | --- |
