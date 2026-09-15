@@ -30,6 +30,7 @@ import type {
 import type { ClusterId, RegionKey } from "@/lib/study/types";
 import { REGION_LABELS } from "@/lib/study/types";
 import { joinWithAnd } from "@/lib/study/modelAgreementProse";
+import { getDomainMarkVar } from "@/lib/design-tokens";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,14 +81,6 @@ interface TensionPatternsFile {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Domain fill color for ViolinOrRidge series (hex, from design-tokens DOMAIN_COLORS). */
-function domainColorFor(axisId: number): string {
-  if (axisId <= 2) return "#85735e";   // Economic Organization — Stone 600
-  if (axisId <= 6) return "#6b7d8a";  // Power and Authority — Slate 600
-  if (axisId <= 9) return "#7a8b6e";  // Society and Identity — Sage 600
-  return "#96716b";                    // The State in the World — Clay 600
-}
 
 /** Convert the flat axis_1..axis_12 centroid into a number[12] ordered array. */
 function centroidToAxisScores(c: ClusterCentroid): number[] {
@@ -219,7 +212,7 @@ export default async function PatternsPage() {
       label: `${axis.id}. ${axis.name}`,
       bins: histData ? histData.bins.map((b) => b.count) : [],
       mean: histData?.mean,
-      domainColor: domainColorFor(axis.id),
+      domainColor: getDomainMarkVar(axis.id),
     };
   });
 
@@ -350,7 +343,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-6">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             The six clusters
           </h2>
         </div>
@@ -408,7 +401,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             Archetype distribution
           </h2>
         </div>
@@ -458,7 +451,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             Regional and demographic aggregates
           </h2>
         </div>
@@ -503,14 +496,7 @@ export default async function PatternsPage() {
                 variant="density"
                 breakpoints={[49, 89, 112, 133]}
               />
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-xs, 11px)",
-                  color: "var(--text-tertiary)",
-                  margin: 0,
-                }}
-              >
+              <p className="label-tight text-text-label" style={{ margin: 0 }}>
                 Persona density by region
               </p>
             </div>
@@ -534,14 +520,7 @@ export default async function PatternsPage() {
                 variant="cluster"
                 clusterIds={[0, 1, 2, 3, 4, 5]}
               />
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-xs, 11px)",
-                  color: "var(--text-tertiary)",
-                  margin: 0,
-                }}
-              >
+              <p className="label-tight text-text-label" style={{ margin: 0 }}>
                 Dominant cluster by region
               </p>
             </div>
@@ -572,7 +551,7 @@ export default async function PatternsPage() {
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-reference mb-4">
-            <h3 className="text-[17px] font-serif font-medium text-text-primary">
+            <h3 className="display-s text-text-primary">
               Cultural diversity across regions
             </h3>
           </div>
@@ -645,7 +624,7 @@ export default async function PatternsPage() {
           style={{ maxWidth: "1120px", padding: "0 1rem" }}
         >
           <div className="mx-auto max-w-reference mb-6">
-            <h3 className="text-[17px] font-serif font-medium text-text-primary">
+            <h3 className="display-s text-text-primary">
               Demographic distributions
             </h3>
           </div>
@@ -687,7 +666,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             Axis-level distributions
           </h2>
         </div>
@@ -749,7 +728,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             Correlations
           </h2>
         </div>
@@ -814,7 +793,7 @@ export default async function PatternsPage() {
         style={{ scrollMarginTop: "72px" }}
       >
         <div className="mx-auto max-w-reference mb-8">
-          <h2 className="text-[22px] font-serif font-medium text-text-primary text-balance">
+          <h2 className="display-entry text-text-primary text-balance">
             Tension patterns
           </h2>
         </div>
@@ -828,14 +807,8 @@ export default async function PatternsPage() {
         >
           <div className="mx-auto max-w-reference mb-4">
             <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
+              className="label text-text-label"
+              style={{ marginBottom: "8px" }}
             >
               Overall tension rate by axis (Claude / Gemini)
             </p>
@@ -862,14 +835,8 @@ export default async function PatternsPage() {
         >
           <div className="mx-auto max-w-reference mb-4">
             <p
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "var(--text-tertiary)",
-                fontFamily: "var(--font-sans)",
-                marginBottom: "8px",
-              }}
+              className="label text-text-label"
+              style={{ marginBottom: "8px" }}
             >
               Tension rate by axis × cluster. Overall column splits
               Claude/Gemini; cluster columns show a model-combined rate.
