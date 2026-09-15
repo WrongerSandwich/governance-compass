@@ -2227,6 +2227,22 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 ## Deferred to later phases
 
+**The map's focus outline still shows bounding-box rules on wide regions, and it stays.**
+Task 11 gave `StyledGeography` a fourth resolved state key so each interactive region can
+carry a shape-hugging `stroke: var(--focus-ring)` at 2px — a cue that is never clipped
+and is unmistakable against the 1px gold hover stroke. The `focus-ring` class was
+**kept alongside** it, which means an SVG outline still hugs the bounding box and wide
+regions (Oceania, Eastern Europe/Central Asia, North America — 4 of 9) still draw two
+horizontal rules across the map that can read as gridlines.
+
+The trade was considered and made deliberately. Dropping the class would remove the
+artifact in two lines, and the stroke alone is a conforming indicator. But the stroke is
+driven by a JS `matches(":focus-visible")` check in a state shim, and the class is a
+plain CSS rule — so the class is the backstop if the shim ever regresses, and a focus
+indicator is the wrong place to remove a backstop for an aesthetic gain. Revisit it in
+the layout phase, where the honest fix (clipping the outline to the region, or dropping
+it once the stroke has proven itself) belongs with the other map geometry work.
+
 **SVG corner radii (`rx`) are a sixth spelling that no sweep has ever covered.**
 Task 10 tokenised 39 radius literals in five spellings and Task 10's reviewer then found
 three more the task's grep list never named: `TensionMatrix.tsx:204` (`rx={1}`),
