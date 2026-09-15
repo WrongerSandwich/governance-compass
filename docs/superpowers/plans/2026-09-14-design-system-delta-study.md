@@ -2267,6 +2267,28 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 ## Deferred to later phases
 
+**Seventeen frozen mark tones in four files that phases 1-5 already swept.** Task 14's
+mark-tone guard, applied over the whole of `SWEPT` as prescribed rather than scoped to
+`/study`, reddened on `comparison/ComparisonRadar.tsx`, `comparison/BudgetComparison.tsx`,
+`groups/GroupRadar.tsx` and `groups/GroupScoreBar.tsx` — radar polygons, a score-bar dot
+and budget bars, all naming `var(--stone-600)` inline.
+
+These are exactly the defect the guard describes: a *mark* frozen to its light value, so
+it does not step in dark mode. They survived phases 1-5 because phase 5's ramp guard
+matches the Tailwind class `text-stone-600` and these sites are written as inline
+`var()`. That is the seventh instance in this phase of a guard being blind to a
+**spelling** rather than to a site.
+
+Task 14 did not repaint four shipped charts inside a guards task, and did not weaken the
+pattern to hide them. They are a named `PHASE_5_INLINE_RAMP` exclusion with the reasoning
+in code, and mutation row M11c confirms that emptying it reddens. **This wants its own
+task**: four files, `var(--stone-600)` to `var(--mark-primary)`, verified in dark mode —
+where, note, the change is the whole point and a light-mode screenshot will show nothing.
+
+Scoping the guard to `/study` would have made the phase look cleaner and left the debt
+invisible. The wider scope plus a named exclusion is the right trade, and it is the same
+shape as `SVG_CAPPED` and `MARK_TONE_EXEMPT`.
+
 **The map's focus outline still shows bounding-box rules on wide regions, and it stays.**
 Task 11 gave `StyledGeography` a fourth resolved state key so each interactive region can
 carry a shape-hugging `stroke: var(--focus-ring)` at 2px — a cue that is never clipped
