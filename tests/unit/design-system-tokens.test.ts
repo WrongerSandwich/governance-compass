@@ -356,16 +356,27 @@ describe("data marks step by mode (design delta 06)", () => {
     expect(theme["--container-results"]).toBe("820px");
   });
 
-  it("names all four page widths as tokens, so none is spelled as a literal", () => {
-    // Phase 4 left two of the four as Tailwind literals. A width spelled
-    // `max-w-2xl` reads as a generic size rather than as "the quiz column",
-    // so a later phase retunes one page and silently desyncs it from the
-    // other on the same measure. 660 is mock 7c's; 672 is what `max-w-2xl`
-    // already resolved to, so that one is a rename and must not move.
+  it("names all five page measures as tokens, so none is spelled as a literal", () => {
+    // A width spelled `max-w-3xl` reads as a generic size rather than as
+    // "the study column", so a later phase retunes one page and silently
+    // desyncs it from another on the same measure. 1200 is the persona
+    // browser's: it is the only measure in the product wider than the chrome
+    // shell, and it is wider on purpose (D26) — a two-column data browser,
+    // not a prose page.
     expect(theme["--container-shell"]).toBe("1040px");
     expect(theme["--container-results"]).toBe("820px");
     expect(theme["--container-reference"]).toBe("660px");
     expect(theme["--container-quiz"]).toBe("672px");
+    expect(theme["--container-browse"]).toBe("1200px");
+  });
+
+  it("keeps the browser measure the widest, since that is the only reason it exists", () => {
+    // If a later retune drops --container-browse to or below the shell, the
+    // token has stopped earning its place and should be deleted rather than
+    // left as a second name for 1040px.
+    const px = (name: string) => Number.parseInt(theme[name], 10);
+
+    expect(px("--container-browse")).toBeGreaterThan(px("--container-shell"));
   });
 
   it("holds the quiz column on its token rather than the generic Tailwind size", () => {
