@@ -2174,6 +2174,28 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 ## Deferred to later phases
 
+**Pole labels on the modal's scored-profile tracks.** Task 9 passes `endpoints="none"`
+at all five sites, which is exact parity with the retired `ScoreBar` (it drew no
+endpoint text either) and is why the task ships no layout change at all. But the labels
+would be genuine new information at desktop widths, and they are suppressed there only
+because they cannot be made to fit everywhere else.
+
+The measurement, from Task 9's implementer: the widest pole pair
+(`Distributed Governance` / `Centralized Governance`) needs **301px**. Two separate
+things deny it that —
+
+1. Between 640 and 899px the radar's side-by-side rule is its own
+   `@media (min-width: 640px)` query, so it keeps taking a fixed 300px out of the row
+   through the whole band and leaves the track 159–212px. Widening the `.axis-row`
+   wrap rule to 899px, which is the obvious fix, clears 800–899 and nothing below it.
+2. Below 420px the viewport itself is short of 301px, and 11px is the delta's floor, so
+   there is no type remedy at all.
+
+Making the labels fit everywhere therefore means moving the radar's stacking breakpoint
+to 900px *and* inventing a phone treatment. That is two layout decisions, and delta 04
+(below) is where layout decisions belong. Do it there, or not at all — but do not
+smuggle it into a type task.
+
 Recorded here so they are not rediscovered as bugs.
 
 - **`/study`'s layout stays inline-styled.** D23 converts the type layer and nothing else, so ~220 style objects carrying `display`, `flex`, `gap`, `padding` and computed geometry survive this phase intact. That is a deliberate stopping point, not an unfinished sweep: none of it is drift against the design system, because the design system has nothing to say about a `gap: "6px"`. If a later phase converts them, the reason should be maintainability and not delta compliance.
