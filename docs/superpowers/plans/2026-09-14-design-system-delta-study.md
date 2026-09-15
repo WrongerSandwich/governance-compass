@@ -1328,6 +1328,7 @@ The scored-profile block's remaining type sites, per the role mapping:
 | 957 | `return "var(--text-tertiary)"` in `deltaColor` | `return "var(--text-label)"` |
 | 2029 | `copied ? "var(--cluster-3)" : "var(--text-tertiary)"` | `copied ? "var(--cluster-3)" : "var(--text-label)"` |
 | 766 | `colorVar="--stone-600"` — the frozen mark tone as a **bare name**, interpolated into `var(...)` later | `"--mark-primary"`. Routed here by Task 6's implementer. The bare spelling is why it survived: a scan for `var(--stone-600)` cannot match it. |
+| 78 | `ConfidenceDot`'s `high: "var(--stone-600)"` | `"var(--mark-primary)"`. **Not a type site** — routed here by Task 8's code-quality reviewer because all five call sites are in this task's zone, and because Task 14's section-wide guard will otherwise discover it. It is the fourth mark tone in this phase found in a file no task's list named, and the third found by a reviewer rather than by the table it should have been in. The lesson stands from Task 6: before converting, grep the whole file for the token in every spelling, rather than trusting the line list. |
 
 Then append the whole-file assertions to `tests/unit/study-label-layer.test.ts`:
 
