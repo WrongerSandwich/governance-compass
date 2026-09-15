@@ -184,11 +184,22 @@ describe("the persona modal's chrome joins the label layer", () => {
 
   /** Block and line comments out, so a text scan reads code and not prose.
    *  The `[^:]` guard keeps a `//` inside a URL literal from eating the rest
-   *  of its line. */
+   *  of its line.
+   *
+   *  PROVISIONAL — Task 14 Step 3b hoists a shared `stripComments` into
+   *  `tests/helpers/source-files.ts` and routes every scanning guard in this
+   *  suite through it. Delete this copy and import that one. */
   function stripComments(text: string): string {
     return text
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  }
+
+  /** The class tokens on an element's opening tag. Split, never substring:
+   *  `toContain("label")` also passes on `label-nav`. */
+  function classTokens(openingTag: string): string[] {
+    const match = openingTag.match(/className="([^"]*)"/);
+    return match ? match[1].split(/\s+/).filter(Boolean) : [];
   }
 
   it("marks the modal's error state so it is not carried by colour alone", () => {
@@ -199,20 +210,23 @@ describe("the persona modal's chrome joins the label layer", () => {
     // carries the same amber an advisory notice does — so the cue a sighted
     // user had would get weaker with nothing put in its place.
     //
-    // Bound to the OPENING TAG of the element that renders `{error}`, on a
-    // comment-stripped copy. The first spelling of this assertion scanned
-    // 600 raw characters back from `{error}`, which swallowed the comment
-    // standing beside the attribute and passed on the prose alone — the same
-    // way Task 6 reddened its own guard by writing a banned literal into a
-    // test comment (resolved at 7f91af8). A whole-file text scan cannot tell
-    // a comment from code, so the test has to.
+    // Comments are stripped and the assertion is bound to the OPENING TAG of
+    // the element, because a whole-file text scan cannot tell a declaration
+    // from prose about a declaration: a window wide enough to catch the
+    // attribute is wide enough to catch a comment naming it, and then the
+    // guard passes after the attribute is deleted.
     const text = stripComments(read(FILE));
 
-    const at = text.indexOf("{error}");
-    expect(at, "nothing in the modal renders {error}").toBeGreaterThan(-1);
+    const sites = text.split("{error}").length - 1;
+    expect(
+      sites,
+      "one error path, one guard — a second one needs its own assertion, " +
+        "not a scan that silently pins whichever comes first",
+    ).toBe(1);
 
     // Back to the nearest `<`: with comments gone, that is the start of the
     // opening tag enclosing the expression, and nothing else.
+    const at = text.indexOf("{error}");
     const openingTag = text.slice(text.lastIndexOf("<", at), at);
     expect(openingTag, "expected an element opening tag").toMatch(
       /^<[a-zA-Z][^<]*>\s*$/,
@@ -221,6 +235,6 @@ describe("the persona modal's chrome joins the label layer", () => {
     expect(openingTag).toContain('role="alert"');
     // The half that makes the role load-bearing: D16's swap is what removed
     // the colour cue, and the two have to arrive on the same element.
-    expect(openingTag).toContain("text-warning-text");
+    expect(classTokens(openingTag)).toContain("text-warning-text");
   });
 });

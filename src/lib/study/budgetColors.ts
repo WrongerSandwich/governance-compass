@@ -1,10 +1,17 @@
 /**
- * The budget strip's seven ministry fills, in `MINISTRY_ORDER`.
+ * The budget strip's seven ministries: their canonical order, their display
+ * names, and their fills.
  *
- * Pragmatic reuse of the cluster palette: seven segments need seven distinct
- * hues, and the cluster tokens happen to provide a coherent six-colour set
- * within the warm stone family. Nothing here is semantically tied to cluster
- * identity.
+ * The order and the fills live in one module because they are bound
+ * POSITIONALLY — both consumers render `BUDGET_COLORS[i % length]` where `i`
+ * is the index into `MINISTRY_ORDER`, so reordering one without the other
+ * silently repaints every segment. They were previously two pairs of
+ * byte-identical copies in two files with nothing tying them together.
+ *
+ * Fills: pragmatic reuse of the cluster palette. Seven segments need seven
+ * distinct hues, and the cluster tokens happen to provide a coherent six-colour
+ * set within the warm stone family. Nothing here is semantically tied to
+ * cluster identity.
  *
  * `--stone-400` is the seventh fill deliberately, and it stays. It is declared
  * once in `:root` and never redefined in the dark block — `#b5a594` in both
@@ -16,11 +23,31 @@
  * `--stone-900` and `--stone-50` as contrast ink. Growing the ramp by one
  * invented token to satisfy the guard would break the delta's opening
  * constraint, "no new colours".
- *
- * Lives here because `PersonaModal`'s `BudgetStrip` and `CompareView`'s
- * `MiniBudgetStrip` each declared a byte-identical copy, and the modal's was
- * declared *inside* the component, so it was reallocated on every render.
  */
+
+/** Render order of the seven ministry segments. Indexes `BUDGET_COLORS`. */
+export const MINISTRY_ORDER = [
+  "defense",
+  "public_welfare",
+  "economy_growth",
+  "education_research",
+  "environment",
+  "justice_civil_liberties",
+  "foreign_affairs",
+] as const;
+
+/** Budget key (snake_case) → ministry display name. */
+export const BUDGET_LABELS: Record<string, string> = {
+  defense: "Defense",
+  public_welfare: "Public Welfare",
+  economy_growth: "Economy & Growth",
+  education_research: "Education & Research",
+  environment: "Environment",
+  justice_civil_liberties: "Justice & Civil Liberties",
+  foreign_affairs: "Foreign Affairs",
+};
+
+/** Segment fills, positionally aligned with `MINISTRY_ORDER`. */
 export const BUDGET_COLORS = [
   "var(--cluster-5)",
   "var(--cluster-4)",
@@ -29,4 +56,4 @@ export const BUDGET_COLORS = [
   "var(--cluster-1)",
   "var(--cluster-2)",
   "var(--stone-400)",
-];
+] as const;

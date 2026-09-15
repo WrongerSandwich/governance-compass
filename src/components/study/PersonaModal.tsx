@@ -13,7 +13,11 @@ import { Radar, DEFAULT_AXIS_LABELS } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
-import { BUDGET_COLORS } from "@/lib/study/budgetColors";
+import {
+  BUDGET_COLORS,
+  BUDGET_LABELS,
+  MINISTRY_ORDER,
+} from "@/lib/study/budgetColors";
 import { getQuestion } from "@/lib/study/questionLookup";
 import { usePersonasContext } from "@/lib/study/PersonasContext";
 import { personaNeighbors } from "@/lib/study/personaNavigation";
@@ -50,17 +54,6 @@ function axisScoresToArray(
   }
   return arr;
 }
-
-/** Budget key (snake_case) → ministry name */
-const BUDGET_KEY_TO_MINISTRY: Record<string, string> = {
-  defense: "Defense",
-  public_welfare: "Public Welfare",
-  economy_growth: "Economy & Growth",
-  education_research: "Education & Research",
-  environment: "Environment",
-  justice_civil_liberties: "Justice & Civil Liberties",
-  foreign_affairs: "Foreign Affairs",
-};
 
 // ---------------------------------------------------------------------------
 // Confidence indicator
@@ -109,18 +102,9 @@ function ConfidenceDot({
 
 function BudgetStrip({ budget }: { budget: Record<string, number> }) {
   const total = Object.values(budget).reduce((s, v) => s + (v ?? 0), 0) || 50;
-  const MINISTRY_ORDER = [
-    "defense",
-    "public_welfare",
-    "economy_growth",
-    "education_research",
-    "environment",
-    "justice_civil_liberties",
-    "foreign_affairs",
-  ];
   const entries = MINISTRY_ORDER.map((key) => ({
     key,
-    name: BUDGET_KEY_TO_MINISTRY[key] ?? humanizeKey(key),
+    name: BUDGET_LABELS[key] ?? humanizeKey(key),
     value: budget[key] ?? 0,
   }));
 
@@ -345,24 +329,28 @@ function ModalHeader({
 // Zone 2 — Biographical block
 // ---------------------------------------------------------------------------
 
+/* The type layer of the block's repeated elements. It cannot live in the style
+   constant below: the delta's roles are Tailwind `@utility` rules and there is
+   no spelling of one inside a `style` prop.
+
+   Section headers are serif medium, sentence case, text-primary — clearly
+   differentiated from the mono uppercase field labels underneath. The delta's
+   serif scale has no 13px step, so a small serif-500 heading maps onto
+   `display-s`, the same move `model-agreement/CaseStudy.tsx`'s section heading
+   made from 14px. (`CompareView`'s persona name landed on the same role, but
+   from 16px — a different row of the mapping.) */
+const sectionHeaderClass = "display-s text-text-primary";
+const fieldLabelClass = "label text-text-label font-medium";
+const fieldValueClass = "body-s text-text-secondary";
+
+const sectionHeaderStyle: React.CSSProperties = {
+  marginBottom: "8px",
+  paddingBottom: "4px",
+  borderBottom: "0.5px solid var(--border-secondary)",
+};
+
 function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
   const { persona } = data;
-
-  // Section header styling — serif medium, sentence case, text-primary.
-  // Clearly differentiated from the 11px uppercase field labels below.
-  //
-  // The delta's serif scale has no 13px step; a small serif-500 heading maps
-  // onto `display-s`, the same move `model-agreement/CaseStudy.tsx`'s section
-  // heading made from 14px. (`CompareView`'s persona name landed on the same
-  // role, but from 16px — a different row of the mapping.) The rule that stays
-  // true is the one the comment above states — serif against the mono field
-  // labels underneath.
-  const sectionHeaderClass = "display-s text-text-primary";
-  const sectionHeaderStyle: React.CSSProperties = {
-    marginBottom: "8px",
-    paddingBottom: "4px",
-    borderBottom: "0.5px solid var(--border-secondary)",
-  };
 
   const detailFields = (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -385,7 +373,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
-                  className="label text-text-label font-medium"
+                  className={fieldLabelClass}
                   style={{
                     paddingBottom: "3px",
                     paddingRight: "8px",
@@ -396,7 +384,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
-                  className="body-s text-text-secondary"
+                  className={fieldValueClass}
                   style={{
                     paddingBottom: "3px",
                   }}
@@ -423,7 +411,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
             ].map(([label, value]) => (
               <tr key={label}>
                 <td
-                  className="label text-text-label font-medium"
+                  className={fieldLabelClass}
                   style={{
                     paddingBottom: "3px",
                     paddingRight: "8px",
@@ -434,7 +422,7 @@ function BiographicalBlock({ data }: { data: PersonaDetailResponse }) {
                   {label}
                 </td>
                 <td
-                  className="body-s text-text-secondary"
+                  className={fieldValueClass}
                   style={{
                     paddingBottom: "3px",
                   }}
@@ -1894,6 +1882,12 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
                     onClick={() => handleTabSwitch(model)}
                     onKeyDown={(e) => handleTabKeyDown(e, model)}
                     className="control"
+                    // `fontWeight` stays inline and stays computed: the 500/400
+                    // split is the selected-tab cue, alongside the filled
+                    // background. It is not redundant with `control`'s own 500
+                    // — the inline value wins on BOTH tabs, so the role's weight
+                    // is merely duplicated on the active one and deliberately
+                    // overridden on the inactive one.
                     style={{
                       padding: "6px 18px",
                       background: isActive ? modelColor : "none",
@@ -2006,7 +2000,6 @@ function ModalFooter({ id }: { id: string }) {
       {/* Prev / Next — text-only, matches the Personas pagination pattern. */}
       {filteredIds.length > 1 && (
         <div
-          className="body-s text-text-label"
           style={{
             display: "flex",
             gap: "12px",

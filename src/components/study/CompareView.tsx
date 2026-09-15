@@ -7,7 +7,11 @@ import { Radar } from "@/components/study/Radar";
 import { ArchetypeBadgeStudy } from "@/components/study/ArchetypeBadgeStudy";
 import { ClusterBadge } from "@/components/study/ClusterBadge";
 import { axes } from "@/data/axes";
-import { BUDGET_COLORS } from "@/lib/study/budgetColors";
+import {
+  BUDGET_COLORS,
+  BUDGET_LABELS,
+  MINISTRY_ORDER,
+} from "@/lib/study/budgetColors";
 import { useEscapeKey } from "@/lib/study/useEscapeKey";
 import { REGION_LABELS } from "@/lib/study/types";
 import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
@@ -15,26 +19,6 @@ import type { PersonaDetailResponse, ClusterId } from "@/lib/study/types";
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const MINISTRY_ORDER = [
-  "defense",
-  "public_welfare",
-  "economy_growth",
-  "education_research",
-  "environment",
-  "justice_civil_liberties",
-  "foreign_affairs",
-];
-
-const BUDGET_LABELS: Record<string, string> = {
-  defense: "Defense",
-  public_welfare: "Public Welfare",
-  economy_growth: "Economy & Growth",
-  education_research: "Education & Research",
-  environment: "Environment",
-  justice_civil_liberties: "Justice & Civil Liberties",
-  foreign_affairs: "Foreign Affairs",
-};
 
 function axisKeyToNumber(key: string): number {
   return parseInt(key.split("_")[0], 10);
