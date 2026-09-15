@@ -1692,6 +1692,12 @@ function RawResponses({ data }: { data: PersonaDetailResponse }) {
           border: "none",
           cursor: "pointer",
           textAlign: "left",
+          // The ring draws INSIDE the border box here. This row is `width:
+          // 100%` inside `.persona-modal-container`, which is `overflow:
+          // hidden` and not horizontally scrollable, so at the utility's +2px
+          // offset the left and right verticals were cut and the ring read as
+          // two horizontal rules. Inline beats the utility's `outline-offset`.
+          outlineOffset: "-2px",
         }}
       >
         <span>View responses</span>

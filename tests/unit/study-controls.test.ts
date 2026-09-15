@@ -50,10 +50,12 @@ describe("the study section's controls are reachable without a mouse", () => {
 
   it("stops painting over the focus ring on the map's region paths", () => {
     // WorldMap's interactive geographies are tabIndex=0 role=button, and
-    // their default/hover/pressed style objects each set outline: "none".
-    // react-simple-maps has no `focus` key in that object, so there is
-    // nothing to put the ring back — a keyboard user gets no indicator at
-    // all, on the section's primary navigation control.
+    // their default/hover/pressed style objects each set outline: "none",
+    // with nothing to put the ring back. What a keyboard user got was
+    // `StyledGeography`'s onFocus mapping onto the HOVER state: a cue
+    // indistinguishable from mouse hover, which is not a conforming focus
+    // indicator, on the section's primary navigation control. (D28's own
+    // wording said "no indicator at all"; the plan is amended to match.)
     //
     // Counted, not forbidden: the four NON-interactive branches keep theirs,
     // because an unfocusable path has no ring to suppress. Four branches ×
@@ -63,6 +65,8 @@ describe("the study section's controls are reachable without a mouse", () => {
     const suppressions = (map.text.match(/outline: "none"/g) ?? []).length;
 
     expect(suppressions).toBe(12);
-    expect(map.text).toContain("focus-ring");
+    // Pinned to the two interactive branches rather than `toContain`, which
+    // one occurrence anywhere — including this comment — would satisfy.
+    expect((map.text.match(/className="focus-ring"/g) ?? []).length).toBe(2);
   });
 });

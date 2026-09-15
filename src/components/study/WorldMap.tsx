@@ -79,6 +79,8 @@ interface GeographyStateStyle {
   default?: React.CSSProperties;
   hover?: React.CSSProperties;
   pressed?: React.CSSProperties;
+  /** Keyboard focus. Not a v3 key — see `StyledGeography` for why it exists. */
+  focus?: React.CSSProperties;
 }
 
 type StyledGeographyProps = Omit<
@@ -95,6 +97,17 @@ type StyledGeographyProps = Omit<
  * every region here fell back to the SVG default black fill. A stale local
  * `react-simple-maps.d.ts` modelled the v3 prop shape, which kept `tsc` quiet
  * about it. See #110.
+ *
+ * The `focus` key is this module's own addition, not a v3 one. The two
+ * interactive branches need a shape-hugging keyboard cue: an `outline` on an
+ * SVG path is drawn around its BOUNDING BOX, so four of the nine regions were
+ * clipped by `svg.rsm-svg` and Oceania read as two horizontal rules across the
+ * whole map. A `stroke` follows the geometry and is never clipped. It cannot
+ * be done in CSS, because every state object sets `stroke` inline and inline
+ * beats any stylesheet rule. Focus also no longer resolves to `hover`, which
+ * was the pre-fix behaviour and made a keyboard cue indistinguishable from a
+ * mouse one; `hovered` still goes true so a non-`:focus-visible` focus (a
+ * mouse click) keeps the hover look it always had.
  */
 function StyledGeography({
   style,
@@ -108,13 +121,16 @@ function StyledGeography({
 }: StyledGeographyProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   // v3 semantics: one state object wins outright; they are not merged.
   const resolved = pressed
     ? style?.pressed
-    : hovered
-      ? style?.hover
-      : style?.default;
+    : focused
+      ? style?.focus
+      : hovered
+        ? style?.hover
+        : style?.default;
 
   return (
     <Geography
@@ -138,10 +154,12 @@ function StyledGeography({
         onMouseUp?.(event);
       }}
       onFocus={(event) => {
+        setFocused(event.currentTarget.matches(":focus-visible"));
         setHovered(true);
         onFocus?.(event);
       }}
       onBlur={(event) => {
+        setFocused(false);
         setHovered(false);
         setPressed(false);
         onBlur?.(event);
@@ -601,6 +619,12 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                             stroke: "none",
                             strokeWidth: 0,
                           },
+                          focus: {
+                            fill: "transparent",
+                            stroke: "var(--focus-ring)",
+                            strokeWidth: 2,
+                            opacity: isDimmed ? 0.4 : fillOpacity,
+                          },
                         }}
                         onMouseEnter={(e: React.MouseEvent) =>
                           handleMouseEnter(region, e)
@@ -645,6 +669,12 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         fill: "var(--map-hover)",
                         stroke: "var(--map-accent)",
                         strokeWidth: 1.5,
+                      },
+                      focus: {
+                        fill: "var(--map-hover)",
+                        stroke: "var(--focus-ring)",
+                        strokeWidth: 2,
+                        opacity: isDimmed ? 0.4 : fillOpacity,
                       },
                     }}
                     onMouseEnter={(e: React.MouseEvent) =>
