@@ -330,3 +330,41 @@ describe("radar geometry has one home (design delta phase 5)", () => {
     }
   });
 });
+
+describe("no component keeps its own polar helper", () => {
+  it("leaves no private copy of the polar conversion anywhere in src", () => {
+    // Phase 5 closed four of five. The fifth is /study's, spelled
+    // `polarToXY` with the arguments in a different order, which is why a
+    // grep for `polarToCart` did not find it. The consequence is not
+    // stylistic: an unrounded coordinate serialises differently in Node and
+    // in Chromium, and React logs a hydration mismatch on every render of
+    // /study/patterns.
+    const files = sourceFiles(resolve(process.cwd(), "src"));
+    // A sweep whose file list resolved to nothing would report success.
+    expect(files.length).toBeGreaterThan(50);
+
+    const offenders = files.flatMap((file) => {
+      const text = readFileSync(file, "utf8");
+      if (file.endsWith("radar-geometry.ts")) return [];
+      const match = text.match(/function polarTo[A-Za-z]*\(/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("rounds every coordinate the study radar emits", () => {
+    // The mismatch is in the last binary place, so the assertion is on the
+    // DECIMAL LENGTH, not on a value — a value assertion passes on an
+    // unrounded number that happens to be short.
+    const points = ringPoints(80, TOTAL_AXES, 120, 120).split(" ");
+
+    expect(points).toHaveLength(TOTAL_AXES);
+    for (const point of points) {
+      for (const coord of point.split(",")) {
+        const decimals = coord.split(".")[1] ?? "";
+        expect(decimals.length, `${coord} is not rounded`).toBeLessThanOrEqual(COORD_PLACES);
+      }
+    }
+  });
+});

@@ -1,24 +1,26 @@
 "use client";
 
 import { axes } from "@/data/axes";
+import {
+  polarToCart,
+  ringPoints,
+  scoreToRadius,
+  spokeAngle,
+  TOTAL_AXES,
+} from "@/lib/radar-geometry";
 
-const NUM_AXES = 12;
 const DEFAULT_SIZE = 240;
 
-function polarToXY(
-  cx: number,
-  cy: number,
-  r: number,
-  index: number,
-  total: number
-): { x: number; y: number } {
-  const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-  return {
-    x: cx + r * Math.cos(angle),
-    y: cy + r * Math.sin(angle),
-  };
-}
-
+/**
+ * The `points` attribute of the score polygon.
+ *
+ * Every coordinate goes through the shared `polarToCart`, which rounds to
+ * `COORD_PLACES`. That rounding is the whole point of the migration: this
+ * component is prerendered by Node and hydrated by Chromium, whose `Math.sin`
+ * and `Math.cos` disagree in the last binary place, and the unrounded copy
+ * that used to live here logged a hydration mismatch on every load of
+ * /study/patterns.
+ */
 function radarPoints(
   scores: number[],
   cx: number,
@@ -27,17 +29,15 @@ function radarPoints(
 ): string {
   return scores
     .map((score, i) => {
-      const { x, y } = polarToXY(cx, cy, ((score + 1) / 2) * r, i, NUM_AXES);
+      const [x, y] = polarToCart(
+        spokeAngle(i, TOTAL_AXES),
+        scoreToRadius(score, r),
+        cx,
+        cy
+      );
       return `${x},${y}`;
     })
     .join(" ");
-}
-
-function ringPoints(cx: number, cy: number, r: number): string {
-  return Array.from({ length: NUM_AXES }, (_, i) => {
-    const { x, y } = polarToXY(cx, cy, r, i, NUM_AXES);
-    return `${x},${y}`;
-  }).join(" ");
 }
 
 export interface RadarProps {
@@ -54,7 +54,7 @@ export function Radar({
   scores,
   overlayScores,
   size = DEFAULT_SIZE,
-  colorVar = "--stone-600",
+  colorVar = "--mark-primary",
   overlayColorVar = "--model-gemini",
   axisLabels,
   className,
@@ -91,7 +91,7 @@ export function Radar({
     >
       {/* Outer reference ring */}
       <polygon
-        points={ringPoints(cx, cy, r)}
+        points={ringPoints(r, TOTAL_AXES, cx, cy)}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
@@ -99,7 +99,7 @@ export function Radar({
       />
       {/* Mid reference ring (dashed) */}
       <polygon
-        points={ringPoints(cx, cy, r * 0.5)}
+        points={ringPoints(r * 0.5, TOTAL_AXES, cx, cy)}
         fill="none"
         style={{ stroke: "var(--border-secondary)" }}
         strokeWidth={0.5}
@@ -107,8 +107,8 @@ export function Radar({
         opacity={0.3}
       />
       {/* Spoke lines */}
-      {Array.from({ length: NUM_AXES }, (_, i) => {
-        const { x, y } = polarToXY(cx, cy, r, i, NUM_AXES);
+      {Array.from({ length: TOTAL_AXES }, (_, i) => {
+        const [x, y] = polarToCart(spokeAngle(i, TOTAL_AXES), r, cx, cy);
         return (
           <line
             key={i}
@@ -148,7 +148,12 @@ export function Radar({
       {/* Axis labels at each vertex */}
       {axisLabels &&
         axisLabels.map((label, i) => {
-          const { x, y } = polarToXY(cx, cy, r + labelPad - 4, i, NUM_AXES);
+          const [x, y] = polarToCart(
+            spokeAngle(i, TOTAL_AXES),
+            r + labelPad - 4,
+            cx,
+            cy
+          );
           // Anchor text based on horizontal position
           const anchor =
             Math.abs(x - cx) < 4 ? "middle" : x < cx ? "end" : "start";
