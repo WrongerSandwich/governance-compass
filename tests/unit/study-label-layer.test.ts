@@ -1,17 +1,16 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  classTokens,
+  inlineFontSizes,
+  jsxOpeningTags,
+  read,
+} from "../helpers/source-files";
 
-function read(path: string): string {
-  return readFileSync(resolve(process.cwd(), path), "utf8");
-}
-
-/** Every inline `fontSize` still left in a file, as a list. The sweep's unit
- *  of progress: a converted file has none, and the message names the ones it
- *  has so a failure is actionable without opening the file. */
-function inlineFontSizes(text: string): string[] {
-  return (text.match(/fontSize: *[^,\n]+/g) ?? []).map((m) => m.trim());
-}
+// `read` strips comments (Task 14 Step 3b). Four describe blocks here scan
+// source for a banned literal, and a text scan cannot tell a declaration from
+// prose about one: without stripping, `inlineFontSizes` reddens a genuinely
+// converted file on a commented-out line, and every "does not contain" case
+// below is satisfiable by an explanation of itself.
 
 describe("the patterns page joins the label layer", () => {
   const FILES = [
@@ -182,26 +181,6 @@ describe("the compare view joins the label layer", () => {
 describe("the persona modal's chrome joins the label layer", () => {
   const FILE = "src/components/study/PersonaModal.tsx";
 
-  /** Block and line comments out, so a text scan reads code and not prose.
-   *  The `[^:]` guard keeps a `//` inside a URL literal from eating the rest
-   *  of its line.
-   *
-   *  PROVISIONAL — Task 14 Step 3b hoists a shared `stripComments` into
-   *  `tests/helpers/source-files.ts` and routes every scanning guard in this
-   *  suite through it. Delete this copy and import that one. */
-  function stripComments(text: string): string {
-    return text
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-  }
-
-  /** The class tokens on an element's opening tag. Split, never substring:
-   *  `toContain("label")` also passes on `label-nav`. */
-  function classTokens(openingTag: string): string[] {
-    const match = openingTag.match(/className="([^"]*)"/);
-    return match ? match[1].split(/\s+/).filter(Boolean) : [];
-  }
-
   it("marks the modal's error state so it is not carried by colour alone", () => {
     // Phase 5's D16 amendment: `text-red-600` was swapped for the warning
     // ink at six sites on the premise that every one already had
@@ -215,7 +194,7 @@ describe("the persona modal's chrome joins the label layer", () => {
     // from prose about a declaration: a window wide enough to catch the
     // attribute is wide enough to catch a comment naming it, and then the
     // guard passes after the attribute is deleted.
-    const text = stripComments(read(FILE));
+    const text = read(FILE);
 
     const sites = text.split("{error}").length - 1;
     expect(
@@ -288,6 +267,57 @@ describe("the study charts' text joins the label layer", () => {
     const offenders = CHARTS.flatMap((file) =>
       read(file).includes("var(--text-tertiary)") ? [file] : [],
     );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("puts every chart label on the mono label layer, per element", () => {
+    // The POSITIVE half, and the reason it exists: reverting one `<text>`
+    // fill to `var(--text-secondary)` left all 924 tests green. Every case in
+    // this spec until now says only what must NOT be there, so the substance
+    // of the task — that the label layer is actually applied — was asserted
+    // nowhere.
+    //
+    // Parsed per ELEMENT rather than scanned per file. A whole-file scan can
+    // only tell you that SOME line carries the family; it is structurally
+    // incapable of telling you that every `<text>` does, which is the claim.
+    //
+    // Fills are a permitted SET, not one value, because two of these are ink
+    // printed ON a filled cell and are chosen for contrast against the fill
+    // (the same carve-out D24 grants chart text). An expression that names no
+    // string literal is a computed fill and passes: three charts colour a
+    // label to match the series it annotates.
+    const PERMITTED_FILL = new Set([
+      "var(--text-label)",
+      "var(--surface-1)",
+      "var(--stone-50)",
+    ]);
+
+    const labels = CHARTS.flatMap((file) =>
+      jsxOpeningTags(read(file), "text").map((tag) => ({ file, tag })),
+    );
+    // `[].flatMap(f)` is `[]`: without this the loop below asserts nothing.
+    expect(labels.length).toBeGreaterThanOrEqual(20);
+
+    const offenders = labels.flatMap(({ file, tag }) => {
+      const at = `${file}: ${tag.split("\n")[1]?.trim() ?? tag.slice(0, 40)}`;
+      const problems: string[] = [];
+      if (!/fontFamily[:=] *"var\(--font-mono\)"/.test(tag)) {
+        problems.push(`${at} — not on the mono label layer`);
+      }
+      if (!/letterSpacing[:=] *"0\.02em"/.test(tag)) {
+        problems.push(`${at} — not at the label layer's tracking`);
+      }
+      const fill = tag.match(/fill[:=] *([^,\n}]+)/);
+      if (!fill) {
+        problems.push(`${at} — no fill at all`);
+      } else {
+        const quoted = [...fill[1].matchAll(/"([^"]*)"/g)].map((m) => m[1]);
+        const banned = quoted.filter((value) => !PERMITTED_FILL.has(value));
+        if (banned.length) problems.push(`${at} — fill ${banned.join(", ")}`);
+      }
+      return problems;
+    });
 
     expect(offenders).toEqual([]);
   });

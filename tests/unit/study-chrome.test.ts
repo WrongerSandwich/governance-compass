@@ -6,7 +6,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { readFileSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { sourceFiles } from "../helpers/source-files";
+import { sourceFiles, stripComments } from "../helpers/source-files";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -45,7 +45,14 @@ function classes(el: Element): string[] {
 const STUDY_SOURCES = [
   ...sourceFiles(resolve(process.cwd(), "src/app/study")),
   ...sourceFiles(resolve(process.cwd(), "src/components/study")),
-].map((file) => ({ file: relative(process.cwd(), file), text: readFileSync(file, "utf8") }));
+].map((file) => ({
+  file: relative(process.cwd(), file),
+  // Comments out (Task 14 Step 3b): every case below scans this text for a
+  // literal it also has to name in its own prose, and a scan cannot tell the
+  // two apart. `study-kicker-link` is the sharpest example — the case that
+  // bans it says the word twice.
+  text: stripComments(readFileSync(file, "utf8")),
+}));
 
 const SHELLS = [
   "src/app/study/page.tsx",

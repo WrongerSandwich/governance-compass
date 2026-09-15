@@ -269,7 +269,7 @@ describe("normaliseByAxisId", () => {
 
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { sourceFiles } from "../helpers/source-files";
+import { sourceFiles, stripComments } from "../helpers/source-files";
 
 describe("radar geometry has one home (design delta phase 5)", () => {
   it("leaves no component with its own copy of the polar helpers", () => {
@@ -348,6 +348,35 @@ describe("no component keeps its own polar helper", () => {
       if (file.endsWith("radar-geometry.ts")) return [];
       const match = text.match(/function polarTo[A-Za-z]*\(/);
       return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("routes every file that does its own trig through the shared module", () => {
+    // The case above asserts a NAME, and the premise of its own comment is
+    // that the fifth copy hid BECAUSE it was spelled differently. A copy
+    // written `const polarToXY = (…) =>`, or named `toXY` or `vertexAt`,
+    // walks straight past it. So assert the property the name was only ever
+    // a proxy for: a file that computes a polar coordinate at all has to get
+    // the shared, ROUNDED conversion from one place.
+    //
+    // `radar-geometry.ts` is the one home and is exempt. Everything else
+    // that reaches for the trig must import it — which is a weaker claim
+    // than "must not use it" and a deliberately weaker one: `RadarChart`
+    // legitimately nudges a label by a few pixels along the same angle the
+    // module gave it, and banning the call outright would force that offset
+    // into the shared module or into a magic constant.
+    const files = sourceFiles(resolve(process.cwd(), "src"));
+    expect(files.length).toBeGreaterThan(50);
+
+    const offenders = files.flatMap((file) => {
+      if (file.endsWith("radar-geometry.ts")) return [];
+      const text = stripComments(readFileSync(file, "utf8"));
+      if (!text.includes("Math.cos(")) return [];
+      return text.includes('from "@/lib/radar-geometry"')
+        ? []
+        : [relative(process.cwd(), file)];
     });
 
     expect(offenders).toEqual([]);
