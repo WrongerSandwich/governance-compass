@@ -942,8 +942,15 @@ describe("the persona browser chrome joins the label layer", () => {
 
   it("puts the mark tone on the token that steps by mode", () => {
     // `var(--stone-600)` is the mark's LIGHT value, frozen. --mark-primary
-    // is the same value in light and Stone 400 in dark. Sixteen inline
-    // sites across the section named the ramp directly.
+    // is the same value in light and Stone 400 in dark.
+    //
+    // SCOPE: this case covers only this task's files. It is NOT the guard —
+    // Task 14's section-wide one is. The file-list shape was the plan's
+    // original design and it was wrong: Task 5's implementer found a
+    // `var(--stone-600)` chart fill in `DisagreementByAttribute.tsx` that no
+    // task's list contained, so nothing would ever have caught it. Twelve
+    // files in the section carry the spelling. A per-task list can only ever
+    // guard the files somebody already remembered.
     const offenders = [...FILES, "src/components/study/ComparePinButton.tsx"].flatMap((file) =>
       read(file).includes("var(--stone-600)") ? [file] : [],
     );
@@ -1884,6 +1891,29 @@ Append inside the same `describe` block:
     expect(offenders).toEqual([]);
   });
 
+  it("keeps the frozen mark tones out of every inline style in the section", () => {
+    // The shipped phase-5 ramp guard matches `text|bg|border-stone-NNN`,
+    // which is a TAILWIND CLASS. /study names the ramp inline instead, as
+    // `var(--stone-600)`, at twelve sites across twelve files — invisible to
+    // that guard in every one of them.
+    //
+    // 600 and 400 are the mark tones, and a mark must step by mode:
+    // `--mark-primary` is Stone 600 in light and Stone 400 in dark, so
+    // either literal freezes it to one of the two.
+    //
+    // 900 and 50 are deliberately NOT banned. They appear in `TensionMatrix`
+    // and `WorldMap` as ink printed ON a filled cell, where the colour is
+    // chosen for contrast against the fill rather than as a mark — the same
+    // category D24 carves out for chart text. Ban them and the only way to
+    // pass is to make that ink illegible.
+    const offenders = sweptSources().flatMap(({ file, text }) => {
+      const match = text.match(/var\(--stone-(?:600|400)\)/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   it("holds the type floor on every swept HTML element", () => {
     // 11px is the delta's hard floor. /study had about twenty-five HTML
     // sites under it — 10px and 9px, inline and as classes.
@@ -1931,6 +1961,7 @@ A source-scanning guard fails by passing vacuously, and a green run proves nothi
 | M8 | Reintroduce `function polarToXY` in `Radar.tsx` | Task 12's `leaves no private copy of the polar conversion anywhere in src` | |
 | M9 | Restore `hover:text-text-secondary` on `SectionNav`'s inactive link | `never gives an element a hover that resolves to its resting value` **and** Task 3's nav case | |
 | M10 | Restore `function ScoreBar` and one call site in `PersonaModal.tsx` | Task 9's `declares no local score bar of its own` | |
+| M11a | Restore `var(--stone-600)` as one chart fill in `DisagreementByAttribute.tsx` | `keeps the frozen mark tones out of every inline style in the section` | |
 | M11 | Restore the `.study-kicker-link:hover` rule in `PersonasPageClient.tsx`'s `<style>` block | Task 2's `retires the kicker class whose hover was invisible in light mode` — and **confirm the shipped hover guard stays GREEN on it**, because that is the point of the separate case | |
 | M12 | Empty the three new `SWEPT` entries, leaving phase 5's fourteen | The two **new** cases in Step 3 must still pass (phase 5's files satisfy them), so this row is checking something different: that the anchor case in Step 1 reddens. | |
 | M13 | Empty `SWEPT` to `[]` | **Every** case in the block, via `sweptSources()`'s throw | |
