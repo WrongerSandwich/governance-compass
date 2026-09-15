@@ -238,3 +238,28 @@ describe("the persona modal's chrome joins the label layer", () => {
     expect(classTokens(openingTag)).toContain("text-warning-text");
   });
 });
+
+describe("the persona modal's scored profile converges on the shared scale", () => {
+  const FILE = "src/components/study/PersonaModal.tsx";
+
+  it("leaves no inline font size anywhere in the file", () => {
+    // 65 of them when this phase started — a third of the section's type
+    // sites in one file.
+    expect(inlineFontSizes(read(FILE))).toEqual([]);
+  });
+
+  it("leaves no reference to the sub-AA tertiary token", () => {
+    expect(read(FILE)).not.toContain("var(--text-tertiary)");
+  });
+
+  it("declares no local score bar of its own", () => {
+    // Phase 5 deleted ScoreBar.tsx and guarded the IMPORT. A local
+    // `function ScoreBar` passed that guard, kept the retired
+    // ((score+1)/2)*100 mapping alive, and clipped a dot at either pole.
+    const text = read(FILE);
+
+    expect(text).not.toMatch(/function ScoreBar\b/);
+    expect(text).not.toContain("(score + 1) / 2");
+    expect(text).toContain('from "@/components/PairedAxisScale"');
+  });
+});

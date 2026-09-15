@@ -66,6 +66,25 @@ describe("PairedAxisScale", () => {
     expect(container.textContent).toContain("Centralized");
   });
 
+  it("suppresses the endpoint row when the caller's column is too narrow for it", () => {
+    // Measured in the shipped 900px persona dialog: the dual-model table
+    // leaves each model track ~121px, where the two pole labels wrap to two
+    // lines each and butt against one another with no gap, and the score
+    // readout and tension badge land on top of them. The poles are not lost —
+    // the generated description still names them, which is the only place a
+    // screen reader ever read them from.
+    const container = render(
+      createElement(PairedAxisScale, { ...base, endpoints: "none" as const }),
+    );
+
+    expect(container.textContent).not.toContain("Distributed");
+    expect(container.textContent).not.toContain("Centralized");
+    expect(container.querySelector("[data-track]")).not.toBeNull();
+    expect(container.querySelector("[role='img']")!.getAttribute("aria-label")).toContain(
+      "Distributed",
+    );
+  });
+
   it("positions respondent A from its score", () => {
     const container = render(createElement(PairedAxisScale, base));
     const dotA = container.querySelector("[data-respondent='a']") as HTMLElement;
@@ -200,6 +219,64 @@ describe("PairedAxisScale", () => {
     const dotA = container.querySelector("[data-respondent='a']") as HTMLElement;
 
     expect(dotA.style.backgroundColor).toBe("var(--domain-power)");
+  });
+
+  it("lets a caller name the mark colour when the domain is not what the colour means", () => {
+    // /study's model-agreement rows are told apart by colour and by nothing
+    // else — a Claude track and a Gemini track sit in one row under one axis
+    // name. Domain colour would make them identical.
+    const container = render(
+      createElement(PairedAxisScale, {
+        axisId: 1,
+        poleALabel: "Market",
+        poleBLabel: "State",
+        scoreA: 0.5,
+        axisName: "Economic Model",
+        markVar: "var(--model-claude)",
+      }),
+    );
+
+    const dot = container.querySelector('[data-respondent="a"]');
+    expect(dot).not.toBeNull();
+    expect(dot!.getAttribute("style")).toContain("var(--model-claude)");
+    // The domain it would otherwise have used, absent.
+    expect(dot!.getAttribute("style")).not.toContain("--domain-economic");
+  });
+
+  it("still defaults to the axis's domain when no override is given", () => {
+    // The three shipped consumers pass no markVar. If the default ever
+    // regresses to a literal, this is the only thing that notices.
+    const container = render(
+      createElement(PairedAxisScale, {
+        axisId: 1,
+        poleALabel: "Market",
+        poleBLabel: "State",
+        scoreA: 0.5,
+        axisName: "Economic Model",
+      }),
+    );
+
+    const dot = container.querySelector('[data-respondent="a"]');
+    expect(dot!.getAttribute("style")).toContain("--domain-economic");
+  });
+
+  it("leaves the track on the domain rail even when the mark is overridden", () => {
+    // The track is not the mark. Its comment in the component says its 400
+    // tone is identical in both modes, which is why it is a literal — and a
+    // caller overriding the DOT's colour is saying something about the dot.
+    const container = render(
+      createElement(PairedAxisScale, {
+        axisId: 1,
+        poleALabel: "Market",
+        poleBLabel: "State",
+        scoreA: 0.5,
+        axisName: "Economic Model",
+        markVar: "var(--model-claude)",
+      }),
+    );
+
+    const track = container.querySelector("[data-track]");
+    expect(track!.getAttribute("style")).not.toContain("--model-claude");
   });
 });
 

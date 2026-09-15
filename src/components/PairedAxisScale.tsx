@@ -15,8 +15,20 @@ export interface PairedAxisScaleProps {
   scoreA: number;
   /** Omit for the single-respondent variant. */
   scoreB?: number;
-  /** Endpoints sit above the track on desktop, below it when stacked. */
-  endpoints?: "above" | "below";
+  /**
+   * Endpoints sit above the track on desktop, below it when stacked.
+   *
+   * `"none"` drops the endpoint row, for a caller whose column cannot set two
+   * pole labels on one line. /study's persona modal is the case: its
+   * dual-model table draws two tracks plus a delta column inside a 900px
+   * dialog, leaving each track ~121px, at which width "Distributed
+   * Governance" / "Centralized Governance" wrap to two lines each, touch with
+   * no gap, and are overprinted by the score readout and tension badge beside
+   * them. Nothing is lost to a screen reader — `describePosition` names the
+   * poles in the generated description, which is the only place `role="img"`
+   * ever let them be read from.
+   */
+  endpoints?: "above" | "below" | "none";
   /**
    * Names the axis in the generated description. Pass this, not `label`.
    *
@@ -30,6 +42,20 @@ export interface PairedAxisScaleProps {
   respondentBLabel?: string;
   /** Escape hatch: replaces the generated description outright. */
   label?: string;
+  /**
+   * Overrides the domain colour on respondent A's dot.
+   *
+   * Same WRAPPED shape `getDomainMarkVar` returns — `"var(--model-claude)"`,
+   * not `"--model-claude"`. The one caller is /study's model-agreement view,
+   * where a Claude row and a Gemini row sit under one axis name and colour is
+   * the only thing telling them apart; both model tokens already step by mode
+   * (`globals.css:191-193`), so this introduces no frozen hex.
+   *
+   * Affects the dot only. The track keeps `domain[400]`, for the reason its
+   * own comment gives, and respondent B's outlined dot is Stone 500 by the
+   * spec.
+   */
+  markVar?: string;
 }
 
 /**
@@ -129,6 +155,7 @@ export function PairedAxisScale({
   respondentALabel = "Respondent A",
   respondentBLabel = "Respondent B",
   label,
+  markVar,
 }: PairedAxisScaleProps) {
   const domain = DOMAIN_COLORS[getDomainForAxis(axisId)];
   const endpointRow = (
@@ -182,7 +209,7 @@ export function PairedAxisScale({
           data-respondent="a"
           aria-hidden="true"
           className="absolute top-0.5 h-2.5 w-2.5 -translate-x-1/2 rounded-full"
-          style={{ left: `${scoreToTrackPercent(scoreA)}%`, backgroundColor: getDomainMarkVar(axisId) }}
+          style={{ left: `${scoreToTrackPercent(scoreA)}%`, backgroundColor: markVar ?? getDomainMarkVar(axisId) }}
         />
       </div>
       {endpoints === "below" && endpointRow}
