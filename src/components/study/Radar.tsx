@@ -6,10 +6,24 @@ import {
   ringPoints,
   scoreToRadius,
   spokeAngle,
+  splitLabel,
   TOTAL_AXES,
 } from "@/lib/radar-geometry";
 
 const DEFAULT_SIZE = 240;
+
+const LABEL_FONT_SIZE = 9;
+/** Advance width of one monospace glyph, in ems. 0.60 is the advance of
+ *  every monospace face in the stack — it is what makes them monospace —
+ *  and 0.02 is the tracking the label layer adds. Measured against the
+ *  rendered chart at 5.583 units per glyph at `fontSize` 9, i.e. 0.6203em.
+ *
+ *  It is an estimate, and it is used to size a MARGIN rather than to place
+ *  anything, so an error shows up as a few units of slack and never as a
+ *  cut glyph. */
+const LABEL_ADVANCE_EM = 0.62;
+/** Breathing room past the last glyph's side bearing. */
+const LABEL_EDGE_PAD = 4;
 
 /**
  * The `points` attribute of the score polygon.
@@ -65,11 +79,37 @@ export function Radar({
   const labelPad = axisLabels ? 20 : 0;
   const r = size / 2 - 8 - labelPad;
 
-  // When axis labels are present, expand the viewBox on all sides so long
-  // labels (e.g. "International Engagement") don't clip at narrow viewports.
-  // SVG rendered size stays at `size` via responsive style — the radar
-  // circle scales down slightly inside the expanded viewBox to make room.
-  const labelMargin = axisLabels ? 60 : 0;
+  // Wrapped, like the results-page radar: a label runs outward from the rim,
+  // so its LENGTH is what decides the margin, and two short lines need about
+  // half the horizontal room one long one does.
+  const labelLines = axisLabels?.map(splitLabel);
+
+  // DERIVED, not guessed. This was a flat 60 under a comment claiming long
+  // labels "don't clip at narrow viewports" — they clipped at wide ones, and
+  // an SVG root's default `overflow: hidden` painted the overflow away rather
+  // than letting it spill: "International Engagement" rendered as
+  // "al Engagement" and two more lost their last word.
+  //
+  // The binding case is the label on a horizontal vertex, anchored `start` or
+  // `end` at cx ± (r + labelPad - 4) = cx ± (size/2 - 12) and running
+  // outward by its own width. So the viewBox needs `width + pad - 12` past
+  // the edge of the plot box. Every other vertex sits closer to the centre
+  // horizontally, or is `middle`-anchored and needs half as much.
+  //
+  // Widening the viewBox without widening the rendered box is not free — it
+  // is paid in effective type size, since the SVG still renders at `size` px.
+  // That is why this is derived from the labels actually passed instead of
+  // being set to a number big enough for anything: a caller with short labels
+  // gets a bigger chart, and one with none pays nothing.
+  const widestLine = Math.max(
+    0,
+    ...(labelLines?.flat().map((line) => line.length) ?? []),
+  );
+  const labelMargin = labelLines
+    ? Math.ceil(widestLine * LABEL_FONT_SIZE * LABEL_ADVANCE_EM) +
+      LABEL_EDGE_PAD -
+      12
+    : 0;
   const viewBoxMin = -labelMargin;
   const viewBoxSize = size + 2 * labelMargin;
 
@@ -146,8 +186,8 @@ export function Radar({
       />
 
       {/* Axis labels at each vertex */}
-      {axisLabels &&
-        axisLabels.map((label, i) => {
+      {labelLines &&
+        labelLines.map((lines, i) => {
           const [x, y] = polarToCart(
             spokeAngle(i, TOTAL_AXES),
             r + labelPad - 4,
@@ -164,14 +204,22 @@ export function Radar({
               y={y}
               textAnchor={anchor}
               dominantBaseline="middle"
-              fontSize={9}
+              fontSize={LABEL_FONT_SIZE}
               letterSpacing="0.02em"
               style={{
                 fill: "var(--text-label)",
                 fontFamily: "var(--font-mono)",
               }}
             >
-              {label}
+              {lines.map((line, li) => (
+                <tspan
+                  key={li}
+                  x={x}
+                  dy={li === 0 ? (lines.length > 1 ? "-0.5em" : "0") : "1.1em"}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
           );
         })}

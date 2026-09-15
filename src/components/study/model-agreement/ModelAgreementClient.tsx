@@ -350,10 +350,16 @@ export function ModelAgreementClient({
             ]}
           />
 
+          {/* labelWidth 208, not the 172 default: a full axis name
+              ("10. International Engagement") is 191.6 units in the mono
+              label face. It is set per caller because widening the viewBox
+              costs rendered type size wherever the chart is scaled down,
+              and this one renders unscaled in a 1120px shell. */}
           <HorizontalBarChart
             rows={rRows}
             range={[0, 1]}
             barHeight={24}
+            labelWidth={208}
             ariaLabel="Pearson r between Claude and Gemini scores per axis"
           />
         </div>
@@ -440,6 +446,7 @@ export function ModelAgreementClient({
             diverging={true}
             range={[-0.4, 0.4]}
             barHeight={24}
+            labelWidth={208}
             ariaLabel="Mean Gemini-minus-Claude score difference per axis"
           />
         </div>

@@ -32,6 +32,13 @@ const AXIS_GAP = 4;
 // one ("Overall") runs up and to the RIGHT of the final column. 2 units of
 // slack was already half a character short of holding it; in mono it is ten
 // short, and an SVG root clips by default, so the tail just disappears.
+//
+// It feeds `totalWidth`, which has a second consumer: the tooltip's right
+// stop, `Math.min(tooltip.x + 10, totalWidth - 238)`. Raising this from 2
+// moved that stop right by the same 16 units, which is the intended
+// relationship — the tooltip should stay inside the box the headers
+// define — but it is not obvious from the name, so: changing this moves
+// the tooltip clamp too.
 const COL_HEADER_OVERHANG = 18;
 
 const MODELS: Array<"claude" | "gemini"> = ["claude", "gemini"];

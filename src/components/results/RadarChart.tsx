@@ -16,6 +16,7 @@ import {
   ringPoints,
   scoreToRadius,
   spokeAngle,
+  splitLabel,
   type RadarAxisScore,
 } from "@/lib/radar-geometry";
 
@@ -30,19 +31,6 @@ const MAX_RADIUS = 170;
 // Mock 7a puts the labels at r+22. The old r+38 was sized for two-line
 // domain-coloured labels; at 11px mono the ring can close up.
 const LABEL_PADDING = 22;
-
-/** Split a long label at the space nearest its middle, so a perimeter label
- *  stays inside the viewBox. Unchanged from the chart this replaces. */
-function splitLabel(label: string): string[] {
-  if (label.includes("/")) return label.split(/[/]/).map((p) => p.trim());
-  if (label.length <= 14) return [label];
-  const mid = Math.ceil(label.length / 2);
-  const spaceAfter = label.indexOf(" ", mid);
-  const spaceBefore = label.lastIndexOf(" ", mid);
-  const splitAt =
-    spaceAfter !== -1 && spaceAfter - mid < mid - spaceBefore ? spaceAfter : spaceBefore;
-  return splitAt > 0 ? [label.slice(0, splitAt), label.slice(splitAt + 1)] : [label];
-}
 
 export function RadarChart({ axisScores }: RadarChartProps) {
   const paddedScores = normaliseByAxisId(axisScores);

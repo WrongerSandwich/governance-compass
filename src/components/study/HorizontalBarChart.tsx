@@ -17,12 +17,22 @@ export interface HorizontalBarChartProps {
   barHeight?: number;
   zeroLineColor?: string;
   /** Width reserved for the left-side label column, in SVG units.
-   *  Default 208 holds a full axis name ("10. International Engagement")
-   *  in the mono label face; increase when row labels are longer still.
-   *  It was 140 while the labels were sans, and 140 clipped the three
-   *  longest axis names on /study/model-agreement even then — an SVG root
-   *  clips by default, so the overflow read as a shorter label rather than
-   *  as a broken one. */
+   *  Default 172 holds the longest label the small panel charts carry
+   *  ("Post-colonial transition", 164 units in the mono label face).
+   *
+   *  RAISE IT PER CALLER, not here. Widening the viewBox without widening
+   *  the rendered box costs effective type size at every OTHER call site:
+   *  the six DisagreementByAttribute panels sit in a
+   *  `minmax(320px, 1fr)` grid, so a default of 208 scaled them from
+   *  0.904 to 0.767 and took an 11-unit row label from 9.94 rendered px
+   *  to 8.44. That scale factor is the whole premise of D24's exemption
+   *  from the 11px floor, so spending it on charts with no clipping
+   *  problem is the one thing this chart must not do.
+   *
+   *  A full axis name ("10. International Engagement") is 191.6 units and
+   *  needs 208 — the two per-axis charts on /study/model-agreement pass
+   *  that explicitly, and they render unscaled in a 1120px shell where it
+   *  is free. */
   labelWidth?: number;
   /** Width of the bar-plot area, in SVG units. Default 200 keeps small
    *  charts compact; increase when the chart has a wide container to
@@ -45,7 +55,7 @@ export function HorizontalBarChart({
   range,
   barHeight = 24,
   zeroLineColor = "var(--border-secondary)",
-  labelWidth = 208,
+  labelWidth = 172,
   barAreaWidth = 200,
   secondaryWidth = 44,
   ariaLabel,

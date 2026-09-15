@@ -1,7 +1,7 @@
 /**
- * Shared polar geometry for the two radar charts on the results page:
- * `RadarChart` (the full 12-axis chart) and `MiniRadar` (inside
- * `ArchetypeCard`). Both previously inlined their own copies — `MiniRadar`
+ * Shared polar geometry for the radar charts: `RadarChart` (the full 12-axis
+ * chart on the results page), `MiniRadar` (inside `ArchetypeCard`) and
+ * `study/Radar`. All previously inlined their own copies — `MiniRadar`
  * re-inlined `spokeAngle` twice, `polarToCart` twice and `scoreToRadius`
  * once — so a fix to one chart's mapping silently missed the other.
  *
@@ -191,4 +191,26 @@ export function normaliseByAxisId(
       }
     );
   });
+}
+
+/**
+ * Split a long perimeter label at the space nearest its middle.
+ *
+ * A radar label sits at the rim and runs outward, so its length is the thing
+ * that decides how much margin the viewBox needs; two short lines need
+ * roughly half the horizontal room one long one does. Lived in
+ * `RadarChart` until `study/Radar` needed the same thing — where the
+ * one-line spelling was cutting "International Engagement" down to
+ * "al Engagement", painted away by the SVG root's default `overflow:
+ * hidden`. Behaviour is unchanged from the copy this replaces.
+ */
+export function splitLabel(label: string): string[] {
+  if (label.includes("/")) return label.split(/[/]/).map((p) => p.trim());
+  if (label.length <= 14) return [label];
+  const mid = Math.ceil(label.length / 2);
+  const spaceAfter = label.indexOf(" ", mid);
+  const spaceBefore = label.lastIndexOf(" ", mid);
+  const splitAt =
+    spaceAfter !== -1 && spaceAfter - mid < mid - spaceBefore ? spaceAfter : spaceBefore;
+  return splitAt > 0 ? [label.slice(0, splitAt), label.slice(splitAt + 1)] : [label];
 }
