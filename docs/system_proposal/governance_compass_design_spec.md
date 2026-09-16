@@ -159,41 +159,75 @@ Dark mode is a single `prefers-color-scheme: dark` override on `:root` — the s
 
 ### Font Stack
 
-```
-Headings:     serif stack — use your framework's serif variable, or:
-              Georgia, 'Times New Roman', 'Noto Serif', serif
+One family is loaded; the other two are system stacks.
 
-Body/UI:      sans-serif stack — use your framework's sans variable, or:
-              -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
-
-Data/Coords:  monospace stack — use your framework's mono variable, or:
-              'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace
 ```
+--font-serif:  var(--font-source-serif), Georgia, 'Times New Roman', serif
+--font-sans:   system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+--font-mono:   ui-monospace, 'SF Mono', 'Fira Code', Menlo, Consolas, monospace
+```
+
+The serif is **Source Serif 4**, self-hosted through `next/font/local` rather than pulled from `next/font/google`, so the build never reaches the network — a font fetch at build time is a build that can fail for a reason unrelated to the change being built. It ships as a latin subset, variable across the 400–500 range the design system uses and no wider, with `display: swap`. A true italic face ships alongside the upright one — two files, not one — because the italic is doing editorial work rather than decorating: `caption-italic` and the archetype reference's serif italic lead-ins would otherwise render as a synthesized oblique.
+
+`next/font/local` exposes the family as `--font-source-serif`, and `--font-serif` names it first with Georgia behind it. That fallback is load-bearing during `swap`, not a dead branch.
+
+Sans and mono are system stacks and load nothing. The handoff's claim that the whole design runs on system fonts held until the serif landed; it no longer does, for the serif alone.
+
+The `body` element is sans at 14px/1.5. That is the inherited default a role overrides — not itself a role, and not a size to reach for.
 
 ### Type Scale
 
-```
-Page title (h1):           22px, serif, weight 500
-Section heading (h2):      18px, serif, weight 500  (used sparingly — "Radar", "Axis breakdown")
-Archetype name:            17px, serif, weight 500
-Body text:                 14px, sans, weight 400, line-height 1.6
-Archetype description:     13px, sans, weight 400, line-height 1.6
-Axis pole labels:          12px, sans, weight 400, color: text-secondary
-Section/domain labels:     11px, sans, weight 400, letter-spacing 0.08-0.10em,
-                           uppercase, color: stone 600 (for domain labels)
-                           or text-tertiary (for generic section labels)
-Match percentage:          36px, serif, weight 500 (the large number on archetype card)
-Coordinates/scores:        10-11px, monospace, weight 400, color: text-secondary or stone 600
-Confidence/meta text:      12px, sans, weight 400, color: text-tertiary, italic where appropriate
-Footnote/framing text:     12px, serif, italic, color: text-tertiary
-```
+The scale is a set of `@utility` roles, not a list of sizes to apply by hand. It is authored as `@utility` rather than as `--text-*` theme entries because the mono roles need `text-transform` and `font-family`, which the `--text-*` namespace cannot express; Tailwind variants still compile against `@utility` rules, so the two responsive pairs (`min-[560px]:display-xl`, `min-[560px]:wordmark`) work anyway.
+
+Each role is **self-contained** — family, size, line-height, and whatever tracking, weight and case the role needs — and is named for its job rather than its size. Two roles may therefore share a size without being variants of one another: `display-s` and `body-lead` are both 17px in different families, and `body-s` and `caption-italic` are both 13.5px in different families and different styles. Roles that declare no weight inherit the document's 400.
+
+Naming by job is also what makes the scale greppable. `body-s` replaced a `text-[13.5px] leading-[1.6]` pair that travelled by convention across the prose surfaces, where a guard could catch the two halves drifting apart but never catch one of them being deleted outright.
+
+**Hard floor: 11px.** No role in the scale renders below it at any viewport; the smallest roles in the table below — the mono label family, `mono-meta` and `wordmark-sm` — all sit exactly on it. Pre-delta *call sites* below the floor survive in unswept components. Those are debt, not exceptions.
+
+`text-wrap: pretty` is set on the three long-headline roles (`display-xl`, `display-page`, `display-l`) and on none of the others. That is deliberate — the rest of the scale sets short strings, where the property has nothing to balance — so do not "fix" it into consistency.
+
+| Role | Size / line-height / tracking | Family | Use |
+| --- | --- | --- | --- |
+| `display-xl` | 58px / 1.04 / −0.021em | serif 500 | The home headline at 560px and above, capped at an 11em measure. |
+| `display-page` | 40px / 1.06 / −0.02em | serif 500 | Interior page titles: the shared page header's title, and the h1 the results and comparison pages set for themselves. |
+| `display-l` | 34px / 1.06 / −0.018em | serif 500 | The home headline below 560px; large numerals, including the archetype match percentage and the comparison alignment score. |
+| `display-m` | 26px / 1.2 | serif 500 | Section headings on the results and compare pages, the page title on the account, group and auth pages, and the persona modal's title. **Not** the quiz prompt. |
+| `display-entry` | 22px / 1.2 | serif 500 | The repeated section headings on the methodology and study pages, entry titles in long reference lists, and the quiz's interstitial titles. |
+| `display-s` | 17px / 1.35 | serif 500 | Card titles, the quiz's question stem and its forced-choice option headlines, the archetype name. |
+| `body-lead` | 17px / 1.62 | sans | Lead paragraph. |
+| `body-s` | 13.5px / 1.6 | sans | The workhorse prose size. Declares no colour — it is layered with a `text-*` class everywhere it appears. |
+| `body-xs` | 12px / 1.5 | sans | The meta column's subordinate prose: the axis row's tagline, one step under the axis name that `body-s` sets beside it. Declares no colour. |
+| `label` | 11px / 1.4 / 0.12em, uppercase | mono | The default label: panel labels, the forced-choice instruction line and its selected marker, disclosure summaries. |
+| `label-eyebrow` | 11px / 1.4 / 0.14em, uppercase | mono | Section eyebrows, including the shared page header's kicker. |
+| `label-nav` | 11px / 1.4 / 0.1em, uppercase | mono | Nav links, in-page section navs and back links, and the `tertiary` button. |
+| `label-tight` | 11px / 1.4 / 0.02em, uppercase | mono | Where a label sits under a data mark and the airy tracking would overflow its column: axis endpoints, the A/B legend. |
+| `mono-meta` | 11px / 1.4 / 0.06em, **sentence case** | mono | Scores, counts, coordinates, the footer's provenance row. The one mono role that is not uppercase. |
+| `control` | 12px / 1 / 0.12em, uppercase, 500 | mono | Button labels — the `primary` and `secondary` variants both take it. |
+| `wordmark` | 12px / 1 / 0.16em, uppercase, 500 | mono | The brand wordmark. |
+| `wordmark-sm` | 11px / 1 / 0.13em, uppercase, 500 | mono | The wordmark below 560px. |
+| `caption-italic` | 13.5px / 1.5, italic | serif | Editorial framing notes. **Sets its own colour** (`--text-label`) — that colour is part of the role, not a default to override. |
+
+**What the mono layer is for.** The pre-delta rule confined monospace to numeric data, and that is false of what shipped: `control` sets button labels, the `label*` family sets eyebrows, panel labels, nav links and axis endpoints, and `wordmark` sets the brand — none of them numeric. Mono is the **label layer**. It is what the eye reads as structure rather than as content, and the uppercase-plus-tracking treatment is the signal.
+
+Numbers are split by role rather than by family, which is the part the old rule got backwards in both directions. The inline figure is mono — a score in a comparison row, a member count, a coordinate, all `mono-meta`. The headline numeral is serif: the archetype match percentage, the alignment score and the study's key figures all set `display-l`, the same role as the home headline. Serif sets an axis NAME where the name is a title; mono sets that axis's endpoint labels. Neither family owns numerals, and neither owns axes.
+
+The counterpart is that the layer **frames prose and never enters it**. Archetype descriptions, tension paragraphs and traditions paragraphs stay sans, and the archetype reference's serif italic lead-ins (`Internal tension.`, `Traditions.`) survive on purpose. Replacing those with mono labels turns a reference page into a spec sheet, which is the opposite of the register the section is written in.
+
+**Why roles get named siblings instead of overrides.** Layering a built-in utility over a role to vary one of its properties looks like it should work and is not reliable. Compiled against this repo's Tailwind, emitted order is decided by **property bucket first, then by class name within the bucket** — never by authoring order, and never by which rule is custom. The multi-property `label` lands *before* `tracking-*` and is silently overridden by it, while a single-property custom utility lands *after* `tracking-*` and wins. Two custom rules, opposite outcomes, decided by something no one should have to reason about at a call site.
+
+So a variant of a role is a new role: `label-eyebrow`, `label-nav`, `label-tight` and `mono-meta` beside `label`, and `wordmark-sm` beside `wordmark`. The one safe kind of layering is a property the role does not declare at all — `label font-medium` is fine, because `label` sets no `font-weight` and the two rules never collide.
 
 ### Typography Rules
 
-- **Serif is for headings and editorial framing only.** Never use serif for UI labels, button text, axis names, or data. The serif/sans contrast is what creates the "journal" feel — if everything is serif, you lose it.
-- **Monospace is for numeric data only.** Coordinates on the compass plot, axis scores in the breakdown, the formula in the scoring expansion. Never for labels or body text.
-- **Sentence case everywhere.** The only uppercase text is section/domain labels at 11px with letter-spacing — these are structural markers, not headings. Everything else (headings, archetype names, axis names, button labels) is sentence case.
-- **Two weights only: 400 (regular) and 500 (medium).** Never use 600 or 700. The serif headings at 500 provide enough contrast. If something needs more emphasis, use the serif face or the stone accent color — not a heavier weight.
+- **Serif is the display and editorial face.** Headlines, page and section titles, card and entry titles, axis names where the name is a title, the large numerals, and italic framing notes. Never UI labels, never button text.
+- **Mono is the label layer, not a numeric layer.** Every label, eyebrow, axis endpoint, status and button label is mono, and so is the inline figure — running counts, scores and coordinates take `mono-meta`. The large numerals are the serif's.
+- **Mono frames prose and never enters it.** Descriptions, tension and traditions paragraphs stay sans; the archetype reference's serif italic lead-ins stay serif italic.
+- **Sentence case everywhere except the mono label layer.** `mono-meta` is the one mono role that is sentence case too.
+- **Two weights only: 400 and 500.** Never 600 or 700. Emphasis comes from the serif face or from the scale, not from weight.
+- **Never layer a built-in utility over an `@utility` role to override a property that role declares. Add a named sibling instead.**
+- **Never hand-spell a size a role already names.** A fresh `text-[13.5px]` is a role that was not reached for.
+- **Nothing below the 11px floor.** A layout that needs a smaller size needs less text.
 
 ---
 
