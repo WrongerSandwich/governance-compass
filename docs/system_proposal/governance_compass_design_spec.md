@@ -18,69 +18,140 @@ The site should feel like a precision instrument wrapped in a warm, scholarly ae
 
 ### Primary Accent — "Cartographic Stone"
 
-The entire site runs on a single warm accent color and its tints/shades. This color evokes aged paper, survey maps, and institutional brass — it reads as authoritative without being corporate.
+The site runs on a single warm neutral ramp plus a small set of semantic tokens aliased onto it. The ramp evokes aged paper, survey maps, and institutional brass — it reads as authoritative without being corporate.
 
 ```
-Stone 900 (darkest):  #3d2e1f    — text on stone backgrounds in light mode
-Stone 800:            #5a4636    — primary accent text, headings on colored surfaces
-Stone 700:            #6e5a48    — secondary accent text
-Stone 600:            #85735e    — THE primary accent. Compass dot, radar polygon fill/stroke,
-                                   axis bar fills, domain separator labels, dot markers.
-                                   This is the "brand color."
-Stone 500:            #9d8b78    — hover states, secondary indicators
-Stone 400:            #b5a594    — disabled/muted accent elements
-Stone 300:            #cdbfb2    — light borders on accent surfaces
-Stone 200:            #e0d6cc    — light fills, tag backgrounds
-Stone 100:            #efe9e3    — very light surface tint
-Stone 50:             #f7f4f0    — barely-there warm tint for large surfaces
+--stone-900:  #3d2e1f      --stone-400:  #b5a594
+--stone-800:  #5a4636      --stone-300:  #cdbfb2
+--stone-700:  #6e5a48      --stone-200:  #e0d6cc
+--stone-600:  #85735e      --stone-100:  #efe9e3
+--stone-500:  #9d8b78      --stone-50:   #f7f4f0
 ```
 
-**Usage rules:**
-- Stone 600 is the default for any accent element: dots, polygon fills (at reduced opacity), bar fills, section divider labels
-- Stone 800/900 for text that sits on stone-tinted backgrounds
-- Stone 200/100 for subtle surface tinting (optional — the site works fine with neutral surfaces too)
-- Never use stone as a background for large areas — it's an accent, not a surface color
+The ramp is **frozen across modes.** Not one of these ten is redeclared in the dark block, so `--stone-600` is the same brown on a white panel and on a near-black one. That is the single most important fact about the color system, because it is why a mark or a rule cannot be spelled from a ramp literal at the call site: a frozen value cannot step, so it either goes muddy on one ground or vanishes on the other. Everything that has to adapt goes through a semantic token that the dark block redeclares.
+
+**Stone 600's jobs.** The focus ring (`--focus-ring: var(--stone-600)`), the quiz progress fill, and the light-mode value of the data marks — plus small accents that take it directly, such as the nav's active underline and the choice card's hover border. It is **not** the primary button fill and it is not the brand color: design delta 03 moved the fill to Stone 900 ink, and delta 06 moved the marks onto tokens that step — though frozen Stone 600 literals do survive at unswept call sites (see *Known debt* below).
+
+**The ink primary.** Three tokens, one per role:
+
+```
+--button-primary:       Stone 900   →   Stone 300  (dark)
+--button-primary-hover: Stone 800   →   Stone 200  (dark)
+--button-primary-fg:    Stone 50    →   Stone 900  (dark)
+```
+
+Stone 900 ink on a Stone 900 ground is invisible, so the primary button **inverts** in dark mode rather than darkening. The inversion is a token override, not a per-component branch — the component names the tokens and never asks what mode it is in.
 
 ### Surfaces and Text
 
-Use the host framework's semantic color system (CSS custom properties or your Next.js theme tokens). The design relies on three surface levels for depth:
+Three surface levels carry depth, and they invert as a set rather than reordering: Surface 1 is the lightest of the three in both modes, so a card still rises off the band behind it.
 
 ```
-Surface 1 (primary):     Background of cards, archetype card, axis breakdown rows (alternating)
-Surface 2 (secondary):   Background of hero regions, radar chart container, alternating rows
-Surface 3 (tertiary):    Page background (if distinct from Surface 2)
+--surface-1:  #ffffff   →   #2a2118     Cards and panels
+--surface-2:  #f7f4f0   →   #1f1812     Hero regions, quiet bands, alternating rows
+--surface-3:  #efe9e3   →   #17120d     The page ground
 ```
 
-The hero region (compass + archetype card) sits on Surface 2. The archetype card sits on Surface 1 with a border, creating a "card rising from surface" effect. The axis breakdown uses alternating Surface 1 / Surface 2 rows.
+In light mode Surface 2 and Surface 3 are value-identical to Stone 50 and Stone 100, which is a trap rather than a shorthand: writing `bg-stone-50` for a surface renders correctly in light and then stays near-white in dark, and no light-mode screenshot will show it.
 
-Text colors follow the standard three-tier hierarchy:
+Borders are a matching trio — `--border-primary` (Stone 300 → Stone 800), `--border-secondary`, `--border-tertiary` — each stepping with the surface it sits on.
+
+Text is a **trio plus one**:
+
 ```
-Text primary:    Headings, axis scores, archetype name
-Text secondary:  Body text, descriptions, axis pole labels
-Text tertiary:   Section labels, coordinates, confidence notes, quadrant whisper labels
+--text-primary:    Stone 900   →   Stone 100
+--text-secondary:  Stone 700   →   Stone 300
+--text-tertiary:   Stone 500   →   Stone 500     (frozen)
+--text-label:      Stone 700   →   Stone 500
 ```
+
+`--text-label` is the fourth, and it colors the label layer. It steps by mode where `--text-tertiary` does not, and the reason is a measurement rather than a preference. Stone 500 measures 2.73:1 on the light page ground, 2.99:1 on Surface 2 and 3.28:1 on a white panel — all three under AA's 4.5:1 for small text, and the first two under even the 3:1 large-text floor — while clearing 4.81–5.67:1 on the three dark surfaces. No single value on the Stone ramp clears AA in both modes: Stone 600 fails every dark surface, and Stone 700 fails dark badly at 2.42–2.85:1. So the token steps, landing at 5.42:1 in light and 5.67:1 in dark on the page ground.
+
+This is the delta's one knowing departure from the handoff, which states that Stone 500 holds as the label color in both modes and is the one token needing no dark variant. It is an accessibility departure rather than an aesthetic one, and it introduces no new color (spec decision D7).
+
+`--text-tertiary` is what `--text-label` replaced. It keeps Stone 500 in both modes and therefore carries that same failure onto any light-mode label it still colors; the label layer takes `--text-label`, and the surviving `--text-tertiary` call sites are legacy rather than exemplary.
+
+**Rules are a pair, not a border tone.**
+
+```
+--rule-strong:    Stone 900   →   Stone 100
+--rule-hairline:  Stone 50    →   Stone 900
+```
+
+A panel's header rule is deliberate hard ink (13.05:1 on a Surface 1 panel) and its row separators are barely there (1.10:1). Both must invert with the surface, which is why neither can be written as `border-stone-900` or `border-stone-50` at the call site: the ramp is frozen, so those two literals swap roles in dark mode and you get near-white hairlines under a header rule that has disappeared. The dark values preserve the intent (~13:1 and ~1.2:1) rather than the value.
 
 ### Semantic Colors
 
-Used sparingly for specific functional purposes only:
+**Domain marks.** There are four governance domains, and each has a 600 tone and a 400 tone. Three of the four hues are additional to the palette; the fourth, Economic, is the Stone accent itself, which is why the domain colors are sometimes named as the three that are not Stone.
 
 ```
-Warning (amber):   Tension indicators — badge background, icon, label text
-                   Use the framework's warning background/text tokens
-Info (blue):       Archetype prototype overlay on radar chart (dashed line)
-                   Optional: used if you ever add a "compare with friend" feature
+economic   Stone   #85735e / #b5a594
+power      Slate   #6b7d8a / #9daebb
+society    Sage    #7a8b6e / #94a488
+world      Clay    #96716b / #c1a7a1
 ```
 
-No other semantic colors appear in the default results. The design is deliberately near-monochrome with the stone accent.
+`DOMAIN_COLORS` is the source: it carries the two tones, the domain's display `name`, the axis ids it covers, and a one-sentence `blurb` used wherever a domain has to be introduced to the reader.
+
+Domain color is **data, not palette.** It encodes which axis domain a mark belongs to, and it is permitted wherever an axis is drawn — and nowhere else. It carries meaning, so it never appears as decoration and never on chrome. Outside that job the palette is Stone and the warning family.
+
+Marks read the custom properties, never the hexes:
+
+```
+--domain-economic   Stone 600   →   Stone 400
+--domain-power      Slate 600   →   Slate 400
+--domain-society    Sage 600    →   Sage 400
+--domain-world      Clay 600    →   Clay 400
+--mark-primary      Stone 600   →   Stone 400
+```
+
+`getDomainColor600` returns a fixed hex, and a hex cannot invert, so it is correct only where the 600 tone is genuinely wanted in both modes — a condition nothing in the product now meets, and it has no remaining call sites. A domain mark takes `getDomainMarkVar` or `DOMAIN_MARK_VARS`, the static reference pages included, and `--mark-primary`'s canonical job is the single unified user shape (the radar polygon, the mini radar, the budget fill) — the exceptions are the frozen literals under *Known debt*. `--mark-primary` is value-identical to `--domain-economic` in both modes, so the two are indistinguishable by rendering and only the source says which one a mark meant.
+
+**Warning — the advisory accent.** Four members, reserved for editorial notices and caution states (spoilers, unanswered-question flags, tension callouts, low-match warnings) and never decorative.
+
+```
+--warning:         #d97706                 The amber itself. Frozen across modes.
+--warning-text:    #92400e   →   #fbbf24
+--warning-bg:      #fffbeb   →   #451a03
+--warning-border:  #fde68a   →   #92400e
+```
+
+`--warning-border` is exported into Tailwind's color namespace as `--color-warning-border`, so `border-warning-border` compiles. It was the one member declared with a dark inversion but never exposed — which is the setup for a bug this project has shipped repeatedly: reaching for a ramp literal because the inverting token appears not to exist.
+
+**Info is vestigial.** `--info` and `--info-light` survive from the handoff and nothing draws with them. The archetype prototype overlay the old spec assigned to blue ships as a dashed Stone 500 line, and the comparison feature the blue was held in reserve for shipped without a second hue. Adding one would break the near-monochrome rule.
+
+**Study-only families.** The Synthetic Study section declares four token families of its own, labelled study-only in the stylesheet. Nothing enforces that label, and the study's own cluster data module names the cluster tokens from outside `/study`. Read it as a convention rather than a guard: these are not general palette. A surface outside the study section reaching for one is almost certainly reaching for a domain mark or the Stone ramp instead.
+
+```
+--cluster-0 … --cluster-5        Categorical fills for the respondent clusters
+--map-*                          Map density ramp, borders, hover, highlight
+--axis-gradient-*                Diverging scale for axis means and correlations
+--model-claude, --model-gemini   The two model tones in the agreement views
+```
+
+Each family is retuned by hand for dark mode rather than stepping like the domain marks, so never derive a study token's dark value from the 600 → 400 rule. None of them is exported into Tailwind's `--color-*` namespace; they are consumed as `var()` in inline styles and SVG attributes.
+
+**Known debt.** Frozen `var(--stone-600)` mark tones survive in the comparison and groups components, where they stay dark brown on a dark ground instead of stepping with every other mark on the page. Tracked as issue #155 and held by a named `PHASE_5_INLINE_RAMP` exclusion in the design-system token guard; removing a file's entry from that set is how the guard records the debt as paid.
 
 ### Dark Mode
 
-The stone palette inverts naturally — Stone 600 remains the primary accent in both modes (it has sufficient contrast against both light and dark backgrounds). In dark mode:
+Dark mode is a single `prefers-color-scheme: dark` override on `:root` — the same token names with new values. No component branches on mode. The deltas' own token work introduced no new color — the `--domain-*` aliases and `--text-label` resolve to ramp values already declared in light — but the block as a whole does carry values of its own: the three dark surfaces, the inverted warning background and text, and the hand-lifted study tones.
 
-- Surface layering reverses: Surface 2 becomes darker than Surface 1 (the card still "rises" visually)
-- Stone-filled elements (compass dot, radar polygon, axis bars) remain Stone 600 — their opacity values handle the adaptation
-- Topographic contour lines on the compass reduce to ~5% opacity (from ~8% in light mode)
-- The axis dot markers switch: Stone 600 border remains, but the fill becomes the primary surface color (so the dot reads as a "hole" with a stone ring)
+- Surfaces, text and borders invert in value while keeping their order, so the card-rising-from-surface effect survives.
+- The primary button inverts rather than darkens, for the reason given above.
+- A data mark drawn through the tokens steps from its 600 tone to its 400: the 600 tones go muddy on a dark ground. This is the entire reason the `--domain-*` and `--mark-primary` tokens exist, and the frozen literals under *Known debt* are the marks that miss the step.
+- The rule pair swaps ends, preserving contrast intent rather than value.
+- Topographic contour lines on the compass drop from `--contour-opacity: 0.08` to `0.05`.
+- The Stone ramp does not change, and neither does `--warning`.
+
+### Color Rules
+
+- **Never spell a mark or a rule from a ramp literal.** `--stone-NNN` is one value in both modes. Marks take `--mark-primary` or `--domain-*` — via `getDomainMarkVar` or `DOMAIN_MARK_VARS` — and rules take `--rule-strong` or `--rule-hairline`.
+- **Never use a ramp value as a surface.** `bg-stone-50` is not `--surface-2`, however identical the two look in light mode.
+- **The label layer takes `--text-label`.** Not `--text-tertiary`, not a ramp value.
+- **Domain color is data.** Draw it wherever an axis is drawn and nowhere else — never on chrome, never as decoration.
+- **Never derive a study token's dark value from the 600 → 400 step.** The cluster, map, axis-gradient and model families are retuned by hand, and they stay inside the study section.
+- **The warning family is advisory, never decorative.** It is the only hue outside the data families: no blue, no new accent.
 
 ---
 
