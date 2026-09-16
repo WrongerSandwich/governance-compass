@@ -329,6 +329,28 @@ describe("the design spec matches the shipped token layer", () => {
     absent(designSpec, /Stone 600 background/, "a Stone 600 button background is still prescribed");
   });
 
+  it("has retired the two-filled-buttons claim (spec D1)", () => {
+    // D1's CLAUDE.md side is guarded below, but the spec states the SAME
+    // overturned claim in its own words, on the "Begin assessment" button:
+    // "one of only two filled/primary buttons on the entire site". The quiz's
+    // advance button is now an ink fill, which falsifies it outright.
+    //
+    // Added because it was the one spec contradiction with nothing pinning it.
+    // The line is caught today only by the `/Stone 600 background/` needle in
+    // the case above, which a rewrite of that fragment alone would satisfy
+    // while leaving the count standing — so the claim needs its own negative.
+    //
+    // MEASURED: `/only two filled/` matches exactly ONE line of the document
+    // today (416). It is therefore red NOW and goes green only when that line
+    // is rewritten — not a negative against a string that was never there,
+    // which this file's header warns is green forever.
+    absent(
+      designSpec,
+      /only two filled/,
+      "the spec still claims the site has only two filled buttons",
+    );
+  });
+
   it("no longer claims Stone 600 needs no dark variant for marks", () => {
     // Delta 06: domain 600 goes muddy on a dark ground, so every mark steps to
     // its 400 tone. The old spec said stone-filled elements "remain Stone 600".
