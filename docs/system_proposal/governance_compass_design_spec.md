@@ -235,72 +235,97 @@ So a variant of a role is a new role: `label-eyebrow`, `label-nav`, `label-tight
 
 ### Page Structure
 
-The results page is a single vertical scroll with clear section breaks:
+The results page is a single vertical column on `--container-results`. Delta 04 dissolved the nested surfaces the pre-delta diagram encoded — there is no hero region holding a compass and a card side by side, and no section sits inside another section. Every section is a panel on the page ground, and the compass moved from the top of the page to the bottom.
 
-```
-┌─────────────────────────────────────────────┐
-│ Section label + Page title + Framing note   │  ← Standard padding
-├─────────────────────────────────────────────┤
-│ ┌─────────────────────────────────────────┐ │
-│ │  HERO REGION (Surface 2)                │ │  ← 1.5rem padding
-│ │  ┌──────────┐  ┌──────────────────────┐ │ │
-│ │  │ Compass  │  │  Archetype card      │ │ │  ← 1:1 grid, 1.25rem gap
-│ │  │ plot     │  │  (Surface 1 + border)│ │ │
-│ │  │          │  │                      │ │ │
-│ │  └──────────┘  └──────────────────────┘ │ │
-│ │  [Share buttons row]                    │ │
-│ └─────────────────────────────────────────┘ │
-├─────────────────────────────────────────────┤
-│ Tension card(s) — if any detected           │  ← Surface 1 + border
-├─────────────────────────────────────────────┤
-│ Section label + "Radar" heading             │
-│ ┌─────────────────────────────────────────┐ │
-│ │  RADAR REGION (Surface 2)               │ │  ← 1.5rem padding
-│ │  Spider chart + legend                  │ │
-│ └─────────────────────────────────────────┘ │
-├─────────────────────────────────────────────┤
-│ "Axis breakdown" heading + framing note     │
-│ Domain label ─────────────────────────────  │  ← Stone 600 + bottom border
-│ Axis row (alternating surface)              │
-│ Axis row                                    │
-│ Domain label ─────────────────────────────  │
-│ Axis row                                    │
-│ ... (all 12 axes)                           │
-├─────────────────────────────────────────────┤
-│ Expandable scoring breakdown                │
-└─────────────────────────────────────────────┘
-```
+Above the sections sit a page header — eyebrow, serif title (the archetype name, or "A distinctive profile" where no archetype matches well), one framing sentence — and a five-item jump nav ruled top and bottom. Then, in order:
+
+1. **Archetype.** The archetype card, its mini radar, and the copy-link and compare actions.
+2. **Radar.** The twelve-axis radar in a panel of its own.
+3. **Tensions.** Rendered unconditionally. With nothing detected the section says so: the absence of tension is itself a result, and an inert item in a rendered jump nav is worse than an empty state.
+4. **Axis breakdown.** Four domain groups, twelve rows, and the section-level **Show scoring details** toggle. The scoring breakdown is no longer a section at the foot of the page; it is a control on this one, revealing a per-row disclosure.
+5. **Compass plot.** Last, and framed as a simplified two-dimensional projection of the radar above rather than as the headline result.
+
+### Page Measures
+
+Five widths, declared as `--container-*` custom properties inside `@theme inline` so each compiles to a `max-w-*` utility and a page's own measure is never an incidental Tailwind size.
+
+| Token | Width | Scope |
+| --- | --- | --- |
+| `--container-shell` | 1040px | The chrome shell — `NavBar`, `Footer`, and the home page. |
+| `--container-results` | 820px | The results column, and the compare and group pages that reuse its shape. Narrower than the chrome around it. |
+| `--container-reference` | 660px | The long-prose measure, and the one with the most consumers: the reference family, methodology, account, and the study section's prose. At the 15px intro size it runs about 84 characters to the line in the shipped sans stack, give or take a few as `system-ui` resolves differently per platform. `/archetypes` runs its zebra band full-bleed and re-applies this width inside each row, so the measure survives a full-bleed background. |
+| `--container-quiz` | 672px | The quiz column. Value-identical to the `max-w-2xl` it replaced — a naming change, not a retune. |
+| `--container-browse` | 1200px | `/study/personas`, and the only measure wider than the chrome shell. Earned rather than inherited: it is a two-column data browser with a filter sidebar, and at 1040px it loses a column of the persona grid at every breakpoint above 960px. |
+
+The five cover a page's main column and nothing else, so the token layer is not a claim that no Tailwind size or inline `maxWidth` survives anywhere. Component caps are a separate question and still spell themselves: a chart's own maximum width, the quiz interstitial card, the auth forms, the results error and loading states. The study's wide visualization bands break out of the reference measure with inline `maxWidth` literals of their own. What the five settle is that a **page column** is one of them.
+
+One page column is still unswept, recorded here rather than omitted: the per-axis detail page under `/results` caps itself at `max-w-2xl` — 672px, value-identical to `--container-quiz` — instead of naming a measure.
 
 ### Grid
 
-The hero region uses a 2-column grid: compass plot (1fr) and archetype card (1fr). On mobile (<560px), this stacks to a single column.
+Outside `/study`, a multi-column layout is a fixed column set — gated at a breakpoint where it has to collapse, never a track list that decides its own column count — and its columns are there to align data rather than to consume the available width. `/study` diverges on both counts, deliberately — see *Rules Carry Structure*.
 
-The axis breakdown uses a 3-column grid per row: Pole A label (82px fixed) | bar (fluid) | Pole B label (82px fixed). This ensures all bars align regardless of label length.
+The **axis breakdown row** is `[24px | minmax(0, 1fr) | 210px]` at 560px and above: axis number, paired scale, then a meta column carrying confidence, any tension flag, and the tagline. Below 560px the third column drops and the meta cell re-enters the grid beneath the scale rather than squeezing a 210px column onto a 320px screen. `minmax(0, 1fr)` rather than `1fr` is load-bearing — each row is its own grid, so a `1fr` column is floored at that row's own min-content and the widest endpoint pair pushes the row past the panel.
+
+The pre-delta row was `[82px | fluid | 82px]`, a pole label on each side of the bar. The axis row asks `PairedAxisScale` for its endpoints below the track, so those two columns are gone rather than resized, and bars align because the scale is one component rather than because the labels are boxed. Endpoints are the caller's choice, not the component's: the default puts them above, and the study's persona modal asks for none at all.
+
+The **home sample row** is the same idea at `[24px | 1fr | 158px]` above 560px, with the axis name ordered last so the row reads index, scale, name. The **home payoff block** is `[1fr | 356px]` above 900px and one column below it. On the results page the archetype card's `[minmax(0, 1fr) | 220px]` split for its mini radar is the only two-column region left.
 
 ### Spacing Tokens
 
+Despite the heading, spacing is not a token family: the stylesheet declares no spacing custom properties, and the only custom lengths in the layout layer are the five page measures above. Spacing is Tailwind's scale, with arbitrary values where the mock's rhythm falls between steps.
+
+The results column is the reference rhythm for a new section:
+
 ```
-Section gap:        2rem          (between major sections)
-Component gap:      1.5rem        (between elements within a section)
-Card padding:       1.25rem       (inside bordered cards)
-Surface padding:    1.5rem        (inside Surface 2 regions)
-Grid gap:           1.25rem       (between grid children in hero)
-Axis row padding:   9px 12px      (inside each axis row)
-Domain label margin: 1.25rem top, 0.5rem bottom, 6px padding-bottom (with bottom border)
+Between sections:     40px          (the first sits 32px under the jump nav)
+Panel padding:        24–28px       (archetype 26, radar 28, compass 24)
+Callout padding:      22px × 20px   (the tension panels)
+Between domains:      26px          (2px rule above the label, 10px under it,
+                                     6px before the first row)
+Axis row:             12px top and bottom, 16px column gap
+Page gutter:          18px below 560px, 28px above
 ```
+
+Those are values rather than tokens. Reach for the nearest one; a new step in between is a rhythm nobody else is keeping.
 
 ### Border Radius
 
-```
-Surface regions (hero, radar):     12px  (large radius — these are containers)
-Cards (archetype, tension):        12px  (matching container radius)
-Axis rows (alternating):           8px   (subtle rounding)
-Badges/pips (tension indicator):   8px   (pill-adjacent)
-Buttons:                           8px
-Compass plot inner:                6px   (the white rect inside the compass SVG)
-Axis bar track:                    3px   (thin element, subtle rounding)
-Axis bar fill:                     3px   (matching track)
-```
+One value. `--radius: 2px` in `:root`, exposed to Tailwind as `rounded-sharp` through `--radius-sharp` in `@theme inline`. Panels, cards, inputs, badges and the `primary` and `secondary` buttons all take it — delta 02 collapsed the former 12px and 8px literals onto the token, and the guard now covers every spelling a scan can see: the class, the quoted and the unquoted `borderRadius` style prop, and `border-radius` inside a template-literal style block.
+
+Two exemptions, named in the guard rather than pattern-matched, because a circle is not a rounded rectangle and a pill is not either: `50%` and `999px`. Dots, the compass mark and avatars are unaffected.
+
+Use `rounded-sharp` in classes and `var(--radius)` in inline styles. The compass plot's inner frame is neither an exemption nor a client of the token: the 6px corner the pre-delta spec prescribed for it is gone rather than retuned, and the rect ships square.
+
+**Known unswept spellings**, recorded rather than omitted. Bare `rounded` compiles to Tailwind's default 4px and sits off-system next to swept 2px neighbours; it is issue #139, which pairs the sweep with a lockdown of the radius namespace so that an off-system corner becomes unwritable rather than merely discouraged. SVG `rx` attributes are the other spelling — two in `TensionMatrix`, one each in `HorizontalBarChart`, `ComparisonRadar` and `RadarChart`, all small numeric literals — and they are issue #154. At a 2px token, "leave them and say so here" is a legitimate resolution for the `rx` sites; what is not legitimate is a spec that implies they were swept. The backlog records that an `rx="var(--radius)"` attribute does not resolve and needs `style={{ rx: … }}`; measured today in current Chromium and Firefox the attribute form does resolve and paints the corner, so if those sites ever move onto the token, either spelling will do.
+
+### Rules Carry Structure
+
+Sections separate by full-bleed rules and alternating surfaces, not by gaps between rounded floating panels. `/archetypes` is the clearest case: the entries band runs edge to edge, alternates Surface 1 and Surface 2 per row, and re-applies the reference measure inside each row.
+
+Delta 04 caps a page at **two surface switches.** The quiz spends both on its Surface 3 ground and its Surface 1 cards and has none left, which is why its detail panel is a `border-t` rule rather than a third fill. The cap is a design rule, not a machine-checked one — nothing counts surfaces at build time — so it holds only as long as it is read.
+
+Three weights, used consistently:
+
+| Weight | Token | Job |
+| --- | --- | --- |
+| 1px strong | `--rule-strong` | Under a panel's own eyebrow header; on the quiz's sticky budget header and footer edges; as the selected border on a forced-choice or scale option. Hard ink — 13.05:1 on a white panel. |
+| 2px domain / warning | `--domain-*`, `--warning` | Above a domain block in the axis breakdown, and on a tension callout's left edge. |
+| 1px / hairline | `--border-secondary`, `--rule-hairline` | Panel borders and section boundaries take `--border-secondary`; row separators inside a list, and the compass plot's grid, take `--rule-hairline` at 1.10:1. |
+
+Both rule tokens invert with the surface rather than holding a value, which is why neither can be spelled from a ramp literal at the call site — see *Color System* for the measurement.
+
+**`/study` has not adopted this delta** (issue #154). It is the one part of the six-part delta the synthetic study section has not taken, because it asks for bespoke layout work and spec decision D6 defers bespoke layout on screens the handoff never drew. If `/study`'s panels still float, that was a decision.
+
+Its grids are the product's only fluid ones for the same reason. Several `/study` sections lay out on `repeat(auto-fit, …)` or `repeat(auto-fill, minmax(…, 1fr))`, which fill the available width by construction rather than aligning a fixed column set — and the choice of `auto-fit` over `auto-fill` is argued in place, so this is a different idiom rather than drift from the one above.
+
+### Layout Rules
+
+- **A page column takes one of the five `--container-*` measures.** A fresh `max-w-3xl` or an inline `maxWidth` on a page's main column is a measure that was not reached for. Component caps are a different question.
+- **One radius.** `rounded-sharp` in classes, `var(--radius)` in inline styles. `50%` and `999px` are the only exemptions, and a new value is not one.
+- **Sections separate by rules, not by gaps between floating cards.** Two surface switches per page, maximum.
+- **Rules are tokens, never ramp literals.** `--rule-strong` and `--rule-hairline` invert with the surface; `border-stone-900` and `border-stone-50` do not.
+- **A 2px domain rule is data.** It marks a domain block or a callout's edge; it never rules a section for decoration.
 
 ---
 
