@@ -1,4 +1,35 @@
-> **PARTIALLY OUTDATED:** The design philosophy, color system, and typography principles remain current. Specific changes: the logo is now a radar rose (was contour mark), the serif font is Source Serif 4 (was system Georgia), the budget exercise uses 7 ministries (was 10), and the results page leads with the archetype card (compass moved to bottom). Domain colors (Stone, Slate, Sage, Clay) have been added per `completed/governance_compass_domain_colors.md`.
+> **Current as of the design system delta (2026-09).** This document describes what ships. Where the delta settled something the pre-delta spec prescribed differently, the section that carried the prescription says so in place — a correction in a note beside a live prescription leaves the prescription reading as authoritative.
+>
+> **Decisions.** The delta's numbered decisions — **D1** through **D7**, cited by number throughout this document with no other definition — are recorded in `docs/superpowers/specs/2026-09-08-design-system-delta-design.md`. The per-phase plans that implemented them are `docs/superpowers/plans/2026-09-*-design-system-delta-*.md`; note the two-digit day, since the phases run past the ninth.
+>
+> **The handoff bundle.** `docs/gov_compass_redesign.zip` is the canonical copy and the only one tracked — nothing extracted from it lives in the repo, so there is no second copy to drift. Read it by extracting it somewhere scratch:
+>
+> ```
+> unzip -o docs/gov_compass_redesign.zip -d /tmp/gov-compass-handoff
+> ```
+>
+> Everything lands under `design_handoff_governance_compass_redesign/`. Four design files:
+>
+> ```
+> Design system delta.dc.html   The deltas, the type scale, the recorded decisions. Read first.
+> Home proposals.dc.html        Home iterations; 5a is the chosen desktop, 6a its mobile, 6b quiz phase 1.
+> Page mocks.dc.html            7a results light, 7b results dark, 7c archetype reference.
+> Home (current).dc.html        The pre-delta home page, for before-and-after.
+> ```
+>
+> Beside them, a `README.md` carrying the brief and the screen-by-screen spec, a `github.md` mapping screens to source files, and the `support.js` and two `.woff2` files the `.dc.html` files load to render locally.
+>
+> Those `.dc.html` files are **design references, not production code.** They are inline-styled prototypes, and the bundle's own README says not to port the HTML: recreate what they draw through this repo's own mechanisms — custom properties in `globals.css`, the `@theme inline` mapping, and the existing component boundaries.
+>
+> **Known open work,** so this does not read as a description of a finished system:
+>
+> - `/study` has not adopted delta 04 and carries measured layout defects (#154).
+> - Frozen Stone 600 mark tones in the comparison and group components hold their value instead of stepping in dark mode (#155).
+> - Bare `rounded` and the radius namespace are unswept (#139).
+> - The mobile nav has no hamburger panel at 390px (#141).
+> - The quiz progress bar conveys progress to sighted users only (#146).
+>
+> Each is named again in the section it bears on. Further tickets from this documentation pass are still to be opened and are deliberately not numbered here.
 
 # The Governance Compass — Design System & Theming Specification
 
@@ -7,7 +38,7 @@
 The Governance Compass looks like a well-made atlas crossed with a policy journal. It is serious without being cold, structured without being rigid, and information-dense without being overwhelming. The design draws from three traditions:
 
 - **Cartographic surveying** — topographic contour lines, warm earth tones, monospace coordinates, the sense that you are mapping unknown terrain
-- **Editorial publishing** — serif headings, layered surfaces for visual hierarchy, large typographic numbers as anchors, the authority of Foreign Affairs or a well-designed white paper
+- **Editorial publishing** — serif headings, ruled sections over a small set of surfaces, large typographic numbers as anchors, the authority of Foreign Affairs or a well-designed white paper
 - **Swiss modernist data design** — strict grid alignment, alternating-row tables, dot-on-bar axis indicators, no decorative elements that don't carry information
 
 The site should feel like a precision instrument wrapped in a warm, scholarly aesthetic. Every visual element either communicates data or establishes hierarchy — nothing is purely decorative except the subtle topographic contour lines on the compass plot, which serve as a thematic signature.
@@ -171,7 +202,7 @@ The serif is **Source Serif 4**, self-hosted through `next/font/local` rather th
 
 `next/font/local` exposes the family as `--font-source-serif`, and `--font-serif` names it first with Georgia behind it. That fallback is load-bearing during `swap`, not a dead branch.
 
-Sans and mono are system stacks and load nothing. The handoff's claim that the whole design runs on system fonts held until the serif landed; it no longer does, for the serif alone.
+Sans and mono are system stacks and load nothing. This document's own pre-delta *File / Asset Summary* claimed that of the whole design, which held until the serif landed and is now true of these two families alone — the handoff never made the claim, and listed Source Serif 4 among the families it left unchanged.
 
 The `body` element is sans at 14px/1.5. That is the inherited default a role overrides — not itself a role, and not a size to reach for.
 
@@ -879,12 +910,21 @@ So `--text-label` steps Stone 700 → Stone 500, landing at 5.42:1 in light and 
 
 ## File / Asset Summary
 
-The entire design is achievable with zero image assets. Everything is CSS, SVG, and text:
+Nothing on the site is a raster image, a sprite sheet or an icon font. Every drawing is inline SVG, and every fill, pattern and rule is CSS.
 
-- Topographic contour lines: inline SVG paths (4-5 gentle curves)
-- Compass plot: inline SVG
-- Radar chart: inline SVG (generated from score data)
-- All icons: text characters
-- All fills and patterns: CSS
+```
+Compass plot        Inline SVG. Its four quadratic contour paths at 0.6px are
+                    the product's one decorative element.
+Radar chart         Inline SVG, drawn from score data.
+Compass mark        Inline SVG, at three size tiers — full, nav, favicon.
+Ministry icons      lucide-react, one per ministry, inline in the name at 13px.
+Study icons         lucide-react, four names across /study.
+Carets and steppers Text characters — ▸ ▾ − +, the minus as U+2212.
+Fills and patterns  CSS.
+```
 
-The only external dependency is the font stack, and the design works with system fonts — no web font loading required. If you want to add a specific serif web font later (e.g., Newsreader, Source Serif, or Lora), it would enhance the editorial feel but is not necessary for v1.
+*Iconography* carries the rules and the one exception. The pre-delta summary's "all icons are text characters" was already false of the seven ministries before `/study` added four more names.
+
+**One dependency loads a file, and it is the serif.** Source Serif 4 ships as two `.woff2` files — a latin-subset variable upright and a true italic — self-hosted under `src/app/fonts/` and byte-identical to the copies in the handoff bundle; *Typography* carries the rest. Sans and mono are system stacks and load nothing. This section's own pre-delta claim, that the design needs no font file at all, was true of the whole stack once and is now true of two families out of three.
+
+The site's one standalone image file is the favicon, a 32px SVG drawing the mark's mono variant — five shapes in a frozen Stone 600 at varying opacity, since a tab icon has no mode to step with. It is committed twice: `src/app/icon.svg`, which Next's file convention wires up, and an unreferenced copy under `public/`. Recorded rather than omitted.
