@@ -193,7 +193,7 @@ Naming by job is also what makes the scale greppable. `body-s` replaced a `text-
 | `display-page` | 40px / 1.06 / −0.02em | serif 500 | Interior page titles: the shared page header's title, and the h1 the results and comparison pages set for themselves. |
 | `display-l` | 34px / 1.06 / −0.018em | serif 500 | The home headline below 560px; large numerals, including the archetype match percentage and the comparison alignment score. |
 | `display-m` | 26px / 1.2 | serif 500 | Section headings on the results and compare pages, the page title on the account, group and auth pages, and the persona modal's title. **Not** the quiz prompt. |
-| `display-entry` | 22px / 1.2 | serif 500 | The repeated section headings on the methodology and study pages, entry titles in long reference lists, and the quiz's interstitial titles. |
+| `display-entry` | 22px / 1.2 | serif 500 | The repeated section headings on the methodology and study pages, entry titles in long reference lists, and the quiz's resume and recovery titles. |
 | `display-s` | 17px / 1.35 | serif 500 | Card titles, the quiz's question stem and its forced-choice option headlines, the archetype name. |
 | `body-lead` | 17px / 1.62 | sans | Lead paragraph. |
 | `body-s` | 13.5px / 1.6 | sans | The workhorse prose size. Declares no colour — it is layered with a `text-*` class everywhere it appears. |
@@ -542,57 +542,136 @@ The pre-delta trio is gone: there is no "Copy image" and no "Download raw data" 
 
 ## Quiz Phase Theming
 
-The results page is the most complex design surface, but the quiz phases need consistent treatment.
+The quiz is the product's one long linear surface, and it spends its entire surface budget on structure: a Surface 3 page ground with Surface 1 cards standing on it, which is the two switches *Rules Carry Structure* allows and leaves nothing over. Every state the three phases have to signal — chosen, unchosen beside a choice, at a bound, past a bound — is therefore carried by a border tone, an opacity, or the ink fill. None of them is carried by a new background, because there is no third surface to carry it with.
 
 ### Phase 1: Forced-Choice
 
-- One question per screen, full width
-- The two statements displayed as two equal cards (Surface 1, standard border, 12px radius)
-- Side-by-side on desktop (2-column grid, 1.25rem gap), stacked on mobile
-- Selected state: Stone 600 border (2px — the only place a 2px border is used), replacing the default 0.5px border. No other visual change — no background shift, no check mark. The heavier border is sufficient.
-- "A" and "B" labels are NOT shown — the respondent chooses between statements, not letters
-- Navigation: "Back" and "Next" buttons at the bottom, standard button style. "Next" is disabled until a selection is made.
+One dilemma per screen on the quiz column. Above the pair sits the instruction line in `label` — "Select the position closer to your own view", swapping to "Which person's view is closer to your own?" on the bank's person-type items. The two statements are equal cards, `rounded-sharp` on Surface 1 at 24px padding, stacked below 560px and side by side above it on a 16px gap. "A" and "B" are not shown, and the display order is swapped per item by a hash of the item id, so the pair the respondent reads is not reliably the pair the scoring engine numbers. Each card sets its headline in `display-s` and its body in `body-s` on `--text-secondary`.
+
+**The selected state is not a heavier border.** The card carries a 1px border in every state, and the state lives in its tone:
+
+```
+Selected                    --rule-strong, plus a `label font-medium`
+                            "Selected" marker below the body
+Unselected, a choice made   --border-secondary at opacity-60,
+                            hovering back to full opacity and Stone 600
+Unselected, nothing yet     --border-secondary, hovering Stone 600
+```
+
+Holding the width at 1px is what keeps the border out of the card's metrics. A 0.5px → 2px change reflows the pair at the moment of the click, under the pointer that made it. The card does still grow on selection — the marker adds a line — and that is the design rather than a side effect of the border. `--rule-strong` rather than a `border-stone-900`, because the ramp is frozen and a Stone 900 selection goes near-invisible on a dark ground. The transition names `border-color` and `opacity` explicitly: Tailwind's `transition-colors` set excludes opacity, so the dimmed sibling's hover would otherwise snap back while its border eased.
+
+**Focus is `focus-ring-child`, not `focus-ring`.** The ring belongs on the card, but the card is a `div`; the focusable element is an `sr-only` button inside it carrying `aria-pressed` and the accessible name "Select <headline>". So the utility reaches downward, as `:has(> button:focus-visible)`, and both halves of that selector are load-bearing.
+
+`:focus-visible` rather than `:focus-within`, because `:focus-within` matches a plain `:focus` too — a mouse click on a dilemma would leave a ring behind, which is the exact behaviour `focus-ring` exists to prevent.
+
+A **direct `button` child** rather than any focus-visible descendant, because the card's prose runs through `AnnotatedText` into `GlossaryTerm`, whose trigger is a focusable `span[role="button"]` carrying a `focus-ring` of its own — and fifteen glossary terms match text in the forced-choice bank. An unscoped `:has(:focus-visible)` would draw a second, larger ring around the entire card while focus sat on an inline term, pointing the more prominent affordance at the wrong control.
+
+**Navigation.** "Previous" is `secondary` and disabled on the first screen of a phase; it steps within the phase only and never back across a phase boundary. The forward button is `Button`'s default — `primary`, the ink fill — and it reads "Next" on every screen except the phase's last, where it reads "Continue". It is disabled until the item is answered. Beneath the row, and only while the item is unanswered, a `label-nav` text button on `--text-label` reads "Skip this question" and advances without recording a response; the engine scores a skipped item as neutral.
+
+That forward button is **spec decision D1**, and it is why `CLAUDE.md`'s filled-button rule is now written as a role rather than as a count. The `primary` fill belongs to the assessment's own forward action wherever it appears — Begin, Next, Continue, the interstitial Continue, and the budget's Confirm — and the pre-delta claim that the site holds exactly two filled buttons is false of every one of them. The decision is recorded in both documents so that a reader of either finds it.
 
 ### Phase 2: Scaled Items
 
-- One question per screen
-- Question stem: 16px, sans, weight 500, text-primary
-- Five response options displayed as a horizontal segmented bar on desktop:
-  - Each segment is a tappable/clickable region
-  - Segments have 0.5px borders between them and 12px radius on the overall bar's outer edges
-  - Unselected: Surface 1 background
-  - Selected: Stone 100 background, Stone 600 text
-  - Each segment shows its label text: 12-13px, sans, centered within the segment
-- On mobile (<560px): vertical stack of 5 tappable rows, each with 12px radius, 0.5px border
-- The option text should be the full label from the question bank — not abbreviated
+The five options render as a **horizontal segmented bar above 560px and a vertical list below it**. The two are mutually exclusive — `hidden min-[560px]:flex` against `flex min-[560px]:hidden` — rather than one layout restyled at a breakpoint.
+
+The question stem is `display-s`: serif, the same role as a forced-choice option headline. It is content, not an instruction, so it does not join the mono label layer, and it is not the 16px sans the pre-delta spec named. The card around it is `rounded-sharp` on Surface 1 over `--border-secondary` at 24px padding.
+
+The bar is a single bordered rectangle with `divide-x` hairlines between segments, so there is one outer radius rather than five. Segments are equal, at 13px sans weight 500, centred:
+
+```
+Selected                     --button-primary fill, --button-primary-fg text
+Unselected, a value chosen   Surface 1 at opacity-60, hovering to full
+                             opacity on Surface 2
+Unselected, nothing yet      Surface 1, hovering Surface 2 and --text-primary
+```
+
+The chosen segment takes the **ink fill** rather than a Stone 100 wash with Stone 600 text. The bar has no per-segment border to carry state, and the ink pair is the fill that inverts correctly on a dark ground — the same tokens the `primary` button names. Dimming is `opacity-60` and deliberately **not** `text-text-label`: that token and `--text-secondary` are both `#6e5a48` in light mode, so a label-coloured segment would render identically to an undimmed one and the de-emphasis would be deleted invisibly.
+
+The mobile list mirrors the forced-choice card exactly — a 1px `rounded-sharp` border per row, `--rule-strong` when chosen, `--border-secondary` with the same opacity and hover treatment otherwise — because those rows have borders to carry state and the bar does not.
+
+**A segment shows only the option's label.** The full detail sentence from the question bank appears below the bar once a value is chosen, in `body-s`, over a `border-t` rule rather than on a third surface. Until then the slot holds a `label` reading "Select to see full description". The slot is `aria-live="polite"`, so the detail is announced rather than silently swapped under a screen reader.
+
+**Keys 1–5 select.** A document-level `keydown` maps the five digits onto the five values, ignoring modifier combinations and any event whose target is an input or textarea. Nothing on screen announces it: it is an accelerator for a respondent who finds it, not a documented affordance, and the pointer and keyboard paths through the buttons are unaffected.
 
 ### Phase 3: Chancellor's Budget
 
-- All 10 ministries visible simultaneously (scrollable on mobile)
-- Each ministry row: ministry name (14px, weight 500), description (12px, text-secondary, single line), and a +/- stepper control with the current value between them
-- Stepper: minus button | value (16px, monospace, weight 500) | plus button
-- Buttons: 32px square, standard button style, "−" and "+" characters
-- Disabled state (at minimum 5): muted button, text-tertiary
-- Treasury counter: sticky at the top of the phase, Surface 2 background, showing "Discretionary remaining: 23 of 50" in 14px sans with the number in monospace weight 500
-- Below-baseline warning: when a ministry drops below 10, display the consequence text from the spec inline below the ministry name in 12px, warning text color, with the warning icon. Appears/disappears dynamically.
-- "Finalize budget" button: full width at the bottom, Stone 600 background, white text, 12px radius, disabled (Stone 400 background) until allocations sum to 100
+**7 ministries, not ten,** all on screen at once in a single column, each with a lucide icon inline in its name at 13px and 1.5 stroke weight:
+
+```
+Defense                     Shield
+Public Welfare              Heart
+Economy & Growth            TrendingUp
+Education & Research        GraduationCap
+Environment                 Leaf
+Justice & Civil Liberties   Scale
+Foreign Affairs             Globe
+```
+
+The budget is **50 points across the seven**, each ministry bounded at 1 and 25. Every ministry starts at its minimum, so the screen opens with 7 points committed and 43 to spend, and the phase completes when the remaining count reaches zero — not when the allocations sum to 100.
+
+A row is a Surface 1 card, `rounded-sharp` on `--border-secondary` at 16px padding: the name in `label font-medium`, the description under it, then a control line of minus button, track, value, plus button.
+
+```
+Stepper button   36px square, `rounded-sharp`, --border-primary on Surface 1,
+                 hovering Surface 2, `focus-ring`
+Track            6px, square, --border-secondary, filled from --mark-primary
+                 across the 1…25 range
+Value            14px mono 500, tabular-nums
+```
+
+The track is a real data mark and takes `--mark-primary`, which steps 600 → 400 in dark mode, rather than a frozen Stone 600 literal. It is square: a 6px bar with a corner on it is a pill, and the one radius is 2px.
+
+**A stepper at its bound takes `aria-disabled`, not `disabled`.** A disabled control drops out of the tab order, and when the last point lands every "+" reaches its bound at once — disabling the button the respondent just pressed throws their focus to the top of the page mid-gesture. The bound state is `opacity-50` with `cursor-not-allowed`, and the step callbacks already no-op past a bound, so a stray activation changes nothing.
+
+**Consequence text, not a below-baseline warning.** Each ministry authors five consequence tiers across the 1…25 range, and the line for the current tier renders under the row in `caption-italic` — serif italic editorial framing, not the warning family, which is reserved for advisories. It stays hidden until the respondent has moved something, so the opening screen is not a wall of consequences for allocations nobody chose; a resumed session that mounts with points already spent shows it immediately.
+
+**Two sticky edges, both rules rather than panels.** The counter sits at the top: `label` "Points remaining" against a 16px mono numeral, over a `--rule-strong` bottom border on a Surface 3 fill that matches the page ground, bleeding out to the page's own 18px gutter. When the count reaches zero an "All allocated" label fades in beside the numeral. The confirm bar mirrors it at the bottom over a `--rule-strong` top border, and is sticky **only below 560px** — above that it goes `static` and drops both the border and the fill.
+
+The confirm control is `Button` at `w-full`, taking the default `primary` ink fill, reading "Confirm budget" and disabled until the remaining count is zero. It is not the Stone 600 fill at a 12px radius the pre-delta spec prescribed, and its disabled state is not a Stone 400 fill: `disabled:opacity-50` sits on the button base and applies to every variant.
+
+One size here has no role behind it. The instruction line above the counter and the ministry descriptions both hand-spell `text-[12.5px] leading-[1.6]`, a pair shared with the glossary hint on the first dilemma. Recorded rather than implied to be `body-xs`, which is 12px in a different rhythm.
 
 ### Phase Transitions and Progress
 
-- Progress bar: thin (3px), full width, at the very top of the quiz container
-  - Three segments (one per phase), separated by 2px gaps
-  - Completed segments: Stone 600 fill
-  - Current segment: Stone 600 fill, proportional to progress within phase
-  - Future segments: border-tertiary fill
-- Phase interstitial screens: centered layout, serif heading for the phase name, sans body text for the description, single "Continue" button
+**The progress bar is a mono label row over three segments**, at the top of every question screen:
+
+```
+Label row   label-nav on --text-label, 10px above the segments:
+            "Phase 1 · Dilemmas" at one end, "1 of 36" at the other
+Segments    three equal, 3px tall, 4px gap, on a --border-secondary track
+Fill        bg-stone-600 — completed segments at full width, the active
+            segment at (index + 1) / total, future segments transparent
+```
+
+The three phase names are Dilemmas, Scales and Budget. The count is suppressed where a phase holds a single screen, which is how the budget phase renders it: that phase passes one screen of one, so its segment is full from the moment it opens and no "1 of 1" appears beside it. The active segment is never empty for the same reason — the first question of a phase already fills one question's worth.
+
+Stone 600 as a fill is one of its remaining jobs; see *Color System*. The computing screen's animated line is the only other one in the quiz.
+
+**The bar is a sighted-only affordance, and that is open debt.** It carries no `role="progressbar"` and no value attributes, so nothing in it reaches assistive technology. Phases 1 and 2 put an `sr-only` `aria-live` region beside it announcing "Question N of M", which covers position within a phase but not the phase itself; the budget screen has neither. Issue #146.
+
+**Phase interstitials** are a centred card capped at `max-w-lg`: the compass mark, `label` "Phase N complete", the response count in `body-s`, a `--border-secondary` divider, then `label` "Up next", the next phase's title in `display-s`, its description in `body-s`, and its estimate in `caption-italic`. The action is a full-width `primary` "Continue" — the same ink fill as the question screens' forward button, because it is the same forward action.
+
+**The computing screen** holds for 1.8 seconds between the confirmed budget and the results: the compass mark, a 2px track carrying a Stone 600 line that slides on a 1.5s loop, `display-s` "Computing your results", and a message that rotates every 1.4 seconds. The region is `aria-live="polite"` and `aria-busy`. The pause is deliberate — scoring is synchronous and effectively instant — but it is shorter than the message rotation is written for, so most of the authored sequence never renders.
 
 ### Pre-Quiz Introduction
 
-- Centered layout, max-width 640px
-- Title: "The governance compass" in h1 (22px serif)
-- Description and phase list in body text (14px sans)
-- Timing estimate: 12px, text-tertiary, italic serif
-- "Begin assessment" button: same treatment as "Finalize budget" — Stone 600 background, white text, 12px radius. This is one of only two filled/primary buttons on the entire site (the other being "Finalize budget"). Every other button is outlined/ghost style.
+The quiz opens on an interstitial in the same card shell the phase transitions use, capped at `max-w-lg` rather than on the quiz column: `label` "Phase 1 of 3", the title **"Governance dilemmas"** in `display-s`, the framing paragraph in `body-s`, and a `caption-italic` line reading "36 questions · ~8 minutes · Your progress is saved automatically". Its action is a full-width `primary` **"Begin"**.
+
+The pre-delta prescription — a 640px column, an h1 reading "The governance compass", a phase list, and a "Begin assessment" button — describes none of that. Neither is the button one of two filled buttons on the site. It is `primary` because beginning the assessment *is* the assessment's forward action, which is the rule D1 put in the count's place.
+
+Two sibling entry screens share the centred shape without the card, both capped at 640px and both setting their titles in `display-entry` — the quiz's only two call sites for that role:
+
+- **"Welcome back"**, shown when saved state is resumable and something is already answered. It names the response count and the phase, and pairs a full-width `primary` "Continue where I left off" with the same `label-nav` text button the skip link uses, reading "Start over".
+- **"We lost your place"**, shown when saved state points at a question the bank no longer holds — a tampered payload, or a session saved before the bank changed. Its single action is a `secondary` "Start over". A deliberate reset rather than a crash mid-render.
+
+### Quiz Rules
+
+- **State is a border tone, an opacity, or the ink fill — never a new background.** The quiz has already spent both of its surface switches; a third fill is a surface the page does not have.
+- **A selection never changes a border's width.** 1px in every state, so a choice cannot reflow the pair under the pointer that made it.
+- **The forward action is the ink `primary` at every step.** Begin, Next, Continue, Confirm budget. That is the rule, and the count of filled buttons on the site is not one (spec decision D1).
+- **A bound is `aria-disabled`, not `disabled`.** A control that leaves the tab order takes the respondent's focus with it.
+- **Mono is the instruction layer; the questions are not.** Prompts, phase labels and the selected marker take a `label` role; question stems and option headlines take `display-s`.
+- **A ring on a wrapper names the child it belongs to.** `focus-ring-child` is scoped to a direct `button` child because these cards contain other focusable things.
 
 ---
 
