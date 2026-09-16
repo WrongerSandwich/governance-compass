@@ -48,7 +48,7 @@ Three surface levels carry depth, and they invert as a set rather than reorderin
 
 ```
 --surface-1:  #ffffff   →   #2a2118     Cards and panels
---surface-2:  #f7f4f0   →   #1f1812     Hero regions, quiet bands, alternating rows
+--surface-2:  #f7f4f0   →   #1f1812     Hover fills, quiet bands, alternating rows, inline chips
 --surface-3:  #efe9e3   →   #17120d     The page ground
 ```
 
@@ -677,83 +677,203 @@ Two sibling entry screens share the centred shape without the card, both capped 
 
 ## Responsive Breakpoints
 
-```
-Desktop (>768px):
-  - Hero grid: 2 columns (compass + archetype card)
-  - Forced-choice: side-by-side statement cards
-  - Scaled items: horizontal segmented bar
-  - Budget: all 10 ministries visible, 2-column grid
-  - Radar chart: minimum 400px width
-  - Axis breakdown: full 3-column rows
+**One breakpoint carries the product: `min-[560px]`.** It is an arbitrary-value variant rather than a named Tailwind screen, and it is spelled identically at every call site, so everything that has to collapse collapses together. The pre-delta table's 768px desktop tier and its 560–768px tablet band describe no shipped rule — there is no tablet arrangement, because nothing on the page has a third layout for one to hold.
 
-Tablet (560–768px):
-  - Hero grid: 2 columns still, but tighter gap (1rem)
-  - Everything else same as desktop
-  - Radar chart: minimum 340px
+What moves at 560px:
 
-Mobile (<560px):
-  - Hero grid: single column (compass stacked above archetype card)
-  - Compass plot: full width, maintains square aspect ratio
-  - Forced-choice: stacked statement cards
-  - Scaled items: vertical option list
-  - Budget: single-column ministry list, sticky treasury counter
-  - Radar chart: minimum 300px, consider offering a "switch to bar view"
-    toggle that replaces the spider chart with a simple horizontal bar
-    list (identical to the axis breakdown) for readability on small screens
-  - Axis breakdown: Pole A/B labels shrink to 64px, or switch to a
-    tooltip-on-tap pattern where the pole name appears above the bar
-    when tapped
 ```
+Page gutter          18px → 28px          (the home page steps to 56px)
+Nav bar              52px tall, 20px mark → 54px tall, 22px mark
+Wordmark             wordmark-sm → wordmark      (hidden entirely below 480px)
+Home headline        display-l → display-xl
+Home CTA row         a stacked column of full-width buttons → a wrapped row of
+                     content-width ones, the second swapping secondary → tertiary
+Home sample row      stacked → [24px | 1fr | 158px]
+Home domain footer   one column → two            (and four at 900px)
+Forced choice        stacked cards → two equal columns on a 16px gap
+Scaled items         vertical option list → horizontal segmented bar
+Budget counter       bleeds to the viewport edge → aligns to the column
+Budget confirm bar   sticky, ruled, filled, padded → static, bare, unpadded
+Axis breakdown row   [24px | minmax(0,1fr)] → [24px | minmax(0,1fr) | 210px]
+Archetype card       one column → [minmax(0,1fr) | 220px] for the mini radar
+/archetypes bars     no endpoint labels → a 64px first-word label on each side
+Compare, per-axis    one column → two
+```
+
+Those are the rows that change a **layout**. The variant is spelled at forty-odd sites in all, and the rest are gaps, padding and order that follow from these. Two rules inside the block are easy to read past and expensive to get wrong. **The home page's primary call to action is `w-full` below 560 and `w-auto` above it** — an ink fill spans the column on a phone and never on a desktop, and a filled button is a scarce resource here (see `CLAUDE.md`). And the budget's treasury counter is `sticky top-0` at **every** width; what 560 changes is only its bleed. The pre-delta table listed a "sticky treasury counter" as a mobile affordance, which it is not.
+
+Two other arbitrary widths exist outside `/study`, each with a single consumer: **480px**, where the nav wordmark appears beside the compass mark (the mark alone carries the bar below it), and **900px**, where the home payoff block goes `[1fr | 356px]` and the domain footer's four cards go from two columns to four.
+
+**Several things the pre-delta table made responsive are not.**
+
+- **The budget is one column at every width.** Seven ministry rows in a flex column — seven, not ten — and never a two-column grid. The two sticky edges are what move: the counter keeps `sticky top-0` throughout and only stops bleeding to the viewport edge, while the confirm bar drops the whole treatment at once — sticky, `--rule-strong` top border, Surface 3 fill, negative margin, gutter padding and vertical padding, all of them gone above 560.
+- **The radar has no minimum width and no small-screen alternative.** It is a 580-unit `viewBox` at `w-full max-w-xl`, so it scales to whatever column it is given; the prescribed 400/340/300 minimums and the "switch to bar view" toggle do not ship and are not wanted. Its accessible reading is the `sr-only` table beside it, identically at every width.
+- **The compass plot is capped at 400px on every screen**, square by its viewBox rather than by an aspect rule.
+- **There is no hero region to reflow.** Phase 4 moved the compass to the bottom of the results page and delta 04 dissolved the two-column grid — see *Layout and Spacing*. The archetype card's 220px mini-radar column is the only two-column region the page has left, which is why it is the only entry above that names one.
+- **The axis breakdown's pole columns are gone, not resized.** The pre-delta `[82px | fluid | 82px]` row put a pole label on each side of the bar; `PairedAxisScale` renders its own endpoints below the track, so there is no 64px shrink state and no tap-to-reveal pattern to fall back to. Below 560px the third column drops and the meta cell re-enters the grid beneath the scale. (`/archetypes` does flank its own prototype bars with a 64px label on each side above 560px. That is a separate hand-rolled bar, not the breakdown row.)
+
+**`/study` runs its own breakpoint set and does not use 560 at all**: 640, 720, 768, 960, 1024 and 1280, authored as `@media` blocks inside component `<style>` elements rather than as variants. Three exceptions are spelled as variants: a 500 on the index's figure row, and the `md:block`/`md:hidden` pair that swaps `/study/patterns`' correlation heatmap for a top-correlations list at 768 — the only two **named-screen** Tailwind variants anywhere in the codebase. The section is a data browser on `--container-browse`, wider than the chrome shell, and its column counts answer to content width rather than to the page's one collapse — the personas sidebar opens at 960 precisely so there is no band where a sidebar sits beside a one-column grid. It holds its gutter flat at 16px where the rest of the product steps 18 → 28. The footer is the other flat gutter, at 28px everywhere.
+
+**Open, measured, not fixed:**
+
+- **The mobile nav has no hamburger panel** (#141). Mock 6a draws one at 390px. What ships at 390px is the compass mark plus two compact mono links — functional, and short of the drawing.
+- **`/study/model-agreement` scrolls sideways** between roughly 641 and 1150px (#154). A case-study grid of `30% 35% 35%` already totals 100%, so its 24px gaps add on top; measured at 768, 960 and 1024, `scrollWidth` exceeds `clientWidth` by 16px and eight paragraphs sit past the edge.
+- **`/study/personas`'s compare tray clips its fourth panel** (#154) — `clientWidth` 1098 against `scrollWidth` 1359, identically at 1200px and 1440px, because the tray does not grow with the viewport. Three pins already clip 27px at 1024px, and four pins is a URL-reachable state.
+
+### Responsive Rules
+
+- **One breakpoint. `min-[560px]`, spelled the same way everywhere.** A new width needs a reason that names its own content, as 480, 500 and 900 each do.
+- **Collapse a layout; do not shrink its columns.** The meta column drops at 560 rather than narrowing, and the pole columns were removed rather than resized.
+- **Two layouts, mutually exclusive — not one layout restyled.** The segmented bar and the option list are `hidden min-[560px]:flex` against `flex min-[560px]:hidden`.
+- **A chart scales; it does not switch.** A `viewBox` at `w-full` already fits every width, and a second small-screen rendering of the same data is a second thing to keep true.
 
 ---
 
 ## Animation and Transitions
 
-Keep animation minimal and purposeful. This is a serious instrument, not a playful app.
+Animation is minimal and purposeful. Nothing here exists to attract attention: every interval below either acknowledges an input or covers a state change that would otherwise be a jump cut.
+
+**Reduced motion comes first, because it is global and unconditional.** `@media (prefers-reduced-motion: reduce)` collapses `animation-duration` and `transition-duration` to `0.01ms` on `*`, `*::before` and `*::after`, and forces `animation-iteration-count: 1`. Nothing below needs a per-component opt-out and nothing should add one. Note what the rule does not touch: it zeroes durations, not delays, so a staggered reveal still arrives staggered — it arrives instantly, later.
+
+Transitions:
 
 ```
-Selection state changes:     150ms ease — border color, background color
-Hover states:                120ms ease — background color, text color
-Expandable sections:         200ms ease — height reveal (use max-height transition or
-                             a disclosure widget). No accordion bounce.
-Phase transitions:           300ms fade — simple opacity crossfade between phases
-Results loading:             1.5–2s artificial delay with a subtle loading indicator
-                             (a thin Stone 600 line animating across the top,
-                             matching the progress bar style). This creates a sense
-                             that computation is happening.
-Radar chart (optional):      On first render, the polygon can animate from the center
-                             outward (each vertex extends from 0 to its final position)
-                             over 600ms with a gentle ease-out. This is the ONE moment
-                             of visual delight on the results page. If it adds
-                             implementation complexity, skip it — the results work
-                             fine without animation.
+150ms   The default, as `duration-150`. Selections, hovers, button states, and
+        the radar vertex's `r` on hover — the chart's only transition.
+120ms   The nav dropdown caret's transform, and /study's row and pin hovers.
+100ms   The budget track's fill. A stepper is repeatable and 150 lags a held press.
+200ms   The computing screen's message, on opacity as it rotates.
+300ms   The quiz progress bar's active segment. The only 300ms in the quiz.
 ```
 
-No parallax, no scroll-triggered animations, no particle effects, no physics-based springs. The design's authority comes from stillness and precision.
+**A transition names its properties.** `transition-colors` covers colour, background-color, border-color, fill and stroke, and **excludes `opacity`** — so a state that dims has to spell it: `transition-[border-color,opacity]` on the forced-choice card, `transition-[color,background-color,opacity]` on `Button` and on the scaled item's segmented bar. The scaled item's **mobile** option rows are the one place that still carries `hover:opacity-100` on a bare `transition-colors`, so that row's dim snaps back while its border eases — the precise failure this paragraph exists to prevent, still shipping. The pre-delta line naming "border color, background color" for a selection is the set that leaves the dimmed sibling snapping back while its border eases. Two `transition-*` utilities cannot both apply — they collide on `transition-property` — so the list goes on one utility. `Button`'s list deliberately omits `outline-color`: with it in, the focus ring faded in over 150ms and read as `currentColor` for its first frame.
+
+Four keyframes, all in `globals.css`:
+
+```
+loading-slide           1.5s, infinite      The computing screen's sliding line.
+petal-reveal            0.4s × 4, at a      The compass mark's petals, only where a
+                        0.1s stagger        caller sets `animate`.
+fade-in-up              0.3s / 200ms        The mark's centre dot; the budget's
+                                            "All allocated" badge; and its
+                                            consequence line as a tier changes.
+archetype-target-fade   2s, one-shot        The /archetypes :target rail.
+```
+
+`petal-reveal` reads a `--petal-opacity` set inline per petal, so each petal arrives at its own final opacity rather than at a shared one. `fade-in-up`'s comment in the sheet calls it the results page's staggered reveal; it is not, and has not been since `FadeInSection` took that job.
+
+**`FadeInSection` is the reveal.** An `IntersectionObserver` at a 0.1 threshold fires once and disconnects, and the element transitions 300ms ease-out on opacity and a 12px vertical translate — an inline transition, not a keyframe. Its `delay` prop staggers the results page at 100 and 200ms on two of its sections and runs to 250ms across `/compare`.
+
+**The archetype `:target` rail** is a 2px `--mark-primary` bar that holds for 70% of a 2s animation and settles at 0.35 opacity. It is pure CSS, which is what keeps `/archetypes` a server component. It rides `[data-entry-inner]` — the 660px measure inside the row — rather than the `:target` section itself: that section is full-bleed, so anchoring the rail to it paints at the viewport edge, hundreds of pixels left of the prose it marks. It takes `--mark-primary` rather than a Stone 600 literal so it steps on a dark ground like every other mark on the page.
+
+**Three pre-delta prescriptions describe nothing that ships:**
+
+- **There is no phase crossfade.** A quiz phase change is a mount, not a 300ms opacity fade between two rendered phases.
+- **Expandables do not animate.** The scoring disclosures and the archetype card's expand mount and unmount their content. There is no `max-height` transition and no measured-height animation to tune.
+- **The radar's optional vertex-extension animation was never built.** The polygon renders at full extent on first paint. Verified before deleting the prescription: nothing in the chart animates but the hovered vertex's radius.
+
+**The computing screen is specified in *Quiz Phase Theming*** — 1.8s hold, a 1.5s `loading-slide` loop on a 2px track, messages rotating at 1.4s — and is a centred `max-w-lg` column rather than a line across the top of the page. Do not respecify it here; two descriptions of one screen is how one of them goes stale.
+
+`StaggeredList` — 200ms ease-out at a 40ms per-item stagger, on the same intersection idiom — has **no consumers.** Recorded so it is not mistaken for the reveal that ships.
+
+No parallax, no particle effects, no physics-based springs. The one scroll-triggered animation is the intersection reveal above, which fires once per element and never again. The design's authority comes from stillness and precision.
+
+### Animation Rules
+
+- **Reduced motion is global and has no exceptions.** Never re-enable motion under it, and never reach for an animation whose meaning survives only at full duration.
+- **150ms unless there is a reason.** A repeated control may go faster; nothing goes slower without one.
+- **Name the properties a transition covers.** `transition-colors` excludes opacity, and a dimmed state is the common case.
+- **A reveal fires once.** Observe, set, disconnect. Nothing re-animates on scroll-back.
+- **Nothing loops except the computing line**, and it loops because it is a waiting state with a known end.
 
 ---
 
 ## Iconography
 
-The site uses almost no icons. This is deliberate — the typographic-first aesthetic is cleaner without them.
+The site is typographic first and icons are rare, but it is not icon-free — and the exceptions the pre-delta section listed were not the whole set even before `/study` landed. Two systems ship.
 
-**The exceptions:**
-- Tension indicator: "!" character inside a 16px warning-colored circle. Not an SVG icon — a styled text character.
-- Expand/collapse toggle: "▸" / "▾" text characters. Not chevron SVGs.
-- Stepper buttons: "−" and "+" text characters.
+**Lucide line icons.** Seven, one per ministry, inline in the ministry name at 13px and 1.5 stroke weight:
 
-If you need additional icons in the future (e.g., for share buttons), use a minimal line-icon set at 16px. Never filled icons, never colored icons, never icons larger than 16px.
+```
+Defense                     Shield
+Public Welfare              Heart
+Economy & Growth            TrendingUp
+Education & Research        GraduationCap
+Environment                 Leaf
+Justice & Civil Liberties   Scale
+Foreign Affairs             Globe
+```
+
+The budget screen and `BudgetComparison` hold separate copies of that map and must agree. The icon is how a respondent re-finds the row they just moved; a comparison that labels Defense with a Leaf is worse than one with no icons at all.
+
+Four more names appear in `/study` — `X`, `ExternalLink`, `Users`, `Bookmark` — at 10 to 16px, in two roles that are worth keeping apart. **Beside their own text**, at lucide's default 2 stroke weight: the 14px `X` on a "Close" button, `ExternalLink` on "View full profile", `Users` on "Both models". **Icon-only, with no visible text at all**: the remaining `X` dismissals on the modal and the compare panel, and the compare pin's `Bookmark`, which matches the ministries at 1.5 rather than taking the default. An icon-only button carries its whole meaning in an `aria-label`, and the pin adds `aria-pressed`. Every icon here renders `aria-hidden` — spelled at the call site everywhere except `Bookmark`, which gets it from lucide's own default for an icon carrying no accessibility prop.
+
+**The size rule survives intact: nothing renders above 16px, and no icon set on the site is a filled one.** The fill and colour halves of the old rule have exactly one exception, and it is the same control. The compare pin's `Bookmark` takes `fill="currentColor"` when pinned and `none` when not, over `--mark-primary` pinned against `--text-label` unpinned. Fill and tone are that control's entire state signal — it does not move, relabel, or change position when it toggles — so the exception is earned there and generalises nowhere. Every other icon inherits the colour of the text it sits in.
+
+**Text characters, still text characters and not SVGs:**
+
+- **`▸` / `▾` on every disclosure** — the scoring breakdown and the study filters swap the pair on state; the archetype entries rotate a single `▸` by 90°, and the nav dropdown and the persona modal rotate a `▾` by 180°. Every one of them is `aria-hidden`: the caret sits inside a control's accessible name, and AT announces U+25B8 by its Unicode name.
+- **`−` and `+` on the budget steppers**, the minus as U+2212 rather than a hyphen, at `text-lg` with `leading-none` so the glyph centres in its 36px square.
+
+**The amber `!` tension glyph does not ship.** It went with the tension card the delta removed. The shipped callout signals with a 2px `--warning` left edge and a `--warning-text` title, and the axis row signals with a `mono-meta` line reading "Tension detected" — see *The Tension Callout*. Do not restore a glyph to satisfy the old list.
+
+### Iconography Rules
+
+- **An icon is a line icon at 16px or smaller, or it is a text character.** No filled icon set, and nothing larger than 16.
+- **An icon never carries meaning its accessible name does not.** Beside text, it is `aria-hidden` and decorative. Alone, the button it sits in owes an `aria-label`, and a toggle owes `aria-pressed`.
+- **Colour on an icon is a state, not a style.** The compare pin's fill and Stone tone say "pinned". Nothing else on the site colours an icon.
+- **Two copies of an icon map must agree.** The budget screen and the budget comparison each hold one.
 
 ---
 
 ## Accessibility Notes
 
-- All Stone 600 text on Surface 1 backgrounds passes WCAG AA for normal text (contrast ratio ~4.8:1). For small text (under 14px), use Stone 800 instead.
-- All Surface 2 on Surface 1 pairings and vice versa must maintain at least 3:1 contrast for borders and UI elements.
-- The selected state in forced-choice (2px Stone 600 border) must be distinguishable without color — the border width change from 0.5px to 2px provides a non-color signal.
-- The tension pip uses both color (warning amber) and a text character ("!") to indicate its presence — not color alone.
-- The radar chart polygon's Stone 600 fill at 12% opacity is decorative; the actual data is communicated by the axis breakdown table below it. The radar chart is an at-a-glance visualization, not the primary data display.
-- Focus rings on interactive elements: 2px Stone 600 outline with 2px offset. Visible on keyboard navigation, hidden on mouse/touch.
+### Focus
+
+**`focus-ring` is the product's focus affordance, and it is an `@utility` rather than a class pair for a reason.**
+
+The spelling it replaced — `focus:outline-none` alongside `focus-visible:outline-2` — **drew no ring at all**, at every one of its 21 call sites: 20 of the plain `focus:` spelling plus one `focus-within:`, counted against the tree immediately before the sweep, which is where anyone can recount them. (`globals.css` says 25 at the utility itself. It is wrong, and it is the origin of that figure.) `outline-none` emits `--tw-outline-style: none`; `outline-2` emits `outline-style: var(--tw-outline-style)` beside its width; and `:focus` matches whenever `:focus-visible` does, so by the time the style resolved the custom property was `none`. Width and colour applied to an outline whose style was `none`. Nothing rendered, nothing failed loudly, and the pair reads correct at every call site.
+
+`focus-ring` is **two rules, and it needs both**: `&:focus { outline: none }` suppresses the user-agent ring for a mouse press, and `&:focus-visible` draws the real one with the **`outline` shorthand** — `outline: 2px solid var(--focus-ring)` at a 2px offset. The shorthand is the fix: it sets style explicitly and cannot be undone by a custom property. Do not pair the utility with a hand-rolled suppressor; the suppression is already inside it. `--focus-ring` is Stone 600 in both modes, and this utility and its sibling are its only consumers. A source guard now fails on any reintroduction of `focus:outline-none`, and on `focus-within:outline-none`, which was broken the same way.
+
+`focus-ring-child` is the wrapper form — `:has(> button:focus-visible)` — for a card whose focusable element is an `sr-only` button inside it. Both halves of that selector are load-bearing: `:focus-visible` rather than `:focus-within`, and a **direct** `button` child rather than any focusable descendant. *Quiz Phase Theming* carries the argument for each.
+
+Two departures, both documented rather than incidental. `/study`'s links, inputs and selects do not carry `focus-ring`; none of them suppresses its outline either, so they keep the user-agent ring — inconsistent with the site-wide convention rather than inaccessible (#154). And the world map's interactive regions draw a shape-hugging `stroke` on focus **alongside** `focus-ring`, because an `outline` on an SVG path is drawn around its bounding box: four of nine regions had that box clipped by the map's own SVG, and Oceania's read as two horizontal rules across the whole map.
+
+### Contrast
+
+The label layer's colour steps by mode, and a measurement is the reason. Stone 500 is **2.73:1** on the light page ground, **2.99:1** on Surface 2 and **3.28:1** on a white panel — all three under AA's 4.5:1 for the small text this role sets. Scope that conclusion carefully: **3.28:1 is above the 3:1 large-text floor.** The first two figures are under it; the third is not, and a sentence that generalises "under even the 3:1 floor" across all three is wrong on the third. The token still has to step, because 4.5:1 is the threshold that applies to the text it colours. On the three dark surfaces the same tone clears 4.81–5.67:1.
+
+So `--text-label` steps Stone 700 → Stone 500, landing at 5.42:1 in light and 5.67:1 in dark on the page ground (spec decision D7). *Color System* carries the rest, including why no single value on the Stone ramp clears AA in both modes. `--text-tertiary` stays Stone 500 in both modes and carries the light-mode failure onto every label it still colours; those call sites are debt, not precedent.
+
+### Size
+
+**11px is an accessibility floor, not only a typographic one.** The scale bottoms out there — the mono label family, `mono-meta` and `wordmark-sm` all sit exactly on it — and nothing below it is a role. The reason is not rhythm. The label layer is uppercase and tracked, which is the least legible treatment on the site, and it is where scores, counts, coordinates and axis endpoints are read. Pre-delta call sites below the floor survive in unswept components; they are debt. A layout that needs 10px needs less text.
+
+### Non-colour signals
+
+- **A forced-choice selection is a text marker plus an opacity difference.** The chosen card gains a `label font-medium` "Selected" line and its border goes to `--rule-strong`; the unchosen sibling drops to `opacity-60`. The border is **1px in every state** — its width does not change, so width is not available as a signal and nothing should be written as though it were. Programmatically, the card's `sr-only` button carries `aria-pressed`.
+- **A tension is a word before it is a colour.** "Tension detected" in the axis row, a graded title in the callout; the 2px `--warning` edge is the colour half and neither surface leans on it alone.
+- **A chosen scale segment is the ink fill**, which is a luminance inversion rather than a hue change, and it reads as chosen in greyscale.
+- **A bound is `aria-disabled` plus `opacity-50`**, not a removed control. See *Quiz Phase Theming* for why the stepper keeps its place in the tab order.
+
+### Charts and scales
+
+`PairedAxisScale`'s root is `role="img"`, which makes its entire subtree presentational: the visible endpoint text never reaches the accessibility tree and both dots are `aria-hidden`. **The `aria-label` is therefore the only channel**, and it is built by `describePosition` and `describeGap` rather than read off the numbers. Two consequences that are easy to get backwards: an `endpoints="none"` caller loses a sighted affordance only, since the announced string is identical either way; and the description does not replace the labels, because it names at most one pole and none at all within 0.15 of the midpoint.
+
+`RadarChart` inverts the arrangement — the SVG is `aria-hidden` and an `sr-only` table is the entire accessible chart, one row per axis carrying both poles, the domain, the score and the confidence. Domain is a column precisely because that chart made domain the job of twelve coloured dots. The archetype card's mini radar and the radar's domain legend are `aria-hidden` with no table of their own, deliberately: the same twelve scores are already in that table, and a second wordless copy adds nothing. *Component Specifications* has both in full.
+
+### Open
+
+**The quiz progress bar conveys progress to sighted users only** (#146). It carries no `role="progressbar"` and no value attributes, so nothing in it reaches assistive technology. Phases 1 and 2 put an `sr-only` `aria-live` region beside it announcing "Question N of M", which covers position within a phase but not which phase; the budget screen has neither.
+
+### Accessibility Rules
+
+- **`focus-ring`, or `focus-ring-child` on a wrapper. Never a hand-rolled outline pair.** The spelling those replaced drew nothing for its entire life, and `focus:outline-none` is guarded against in source.
+- **Every state signal has a non-colour half** — a marker, an opacity step, a word, or an `aria-` attribute.
+- **Nothing below the 11px floor.**
+- **A `role="img"` root owes an `aria-label` carrying everything the drawing says.** An `aria-hidden` chart owes an adjacent table.
+- **A label colour is measured, not chosen.** `--text-label` steps by mode because no one value clears AA on both grounds.
 
 ---
 
