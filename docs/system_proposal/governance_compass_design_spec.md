@@ -141,7 +141,7 @@ Dark mode is a single `prefers-color-scheme: dark` override on `:root` — the s
 - The primary button inverts rather than darkens, for the reason given above.
 - A data mark drawn through the tokens steps from its 600 tone to its 400: the 600 tones go muddy on a dark ground. This is the entire reason the `--domain-*` and `--mark-primary` tokens exist, and the frozen literals under *Known debt* are the marks that miss the step.
 - The rule pair swaps ends, preserving contrast intent rather than value.
-- Topographic contour lines on the compass drop from `--contour-opacity: 0.08` to `0.05`.
+- Topographic contour lines on the compass are the one thing here that does **not** step. `--contour-opacity` declares both modes — 0.08 light, 0.05 dark — and has no consumer; the plot paints the contours at a fixed opacity instead. See *The Compass Plot*.
 - The Stone ramp does not change, and neither does `--warning`.
 
 ### Color Rules
@@ -331,163 +331,212 @@ Its grids are the product's only fluid ones for the same reason. Several `/study
 
 ## Component Specifications
 
+### PairedAxisScale
+
+One row renders one axis for one or two respondents. It is the shared primitive behind the home page's sample pair, the results axis breakdown and the per-axis detail page, `/compare` (through `ComparisonScoreBar`), the group view, and `/study`'s persona modal.
+
+**How the convergence actually landed**, because it is not the clean merge delta 05 predicted. `ScoreBar` is retired — deleted outright, and guarded in both directions: one assertion fails if the file returns, a second scans source for any import still reaching for it. Its two distinguishing features, a centre-out fill and a score readout floating above the marker, are both things the delta removes, so restyling it would have left two primitives drawing one thing.
+
+`ComparisonScoreBar` **survives**, as row chrome *around* the primitive rather than as a second implementation of it. It owns the axis name, the gap badge, and the two named readouts with their swatches, and hands the scale itself down. Saying the two components converged into one sends a reader looking for a component that is still there and still rendering rows.
+
+One consequence is recorded because it reversed a shipped behaviour: the dot roles are the primitive's, not `ComparisonScoreBar`'s former ones. **Respondent A is the filled domain dot and respondent B the outlined one** — the reverse of what shipped before. The home page's sample pair carries the A/B legend that names them in the new order. `/compare` names them per row instead, with a swatch inside each readout, because its two-profile route passes real names and has no legend for a dot to appear in.
+
+**It renders only the scale** — endpoints, track, midline, dots. Callers own the surrounding row, because the consumers wrap it in different grids: a three-column breakdown row, a two-column home row, a comparison row with a gap badge above it, a group row with an aria-hidden member-scatter strip above it, positioned by the same `scoreToTrackPercent` so the two align, and a modal column too narrow for pole labels at all.
+
+```
+Row height       14px
+Track            2px, the domain's 400 tone at 50% opacity
+Midline          1px, --border-secondary, full row height, centred
+Respondent A     10px filled disc, the axis's domain mark
+Respondent B     12px ring, 1.5px --text-label edge on a --surface-1 fill
+```
+
+The track is the one place the scale spells a hex instead of a token, and the reason is that there is nothing to step: the mark moves from its 600 tone to its 400 on a dark ground and arrives where the track already sits, so a custom property here would hold one value in both modes. The dot beside it does have to step, and takes `getDomainMarkVar`. The one override is `markVar`, for the study's model-agreement view, where a Claude row and a Gemini row sit under one axis name and colour is the only thing separating them; it takes the same wrapped `var(--x)` shape the helper returns, because a bare name wrapped twice gives `var(var(--x))` — valid syntax that resolves to nothing and paints an invisible mark.
+
+**The mapping is `−1…1` → `6%…94%`, computed as `50 + score * 44` by `scoreToTrackPercent`.** The 6% inset is not taste: across the full `0…100%` a dot at either pole sits half off the end of the track it is meant to be on.
+
+**Accessibility.** The root is `role="img"`, which makes the entire subtree presentational — the visible endpoint text never reaches the accessibility tree, and both dots are `aria-hidden`. Everything the scale communicates therefore has to survive in the `aria-label`, and `describePosition` and `describeGap` are what build it:
+
+```
+describePosition   |score| < 0.15            near the midpoint
+                   < 0.45 / < 0.75 / else    slightly / moderately / strongly toward <pole>
+describeGap        gap <= 0.3                close agreement
+                   <= 0.7 / <= 1.2 / else    some distance / significant gap / far apart
+```
+
+Two respondents join with a semicolon rather than an em dash: most synthesizers speak nothing for U+2014 and do not reliably pause on it, so the relationship phrase ran straight onto the end of respondent B's position, and at higher punctuation verbosity it is spoken as "dash" once per axis, twelve times down the page.
+
+Because `role="img"` already suppressed the endpoints, an `endpoints="none"` caller loses a **visual affordance only** — the announced string is byte-identical with the row present or absent. Note the corollary, which is easy to get backwards: the description does not replace the labels. `describePosition` names at most one pole, and none at all within 0.15 of the midpoint.
+
 ### The Compass Plot
 
-A square SVG rendered inside the hero region's left column.
+A square SVG in the **last** section on the results page. Phase 4 moved it from the top of the page to the bottom and frames it as a simplified projection of the radar above; there is no hero region for it to sit in, and no section on the page sits inside another.
 
-**Background:** Surface 1 (white/primary) rect with 6px corner radius, filling the SVG viewBox.
+At a 400-unit viewBox with 50 units of margin, the plot square is 300 units, capped at 400 CSS px by its wrapper:
 
-**Grid lines:**
-- Two primary axes (horizontal and vertical through center): 0.5px, border-tertiary color
-- One dashed inner rect at 43% of the way from center to edge: 0.5px, border-tertiary, dash pattern 3,3, opacity 0.3. This marks the "moderate" zone.
-- No concentric circles (that's the radar chart's pattern)
+```
+Frame            300 units square, --surface-1 fill, 1px --border-secondary stroke
+Grid             six columns and six rows, --rule-hairline at 1px
+Crosshairs       1px --border-secondary on the two centre lines
+Respondent dot   r=6, --text-primary
+Leader line      0.6px --text-label
+Readout          11px mono, --text-label
+```
 
-**Topographic contour lines (signature element):**
-- 4-5 gently curving horizontal SVG paths
-- Stroke: Stone 600, opacity 0.08 (light mode) / 0.05 (dark mode)
-- Stroke-width: 0.5px
-- These are purely decorative and should be subtle enough that you only notice them if you look for them. They establish the cartographic identity.
+The frame ships **square**. The 6px corner the pre-delta spec prescribed is gone rather than retuned, and it is not an exemption from the radius token — the rect carries no `rx` attribute at all.
 
-**Axis labels:**
-- Four cardinal labels: "TRADITIONAL" (top), "PROGRESSIVE" (bottom), "COLLECTIVE" (left), "MARKET" (right)
-- 10px, sans-serif, letter-spacing 0.08em, text-tertiary color
-- Positioned at the edges of the plot area, centered on their axis
+The grid is a six-step division of the square, not a single dashed ring marking a "moderate" zone. It draws on `--rule-hairline` and explicitly **not** on `stroke-stone-50`: the ramp is frozen across modes, so a Stone 50 hairline reads as near-white wire on a dark ground.
 
-**Quadrant whisper labels (optional):**
-- Very low opacity (0.12) labels in each quadrant corner: "Communitarian", "Conservative", "Libertarian left", "Classical liberal"
-- 9px, sans-serif, text-tertiary color at 12% opacity
-- These should be barely visible — orientation aids, not categories
+The dot is `--text-primary`, not a Stone 900 literal, for the same reason — ink on an ink ground is invisible, and the text token is already the pair that inverts.
 
-**Respondent's position:**
-- Filled circle, radius 5-6px, Stone 600 fill
-- Concentric pulse rings: two additional circles at r=10 and r=16, Stone 600 stroke at 0.5px, opacity 0.45 and 0.2 respectively. These draw the eye without being loud.
-- Leader line: 0.5px Stone 600 line at opacity 0.35, extending horizontally from the outermost ring to a coordinate label
-- Coordinate label: monospace, 10px, Stone 600, displaying the two super-dimension scores separated by comma (e.g., "-0.34, +0.18")
+**Pole labels sit inside the square**, at 11px mono on `--text-label`, inset one dot radius plus two units from the frame so that a dot parked hard against an edge cannot cover one. Collective is left, Market right, Traditional top, Progressive bottom. The vertical pair follows the engine's cultural weights, where +1 is traditional; swapping those two labels would invert the meaning of every plotted point without touching a line of scoring code.
+
+**Coordinate readout.** A leader line runs from the dot — flipping to the inboard side when the dot sits right of centre — and ends just short of the two super-dimension scores, set in mono. Moving the pole labels inside the square opened a collision the outside-the-square labels could not have: the readout renders on the dot's own baseline, so a dot sitting on the horizontal axis drives it straight through "Collective" or "Market". It is nudged clear of the axis, and always away from centre, so the nudge can never carry it onto the label it is avoiding.
+
+**Archetype positions** are plotted as reference marks, derived from the twelve-axis prototypes through the same super-dimension weights the respondent's own position uses. Each is a small `--text-secondary` dot labelled with the last word of the archetype's name; the primary match draws larger and at higher opacity and always keeps its label, while the rest suppress theirs when they would land within 18 units of a label already placed. Those labels are SVG `fontSize` attributes rather than scale roles — 7.5 units for the primary and 6.5 for the others, which is 7.5 and 6.5 CSS px at the plot's 400px cap.
+
+**Contour lines** survive as the product's one decorative element, protected in `CLAUDE.md` as the cartographic signature: gentle quadratic curves at 0.6px stroke width. They do **not** currently read the token. `--contour-opacity` is declared in both modes (0.08 light, 0.05 dark) and has no consumer; the paths ship at a literal opacity of 0.15 over `var(--stone-500)`, and because the ramp is frozen they do not step with the mode. Recorded as debt rather than described as though the token were wired.
+
+Two pre-delta prescriptions are gone and were not replaced: the concentric pulse rings around the respondent's dot, and the quadrant whisper labels.
 
 ### The Archetype Card
 
-A Surface 1 card with border, sitting inside the hero region's right column.
+The first panel on the results page, at 26px padding on the page ground — not a card inside a two-column hero.
 
-**Structure (top to bottom):**
 ```
-"PRIMARY ARCHETYPE"          ← 11px, uppercase, letter-spaced, Stone 600
-87%                          ← 36px, serif, weight 500, text-primary
-The institutional moderate   ← 17px, serif, weight 500, text-primary
-Description paragraph        ← 13px, sans, text-secondary, line-height 1.6
-─────────────────────────    ← 0.5px border, 12px padding-top, 14px margin-top
-Adjacent: The social         ← 12px, sans, text-tertiary
-democrat — 72% match...        "Adjacent:" label weight 500, text-secondary
-```
-
-The match percentage (87%) is the visual anchor — it should be the first thing your eye hits on the card. The serif face at 36px makes it feel like a data point, not a quiz result.
-
-### The Tension Card
-
-Appears between the hero and radar sections, only when tensions are detected. One card per flagged tension.
-
-**Structure:**
-```
-┌──────────────────────────────────────────┐
-│  [!] Moderate tension — Axis 6: ...      │  ← Icon + label row
-│                                          │
-│  Narrative explanation paragraph          │  ← 13px, text-secondary
-│                                          │
-│  Stated: -0.71    Budget: -0.22          │  ← 12px, monospace, text-tertiary
-└──────────────────────────────────────────┘
+Primary archetype        label-eyebrow, --text-label, over a --rule-strong bottom border
+87%                      display-l (34px serif)
+The Institutional …      display-s, the archetype name as an h2
+Summary paragraph        body-s, --text-secondary
+[ Copy link ] [ Compare with someone ] [ Learn more ]
+─────────────────────    --rule-hairline top border
+Adjacent · The Social Democrat — 72% match     mono-meta, --text-label
 ```
 
-- Card: Surface 1 background, standard border, 12px radius
-- Icon: 16px circle, warning background color, "!" character in warning text color, centered in circle
-- Label: 12px, weight 500, warning text color
-- Narrative: 13px, sans, text-secondary, line-height 1.6
-- Values row: 12px, monospace, text-tertiary, flex with 1.5rem gap
+**The match percentage is the visual anchor** — the first thing the eye should hit. That intent survived the delta; the number did not. It is `display-l`, which is **34px**, not the 36px the pre-delta spec named, and it is a scale role rather than a hand-spelled size. The serif face at that scale is what makes it read as a data point rather than as a quiz result.
+
+The eyebrow sits over a `--rule-strong` bottom border and the adjacent-archetype row under a `--rule-hairline` top border, so the card opens and closes on the two ends of the rule hierarchy. The adjacent row is `mono-meta`, one line, naming the second archetype and its match.
+
+Above 560px a **mini radar occupies a 220px right column**, the only two-column region left on the results page. Below that the grid collapses to one column and the radar stacks under the copy. It draws two rings, the respondent's twelve-axis polygon in `--mark-primary`, and — this is the attribution the pre-delta spec put on the wrong chart — **the archetype prototype, as a dashed `var(--stone-500)` line**. The two-item legend beneath it names exactly those two shapes. Both the SVG and the legend are `aria-hidden`: the accessible reading of these twelve scores is the radar section's table, and a second, wordless copy of the same data adds nothing.
+
+Three conditional states share the card and are stated here so they are not mistaken for variants of one another:
+
+- **Blended** — a `mono-meta` note that the profile draws nearly equally from two archetypes.
+- **Low match** — the same role in `--warning-text`, the advisory accent doing exactly its job.
+- **Distinctive** — a different card entirely. The eyebrow reads "Distinctive profile", there is no percentage and no mini radar, and the closing row becomes a two-line "Nearest archetypes" list. "Describe, don't prescribe": a profile that matches nothing is reported as a finding, not as a failure to classify.
+
+### The Tension Callout
+
+**There is no `TensionCard` component.** Tensions render inline in the results view as a callout, and the pre-delta card prescription — 12px radius, an icon disc, a stated-versus-budget values row — describes none of what ships.
+
+The section heads with the eyebrow **Detected tensions** over the title **Principles against priorities**, and it renders **unconditionally**. With nothing detected it says so in one sentence on a plain panel. The absence of tension is itself a result, and an inert item in a rendered jump nav is worse than an empty state.
+
+Each detected tension is one panel:
+
+```
+Panel      --surface-1, 1px --border-secondary, rounded-sharp
+Left edge  2px --warning
+Padding    22px horizontal, 20px vertical
+Title      label + font-medium, --warning-text: "Moderate tension · Decision Authority"
+Narrative  body-s, --text-secondary
+```
+
+The left edge is the entire visual signal. There is no icon disc, no amber fill behind the panel, and no numeric row — the numbers live in the axis breakdown below, where the scale that produced them is drawn.
+
+The title's grade is sentence-cased **in JavaScript**, not by a `capitalize` class, for two independent reasons: `text-transform` does not touch `textContent`, so a CSS-only capital is invisible to a screen reader and to anything the respondent copies out of the page; and the title already carries the `label` role, which sets `text-transform` itself, so a second one layered on it would leave the rendered case decided by Tailwind's emitted order. `label font-medium` is the safe kind of layering — `label` declares no weight.
+
+The narrative names which side the questionnaire leaned and which side the budget suggested. Both directions are spelled out explicitly rather than derived by negation, because a swapped pair renders the exact opposite of what the respondent answered and renders it plausibly.
 
 ### The Radar Chart
 
-Rendered inside a Surface 2 container with 1.5rem padding.
+Twelve axes in a panel of its own, at 28px padding, under an eyebrow/title/caption head. The SVG caps itself at its own maximum width rather than at a page measure.
 
-**Grid:**
-- Three concentric 12-sided polygons at 33%, 67%, and 100% of radius
-- 0.5px stroke, border-tertiary, opacity 0.4
-- Six spoke lines (connecting opposing axis pairs) at 0.5px, border-tertiary, opacity 0.25
-- The middle polygon (67% / neutral ring) can be very slightly more visible (opacity 0.5) to mark the zero line
+```
+SIZE             580 (viewBox units)
+MAX_RADIUS       170
+Outer ring       12-sided polygon, --border-secondary, 0.8px
+Neutral ring     at half radius, dashed 3 3, --border-primary, 0.8px
+Spokes           twelve, from the centre, --border-secondary, 0.6px
+Polygon          --mark-primary, fillOpacity 0.1, 1.6px stroke, round joins
+Vertex dots      r=4, r=5.5 hovered, filled from getDomainMarkVar
+Labels           at r + 22, 11px mono, --text-label
+```
 
-**Respondent's polygon:**
-- Fill: Stone 600 at ~12% opacity (0.12 fill-opacity)
-- Stroke: Stone 600 at ~55% opacity, 1.5px width
-- Vertex dots: 3px radius filled circles, Stone 600
+The ring set collapsed to two. The neutral ring is the mark the caption describes; the intermediate rings carried no meaning and are gone. Twelve spokes from the centre rather than six diameters, because a spoke has to be present even where the mapping puts its own vertex at the origin.
 
-**Archetype prototype overlay:**
-- Stroke only (no fill): info-blue color (from framework), 1px width, dash pattern 4,3, opacity 0.45
-- No vertex dots (keeps it visually subordinate to the respondent's polygon)
+**The vertex dots are per-axis domain colour, not a single Stone 600.** That is the chart's one added variable, and it is the reason the label ring closed up from `r + 38` to `r + 22`: the old padding was sized for two-line domain-coloured *labels*, and once domain moved onto the dots the labels went to one line of 11px mono.
 
-**Axis labels:**
-- 10px, sans-serif, text-tertiary
-- Positioned outside the outermost polygon, aligned to their spoke
-- Labels show the Pole B name (the "outward" pole). Optionally show Pole A names in parentheses at lower opacity near the center, but only if space permits
+**A hover tooltip** the pre-delta spec does not mention: a `--surface-1` box on a hairline stroke, carrying the axis's magnitude and the pole it leans toward in 11px mono, pushed outward along the spoke and clamped inside the viewBox so a vertex near the perimeter cannot render its tooltip off the edge. The dots take the hover through a larger transparent hit circle; the visible radius eases over 150ms, which is the selection interval.
 
-**Legend:**
-- Below the chart, simple inline legend: two items
-- "[stone dot] Your profile" and "[blue dot] [Archetype name] prototype"
-- 12px, sans, text-secondary
-- Dots are 8px circles in the respective colors
+**The archetype prototype overlay was dropped.** The pre-delta spec prescribed it here in dashed info-blue; this chart draws no second polygon, and `--info` is vestigial across the whole product. A prototype overlay *is* still drawn — in the archetype card's mini radar, as a dashed `var(--stone-500)` line. Do not go looking for it on this chart.
+
+**Accessibility.** The SVG is `aria-hidden`, so an `sr-only` table is the entire accessible chart. It carries one row per axis: the axis name with both poles, the domain name, the score, and the confidence. Domain is a column rather than an omission precisely because this chart made domain the job of twelve dots, which a screen reader cannot see — without it, the one variable the chart gained is the one variable AT loses. It is derived from the axis id, exactly as the dot beside it is, rather than read off a caller-supplied string the two could disagree about.
+
+**Below the chart** is a four-item legend keyed to the domains — a dot in each domain's mark colour beside the domain's name, in `mono-meta`. It is not the two-item respondent-versus-prototype legend the pre-delta spec described, which went with the overlay. It is `aria-hidden` like the SVG it annotates: exposed, it reads as four loose domain names with no referent, describing a chart AT cannot perceive, and the table above already carries the same information in rows.
 
 ### The Axis Breakdown
 
-A vertical list of rows grouped by domain, with alternating row backgrounds (from Direction C).
+Four domain groups, twelve rows, under a heading that shares its baseline with the section-level **Show scoring details** toggle.
 
-**Domain headers:**
-- 11px, sans, uppercase, letter-spacing 0.08-0.10em, Stone 600 text
-- Bottom border: 0.5px, border-tertiary
-- Margin: 1.25rem top (except first), 0.5rem bottom, 6px padding-bottom
+A domain group opens on a 2px rule in that domain's mark colour, with the domain name in `label font-medium` at the same colour and an axis count in `mono-meta` at the far end. That 2px rule is data — it marks a domain block, and it is not available for ruling a section decoratively.
 
-**Axis rows:**
-- 3-column grid: [Pole A label: 82px] [bar: fluid] [Pole B label: 82px]
-- Padding: 9px 12px
-- Alternating rows: even rows get Surface 2 background, odd rows are transparent. Both get 8px border-radius.
-- Pole labels: 12px, sans, text-tertiary. Pole A right-aligned, Pole B left-aligned.
+Each row is its own grid, `[24px | minmax(0, 1fr) | 210px]` at 560px and above:
 
-**The axis bar:**
-- Track: 6px height, 3px border-radius, border-tertiary background (very subtle)
-- Center zero mark: 0.5px vertical line, 12px tall (extends 3px above and below the track), border-secondary color
-- Fill: Extends from center toward the respondent's score position. Stone 600, opacity 0.45. If score is negative, fill extends leftward from center. If positive, fill extends rightward.
-- Dot marker: 12px diameter circle positioned at the score. 2px Stone 600 border, Surface 1 fill (so it reads as a ring). Positioned with its center at the score's location on the bar.
-- Score value: 10px, monospace, text-secondary. Positioned above the dot marker, offset slightly to avoid overlap with the dot.
+```
+24px           index, mono-meta, zero-padded
+minmax(0,1fr)  axis name in body-s with the score in mono-meta tabular-nums
+               on the same baseline, and PairedAxisScale below them
+210px          confidence, any tension flag, then the tagline in body-xs
+```
 
-**Tension pip:** When an axis has a detected tension, display a small inline badge next to the Pole B label:
-- Text: "! tension"
-- Style: 10px, warning text color, warning background color, 8px border-radius, 2px 7px padding
-- The "!" can be a text character, not a separate icon
+Below 560px the third column drops and the meta cell re-enters the grid beneath the scale rather than squeezing a 210px column onto a 320px screen. The row's boundary is a `border-b` on `--border-secondary` — a rule, not an alternating fill and not a rounded floating card.
+
+Items the pre-delta spec prescribed and that the delta settled differently:
+
+- **The scale is `PairedAxisScale`.** It is not a bar with a centre-out fill, a ring marker, and a floating score readout. See that subsection; do not respecify a bar here.
+- **Endpoints go below the track**, which is why the old `[82px | fluid | 82px]` pole-label columns are gone rather than resized. Bars align because the scale is one component, not because the labels are boxed.
+- **Tension is a line, not a pill.** `mono-meta` in `--warning-text` reading "Tension detected", in the meta column. The row says only that a tension exists; the callouts above spell it out, and duplicating the narrative in a 210px column would mean setting it twice.
+- **Rows are ruled, not striped.** No alternating surface, no 8px corner.
+- **`items-start`, not centred.** Every real tagline wraps in a 210px column, and centring detaches the axis index from the name it labels by more than a line's worth of offset. A deliberate divergence from a static prototype.
 
 ### The Scoring Breakdown (Expandable)
 
-A toggle at the bottom of the axis breakdown section.
+Not a section at the foot of the page. It is a **section-level `tertiary` toggle** on the axis breakdown heading, which reveals a per-row disclosure inside every one of the twelve rows.
 
-**Toggle button:**
-- Text: "▸ See how this was scored" (collapsed) / "▾ Hide scoring breakdown" (expanded)
-- 13px, sans, text-secondary, no border, no background, cursor pointer
-- Hover: text-primary
+Each per-row control is a **disclosure toggle, not a disclosure summary**: a `<button type="button">` carrying `aria-expanded`, in `label-nav` with a `focus-ring`. It is not a `<summary>`, and it does not take the `label` role the document's real summaries take.
 
-**Expanded content:**
-- Brief explanatory paragraph: 13px, sans, text-secondary
-- Per-axis breakdown (show one axis as the example, with a note that all axes follow the same pattern):
-  - Domain label (same style as axis breakdown)
-  - 2×2 grid of detail cards:
-    - Each card: 12px, sans, text-secondary, Surface 2 background, 8px radius, 6px 10px padding
-    - First line: modality name and score (e.g., "Forced-choice: -0.33")
-    - Second line: brief context (e.g., "2 of 3 chose Collective") in 11px, text-tertiary
-  - Formula line below the grid: monospace, 12px, text-tertiary
-    - Shows the actual weighted calculation: "(0.40 × -0.33) + (0.35 × -0.50) + (0.25 × -0.22) = -0.34"
+Its **accessible name is the visible label plus an `sr-only` axis name** — "See how this was scored" (or "Hide scoring breakdown"), then " for Decision Authority". This is WCAG 2.5.3, Label in Name: the accessible name has to *contain* the visible label, and the retired `aria-label` shared no words at all with the visible text, so it replaced the name outright and voice control stopped matching the control. The axis name is still worth carrying, because twelve identically-labelled disclosures are indistinguishable in a control list, so it extends the name instead of replacing it. Expanded/collapsed state is deliberately absent from the name: `aria-expanded` already carries it. The caret is `aria-hidden` — it is decoration sitting inside an accessible name, and AT announces U+25B8 by its Unicode name.
 
-### Share Buttons Row
+The expanded panel sits over a `--rule-hairline` top border:
 
-Positioned at the bottom of the hero region, inside the Surface 2 container.
+```
+Forced choice     Calibrated scale     Budget          three columns, mono-meta,
+-0.33             -0.50                -0.22           values tabular-nums
 
-- Horizontal flex row, 8px gap
-- Each button: 12px sans, 6px 14px padding, 8px border-radius, border-secondary 0.5px border, Surface 1 background, text-secondary color
-- Hover: Surface 2 background, text-primary color
-- Three buttons: "Copy image", "Copy link", "Download raw data"
-- No icons — text only, keeping with the typographic-first aesthetic
+(0.50 × -0.33) + (0.35 × -0.50) + (0.15 × -0.22) = -0.37
+```
+
+The formula is the row's own weights against the row's own components, read from that axis's own weight profile rather than from a default — the fallback that stood there invented a weight profile matching none of the real ones. The grid always shows all three columns, with the budget cell reading `N/A` on an axis that carries no budget signal, while the formula drops the budget term outright rather than multiplying by a zero weight. There are no detail cards, no 2×2 grid, and no second "context" line under each modality.
+
+### Share and Compare Actions
+
+There is no separate share row, and nothing on the results page sits at the bottom of a hero region. The two actions live **inside the archetype panel**, on the same line as the card's own "Learn more" control.
+
+Both take **`Button variant="secondary"`** — a `--border-primary` hairline outline, `--text-secondary`, the `control` label role, and the one shared radius. They are not hand-rolled chips with an 8px corner and a bespoke hover, and they are not filled: the `primary` ink fill is reserved for the page's own call to action, which the results page does not have.
+
+- **Copy link** writes the current URL to the clipboard and swaps its own label to "Copied!" for two seconds. The label is the entire feedback; there is no toast.
+- **Compare with someone** expands in place into a text field plus a `secondary` Compare and a `tertiary` Cancel. It accepts either a pasted results URL or the bare encoded string, extracting the `r` parameter from the former.
+
+The pre-delta trio is gone: there is no "Copy image" and no "Download raw data" on the results page. The study section's public dataset download is a different surface with a different purpose.
+
+### Component Rules
+
+- **One axis is one `PairedAxisScale`.** A new surface that draws an axis reaches for the primitive and supplies its own row; it does not draw a track.
+- **Respondent A is the filled dot, respondent B the ring.** Any legend, swatch or readout naming them follows that order.
+- **A `role="img"` root makes everything under it presentational.** Every value a chart or scale communicates has to be reachable from the `aria-label` or from an adjacent `sr-only` table — never from the visible text inside it.
+- **Domain colour goes on marks, never on chrome.** Dots, the axis track, the domain rule. Not borders, not panels, not headings outside a domain block.
+- **A disclosure is a `<button aria-expanded>` whose accessible name contains its visible label.** An `aria-label` that replaces the visible text breaks voice control.
+- **Corrections belong in the section, not in a note beside it.** Where the delta dropped something the pre-delta spec prescribed — the prototype overlay, the pulse rings, the tension icon, the share trio — this section says it was dropped. A prescription for an absent element reads as authoritative.
 
 ---
 
