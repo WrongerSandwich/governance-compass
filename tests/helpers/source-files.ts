@@ -435,3 +435,56 @@ function splitTernary(expression: string): [string, string] | null {
   }
   return null;
 }
+
+/**
+ * Strips `/* … *\/` comments from a stylesheet.
+ *
+ * Every CSS guard in this suite reads declarations, and a whole-file scan
+ * cannot tell a declaration from prose about a declaration — `globals.css`
+ * documents `--radius` as "12px and 8px both collapse to 2px" in a comment
+ * directly above it. Separate from `stripComments`, which is a TS/TSX
+ * scanner: its regex-literal heuristic has no meaning in CSS, and it would
+ * mangle a `content: "//"` declaration.
+ */
+export function stripCssComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+/**
+ * Body of a top-level CSS block, BRACE-MATCHED rather than regexed.
+ *
+ * `opener` may include the trailing `{` or not; the scan starts at the first
+ * `{` at or after it either way.
+ *
+ * Shared by `design-system-tokens.test.ts` and `design-docs.test.ts`, which
+ * carried near-identical copies that had ALREADY drifted — one passed the
+ * opener with a `{`, the other without. Same de-duplication as `sourceFiles`
+ * above, and for the same reason.
+ *
+ * Brace matching, not `[\s\S]*?\n\}`: `focus-ring` and `focus-ring-child`
+ * nest `&:focus`-style blocks, and a non-greedy body truncates at the inner
+ * brace for any nested rule whose closer is not indented. Depth counting does
+ * not depend on whitespace.
+ */
+export function cssBlock(css: string, opener: string): string {
+  const start = css.indexOf(opener);
+  if (start === -1) throw new Error(`block not found: ${opener}`);
+  const braceStart = css.indexOf("{", start);
+  let depth = 0;
+  for (let i = braceStart; i < css.length; i += 1) {
+    if (css[i] === "{") depth += 1;
+    else if (css[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return css.slice(braceStart + 1, i);
+    }
+  }
+  throw new Error(`unterminated block: ${opener}`);
+}
+
+/** Every `@utility` rule in a stylesheet, in declaration order. */
+export function cssUtilities(css: string): { name: string; body: string }[] {
+  return [...css.matchAll(/@utility ([a-z0-9-]+) \{/g)].map((match) => ({
+    name: match[1],
+    body: cssBlock(css.slice(match.index), `@utility ${match[1]} {`),
+  }));
+}
