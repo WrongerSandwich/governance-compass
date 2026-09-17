@@ -481,10 +481,40 @@ export function cssBlock(css: string, opener: string): string {
   throw new Error(`unterminated block: ${opener}`);
 }
 
+/**
+ * Matches an `@utility` opener.
+ *
+ * Whitespace is `\s+` / `\s*` rather than a literal space on purpose. The
+ * spelling this replaced required exactly one space and a same-line brace, so
+ * a role authored as `@utility  foo {` or with the brace on the next line
+ * dropped out of the parse silently — and because the design-docs completeness
+ * check built its own opener list from the SAME pattern, such a role vanished
+ * from both sides of that assertion and the check stayed green with a hole in
+ * it. Loosening it here fixes both callers at once.
+ */
+const UTILITY_OPENER = /@utility\s+([a-z0-9-]+)\s*\{/g;
+
+/** Every `@utility` name in a stylesheet, without parsing bodies. */
+export function cssUtilityNames(css: string): string[] {
+  return [...css.matchAll(UTILITY_OPENER)].map(([, name]) => name);
+}
+
+/**
+ * Count of `@utility` at-rules by the loosest possible reading.
+ *
+ * Deliberately independent of `UTILITY_OPENER`: it is the anti-vacuity anchor
+ * for a completeness check, and an anchor derived from the pattern it is
+ * meant to validate anchors nothing. If these two disagree, a rule exists that
+ * the structured parse cannot see.
+ */
+export function cssUtilityAtRuleCount(css: string): number {
+  return (css.match(/@utility\b/g) ?? []).length;
+}
+
 /** Every `@utility` rule in a stylesheet, in declaration order. */
 export function cssUtilities(css: string): { name: string; body: string }[] {
-  return [...css.matchAll(/@utility ([a-z0-9-]+) \{/g)].map((match) => ({
+  return [...css.matchAll(UTILITY_OPENER)].map((match) => ({
     name: match[1],
-    body: cssBlock(css.slice(match.index), `@utility ${match[1]} {`),
+    body: cssBlock(css.slice(match.index), match[0]),
   }));
 }

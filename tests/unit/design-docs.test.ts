@@ -1,7 +1,14 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { cssUtilities, sourceFiles, stripComments, stripCssComments } from "../helpers/source-files";
+import {
+  cssUtilities,
+  cssUtilityAtRuleCount,
+  cssUtilityNames,
+  sourceFiles,
+  stripComments,
+  stripCssComments,
+} from "../helpers/source-files";
 
 /**
  * Drift guard for the two authoritative design documents.
@@ -212,9 +219,19 @@ describe("design docs are not vacuous to guard", () => {
     // for — that role is declared AFTER both focus-ring rules, so a parser
     // that truncated on their nested `&:focus` blocks would surface here —
     // and it does so without pinning a value that a legitimate retune moves.
-    const openers = [...css.matchAll(/@utility ([a-z0-9-]+) \{/g)].map(([, name]) => name);
+    const openers = cssUtilityNames(css);
 
     expect(openers.length, "no @utility rules parsed out of globals.css").toBeGreaterThan(0);
+    // The anchor that makes the `toEqual` below mean something. `openers` and
+    // `sizes` are both derived from the structured opener pattern, so a rule
+    // that pattern cannot see drops out of BOTH sides and the comparison stays
+    // green over a hole. This count is deliberately derived a different way —
+    // the bare at-rule keyword — so the two disagree exactly when the
+    // structured parse has missed a rule.
+    expect(
+      openers.length,
+      "an @utility rule exists that the structured parse cannot see",
+    ).toBe(cssUtilityAtRuleCount(css));
     expect([...sizes.keys(), ...NON_TYPOGRAPHY_UTILITIES].sort()).toEqual(
       [...openers].sort(),
     );
@@ -634,6 +651,36 @@ describe("CLAUDE.md Design Context matches what shipped", () => {
 
   it("notes home_sample_pair.json alongside the other derived outputs", () => {
     present(claudeMd, "home_sample_pair.json", "home_sample_pair.json is unlisted");
+  });
+});
+
+describe("the spec's token blocks describe tokens that exist", () => {
+  it("declares no token the stylesheet does not", () => {
+    // Finding from review: commit 6e5efd9 deleted --text-tertiary from all
+    // three layers of the sheet while the spec's own text-token block still
+    // carried a `--text-tertiary: Stone 500 -> Stone 500 (frozen)` row. A
+    // reader following the spec got a token resolving to nothing, and the
+    // retirement guard below never saw it because it scans the STYLESHEET.
+    //
+    // Generalised rather than special-cased: the failure is "the spec shows a
+    // declaration for a token that is not declared", and --text-tertiary was
+    // one instance. A ban on that one name would not have caught the next.
+    //
+    // Scoped to declaration SHAPE — a line whose first non-space content is
+    // `--name:` — so the spec stays free to name a retired token in prose,
+    // which it does, deliberately, so a reader meeting it in an old commit
+    // knows what it was.
+    const declared = new Set(
+      [...stripCssComments(globalsCss).matchAll(/(--[\w-]+)\s*:/g)].map(([, n]) => n),
+    );
+    expect(declared.size, "no tokens parsed out of globals.css").toBeGreaterThan(20);
+
+    const shown = [...designSpec.matchAll(/^[ \t]*(--[\w-]+)[ \t]*:/gm)].map(([, n]) => n);
+    expect(shown.length, "no token rows found in the spec").toBeGreaterThan(10);
+
+    const orphans = [...new Set(shown)].filter((name) => !declared.has(name)).sort();
+
+    expect(orphans, "the spec shows these tokens as declared; globals.css does not").toEqual([]);
   });
 });
 

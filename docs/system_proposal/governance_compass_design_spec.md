@@ -87,20 +87,19 @@ In light mode Surface 2 and Surface 3 are value-identical to Stone 50 and Stone 
 
 Borders are a matching trio — `--border-primary` (Stone 300 → Stone 800), `--border-secondary`, `--border-tertiary` — each stepping with the surface it sits on.
 
-Text is a **trio plus one**:
+Text is a trio:
 
 ```
 --text-primary:    Stone 900   →   Stone 100
 --text-secondary:  Stone 700   →   Stone 300
---text-tertiary:   Stone 500   →   Stone 500     (frozen)
 --text-label:      Stone 700   →   Stone 500
 ```
 
-`--text-label` is the fourth, and it colors the label layer. It steps by mode where `--text-tertiary` does not, and the reason is a measurement rather than a preference. Stone 500 measures 2.73:1 on the light page ground, 2.99:1 on Surface 2 and 3.28:1 on a white panel — all three under AA's 4.5:1 for small text, and the first two under even the 3:1 large-text floor — while clearing 4.81–5.67:1 on the three dark surfaces. No single value on the Stone ramp clears AA in both modes: Stone 600 fails every dark surface, and Stone 700 fails dark badly at 2.42–2.85:1. So the token steps, landing at 5.42:1 in light and 5.67:1 in dark on the page ground.
+`--text-label` colors the label layer, and it steps by mode for a measured reason rather than a preference. Stone 500 measures 2.73:1 on the light page ground, 2.99:1 on Surface 2 and 3.28:1 on a white panel — all three under AA's 4.5:1 for small text, and the first two under even the 3:1 large-text floor — while clearing 4.81–5.67:1 on the three dark surfaces. No single value on the Stone ramp clears AA in both modes: Stone 600 fails every dark surface, and Stone 700 fails dark badly at 2.42–2.85:1. So the token steps, landing at 5.42:1 in light and 5.67:1 in dark on the page ground.
 
 This is the delta's one knowing departure from the handoff, which states that Stone 500 holds as the label color in both modes and is the one token needing no dark variant. It is an accessibility departure rather than an aesthetic one, and it introduces no new color (spec decision D7).
 
-`--text-tertiary` is what `--text-label` replaced. It keeps Stone 500 in both modes and therefore carries that same failure onto any light-mode label it still colors; the label layer takes `--text-label`, and the surviving `--text-tertiary` call sites are legacy rather than exemplary.
+`--text-label` replaced a fourth token, `--text-tertiary`, which held Stone 500 in both modes and so carried the light-mode failure above onto every label it colored. Phase 6 retired it outright — declaration, dark override and `@theme inline` mapping — after the per-screen phases moved its call sites. It is named here only so a reader meeting it in an old commit knows what it was and why it is gone.
 
 **Rules are a pair, not a border tone.**
 
@@ -179,7 +178,7 @@ Dark mode is a single `prefers-color-scheme: dark` override on `:root` — the s
 
 - **Never spell a mark or a rule from a ramp literal.** `--stone-NNN` is one value in both modes. Marks take `--mark-primary` or `--domain-*` — via `getDomainMarkVar` or `DOMAIN_MARK_VARS` — and rules take `--rule-strong` or `--rule-hairline`.
 - **Never use a ramp value as a surface.** `bg-stone-50` is not `--surface-2`, however identical the two look in light mode.
-- **The label layer takes `--text-label`.** Not `--text-tertiary`, not a ramp value.
+- **The label layer takes `--text-label`.** Not a ramp value, and not `--text-secondary`, which is a different job at a coincidentally identical light-mode value.
 - **Domain color is data.** Draw it wherever an axis is drawn and nowhere else — never on chrome, never as decoration.
 - **Never derive a study token's dark value from the 600 → 400 step.** The cluster, map, axis-gradient and model families are retuned by hand, and they stay inside the study section.
 - **The warning family is advisory, never decorative.** It is the only hue outside the data families: no blue, no new accent.
@@ -875,7 +874,7 @@ Two departures, both documented rather than incidental. `/study`'s links, inputs
 
 The label layer's colour steps by mode, and a measurement is the reason. Stone 500 is **2.73:1** on the light page ground, **2.99:1** on Surface 2 and **3.28:1** on a white panel — all three under AA's 4.5:1 for the small text this role sets. Scope that conclusion carefully: **3.28:1 is above the 3:1 large-text floor.** The first two figures are under it; the third is not, and a sentence that generalises "under even the 3:1 floor" across all three is wrong on the third. The token still has to step, because 4.5:1 is the threshold that applies to the text it colours. On the three dark surfaces the same tone clears 4.81–5.67:1.
 
-So `--text-label` steps Stone 700 → Stone 500, landing at 5.42:1 in light and 5.67:1 in dark on the page ground (spec decision D7). *Color System* carries the rest, including why no single value on the Stone ramp clears AA in both modes. `--text-tertiary` stays Stone 500 in both modes and carries the light-mode failure onto every label it still colours; those call sites are debt, not precedent.
+So `--text-label` steps Stone 700 → Stone 500, landing at 5.42:1 in light and 5.67:1 in dark on the page ground (spec decision D7). *Color System* carries the rest, including why no single value on the Stone ramp clears AA in both modes. The `--text-tertiary` token that preceded it held Stone 500 in both modes and carried the light-mode failure; phase 6 retired it once its call sites had moved.
 
 ### Size
 
