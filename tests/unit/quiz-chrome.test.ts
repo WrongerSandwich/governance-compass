@@ -155,6 +155,59 @@ describe("ProgressBar", () => {
     expect(fills[0].style.width).toBe("2.7777777777777777%");
   });
 
+  it("exposes the segment row as a progressbar carrying the phase's position", () => {
+    const container = render(
+      createElement(ProgressBar, { currentPhase: 2, currentIndex: 5, totalInPhase: 24 }),
+    );
+    const bar = container.querySelector('[role="progressbar"]')!;
+
+    // The role belongs on the row that holds the three tracks, not on an outer
+    // wrapper: `progressbar` is children-presentational, so the tracks and
+    // fills drop out of the accessibility tree underneath it.
+    expect(bar.querySelectorAll("[data-progress-track]")).toHaveLength(3);
+    expect(bar.getAttribute("aria-valuemin")).toBe("0");
+    expect(bar.getAttribute("aria-valuemax")).toBe("24");
+    expect(bar.getAttribute("aria-valuenow")).toBe("6");
+    // `progressbar` takes no name from its content, so the name has to be
+    // authored. Spoken form, not the middot the eye reads.
+    expect(bar.getAttribute("aria-label")).toBe("Phase 2 of 3, Scales");
+    expect(bar.getAttribute("aria-valuetext")).toBe("6 of 24");
+  });
+
+  it("leaves the position on one screen-reader channel, not two", () => {
+    const container = render(
+      createElement(ProgressBar, { currentPhase: 1, currentIndex: 1, totalInPhase: 36 }),
+    );
+    const row = container.querySelector("[data-progress-label]")!;
+    const bar = container.querySelector('[role="progressbar"]')!;
+
+    // The visible row and the bar's name/value now say the same thing. The row
+    // is the copy that goes, because the bar cannot drop its name and stay a
+    // progressbar, while the row is still fully readable to the eye.
+    expect(row.getAttribute("aria-hidden")).toBe("true");
+    expect(bar.getAttribute("aria-label")).toBe("Phase 1 of 3, Dilemmas");
+    expect(bar.getAttribute("aria-valuetext")).toBe("2 of 36");
+    // QuizFlow already announces "Question N of M" from an aria-live region on
+    // every question. A progressbar is not a live region and must not become
+    // one, or every advance announces the same position twice.
+    expect(bar.hasAttribute("aria-live")).toBe(false);
+  });
+
+  it("drops the value text when the phase holds a single screen", () => {
+    const container = render(
+      createElement(ProgressBar, { currentPhase: 3, currentIndex: 0, totalInPhase: 1 }),
+    );
+    const bar = container.querySelector('[role="progressbar"]')!;
+
+    // "1 of 1" is the count the visible row already suppresses; without an
+    // aria-valuetext the bar reports 100% from the values alone, which is what
+    // the budget screen's full segment draws.
+    expect(bar.hasAttribute("aria-valuetext")).toBe(false);
+    expect(bar.getAttribute("aria-valuenow")).toBe("1");
+    expect(bar.getAttribute("aria-valuemax")).toBe("1");
+    expect(bar.getAttribute("aria-label")).toBe("Phase 3 of 3, Budget");
+  });
+
   it("survives an empty phase without dividing by zero", () => {
     const container = render(
       createElement(ProgressBar, { currentPhase: 1, currentIndex: 0, totalInPhase: 0 }),
@@ -167,6 +220,12 @@ describe("ProgressBar", () => {
     // write the comment as if "Infinity%" is what you'd see. A rewrite that
     // claims to preserve a guard should pin the guard.
     expect(fills[0].style.width).toBe("0%");
+    // The same guard on the ARIA side: an unclamped valuemax of 0 would sit
+    // below a valuenow of 1, which is an invalid range rather than a quiet
+    // zero. The width guard above would not notice.
+    const bar = container.querySelector('[role="progressbar"]')!;
+    expect(bar.getAttribute("aria-valuemax")).toBe("1");
+    expect(bar.getAttribute("aria-valuenow")).toBe("1");
   });
 });
 
@@ -801,6 +860,20 @@ describe("quiz chrome drift guards", () => {
     );
 
     expect(counts).toEqual({ "ProgressBar.tsx": 1, "QuizFlow.tsx": 1 });
+  });
+
+  it("keeps the progress bar off the live-region channel", () => {
+    // QuizFlow owns the announcement of position, through one sr-only
+    // aria-live region per question screen. If the bar grows its own, every
+    // advance announces the same position twice — the failure mode #146 asked
+    // to check for before adding the role.
+    const bar = quizSources.find(({ name }) => name === "ProgressBar.tsx")!;
+
+    // The attribute spelling, with its `=`, not the bare token: the file's own
+    // doc comment names `aria-live` in prose to explain why it is absent, and
+    // a bare-token guard fails on the explanation instead of the code.
+    expect(bar.text).not.toContain("aria-live=");
+    expect(bar.text).toContain('role="progressbar"');
   });
 
   it("puts the quiz gutters on the page, matching the nav", () => {
