@@ -1,7 +1,7 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { cssUtilities, stripCssComments } from "../helpers/source-files";
+import { cssUtilities, sourceFiles, stripComments, stripCssComments } from "../helpers/source-files";
 
 /**
  * Drift guard for the two authoritative design documents.
@@ -136,6 +136,55 @@ function typeFloor(): string {
 
 /** The two `@utility` rules that are not typography roles. */
 const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child"];
+
+/** The handoff bundle the provenance header points readers at. */
+const HANDOFF_ZIP = resolve(process.cwd(), "docs/gov_compass_redesign.zip");
+
+/**
+ * Byte offset of a zip's end-of-central-directory record.
+ *
+ * The archive is READ, not extracted. The guard needs filenames and nothing
+ * else, and the two alternatives both cost more than a 40-line parser:
+ * shelling out to `unzip` adds a binary dependency CI has no other reason to
+ * carry, and `mkdtemp` + extract adds cleanup that a throwing assertion skips.
+ * Neither buys anything, because file CONTENTS are not part of any claim here.
+ *
+ * Scanned backwards because the record is last but variable-position — a
+ * trailing archive comment of up to 64 KiB may follow it.
+ */
+function eocdOffset(buf: Buffer): number {
+  for (let i = buf.length - 22; i >= 0; i -= 1) {
+    if (buf.readUInt32LE(i) === 0x06054b50) return i;
+  }
+  throw new Error(`not a zip archive: ${HANDOFF_ZIP}`);
+}
+
+/** Entry count the archive states about ITSELF, for the parse's anti-vacuity check. */
+function zipEntryCount(path: string): number {
+  const buf = readFileSync(path);
+  return buf.readUInt16LE(eocdOffset(buf) + 10);
+}
+
+/**
+ * Every entry name in a zip's central directory, in stored order.
+ *
+ * Central-directory headers are a fixed 46 bytes followed by three
+ * variable-length fields — name, extra, comment — whose lengths live at
+ * offsets 28, 30 and 32. Names are decoded as UTF-8; the bundle's are ASCII,
+ * and a zip that set the CP437 flag instead would differ only on bytes no
+ * filename in it contains.
+ */
+function zipEntryNames(path: string): string[] {
+  const buf = readFileSync(path);
+  const names: string[] = [];
+  let at = buf.readUInt32LE(eocdOffset(buf) + 16);
+  while (at + 46 <= buf.length && buf.readUInt32LE(at) === 0x02014b50) {
+    const nameLength = buf.readUInt16LE(at + 28);
+    names.push(buf.toString("utf8", at + 46, at + 46 + nameLength));
+    at += 46 + nameLength + buf.readUInt16LE(at + 30) + buf.readUInt16LE(at + 32);
+  }
+  return names;
+}
 
 describe("design docs are not vacuous to guard", () => {
   it("reads all three files with content", () => {
@@ -446,6 +495,70 @@ describe("the design spec matches the shipped token layer", () => {
   it("records where the handoff bundle lives", () => {
     present(designSpec, "gov_compass_redesign.zip", "the handoff bundle's path is unrecorded");
   });
+
+  it("names every .dc.html file the archive actually contains", () => {
+    // The header lists the bundle's four design files by name. That list is
+    // prose, and the exact shape of the claim it makes is the one that already
+    // cost this phase a correction mid-task: the plan asserted THREE .dc.html
+    // files and the archive holds four. So the expectation is DERIVED from the
+    // archive — a hardcoded list drifts in lockstep with the prose it is
+    // supposed to pin, and pins nothing.
+    const entries = zipEntryNames(HANDOFF_ZIP);
+
+    // Anti-vacuity, and the only reason to trust the loop below. The parser is
+    // hand-rolled, and a parser that silently returns [] makes a `for … of`
+    // assertion green forever. Two independent checks: the count the archive
+    // states about ITSELF in its end-of-central-directory record, and the
+    // existence of at least one design file to assert about.
+    expect(entries.length, "no entries parsed out of the handoff bundle").toBe(
+      zipEntryCount(HANDOFF_ZIP),
+    );
+
+    // The directory everything unpacks into. Stated by the header, and the
+    // reason the names below are asserted as basenames.
+    const root = "design_handoff_governance_compass_redesign/";
+    expect(entries.every((name) => name.startsWith(root))).toBe(true);
+    present(designSpec, root, "the bundle's unpack directory is unrecorded");
+
+    const designFiles = entries
+      .filter((name) => name.endsWith(".dc.html"))
+      .map((name) => name.slice(root.length));
+    expect(designFiles.length, "no .dc.html files found in the bundle").toBeGreaterThan(0);
+
+    for (const file of designFiles) {
+      present(designSpec, file, `the bundle's ${file} is unlisted in the provenance header`);
+    }
+  });
+
+  it("names a decision record that exists on disk", () => {
+    // D1-D7 are cited by number throughout the document with no other
+    // definition, so a moved or renamed record makes every citation dangling.
+    const cited = designSpec.match(/docs\/superpowers\/specs\/[\w.-]+\.md/)?.[0];
+    expect(cited, "the provenance header cites no decision record").toBeDefined();
+    expect(existsSync(resolve(process.cwd(), cited!)), `${cited} does not exist`).toBe(true);
+  });
+
+  it("names a plans glob that matches every phase plan on disk", () => {
+    // The draft header globbed `2026-09-0*`, which caught 3 of the 7 plans
+    // because the phases ran past the ninth. That is the defect this case
+    // exists for, so matching "something" is not enough — the glob has to
+    // match the WHOLE set, derived from the directory rather than counted here.
+    const glob = designSpec.match(/docs\/superpowers\/plans\/[\w*.-]+\.md/)?.[0];
+    expect(glob, "the provenance header cites no plans glob").toBeDefined();
+
+    const dir = resolve(process.cwd(), "docs/superpowers/plans");
+    const onDisk = readdirSync(dir).filter((name) => name.includes("design-system-delta"));
+    expect(onDisk.length, "no design-system-delta plans on disk").toBeGreaterThan(0);
+
+    // `*` is the only glob metacharacter in play; everything else is literal.
+    const pattern = new RegExp(
+      `^${glob!.split("*").map(esc).join("[^/]*")}$`,
+    );
+    const unmatched = onDisk.filter(
+      (name) => !pattern.test(`docs/superpowers/plans/${name}`),
+    );
+    expect(unmatched, `the glob ${glob} misses these plans`).toEqual([]);
+  });
 });
 
 describe("CLAUDE.md Design Context matches what shipped", () => {
@@ -521,5 +634,65 @@ describe("CLAUDE.md Design Context matches what shipped", () => {
 
   it("notes home_sample_pair.json alongside the other derived outputs", () => {
     present(claudeMd, "home_sample_pair.json", "home_sample_pair.json is unlisted");
+  });
+});
+
+describe("--text-tertiary is retired (phase 5b deferral)", () => {
+  it("declares no --text-tertiary in any layer of the sheet", () => {
+    // Three declarations to remove: :root, the dark override, and the
+    // @theme inline mapping that generates `text-text-tertiary`. Leaving the
+    // mapping behind is the subtle half — the class keeps compiling, to an
+    // undefined value, which renders as inherited rather than as a visible
+    // break.
+    //
+    // FIX vs the plan's draft, twice over. It drafted a bare
+    // `expect(css).not.toMatch(/--text-tertiary\s*:/)`, which (a) prints the
+    // WHOLE 700-line sheet as the diff on failure, the thing this file's
+    // header calls out as burying the one actionable line, and (b) anchors on
+    // the `:` so it sees declarations only — `var(--text-tertiary)` in the
+    // @theme mapping's VALUE would have slipped through if the mapping's own
+    // name were ever renamed. `tokenRef` is the file's existing rule for "this
+    // custom property, not a longer sibling", and `absent` reports lines.
+    // Verified the two patterns do not overlap: `--color-text-tertiary` does
+    // NOT contain `--text-tertiary` (one hyphen before `text`, not two), so
+    // each case fails for its own reason.
+    //
+    // `new RegExp(tokenRef(...))`, never the bare string: `tokenRef` returns a
+    // PATTERN as a string, and `absent`'s `rx` escapes strings — so passing it
+    // raw compiles to a literal `--text-tertiary\(\?!\[\\w-\]\)`, which
+    // matches nothing and is green forever. Caught by running this case
+    // against the UNSWEPT sheet: it passed. Every other `tokenRef` caller in
+    // this file wraps it the same way.
+    absent(
+      css,
+      new RegExp(tokenRef("--text-tertiary")),
+      "the sheet still declares or reads --text-tertiary",
+    );
+    absent(
+      css,
+      new RegExp(tokenRef("--color-text-tertiary")),
+      "the @theme inline mapping still generates text-text-tertiary",
+    );
+  });
+
+  it("has no consumer of the token left in src", () => {
+    // Both spellings. The class carries a SINGLE hyphen before
+    // `text-tertiary`, so a /--text-tertiary/ pattern — the obvious one —
+    // misses `text-text-tertiary` entirely.
+    //
+    // FIX vs the plan's draft: it scanned raw `readFileSync` bytes. Every
+    // other literal-banning guard over TS/TSX in this suite strips comments
+    // first, and for the reason the helper documents — a whole-file text scan
+    // cannot tell a consumer from prose about one, so a future
+    // `// was text-text-tertiary` note would redden a file that ships
+    // nothing, and a guard that cries wolf on correct code gets deleted.
+    // `stripComments` blanks in place, so the match still reads as source.
+    const offenders = sourceFiles(resolve(process.cwd(), "src")).flatMap((file) => {
+      const text = stripComments(readFileSync(file, "utf8"));
+      const match = text.match(/(?:--|text-)text-tertiary/);
+      return match ? [`${relative(process.cwd(), file)}: ${match[0]}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
   });
 });

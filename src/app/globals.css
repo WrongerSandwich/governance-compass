@@ -25,15 +25,14 @@
   /* --- Text (light mode) --- */
   --text-primary:   #3d2e1f;
   --text-secondary: #6e5a48;
-  --text-tertiary:  #9d8b78;
   /* The label layer's colour is the one place the delta's "identical in both
      modes" note does not hold. Stone 500 measures 2.73:1 on the light page
      ground (#efe9e3) — under AA's 4.5:1 for small text and under even the
      3:1 large-text floor — while measuring a comfortable 5.67:1 on the dark
      ground. No single value on the Stone ramp clears AA in both modes, so
      this token steps to Stone 700 in light (5.42:1) and back to Stone 500 in
-     dark. Distinct from --text-tertiary, which stays Stone 500 in both modes
-     until the per-screen phases sweep its call sites. */
+     dark. The --text-tertiary token this replaced was Stone 500 in both
+     modes and was retired in phase 6, once every call site had moved. */
   --text-label:     var(--stone-700);
 
   /* --- Borders (light mode) --- */
@@ -140,7 +139,6 @@
 
     --text-primary:   #efe9e3;
     --text-secondary: #cdbfb2;
-    --text-tertiary:  #9d8b78;
     --text-label:     var(--stone-500);
 
     --border-primary:   #5a4636;
@@ -221,7 +219,6 @@
 
   --color-text-primary:   var(--text-primary);
   --color-text-secondary: var(--text-secondary);
-  --color-text-tertiary:  var(--text-tertiary);
   --color-text-label:     var(--text-label);
 
   --color-border-primary:   var(--border-primary);
