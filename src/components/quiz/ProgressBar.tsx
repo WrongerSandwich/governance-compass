@@ -36,13 +36,21 @@ export function ProgressBar({
     totalInPhase > 0 ? ((currentIndex + 1) / totalInPhase) * 100 : 0;
 
   const phaseName = PHASE_LABELS[currentPhase - 1];
-  // Clamped so the degenerate empty phase reports a valid range rather than a
-  // valuenow above its valuemax. The width guard above handles the same case.
+  // The ARIA value mirrors the fill: valuemax clamps to 1 so the degenerate
+  // empty phase reports a valid range rather than a valuenow above its
+  // valuemax, and valuenow stays at 0 there so the percentage a screen reader
+  // computes agrees with the 0%-wide fill instead of contradicting it.
   const valueMax = Math.max(totalInPhase, 1);
-  const valueNow = Math.min(currentIndex + 1, valueMax);
-  // Suppressed on a single-screen phase for the same reason the visible count
-  // is: "1 of 1" is noise, and the values alone already report 100%.
-  const valueText = totalInPhase > 1 ? `${valueNow} of ${totalInPhase}` : undefined;
+  const valueNow = totalInPhase > 0 ? Math.min(currentIndex + 1, valueMax) : 0;
+  // Authored for every phase that has screens, INCLUDING the single-screen
+  // budget phase. aria-valuetext replaces the percentage the values would
+  // otherwise be read as, and the budget's are 1 of 1 — so without it that
+  // screen announces "100%" on arrival and never changes, calling the budget
+  // finished before the first allocation is made. "1 of 1" is the same
+  // vocabulary "36 of 36" uses on the last dilemma, and it is a position, not
+  // a completion. The visible row drops the count as visual noise; that reason
+  // does not carry to a channel where the alternative is a false claim.
+  const valueText = totalInPhase > 0 ? `${valueNow} of ${totalInPhase}` : undefined;
 
   return (
     <div className="mb-8">

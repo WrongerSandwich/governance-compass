@@ -193,16 +193,18 @@ describe("ProgressBar", () => {
     expect(bar.hasAttribute("aria-live")).toBe(false);
   });
 
-  it("drops the value text when the phase holds a single screen", () => {
+  it("names the position on a single-screen phase instead of announcing 100%", () => {
     const container = render(
       createElement(ProgressBar, { currentPhase: 3, currentIndex: 0, totalInPhase: 1 }),
     );
     const bar = container.querySelector('[role="progressbar"]')!;
 
-    // "1 of 1" is the count the visible row already suppresses; without an
-    // aria-valuetext the bar reports 100% from the values alone, which is what
-    // the budget screen's full segment draws.
-    expect(bar.hasAttribute("aria-valuetext")).toBe(false);
+    // The budget screen's values are 1 of 1. Left to compute a percentage from
+    // them, a screen reader announces "100%" the moment the screen opens and
+    // never again — the budget called finished before a single allocation is
+    // made. aria-valuetext replaces that reading, so it is authored here even
+    // though the visible row drops the count as noise.
+    expect(bar.getAttribute("aria-valuetext")).toBe("1 of 1");
     expect(bar.getAttribute("aria-valuenow")).toBe("1");
     expect(bar.getAttribute("aria-valuemax")).toBe("1");
     expect(bar.getAttribute("aria-label")).toBe("Phase 3 of 3, Budget");
@@ -222,10 +224,15 @@ describe("ProgressBar", () => {
     expect(fills[0].style.width).toBe("0%");
     // The same guard on the ARIA side: an unclamped valuemax of 0 would sit
     // below a valuenow of 1, which is an invalid range rather than a quiet
-    // zero. The width guard above would not notice.
+    // zero. The width guard above would not notice. valuenow stays at 0 so the
+    // percentage a screen reader computes is the 0% the fill draws — clamping
+    // the range but not the position would have the two guards describe the
+    // same degenerate input as 0% and 100%.
     const bar = container.querySelector('[role="progressbar"]')!;
     expect(bar.getAttribute("aria-valuemax")).toBe("1");
-    expect(bar.getAttribute("aria-valuenow")).toBe("1");
+    expect(bar.getAttribute("aria-valuenow")).toBe("0");
+    // No count to name, so no value text to author. The percentage is right.
+    expect(bar.hasAttribute("aria-valuetext")).toBe(false);
   });
 });
 
@@ -869,10 +876,22 @@ describe("quiz chrome drift guards", () => {
     // to check for before adding the role.
     const bar = quizSources.find(({ name }) => name === "ProgressBar.tsx")!;
 
-    // The attribute spelling, with its `=`, not the bare token: the file's own
-    // doc comment names `aria-live` in prose to explain why it is absent, and
-    // a bare-token guard fails on the explanation instead of the code.
-    expect(bar.text).not.toContain("aria-live=");
+    // Every spelling of a live region, not just the explicit attribute: the
+    // implicit ones announce identically, and a guard scoped to `aria-live`
+    // alone would stay green while `role="status"` reproduced the exact defect.
+    // The attribute is matched with its `=` because the file's own doc comment
+    // names `aria-live` in prose to explain the absence, and a bare-token guard
+    // fails on the explanation instead of on the code.
+    const liveRegionSpellings = [
+      /aria-live=/,
+      /role="(?:status|alert|log|timer|marquee)"/,
+    ];
+
+    for (const spelling of liveRegionSpellings) {
+      expect(bar.text, `ProgressBar declares a live region: ${spelling}`).not.toMatch(
+        spelling,
+      );
+    }
     expect(bar.text).toContain('role="progressbar"');
   });
 
