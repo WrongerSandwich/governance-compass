@@ -19,6 +19,13 @@ updates:
       # Major bumps that require migration work — handle separately when ready.
       - dependency-name: "eslint"          # #16
         update-types: ["version-update:semver-major"]
+      # typescript-eslint (pulled in by eslint-config-next) has no released
+      # version supporting TypeScript 7's API changes yet — its peerDependencies
+      # cap out at "<6.1.0". A TS7 bump breaks `npm run lint` with
+      # "Cannot read properties of undefined (reading 'Cjs')" in
+      # typescript-estree. Re-enable once typescript-eslint ships TS7 support.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       # Keep react and react-dom (and their types) on one PR — React requires the
       # runtime and renderer to match exactly, and a split bump drifts them apart.
