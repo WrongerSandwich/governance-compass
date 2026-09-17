@@ -27,7 +27,6 @@
 > - Frozen Stone 600 mark tones in the comparison and group components hold their value instead of stepping in dark mode (#155).
 > - Bare `rounded` and the radius namespace are unswept (#139).
 > - The mobile nav has no hamburger panel at 390px (#141).
-> - The quiz progress bar conveys progress to sighted users only (#146).
 >
 > Each is named again in the section it bears on. Further tickets from this documentation pass are still to be opened and are deliberately not numbered here.
 
@@ -677,7 +676,7 @@ The three phase names are Dilemmas, Scales and Budget. The count is suppressed w
 
 Stone 600 as a fill is one of its remaining jobs; see *Color System*. The computing screen's animated line is the only other one in the quiz.
 
-**The bar is a sighted-only affordance, and that is open debt.** It carries no `role="progressbar"` and no value attributes, so nothing in it reaches assistive technology. Phases 1 and 2 put an `sr-only` `aria-live` region beside it announcing "Question N of M", which covers position within a phase but not the phase itself; the budget screen has neither. Issue #146.
+**The segment row is the `role="progressbar"`, and the label row above it is `aria-hidden`.** The role carries `aria-valuemin=0`, `aria-valuemax` at the phase's screen count, `aria-valuenow` at the current screen, and an `aria-valuetext` reading "6 of 24". The value text is authored for every phase that has screens, **including the single-screen budget phase**, whose values are 1 of 1: `aria-valuetext` replaces the percentage a screen reader would otherwise compute from them, and without it that screen announces "100%" the moment it opens and never changes — the budget called finished before the first allocation. "1 of 1" is the same vocabulary "36 of 36" carries on the last dilemma, and it states a position rather than a completion. The visible row drops that count as visual noise; the reason does not carry to a channel where the alternative is a false claim. Its accessible name is authored, because `progressbar` takes no name from its content: "Phase 2 of 3, Scales", the spoken form of the row the eye reads with a middot. Two things follow. The role is children-presentational, so the three tracks and their fills leave the accessibility tree underneath it — they are paint, and the value attributes are the whole semantic contract. And the visible label row is hidden precisely because it would otherwise say the name and the value a second time: phases 1 and 2 already put an `sr-only` `aria-live` region beside the bar announcing "Question N of M", and the bar must never become a second announcing channel — it is not a live region and may not grow one. What the bar adds over that region is the phase, which the region never named, and the budget screen, which has no region at all. Closed #146.
 
 **Phase interstitials** are a centred card capped at `max-w-lg`: the compass mark, `label` "Phase N complete", the response count in `body-s`, a `--border-secondary` divider, then `label` "Up next", the next phase's title in `display-s`, its description in `body-s`, and its estimate in `caption-italic`. The action is a full-width `primary` "Continue" — the same ink fill as the question screens' forward button, because it is the same forward action.
 
@@ -892,10 +891,6 @@ So `--text-label` steps Stone 700 → Stone 500, landing at 5.42:1 in light and 
 `PairedAxisScale`'s root is `role="img"`, which makes its entire subtree presentational: the visible endpoint text never reaches the accessibility tree and both dots are `aria-hidden`. **The `aria-label` is therefore the only channel**, and it is built by `describePosition` and `describeGap` rather than read off the numbers. Two consequences that are easy to get backwards: an `endpoints="none"` caller loses a sighted affordance only, since the announced string is identical either way; and the description does not replace the labels, because it names at most one pole and none at all within 0.15 of the midpoint.
 
 `RadarChart` inverts the arrangement — the SVG is `aria-hidden` and an `sr-only` table is the entire accessible chart, one row per axis carrying both poles, the domain, the score and the confidence. Domain is a column precisely because that chart made domain the job of twelve coloured dots. The archetype card's mini radar and the radar's domain legend are `aria-hidden` with no table of their own, deliberately: the same twelve scores are already in that table, and a second wordless copy adds nothing. *Component Specifications* has both in full.
-
-### Open
-
-**The quiz progress bar conveys progress to sighted users only** (#146). It carries no `role="progressbar"` and no value attributes, so nothing in it reaches assistive technology. Phases 1 and 2 put an `sr-only` `aria-live` region beside it announcing "Question N of M", which covers position within a phase but not which phase; the budget screen has neither.
 
 ### Accessibility Rules
 

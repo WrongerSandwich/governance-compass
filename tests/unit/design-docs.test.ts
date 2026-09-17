@@ -503,6 +503,38 @@ describe("the design spec matches the shipped token layer", () => {
     ).toEqual([]);
   });
 
+  it("no longer calls the progress bar a sighted-only affordance (#146)", () => {
+    // The bar carries role="progressbar" and the value attributes as of this
+    // change, so every sentence describing the absence is now false. The
+    // negative is spelled as two independent phrases because the spec said it
+    // twice, in different words, in two chapters.
+    absent(
+      designSpec,
+      /sighted-only affordance/,
+      "the spec still calls the progress bar a sighted-only affordance",
+    );
+    absent(
+      designSpec,
+      /progress bar conveys progress to sighted users only/,
+      "the spec still lists the progress bar as open accessibility debt",
+    );
+    // ATTRIBUTED, not merely mentioned: the role has to land on the same line
+    // as the bar's own value vocabulary, or any unrelated paragraph about
+    // `role="progressbar"` elsewhere would satisfy this.
+    present(
+      designSpec,
+      sameLine('role="progressbar"', "aria-valuetext"),
+      "the spec does not document the progress bar's value attributes",
+    );
+    // The constraint that keeps the fix correct, not just the fix: QuizFlow
+    // owns the announcement, and a live region on the bar would double it.
+    present(
+      designSpec,
+      sameLine("aria-live", "second announcing channel"),
+      "the spec does not state why the bar must not be a live region",
+    );
+  });
+
   it("carries no stale outdated-banner", () => {
     // The banner is the document's own admission that it cannot be trusted.
     // Phase 6 exists to remove the condition, so the banner goes with it.
