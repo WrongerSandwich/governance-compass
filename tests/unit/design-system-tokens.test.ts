@@ -4,35 +4,21 @@ import { describe, expect, it } from "vitest";
 import { getDomainMarkVar } from "@/lib/design-tokens";
 import {
   classNameTokenLists,
+  cssBlock,
+  cssUtilities,
   sourceFiles,
   stripComments,
+  stripCssComments,
 } from "../helpers/source-files";
 
 // Comments are stripped once, here, so every helper below sees declaration
-// text only. block() is the reason this belongs at the top rather than inside
-// decls(): it locates blocks by indexOf and matches braces by depth, so a
-// comment that merely mentions `:root` or contains a stray `}` would silently
-// anchor it to the wrong place.
-const globalsCss = readFileSync(
-  resolve(process.cwd(), "src/app/globals.css"),
-  "utf8",
-).replace(/\/\*[\s\S]*?\*\//g, "");
-
-/** Body of a top-level block, brace-matched so nested blocks don't truncate it. */
-function block(css: string, opener: string): string {
-  const start = css.indexOf(opener);
-  if (start === -1) throw new Error(`block not found: ${opener}`);
-  const braceStart = css.indexOf("{", start);
-  let depth = 0;
-  for (let i = braceStart; i < css.length; i += 1) {
-    if (css[i] === "{") depth += 1;
-    else if (css[i] === "}") {
-      depth -= 1;
-      if (depth === 0) return css.slice(braceStart + 1, i);
-    }
-  }
-  throw new Error(`unterminated block: ${opener}`);
-}
+// text only. cssBlock() is the reason this belongs at the top rather than
+// inside decls(): it locates blocks by indexOf and matches braces by depth, so
+// a comment that merely mentions `:root` or contains a stray `}` would
+// silently anchor it to the wrong place.
+const globalsCss = stripCssComments(
+  readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8"),
+);
 
 /** Custom-property declarations in a block, whitespace-normalised. */
 function decls(css: string): Record<string, string> {
@@ -43,20 +29,18 @@ function decls(css: string): Record<string, string> {
   return out;
 }
 
-const light = decls(block(globalsCss, ":root"));
+const light = decls(cssBlock(globalsCss, ":root"));
 const dark = decls(
-  block(block(globalsCss, "@media (prefers-color-scheme: dark)"), ":root"),
+  cssBlock(cssBlock(globalsCss, "@media (prefers-color-scheme: dark)"), ":root"),
 );
-const theme = decls(block(globalsCss, "@theme inline"));
+const theme = decls(cssBlock(globalsCss, "@theme inline"));
 
 // Bodies are brace-matched rather than regexed to the first `}`: `focus-ring`
 // nests `&:focus` blocks, and a `[^}]*` body would truncate at the inner brace.
-const utilities = [...globalsCss.matchAll(/@utility ([a-z0-9-]+) \{/g)].map(
-  (match) => ({
-    name: match[1],
-    body: block(globalsCss.slice(match.index!), `@utility ${match[1]}`),
-  }),
-);
+// `cssUtilities` is the shared implementation — this file and
+// `design-docs.test.ts` carried two copies of it that had already drifted
+// (one passed the opener with a `{`, the other without).
+const utilities = cssUtilities(globalsCss);
 
 // Utilities that are deliberately not typography roles. A new utility must
 // be listed here or in TYPE_SCALE, or the type-scale test fails on it.
