@@ -442,8 +442,11 @@ Expected: every case PASSES except `notes home_sample_pair.json` (Task 3 does th
 ```bash
 # M3 — the variant-name case must read the TYPE, not a coincidence in prose.
 sed -i 's/"primary" | "secondary" | "tertiary"/"primary" | "secondary" | "ghost"/' src/components/Button.tsx
-npx vitest run tests/unit/design-docs.test.ts -t "variant names the Button component"
-# Expected: FAIL — "variant ghost is undocumented".
+npx vitest run tests/unit/design-docs.test.ts \
+  -t "states the three-tier button system by the variant names Button exports"
+# Expected: FAIL — "ButtonVariant is no longer the three-tier system:
+#   expected [ 'primary', 'secondary', 'ghost' ] to deeply equal
+#   [ 'primary', 'secondary', 'tertiary' ]".
 git checkout -- src/components/Button.tsx
 
 # M4 — the Stone 600 case must catch the claim, not just the words.
@@ -530,7 +533,16 @@ These seven tasks rewrite `docs/system_proposal/governance_compass_design_spec.m
 
 **The plan gives you, per section: the exact line range, the facts (from the citation table above, which you must verify), the claims the new text MUST make, and the claims it MUST NOT make.** It does not dictate the full prose. That is deliberate and it is the one place this plan departs from the writing-plans default of "show the exact content": reproducing ~450 lines of finished prose inside the plan means writing the document twice and creates a second copy that can drift from the first. The acceptance criteria are mechanical (Task 1's guard) plus a review checkpoint per task, which is stronger than a verbatim transcript nobody diffs.
 
-**Write in the document's existing register** — second-person-free declarative prose, fenced code blocks for token tables, em-dashes for asides. Match what is there; do not introduce a new house style.
+**Register — decided at Task 4, binding on Tasks 5–10.** The document's untouched sections are a terse prescriptive handoff: code blocks, imperative bullets, no history. Task 4's Color System came out as something better — declarative prose that shows the measurement behind a rule and says plainly when a thing is a trap rather than a shorthand. A reviewer flagged the mismatch and asked for a deliberate call rather than an accident.
+
+**The call: match Task 4's register, not the old one.** Phase 6 exists to record why things shipped as they did, and a spec that states a rule without its reasoning is how the current document became untrustworthy in the first place. Read `## Color System` at HEAD before writing your section and pitch to it, so the document converges instead of splitting into two documents with a visible seam down the middle.
+
+Two constraints on that, both from Task 4's review:
+
+- **Explanation is earned; padding is not.** Task 4 ran ~1669 words against 322 for Typography. That was judged earned *because* every paragraph carries a measurement or a reason. Length that carries neither gets cut.
+- **Every section that runs long needs a rule summary.** `### Typography Rules` is the model: four bullets an engineer reads in twenty seconds. If your section's actionable rules end up embedded mid-paragraph inside their own rationale, add a compact rules list in that style. Prose for the why, a list for the what.
+
+Also inherited from Task 4: no named source-file **paths** (unique identifiers like `DOMAIN_COLORS` or `PHASE_5_INLINE_RAMP` are greppable and are fine), no line numbers, and no asserted count that an adjacent code block does not immediately enumerate.
 
 **When the shipped system is worse than what the old spec described, say so and cite the issue.** A design spec that quietly omits known debt is how the debt gets rediscovered. Three places need this: `/study` has not adopted delta 04 (#154), `comparison/` and `groups/` hold 17 frozen Stone 600 mark tones (#155), and bare `rounded` plus SVG `rx` are unswept radius spellings (#139, #154).
 
@@ -645,12 +657,14 @@ oversight in the others.
 - [ ] **Step 3: Replace the Typography Rules subsection**
 
 MUST state:
-- Serif is display and editorial framing only — never UI labels, button text, axis names, or data. (Carry this rule over; it survived.)
+- Serif is display and editorial framing only — never UI labels, never button text. **Do NOT carry the old spec's full prohibition over.** It also banned serif for "axis names, or data", and both are false of what shipped: `/axes` sets axis names in `display-s` (serif 500), and the archetype match percentage, the comparison alignment score and the study key figures are all serif `display-l`. This plan told Task 5 to carry the bullet forward verbatim, which was an error — the pre-delta rule was lifted without checking it against the code. Large numerals in serif are a deliberate part of the editorial-publishing tradition, and `CLAUDE.md` says so. Whatever the bullet ends up saying must agree with the type scale's own `display-l` row in the same section.
 - **The mono layer is new and larger than "numeric data only."** It carries every label, eyebrow, axis endpoint, count, status, and button label. The old rule confining mono to numbers is false: `control`, `label*`, and `wordmark` are all mono and none of them is numeric.
 - On prose pages the mono layer **frames but never enters**: descriptions, tension and traditions paragraphs stay sans, and the archetype reference's serif italic lead-ins (`Internal tension.`, `Traditions.`) survive deliberately. Replacing them with mono labels turns a reference into a spec sheet.
 - Sentence case everywhere except the mono label layer. Note `mono-meta` as the one mono role that is sentence case too.
 - Two weights only, 400 and 500.
 - The named-sibling rule: do not layer a built-in utility over an `@utility` role to vary a property; add a named sibling. Give the reason (emitted order depends on which properties the custom rule declares) and point at `label-eyebrow` / `label-nav` / `label-tight` / `wordmark-sm` as the four siblings that exist for this reason.
+
+> **Formatting contract with Task 1 — read before writing the table.** The guard's type-scale case requires each role's **backticked name and its px size to appear on the same line**, and it reads the expected size from `globals.css` at runtime. The table above satisfies this. A multi-line row shape, an un-backticked role name, or a size written anywhere but on the role's own row will redden the guard. This coupling is deliberate and is pinned from the other side by the guard's own "matches a markdown table row" case. If you need a different table shape, change the guard in the same commit — do not work around it.
 
 - [ ] **Step 4: Run the guard, then mutation M1**
 
@@ -818,6 +832,17 @@ Mutation M2 verified conclusive: the two runs differ."
 **Files:**
 - Modify: `docs/system_proposal/governance_compass_design_spec.md:202-361`
 
+> **REQUIRED: fix the orphaned "hero region" references.** Task 6 rewrote Page Structure to say flatly that **there is no hero region** — the compass moved to the bottom in phase 4 and delta 04 removed the two-column hero grid. Deleting the old ASCII diagram was correct, but that diagram was the hero's *other* home, and four references in **your** sections are now orphaned and self-contradicting:
+>
+> - `### The Compass Plot` — "inside the hero region's left column"
+> - `### The Archetype Card` — "inside the hero region's right column"
+> - `### The Tension Card` — "between the hero and radar sections"
+> - `### Share Buttons Row` — "at the bottom of the hero region, inside the Surface 2 container"
+>
+> **None of these is covered by any guard case.** This task can go fully green while leaving all four standing. Fix them as part of the section rewrites below; do not rely on the guard to tell you when you are done.
+
+> **The guard no longer signals this task.** Task 6's Grid rewrite names `PairedAxisScale` truthfully while explaining why the two 82px pole columns are gone, which turned the `names PairedAxisScale and does not prescribe the retired ScoreBar` case green as a side effect. That case can no longer tell you whether Component Specifications did its job. **Name the component here anyway** — this is where a reader looks for it — and do not treat a green guard as evidence that this task is complete.
+
 - [ ] **Step 1: Add `PairedAxisScale` as the section's first component**
 
 Delta 05's new primitive, and the biggest structural gap in the old document — which specified an "axis bar" per-page instead. MUST state:
@@ -852,7 +877,7 @@ Lines 305–330. Shipped: a `[24px | 1fr | 210px]` grid above 560px, collapsing 
 
 - [ ] **Step 6: Correct the Scoring Breakdown and Share Buttons subsections**
 
-Lines 332–360. The disclosure summary is `label-nav` with a `focus-ring`, and its accessible name is the visible label plus an `sr-only` axis name — the retired `aria-label` shared no words with the visible text, so voice control stopped matching it (`AxisBreakdownCard.tsx:116-138`). The expanded panel is a three-column `mono-meta` grid over a `--rule-hairline` top border, with the weighted formula below (`:142-163`). Share buttons are `Button variant="secondary"`, not hand-rolled 8px-radius chips (`ResultsView.tsx:86`, `:107`, `:124`).
+Lines 332–360. **Call it a disclosure toggle, not a "disclosure summary."** Verified during Task 5: it is a `<button type="button" aria-expanded>`, and the repo has only two real `<summary>` elements — the archetype reference's (which takes `label`) and the persona modal's (which takes `body-s`). Neither takes `label-nav`. The scoring toggle does take `label-nav` with a `focus-ring`, and its accessible name is the visible label plus an `sr-only` axis name — the retired `aria-label` shared no words with the visible text, so voice control stopped matching it (`AxisBreakdownCard.tsx:116-138`). The expanded panel is a three-column `mono-meta` grid over a `--rule-hairline` top border, with the weighted formula below (`:142-163`). Share buttons are `Button variant="secondary"`, not hand-rolled 8px-radius chips (`ResultsView.tsx:86`, `:107`, `:124`).
 
 - [ ] **Step 7: Correct the Compass Plot subsection**
 
@@ -940,6 +965,22 @@ is the exact sentence D1 overturned. Notes #146 on the progress bar."
 
 **Files:**
 - Modify: `docs/system_proposal/governance_compass_design_spec.md:420-498`
+
+> **Task 8 handed you four more findings, each verified against source.** Two of them are the *second offenders* keeping guard cases red — which is why Task 8 turned two cases green instead of the four its brief predicted:
+>
+> - **`Budget: all 10 ministries visible, 2-column grid`** — this is the second offender on `describes 7 ministries, not 10`. There are seven, and the budget is a **single column at every width**, never a 2-column grid.
+> - **`the border width change from 0.5px to 2px`** in `## Accessibility Notes` — the second offender on the forced-choice selection case. Both go green when you land.
+> - **Every ">768px" breakpoint in this block is wrong.** Forced-choice side-by-side, the segmented bar, and the budget layout all switch at **560px**. Task 8's section now states 560px throughout, so this block currently contradicts it.
+> - **`## Animation and Transitions` prescribes a phase crossfade that does not ship.** "Phase transitions: 300ms fade — simple opacity crossfade between phases" — there is no such crossfade; the only 300ms in the quiz is the progress fill's `transition-all`. And "Selection state changes: 150ms — border color, background color" omits **`opacity`**, which both quiz cards had to name explicitly in a `transition-[…]` list because Tailwind's `transition-colors` set excludes it.
+>
+> **Task 8's review added one more for you.** `## Animation and Transitions` now **duplicates the computing screen** that Task 8's section describes precisely, but with looser numbers — "1.5–2s" against the shipped 1.8s, and "animating across the top" when the line is centred in a `max-w-lg` column. The rewrite created this rot surface by being more accurate than its neighbour. Reconcile the two: keep the precise description where it belongs and make this block point at it rather than restating it worse.
+>
+> **REQUIRED, and unguarded.** Two further lines in this block were falsified by Task 6 and no guard case covers either:
+>
+> - **Three separate "Hero grid" lines** — desktop ("2 columns (compass + archetype card)"), tablet ("2 columns still, but tighter gap (1rem)"), and mobile ("single column (compass stacked above archetype card)"). There is no hero region. Phase 4 moved the compass to the bottom and delta 04 removed the two-column grid. Task 6's Page Structure now says so flatly; this line contradicts it.
+> - **"Axis breakdown: Pole A/B labels shrink to 64px"** — the two 82px pole columns are **gone**, not resized. The shipped grid is `[24px | minmax(0, 1fr) | 210px]` above 560px, collapsing to two columns below with the meta cell re-entering under the scale. `PairedAxisScale` ate those columns.
+>
+> Only the 10-ministries line in this block is guarded, so this task can go green with both falsehoods intact. Fix them.
 
 - [ ] **Step 1: Correct Responsive Breakpoints**
 
@@ -1126,6 +1167,32 @@ describe("--text-tertiary is retired (phase 5b deferral)", () => {
 
 Add the imports this needs at the top of the file: `relative` from `node:path`, and `sourceFiles` from `../helpers/source-files`. **Import `sourceFiles` only.** `tests/helpers/source-files.ts` also exports a `read`, and it is not interchangeable with this spec's local one: the helper's `read` **strips comments** (`source-files.ts:28-31`). That is right for scanning source, and wrong here — the design spec shows CSS in fenced code blocks, so a `/* … */` inside one would be silently eaten before the guard ever saw it, and a documented token could go missing without reddening anything. Keep the local `read` raw, and keep the comment-stripping confined to the `css` constant.
 
+- [ ] **Step 1b: Correct two carried-over defects in this file while you are in it**
+
+Both were found by Task 1's re-review, judged non-blocking, and deferred to whichever task next opened the file. That is this one.
+
+**(a) The `tokenRef` rationale comment overstates its own measurement.** The comment at `design-docs.test.ts:75-82` claims "six of the eight tokens these cases assert have a real superset sibling" and names the three `@theme inline` aliases plus `--focus-ring-child`. Measured against the sheet, only **two** of the eight do: `--radius` → `--radius-sharp`, and `--button-primary` → `--button-primary-hover` / `-fg`. The `@theme inline` aliases are prefix-*extensions* (`--color-text-label` does not contain `--text-label`), and `--focus-ring-child` is an `@utility` name, not a custom property — `--focus-ring` is declared once at `globals.css:71` with no sibling.
+
+`tokenRef` is still strictly stronger than the bare `toContain` it replaced, and mutation M6 proved the hazard is real for the genuine suffix siblings — the guard is fine. But this file's header asserts that every assertion was measured in both directions, so a mismeasured rationale is exactly the wrong thing to leave in it. Correct the count to two, and note the forward-looking case (Tasks 2–10 may introduce suffix siblings like `--container-shell-wide`).
+
+Then fix the proof line that proves nothing: `design-docs.test.ts:216` asserts `ref("--text-label").test("\`--color-text-label\` in \`@theme inline\`")` is `false` — but that passes with the lookahead *removed*, so it exercises nothing. Verified by mutation: lines 212, 214 and 215 are load-bearing; 216 is not. Either drop it or replace it with a genuine suffix-sibling case.
+
+**(b) `linesMatching` makes any cross-line needle silently un-matchable.** Three current needles use `\s+`, which matches `\n`. If prose wraps as `12px\n(large radius`, the `absent()` case goes green without the claim having been retired. Harmless today, but Tasks 4–10 added ~450 lines of prose, so the hazard is now live. Add either a one-line note at `linesMatching` that needles must be single-line, or a dev-time assert that the pattern source contains no newline-capable class.
+
+- [ ] **Step 1c: Pin the provenance header — it is the document's last unguarded rot surface**
+
+Task 10 replaced the `PARTIALLY OUTDATED` banner with a provenance header naming the handoff bundle's four `.dc.html` filenames, the decision record's path, and the per-phase plans glob. **The guard pins only the string `gov_compass_redesign.zip`.** Everything else in that header is unpinned prose — which is the exact shape of the claim that cost Task 10 a correction mid-task: the plan asserted three `.dc.html` files and there are four.
+
+Task 10's implementer proposed this guard and then declined to write it, on the grounds that authoring a guard for one's own section on the last commit to a document is self-marking. That judgement was right, which is why it lands here instead.
+
+Add to `tests/unit/design-docs.test.ts`:
+
+- **Unzip `docs/gov_compass_redesign.zip` to a temp dir** (`fs.mkdtempSync(join(tmpdir(), …))`, not a bare `/tmp` path — agents share that namespace here) and assert that **every** `.dc.html` filename it contains appears verbatim in the spec. Derive the list from the archive, never hardcode it: a hardcoded list drifts in lockstep with the prose and pins nothing. Clean the temp dir up in an `afterAll`.
+- **`existsSync` on the decision-record path** the header names, so a moved or renamed spec reddens.
+- **Assert the plans glob actually matches something**, and ideally that it matches every `design-system-delta` plan on disk — the draft `2026-09-0*` caught 3 of 7 because the phases ran past the 9th.
+
+Two cautions. If unzipping in a test is too slow or brittle for this suite, reading the archive's central directory listing is enough — you only need filenames, not contents. And **check the vacuity trap first**: confirm the assertions can fail, by mutating a filename in the spec and watching it redden, before you trust a green.
+
 - [ ] **Step 2: Run it and confirm it fails**
 
 ```bash
@@ -1224,7 +1291,98 @@ are left for #147 rather than buried in this diff."
 
 Update the `| 6 | *(to write)* | Docs: … |` row to name this plan document, matching how phases 1–5 were recorded. Check whether the table already reflects the 5/5b split that `2026-09-14-design-system-delta-reference.md:3015` said it should; if not, fix that too — this is the last chance, and the roadmap is what a reader hits first.
 
-- [ ] **Step 2: Open the two follow-up tickets this phase deliberately declined**
+- [ ] **Step 1a: Apply the deferred `CLAUDE.md` polish**
+
+Six Minor items from Tasks 2 and 3's reviews, approved-with-findings and deferred here because no intervening task reopens the file. All are wording or trim; none changes a rule.
+
+1. **The `public/study/derived/` parenthetical reads as closed but is not.** The directory holds 11 files; the bullet names 7. Missing: `country_aggregates.json`, `distance_distribution.json`, `model_agreement_by_attribute.json`. Appending `, and \`home_sample_pair.json\`` tightened a loose list into a falsely exhaustive one. One-word fix: `…, case-study picks, plus \`home_sample_pair.json\``.
+2. **"paired-axis panel" is a name that exists nowhere in the repo.** The panel's own eyebrow is `Illustrative profile` (`src/app/page.tsx:96`); the code comment calls it the "Payoff block"; `PairedAxisScale` is the component. An agent grepping the phrase finds only `CLAUDE.md` and this plan. Use the greppable string: "the home page's `Illustrative profile` panel".
+3. **That bullet is 88 words against neighbours at 18–32.** Its closing sentence restates a claim already in Architecture Notes (`data/synthetic_study/` never reaching a client bundle) and duplicates `page.tsx:6-10` nearly verbatim. Cut to roughly 50 words, keeping the D2 rationale — that part is not recoverable elsewhere.
+4. **"(spec decision D2)" is unresolvable where it sits.** The path appears only at `:92`, 44 lines later, and `docs/superpowers/specs/` has no Key Directories entry — while `:41` still labels `docs/system_proposal/` "Authoritative specs." Write "design-delta spec decision D2" at the `:48` site. Whether the specs directory earns its own Key Directories bullet is a judgement call; make it here or record why not.
+5. **Carry-over B still rots slowly.** "A few pre-delta call sites still sit below it" goes false unguarded if those three sites are swept — and Task 11 sweeps two of the three. A form that never rots: "Any pre-delta *call sites* below it are unswept, not exceptions." **Do this after Task 11, not before.**
+6b. **`CLAUDE.md`'s Design Principle 5 prescribes an expand animation that does not exist.** It reads "Minimal animation (150ms selections, 120ms hovers, **200ms expands**)." Task 9 verified there is **no `max-height` transition and no measured-height animation anywhere** — expandables do not animate at all, and the design spec now says so. The two documents contradict each other on a number, and `CLAUDE.md` is the stale one. Drop the expands figure, or replace it with the fact that disclosure is instantaneous by design.
+
+7. **`CLAUDE.md:77` says "the three axis domains". There are four.** `DOMAIN_COLORS` declares `economic`, `power`, `society`, `world` (`src/lib/design-tokens.ts:30,37,44,51`) and `globals.css` declares four `--domain-*` tokens. The three named hues — slate, sage, clay — cover power, society and world; **Economic's mark is Stone**, which is why the domain colours get miscounted as three. Task 2's review caught the three-vs-four tension and the fix resolved it by dropping the number from the *new* sentence at `:74`, which left the actual error standing one line below. Fix `:77` itself: "which of the four axis domains a mark belongs to — Economic's being the Stone accent, which is why the domain hues are often named as the three that are not Stone."
+
+   While in that sentence: it also carries a **seven-item page list** ("the results radar and axis breakdown, `PairedAxisScale` everywhere it appears, `/axes`, `/questions`, `/compare`, the home page, and `/study/patterns`…"). That is precisely the rot shape Task 2's review stripped from four other places, and this very line is the one whose previous version was wrong about its own scope. Replace the enumeration with the rule it is reaching for: domain colour is permitted wherever an axis is drawn, and nowhere else.
+
+8. **A verification claim behind the `:48` prose was wrong, though the prose survives it.** `home_sample_pair.json` has five top-level keys, not two: the two respondents plus `distance`, `divergent_axis_ids`, and `tension_axis_id`, the last two of which `page.tsx:28-29` actually consumes. Each respondent is `{persona_id, archetype_id, axis_scores}`, not a persona object. "Two real synthetic-study personas" is a defensible gloss for a directory bullet — keep it if you like, but know it is a gloss, and do not let the next task that reads this file re-derive the wrong shape from it.
+
+- [ ] **Step 1a2: Apply the deferred Component Specifications polish**
+
+Eleven items from Task 7's review, which approved the section. No task between 7 and 12 reopens it. **Two are factual errors** in a section whose purpose is factual accuracy — do those first and do not let them slide.
+
+**Important — both are single-clause factual fixes:**
+
+1. **"a two-column home row" is false.** In `### PairedAxisScale`, the sentence listing how consumers wrap the primitive differently says the home page uses a two-column row. `src/app/page.tsx:112` is `min-[560px]:grid-cols-[24px_1fr_158px]` — **three** columns, with its own adjacent comment reading "index, scale, name across the three columns." It is the same shape as the breakdown row it is being contrasted against; they differ only in the third column's width. This is the one checkable number in that paragraph.
+2. **"more than a line's worth of offset" is false, and it threw away a measurement.** In `### The Axis Breakdown`, the `items-start` rationale. The source comment says centring detaches the index from the name "by 11-15px". `body-s` is 13.5px/1.6 = a 21.6px line box; `mono-meta` is 11px/1.4 = 15.4px. 11–15px is **less** than either, so the claim is false on both readings — and converting a measured range into an unverifiable qualitative claim is backwards for a register that exists to show the measurement behind the rule. Restore the range.
+
+**Minor:**
+
+3. Radar tooltip stroke is `--border-secondary` at 0.5px, but the text calls it "a hairline stroke". The document uses "hairline" as a token name throughout, so a reader will take it as `--rule-hairline`. Name the actual token.
+4. The Component Rules bullet "Domain colour goes on marks, never on chrome… **Not borders**" is over-broad: the domain rule *is* a border (`border-t-2` with the domain mark), and the home page's divergence items use a domain-coloured `border-l-2` outside any domain block, which `CLAUDE.md` explicitly permits.
+5. The rule "A disclosure is a `<button aria-expanded>`" contradicts the same section's acknowledgement of real `<summary>` elements and Typography's "disclosure summaries" row. The load-bearing half is the second clause — reduce it to "A disclosure's accessible name contains its visible label."
+6. "the only two-column region left on the results page" holds at ≥560px only; below it the axis row is two columns and the archetype grid is one.
+7. "`/compare` … has no legend for a dot to appear in" — `/compare` *does* have a legend (`ComparisonRadar`'s two-item line key). Scope it to *dot* legends. Pointed, given the correction it accompanies is itself about legend attribution.
+8. The `ComparisonScoreBar` inventory omits the tagline and the `alternateRow` fill it also owns.
+9. The `primary`-fill rationale says "reserved for the page's own call to action"; `CLAUDE.md` reserves it for **assessment actions** specifically. The spec is looser than the binding rule.
+10. The paragraph beginning "The track is the one place the scale spells a hex" is ~150 words as one chained sentence — the section's only wall. Split it.
+**From Task 8's review (Quiz Phase Theming, approved):**
+
+12. **"The mobile list mirrors the forced-choice card exactly" over-claims on the one property the section had just made a point of.** `ForcedChoiceCard`'s base is `transition-[border-color,opacity]`; `ScaledQuestionCard`'s `mobileButtonClasses` is `transition-colors` while still carrying `opacity-60 hover:opacity-100`. So the mobile row's opacity hover **snaps** — precisely the bug the Phase 1 paragraph explains at length. Everything after the em-dash is true, so nothing is false; "exactly" is what papers over a real shipped inconsistency. Half a sentence fixes it.
+13. **Two rule-list bullets are broader than the section's own body.** "State is a border tone, an opacity, or the ink fill — **never a new background**" is contradicted three times by the section's own blocks (scale segment hover ×2, stepper hover all use Surface 2); narrow it to a *selection* state. And "Prompts, phase labels and the selected marker take a `label` role" points an implementer back at something deliberately undone: the budget instruction line does **not** take `label`, and `BudgetSimulator` carries the measurement for why — 85 characters at 11px/0.12em wraps to two all-caps lines at every width, and it sat in the identical role, size and colour directly above "Points remaining". **That measurement belongs in the doc**; the reviewer called it the best example on the screen of the register this phase asked for.
+14. **The budget track is argued square ("a 6px bar with a corner on it is a pill") while the computing screen's 2px track ships `rounded-full` on both track and line.** The One Radius rule exempts `999px`, so nothing is violated — but the asymmetry is unremarked and a reader will notice it before the spec does.
+15. **`D1`, `D6` and `D7` are referenced throughout the design spec with no pointer to where the numbered decisions live.** `CLAUDE.md` names the path; the design spec never does. Pre-existing across all the approved sections. One line in the provenance header Task 10 writes would close it — check whether Task 10 already did before adding a second pointer.
+
+11. `### PairedAxisScale`'s docstring note: the component's own JSDoc claims four consumers; there are six. The spec correctly enumerates all six, so nothing needs changing here — but the stale docstring is source and belongs in the stale-JSDoc ticket alongside `getDomainColor600` and `PairedAxisScale`'s dot-colour comment.
+
+- [ ] **Step 1b: Correct the delta spec's false ordering claim (line 141)**
+
+`docs/superpowers/specs/2026-09-08-design-system-delta-design.md:141` currently reads:
+
+> …depends on which properties the custom rule declares, so `label tracking-[0.06em]` wins but a single-property custom utility would lose to `tracking-*`. Verified against Tailwind 4.3.3 by compiling both cases.
+
+**The second clause is false**, and the "verified by compiling" claim makes it worse — it asserts evidence for something the evidence contradicts. Re-measured during phase 6 by compiling a probe through this repo's own `@tailwindcss/postcss` at Tailwind 4.3.3. Emitted order, by byte offset in the output sheet:
+
+```
+.block < .inline-block < .px-6 < .px-[34px] < .labelx < .tracking-[0.06em] < .onlytrack < .uppercase
+```
+
+(`labelx` = a multi-property `@utility` mirroring `label`; `onlytrack` = a single-property `@utility` setting only `letter-spacing`.) All are single-class selectors, so specificity is equal and source order decides.
+
+So: the multi-property custom utility lands **before** `tracking-*` and is overridden by it — which is what the spec's first clause describes, from the opposite side. But the single-property custom utility lands **after** `tracking-*` and **wins**, which is the reverse of what the spec claims.
+
+Fix the sentence to state the measured behaviour, and keep the conclusion — it is unchanged and is the only part that matters: the order depends on what the custom rule declares, which is too subtle to build on, so a role that needs a variant gets a named sibling.
+
+Do **not** change the two `globals.css` comments at `:501-503` and `:532-533`. They say only "too subtle to rely on" and make no directional claim, so they are already correct.
+
+- [ ] **Step 1c: Correct D7's contrast overreach in the delta spec**
+
+Task 4's review found that D7 (`docs/superpowers/specs/2026-09-08-design-system-delta-design.md`, around line 200) states Stone 500's light-mode figures — 2.73:1 on the page ground, 2.99:1 on the quiet band, 3.28:1 on white panels — and then qualifies all three with "under AA's 4.5:1 and under even the 3:1 large-text floor."
+
+**3.28 is above 3:1.** The figures are individually exact; the qualifier generalises over all three and breaks on the third. `globals.css:29-32` makes the same claim *correctly* by scoping it to the page ground alone, which is how the error is detectable at all.
+
+Scope the clause to the two figures it holds for. D7's conclusion is unaffected — the token still has to step, because 3.28:1 fails AA's 4.5:1 for the small text it styles regardless of the large-text floor. Fix the sentence, keep the decision.
+
+While in that file, check D7's "its other 141 call sites are swept by the per-screen phases" — there are **two** left, both in the dev-only widget, and Task 11 retires them. Either update the figure or mark it as of-its-time.
+
+- [ ] **Step 1d: Correct issue #154's `rx` premise — it is measurably wrong**
+
+#154's "Smaller items" section states that `rx="var(--radius)"` **as an attribute does not resolve** and needs `style={{ rx: … }}`. Task 6 measured it in real browsers and it is false.
+
+Method (worth repeating if anyone doubts it): with `:root { --r: 20px }`, a `<rect rx="var(--r)">` computes `rx: 20px` and **paints the corner** — `document.elementFromPoint` at the box corner misses the rect, exactly as the `style={{ rx }}` and `rx="20"` controls do, while the no-`rx` control computes `auto` and hits, and `rx="var(--undefined)"` computes `auto`. Verified in **Chromium 151** and **Firefox 153**. WebKit could not be launched on this host (missing system libraries), so that engine is unverified and the ticket should say so.
+
+`rx` is a geometry presentation attribute, and presentation attributes are parsed as CSS values, so `var()` resolving is the expected modern behaviour — the ticket's claim may simply predate the support.
+
+Reproduced independently by a second agent at Playwright 1.62.1 with the same five controls, same 3–2 split, computed style and hit-test agreeing on every row.
+
+**Word the amendment as "resolves in Chromium 151 and Firefox 153; WebKit unverified on this host" — not a flat "resolves."** `rx` works because SVG2 made geometry properties real CSS properties; that is a browser-baseline question, not a universal one, and WebKit genuinely was not measured.
+
+Update #154 to state the measurement and the WebKit gap. This matters beyond tidiness: the ticket offers "leave them, and say so in the spec" as a legitimate resolution for the five `rx` sites, and that judgement was reached partly on the belief that the token spelling was impossible there. It is not.
+
+- [ ] **Step 2: Open the nine follow-up tickets**
+
+Two this phase deliberately declined, and seven its reviews discovered.
 
 ```bash
 gh issue create \
@@ -1250,7 +1408,143 @@ Out of scope for #137 by decision rather than by oversight — #137 names two do
 \`governance_compass_scoring_engine.md\` also carries a banner; check whether its drift is real before bundling it in — the scoring pipeline was not part of the visual delta."
 ```
 
-Record both issue numbers, then reference them in Step 4's commit.
+```bash
+gh issue create \
+  --title "join-rate-limit flakes when the suite grows: vmForks module-mock leak" \
+  --label tech-debt \
+  --body "Found during phase 6 (#137) Task 1, by a reviewer running the suite repeatedly rather than once.
+
+\`tests/unit/join-rate-limit.test.ts > throttles repeated invite-code attempts\` fails intermittently with \`expected 404 to be 201\`.
+
+Measured: **with** a 72nd spec file present, 2 of 8 full-suite runs failed. **Without** it, 0 of 5 failed. The file run alone always passes. The new file mocks nothing, so it is not logically the cause — adding a spec perturbs \`vmForks\` worker scheduling enough to surface an existing leak.
+
+Mechanism: \`join-rate-limit.test.ts:9\` mocks \`@/lib/db\`. Under \`vmForks\` this repo leaks module mocks between specs, so a leaked registry makes \`findGroup\` return nothing and the route 404s instead of 201.
+
+**Why this matters beyond one flaky test:** it makes 'the suite is green except the guard I just committed' occasionally untrue, which is exactly the ambiguity that phase-by-phase execution depends on not having. Any phase that adds spec files can trip it.
+
+Fix direction is the pool/isolation config or per-spec mock teardown, not the assertion."
+```
+
+```bash
+gh issue create \
+  --title "Button.tsx's className doc comment overclaims how Tailwind orders utilities" \
+  --label tech-debt \
+  --body "Found during phase 6 (#137) Task 2, and verified by compiling probes against this repo's own Tailwind 4.3.3.
+
+\`src/components/Button.tsx:45-53\` says appending \`className\` does not win because 'the variant utilities land later in the sheet than common ones like \`block\` or \`px-6\`.'
+
+**That mechanism is wrong.** Emitted order is decided by property bucket first, then by class name within the bucket — never by which rule is a variant. (Bucket order dominates: \`pl-8\` emits after \`py-2\` despite \`pl\` sorting before \`py\`, because \`padding-inline-start\` is a later bucket than \`padding-block\`.) Measured byte offsets, reproduced independently by two probes:
+
+\`\`\`
+.block 4739 · .flex 4774 · .hidden 4807 · .inline-block 4842 · .w-full 4891
+.bg-button-primary 4924 · .bg-red-500 4982
+.p-4 5046 · .px-6 5098 · .px-[26px] 5158 · .px-[34px] 5205 · .py-2 5252 · .pl-8 5311
+.text-button-primary-fg 5369 · .text-red-500 5421 · .text-text-secondary 5476 · .text-zinc-500 5525
+\`\`\`
+
+So a caller's \`bg-red-500\`, \`text-red-500\` and \`pl-8\` all **beat** the primary variant — while \`text-red-500\` **loses** to the secondary variant, purely because of where the name sorts. Display genuinely is variant-controlled (\`.inline-block\` > \`.block\`), and the specific \`px-6\` case does behave as documented, which is why the claim looked true.
+
+**The prescription is still correct** — use a variant, not a class, for padding/colour/display. Only the stated reason needs replacing, and the true reason is stronger: whether a caller's class wins depends on alphabetical position, which nobody should be reasoning about at a call site.
+
+\`CLAUDE.md\` was corrected in phase 6. This is the source comment it was derived from, left alone because #137 is a docs-only phase. Fix the comment; do not change \`Button.tsx\`'s behaviour."
+```
+
+```bash
+gh issue create \
+  --title "Five source comments describe behaviour the code no longer has" \
+  --label tech-debt \
+  --body "Both found during phase 6 (#137) while fact-checking the design spec against source. Both are comments, not behaviour — the code is correct and the comments are not. Left alone because #137 is a docs phase and these are \`src/\`.
+
+A third was found in Task 7: **`src/components/PairedAxisScale.tsx`'s own header** says the primitive is \"the shared primitive behind the home sample, the results breakdown, compare, and group views\" — four consumers. There are **six**: it omits the per-axis detail page under `/results` and `/study`'s persona modal. The design spec now enumerates all six by name.
+
+A fourth, found in Task 8 and the most urgent of the set: **`src/app/globals.css`'s `focus-ring-child` comment** says the `GlossaryTerm` trigger carries \"no ring of its own\". It does — `GlossaryTerm.tsx` sets `focus-ring`. The scoping rationale survives, but the failure mode an unscoped `:has(:focus-visible)` would cause is **two rings**, not a misplaced one. The design spec now states the correct version, so this comment is the last place in the repo asserting the wrong one — and it sits directly on the utility it describes, where the next editor of that utility will read it.
+
+A fifth, found in Task 9 and notable because it looked unfalsifiable and was not: **`src/app/globals.css`'s `focus-ring` comment** says the broken spelling it replaced was live \"across all 25 former call sites\". Measured against the tree immediately before the sweep: `git grep -o -E \"(focus|focus-within):outline-none\" <pre-sweep-ref> -- src/` returns **21** (20 of the plain `focus:` spelling across 11 files, plus one `focus-within:`). The count is wrong by four. The evidence had been deleted from HEAD, which is why it read as unverifiable — it was in history the whole time.
+
+They are filed together because they share a failure mode: a stale JSDoc was trusted as a source of truth by someone writing documentation, and the falsehood propagated into a document that claimed to have verified it. That happened twice in one task, and a third instance turned up two tasks later.
+
+**1. \`src/lib/design-tokens.ts:81-85\`** says to use \`getDomainColor600\` 'where the 600 tone is genuinely intended in both modes', naming the static reference pages. \`getDomainColor600\` has **zero call sites in \`src/\`** — it is referenced only by its own JSDoc, by two tests asserting its absence, and by plan documents. The reference pages it names use the stepping tokens instead (\`src/app/axes/page.tsx:135,154\`, \`src/app/questions/page.tsx:91,125\` all read \`DOMAIN_MARK_VARS\`), and \`tests/unit/results-chrome.test.ts:1620\` actively guards against the 600 spelling across the swept set.
+
+Decide whether the export still earns its place. If it does, the comment needs to stop naming a home it no longer has; if it does not, delete it and the comment together.
+
+The JSDoc has a **second reader that repeated its error**: \`docs/superpowers/plans/2026-09-12-design-system-delta-results.md:73\` (D8) names \`/axes\`, \`/questions\`, \`ComparisonRadar\` and the home domain footer as the function's surviving homes. Three of those four now use the stepping tokens. Fix that sentence in the same pass — it is the clearest evidence that the stale comment is actively propagating rather than merely sitting there.
+
+**2. \`src/components/PairedAxisScale.tsx:66-67\`** says \"respondent B's outlined dot is Stone 500 by the spec.\" The code at \`:212\` renders \`rounded-full border-[1.5px] border-text-label bg-surface-1\` — ringed in \`--text-label\`, which is Stone **700** in light and Stone 500 only in dark. The comment is right for dark mode and wrong for light.
+
+Note the behaviour is deliberate and correct (a mode-stepping token rather than a frozen one, consistent with delta 06); only the comment is stale."
+```
+
+```bash
+gh issue create \
+  --title "globals.css container comments contradict the design spec: '75 characters' and 'the four page measures'" \
+  --label tech-debt \
+  --body "Found during phase 6 (#137) Task 6, by measuring a claim instead of inheriting it.
+
+**1. The measure is wrong.** \`src/app/globals.css\` says 660px 'holds it near 75 characters at the 15px intro size.' Measured across all six shipped \`PageHeader\` lead paragraphs at 660px / 15px / 1.65 in the shipped \`system-ui\` stack: 19 full lines, **mean 83.0, median 84, range 72–89**. The design spec now says ~84 and notes the figure moves with the platform's \`system-ui\`. Source and spec currently disagree.
+
+**2. The count is wrong.** The same block calls \`--container-reference\` 'the narrowest of the four' and refers to 'the four page measures'. There are **five**: \`--container-shell\` 1040, \`--container-results\` 820, \`--container-reference\` 660, \`--container-quiz\` 672, \`--container-browse\` 1200. \`--container-browse\` was added later and the neighbouring comments were not updated.
+
+**3. One inherited claim is unverified.** The same block justifies \`--container-browse\` with 'at 1040px it loses a column of the persona grid at every breakpoint above 960px.' Phase 6 transcribed this rather than re-measuring it. Plausible and presumably measured when the token landed — but the 75-character comment in the very same block proved stale, which is reason enough not to trust its neighbour.
+
+Low urgency; nothing renders wrong. It matters because these comments are read as authoritative by anyone reaching for a measure, and phase 6 has now had a documented claim propagate from a stale source comment into a document that claimed to have verified it — twice."
+```
+
+```bash
+gh issue create \
+  --title "--contour-opacity is declared in both modes and consumed nowhere; the contours do not step" \
+  --label tech-debt \
+  --body "Found during phase 6 (#137) Task 7, by checking a token's consumers rather than its declarations.
+
+\`--contour-opacity\` is declared twice in \`src/app/globals.css\` — \`0.08\` in light, \`0.05\` in the dark block — and \`grep -rn contour-opacity src/ tests/\` returns **only those two declarations**. Nothing reads it.
+
+\`CompassPlot\` paints the topographic contour paths at a literal \`opacity={0.15}\` over \`var(--stone-500)\` at 0.6px stroke. Because the Stone ramp is frozen across modes, **the contours do not step with the mode at all** — they are the same tone and the same opacity on both grounds, which is precisely what the token was declared to prevent.
+
+This is the design system's one sanctioned decorative element (\`CLAUDE.md\` protects it by name as the cartographic signature), so it is worth getting right rather than deleting.
+
+Three possible resolutions, in rough order of preference:
+1. Wire the paths to the token and pick the right value — note the shipped 0.15 is nearly double the token's light-mode 0.08, so adopting the token as declared is a visible change, not a no-op.
+2. Retune the token to match what ships and then wire it.
+3. Delete the token and document the literal.
+
+Whichever is chosen, the spec was corrected in phase 6 to say the token has no consumer — so the spec will need a matching edit when this lands.
+
+Note the detection gap: every guard in this repo asks whether a *literal* should have been a token. Nothing asks whether a declared token is *read by anyone*, which is how this survived five phases of sweeps."
+```
+
+```bash
+gh issue create \
+  --title "ScaledQuestionCard's mobile option rows snap their opacity hover — the exact bug the file's own comment prevents" \
+  --label bug \
+  --body "Found during phase 6 (#137) Task 9, while fact-checking a sentence about transition property lists.
+
+\`src/components/quiz/ScaledQuestionCard.tsx\` has two branches, and they disagree:
+
+- **Desktop segmented bar (:69)** — \`transition-[color,background-color,opacity]\`. Correct.
+- **Mobile option rows (:94)** — \`transition-colors\`, while carrying \`opacity-60 hover:opacity-100\`.
+
+Tailwind's \`transition-colors\` set covers \`color\`/\`background-color\`/\`border-color\`/\`fill\`/\`stroke\` and **excludes \`opacity\`**. So on the mobile branch the dim snaps back instantly while the border eases over 150ms — a visible inconsistency on every scaled question below 560px.
+
+The file's own comment at **:65** exists to prevent precisely this: \"\`transition-[...]\` names opacity explicitly: \`transition-colors\` does not.\" It was applied to one branch and not the other.
+
+\`ForcedChoiceCard.tsx:59\` gets it right with \`transition-[border-color,opacity]\`, and its comment at :52 explains why. Note that \`ScaledQuestionCard\`'s mobile rows are documented in-code as mirroring the choice card \"exactly\" — they do not, on this one property.
+
+One-line fix: give :94 the same explicit property list. Worth checking whether any other \`opacity-*\` hover in the tree sits on a bare \`transition-colors\`; this was found by reading, not by a guard, and nothing would catch the next one."
+```
+
+```bash
+gh issue create \
+  --title "public/favicon.svg is an unreferenced duplicate of src/app/icon.svg" \
+  --label tech-debt \
+  --body "Found during phase 6 (#137) Task 10, while reading the File / Asset Summary against what actually ships.
+
+\`public/favicon.svg\` and \`src/app/icon.svg\` are **byte-identical**. Only \`src/app/icon.svg\` is wired — Next's file convention picks it up automatically — and **nothing in the repo references the \`public/\` copy**.
+
+Tracked since \`67d3cb1\`. Left in place by phase 6 because deleting a public asset is a code change and that was a docs-only task.
+
+Two things to confirm before deleting rather than after: that no external consumer hard-links \`/favicon.svg\` (a bookmark or a third-party embed would 404), and that no build step copies or rewrites it. If both are clear, delete the \`public/\` copy; if the hard-link risk is real, keep it and say so in a comment so the next reader doesn't re-file this."
+```
+
+Record all nine issue numbers, then reference them in Step 4's commit.
 
 - [ ] **Step 3: Reconcile this plan with what actually shipped**
 
@@ -1289,7 +1583,7 @@ git commit -m "docs(design): mark phase 6 shipped, reconcile the plan
 Closes the delta's phasing table. Plan reconciled against the shipped diff."
 ```
 
-Then open the PR with `Closes #137` and a body that states: the two documents reconciled, the guard that pins them, `--text-tertiary` retired, and the two follow-up issues opened with their numbers.
+Then open the PR with `Closes #137` and a body that states: the two documents reconciled, the guard that pins them, `--text-tertiary` retired, and the nine follow-up issues opened with their numbers.
 
 ---
 
@@ -1311,3 +1605,36 @@ Then open the PR with `Closes #137` and a body that states: the two documents re
 **Deliberate departure from the writing-plans default:** Tasks 4–10 give line ranges, verified citations, and required/forbidden claims rather than ~450 lines of verbatim replacement prose. Reasoned in the preamble to those tasks. The three short high-stakes edits (Tasks 2, 3, 10) and the two tables most likely to be copy-pasted (the type scale in Task 5, the page measures and rule weights in Task 6) **are** given verbatim.
 
 **Known risk this plan carries:** four mutation steps (M1, M4, M5, M6) revert their task's own edit with `git checkout`, and each says so and says to re-apply. If you would rather not, run them on a `git stash` copy. What is not optional is recording each mutation's outcome — an unrecorded mutation run reads as whichever answer you were hoping for.
+
+**A `-t` filter that matches nothing exits 0.** Task 2 hit this: the plan's mutation command used `-t "variant names the Button component"`, which matched no test and printed `Test Files 1 skipped / Tests 25 skipped` at exit 0. A green-looking run that proved nothing — and a mutation that "passes" is read as the mutation being caught, which is the exact inversion of what it means. **Every `-t` invocation in this plan is a guess at a case title, and titles changed during Task 1's fix round.** Before trusting any filtered run, confirm the filter actually selected something: check the summary line says `Tests N passed` or `N failed`, never `N skipped`. When in doubt, run the file unfiltered.
+
+---
+
+## Reconciliation — what actually happened
+
+Written at the close of Task 12, against the shipped diff rather than from memory.
+
+**The plan's factual claims were wrong far more often than they were right.** Across Tasks 2–11, review caught **nine defects in this plan's draft test code** and **roughly a hundred in its draft prose**. That is the headline finding, and it is about this document, not about the people executing it. Three patterns recurred:
+
+1. **Naming something with zero consumers.** `--contour-opacity` (declared in both modes, read by nothing — the contours ship at a literal `0.15`), `display-page` in the quiz (zero call sites; the intro title is `display-s`), `getDomainColor600` (zero call sites; the reference pages it named use the stepping tokens), and the `!` tension glyph (does not ship at all, and an approved section already said so). Every guard in this repo asks "should this literal have been a token?" Nothing asks "is this declared token read by anyone?", which is how `--contour-opacity` survived five phases of sweeps.
+2. **Corrections that were themselves wrong.** Three times. Task 5's review noted `display-entry` omitted the quiz interstitials; the relayed fix asserted a role the interstitials do not use, and the false clause sat in the Typography table for three tasks. A suggested Grid fix in Task 6 was the same failure mode one scope narrower. A suggested "three of those four" icon split in Task 9 was wrong the other way, because `X` appears in both roles.
+3. **Inheriting a stale source comment as fact.** The `getDomainColor600` JSDoc, `globals.css`'s glossary comment, its `fade-in-up` comment, and its "25 call sites" figure (it is 21 — and the evidence was in git history the whole time, which is why "unverifiable from the current tree" was the wrong stopping point).
+
+**Where the plan was wrong about its own mechanics:**
+
+- **"Expect four cases green" in Task 8 was wrong by two.** Two of those cases had a *second* offending line in Task 9's sections. The guard was working; the brief was not.
+- **The guard stopped being a completion signal for Task 7.** Task 6's Grid rewrite satisfied `names PairedAxisScale` as a side effect, so Task 7 could have gone fully green without doing its job. Its brief was amended to say so.
+- **A `-t` filter matching nothing exits 0**, and a mutation that "passes" reads as the mutation being caught — the exact inversion.
+- **A guard case can be satisfied redundantly by two lines**, making any single-line mutation probe void. Task 5 reported such a probe as proof; Task 8 counted satisfying lines first and found the same trap waiting.
+- **Task 5 was told to carry a rule forward verbatim** — "never serif for axis names or data" — and a sweep found it false four times over for axis names, while large numerals turned out to be 4 of `display-l`'s 5 call sites. The prohibited use was the role's dominant job.
+
+**Scope changes taken during execution, all deliberate:**
+
+- `--text-tertiary`'s retirement was predicted to be a one-line deletion; it needed a two-site sweep first.
+- Four narrow cross-section exceptions were granted, each to resolve a self-contradiction rather than carry it: the contour line in Color System, the `display-entry` row in Typography, the `--surface-2` job row, and the Font Stack misattribution. Each was one clause.
+- Task 11 absorbed a guard for Task 10's provenance header, because the agent that wrote the header correctly declined to mark its own work.
+- Task 6 added `### Layout Rules`, Task 8 `### Quiz Rules`, Task 4 `### Color Rules` — a sixth subsection each, upheld on review as parity with `### Typography Rules`.
+
+**What the guard cannot do, and what caught things instead.** The guard went 4/21 → 31/31 and is genuinely load-bearing: every positive reads its expected value from `globals.css` at runtime, and each was mutation-verified. But every Important finding in this phase came from *reading*, not from running. Deleting the ASCII diagram in Task 6 orphaned four "hero region" references and a pole-label line across two other sections, none guarded. A stale "Hero regions" entry in a surface table survived three separate reviews because each reviewer checked their own prose. The guard catches what it was written to catch, and is blind to what a correct edit falsifies elsewhere.
+
+**Nine follow-up tickets** are drafted in Task 12 Step 2 — two this phase deliberately declined, seven its reviews discovered.

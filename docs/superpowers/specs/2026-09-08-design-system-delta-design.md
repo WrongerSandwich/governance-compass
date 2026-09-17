@@ -138,9 +138,13 @@ any reintroduction of `focus:outline-none`.
 Each role is one self-contained class. Do **not** plan on layering a built-in
 utility over one of these to vary a property: whether a custom `@utility` is
 emitted before or after a built-in depends on which properties the custom rule
-declares, so `label tracking-[0.06em]` wins but a single-property custom
-utility would lose to `tracking-*`. Verified against Tailwind 4.3.3 by
-compiling both cases. When a role needs a variant, add a named sibling.
+declares. Re-measured in phase 6 by compiling probes against this repo's own
+Tailwind 4.3.3: emitted order is decided by property bucket first, then by
+class name within the bucket — never by authoring order, and never by which
+rule is custom. So the multi-property `label` lands *before* `tracking-*` and
+is overridden by it, while a single-property custom utility lands *after* and
+wins. (This paragraph previously claimed the reverse for the single-property
+case, and cited a compilation as evidence for it.) When a role needs a variant, add a named sibling.
 
 ## Decisions
 
@@ -200,7 +204,8 @@ also shows.
 "holds as the label colour in both modes — the one token needing no dark
 variant." Measured against WCAG AA for small text, that cannot hold: Stone 500
 is 2.73:1 on the light page ground, 3.28:1 on white panels, and 2.99:1 on the
-quiet band — under AA's 4.5:1 and under even the 3:1 large-text floor — while
+quiet band — all three under AA's 4.5:1 for small text, and the page ground
+and quiet band under even the 3:1 large-text floor — while
 clearing it comfortably on dark at 4.81–5.67:1. No single value on the Stone
 ramp passes both modes (Stone 600 fails both dark surfaces; Stone 700 fails
 dark badly at 2.42–2.85:1). **Resolution: `--text-label` steps to Stone 700 in
@@ -210,7 +215,9 @@ light and Stone 500 in dark.** It introduces no new colour and uses the
 This is the one place the delta knowingly departs from the handoff, and it is
 an accessibility departure rather than an aesthetic one. `--text-tertiary`
 keeps Stone 500 in both modes; its other 141 call sites are swept by the
-per-screen phases as each adopts `--text-label` for its label layer.
+per-screen phases as each adopts `--text-label` for its label layer. (That
+count is as of this spec's writing. Phase 6 retired the token outright, after
+finding two call sites left rather than the zero phase 5b predicted.)
 
 **D6 — Undrawn surfaces.** The handoff draws only home, quiz phase 1, results,
 and the archetype reference. **Resolution: apply the global token layer
@@ -226,11 +233,12 @@ Each phase produces working, testable software and gets its own plan document.
 | Phase | Plan | Covers |
 | --- | --- | --- |
 | 1 | `2026-09-08-design-system-delta-foundations.md` | Tokens, radius sweep, button primitive, `NavBar`, `Footer` |
-| 2 | *(to write)* | `PairedAxisScale`, `home_sample_pair.json`, axis `divergenceNote`, domain `blurb`, home page (`5a`/`6a`) |
-| 3 | *(to write)* | Quiz: `ProgressBar`, `ForcedChoiceCard`, `QuizFlow` nav (`6b`), then `ScaledQuestionCard`, `BudgetSimulator`, `PhaseTransition` by extension |
-| 4 | *(to write)* | Results: `ScoreBar`/`ComparisonScoreBar` convergence, `AxisBreakdownCard`, `ArchetypeCard`, `RadarChart`, `CompassPlot`, `ResultsView` (`7a`/`7b`) |
-| 5 | *(to write)* | Archetype reference (`7c`), then remaining undrawn pages |
-| 6 | *(to write)* | Docs: `docs/system_proposal/governance_compass_design_spec.md`, `CLAUDE.md` Design Context |
+| 2 | `2026-09-09-design-system-delta-home.md` | `PairedAxisScale`, `home_sample_pair.json`, axis `divergenceNote`, domain `blurb`, home page (`5a`/`6a`) |
+| 3 | `2026-09-09-design-system-delta-quiz.md` | Quiz: `ProgressBar`, `ForcedChoiceCard`, `QuizFlow` nav (`6b`), then `ScaledQuestionCard`, `BudgetSimulator`, `PhaseTransition` by extension |
+| 4 | `2026-09-12-design-system-delta-results.md` | Results: `ScoreBar`/`ComparisonScoreBar` convergence, `AxisBreakdownCard`, `ArchetypeCard`, `RadarChart`, `CompassPlot`, `ResultsView` (`7a`/`7b`) |
+| 5 | `2026-09-14-design-system-delta-reference.md` | Archetype reference (`7c`), then remaining undrawn pages |
+| 5b | `2026-09-14-design-system-delta-study.md` | Synthetic study section: type and token sweep across `/study` |
+| 6 | `2026-09-16-design-system-delta-docs.md` | Docs: `docs/system_proposal/governance_compass_design_spec.md`, `CLAUDE.md` Design Context |
 
 ## Test strategy
 

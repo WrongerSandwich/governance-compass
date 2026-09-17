@@ -300,7 +300,7 @@ The **axis breakdown row** is `[24px | minmax(0, 1fr) | 210px]` at 560px and abo
 
 The pre-delta row was `[82px | fluid | 82px]`, a pole label on each side of the bar. The axis row asks `PairedAxisScale` for its endpoints below the track, so those two columns are gone rather than resized, and bars align because the scale is one component rather than because the labels are boxed. Endpoints are the caller's choice, not the component's: the default puts them above, and the study's persona modal asks for none at all.
 
-The **home sample row** is the same idea at `[24px | 1fr | 158px]` above 560px, with the axis name ordered last so the row reads index, scale, name. The **home payoff block** is `[1fr | 356px]` above 900px and one column below it. On the results page the archetype card's `[minmax(0, 1fr) | 220px]` split for its mini radar is the only two-column region left.
+The **home sample row** is the same idea at `[24px | 1fr | 158px]` above 560px, with the axis name ordered last so the row reads index, scale, name. The **home payoff block** is `[1fr | 356px]` above 900px and one column below it. On the results page the archetype card's `[minmax(0, 1fr) | 220px]` split for its mini radar is the only two-column region left above 560px; below it that grid collapses to one column and the axis row is the page's only two-column grid.
 
 ### Spacing Tokens
 
@@ -324,7 +324,7 @@ Those are values rather than tokens. Reach for the nearest one; a new step in be
 
 One value. `--radius: 2px` in `:root`, exposed to Tailwind as `rounded-sharp` through `--radius-sharp` in `@theme inline`. Panels, cards, inputs, badges and the `primary` and `secondary` buttons all take it — delta 02 collapsed the former 12px and 8px literals onto the token, and the guard now covers every spelling a scan can see: the class, the quoted and the unquoted `borderRadius` style prop, and `border-radius` inside a template-literal style block.
 
-Two exemptions, named in the guard rather than pattern-matched, because a circle is not a rounded rectangle and a pill is not either: `50%` and `999px`. Dots, the compass mark and avatars are unaffected.
+Two exemptions, named in the guard rather than pattern-matched, because a circle is not a rounded rectangle and a pill is not either: `50%` and `999px`. Dots, the compass mark and avatars are unaffected — as is the computing screen's 2px progress line, which takes `999px` at both ends while the budget's 6px track stays square. A bar thin enough to read as a line may round; one thick enough to read as a bar may not.
 
 Use `rounded-sharp` in classes and `var(--radius)` in inline styles. The compass plot's inner frame is neither an exemption nor a client of the token: the 6px corner the pre-delta spec prescribed for it is gone rather than retuned, and the rect ships square.
 
@@ -368,11 +368,11 @@ One row renders one axis for one or two respondents. It is the shared primitive 
 
 **How the convergence actually landed**, because it is not the clean merge delta 05 predicted. `ScoreBar` is retired — deleted outright, and guarded in both directions: one assertion fails if the file returns, a second scans source for any import still reaching for it. Its two distinguishing features, a centre-out fill and a score readout floating above the marker, are both things the delta removes, so restyling it would have left two primitives drawing one thing.
 
-`ComparisonScoreBar` **survives**, as row chrome *around* the primitive rather than as a second implementation of it. It owns the axis name, the gap badge, and the two named readouts with their swatches, and hands the scale itself down. Saying the two components converged into one sends a reader looking for a component that is still there and still rendering rows.
+`ComparisonScoreBar` **survives**, as row chrome *around* the primitive rather than as a second implementation of it. It owns the axis name and its tagline, the gap badge, the alternating-row fill, and the two named readouts with their swatches, and hands the scale itself down. Saying the two components converged into one sends a reader looking for a component that is still there and still rendering rows.
 
-One consequence is recorded because it reversed a shipped behaviour: the dot roles are the primitive's, not `ComparisonScoreBar`'s former ones. **Respondent A is the filled domain dot and respondent B the outlined one** — the reverse of what shipped before. The home page's sample pair carries the A/B legend that names them in the new order. `/compare` names them per row instead, with a swatch inside each readout, because its two-profile route passes real names and has no legend for a dot to appear in.
+One consequence is recorded because it reversed a shipped behaviour: the dot roles are the primitive's, not `ComparisonScoreBar`'s former ones. **Respondent A is the filled domain dot and respondent B the outlined one** — the reverse of what shipped before. The home page's sample pair carries the A/B legend that names them in the new order. `/compare` has no *dot* legend — its only legend is the radar's solid-vs-dashed name key — so it names them per row instead, with a swatch inside each readout, because its two-profile route passes real names and has no legend for a dot to appear in.
 
-**It renders only the scale** — endpoints, track, midline, dots. Callers own the surrounding row, because the consumers wrap it in different grids: a three-column breakdown row, a two-column home row, a comparison row with a gap badge above it, a group row with an aria-hidden member-scatter strip above it, positioned by the same `scoreToTrackPercent` so the two align, and a modal column too narrow for pole labels at all.
+**It renders only the scale** — endpoints, track, midline, dots. Callers own the surrounding row, because the consumers wrap it in different grids: a three-column breakdown row, a home row of the same three-column shape at a narrower third column, a comparison row with a gap badge above it, a group row with an aria-hidden member-scatter strip above it, positioned by the same `scoreToTrackPercent` so the two align, and a modal column too narrow for pole labels at all.
 
 ```
 Row height       14px
@@ -382,7 +382,7 @@ Respondent A     10px filled disc, the axis's domain mark
 Respondent B     12px ring, 1.5px --text-label edge on a --surface-1 fill
 ```
 
-The track is the one place the scale spells a hex instead of a token, and the reason is that there is nothing to step: the mark moves from its 600 tone to its 400 on a dark ground and arrives where the track already sits, so a custom property here would hold one value in both modes. The dot beside it does have to step, and takes `getDomainMarkVar`. The one override is `markVar`, for the study's model-agreement view, where a Claude row and a Gemini row sit under one axis name and colour is the only thing separating them; it takes the same wrapped `var(--x)` shape the helper returns, because a bare name wrapped twice gives `var(var(--x))` — valid syntax that resolves to nothing and paints an invisible mark.
+The track is the one place the scale spells a hex instead of a token. There is nothing for it to step to: the mark moves from its 600 tone to its 400 on a dark ground and arrives where the track already sits, so a custom property here would hold one value in both modes. The dot beside it does have to step, and takes `getDomainMarkVar`. The one override is `markVar`, for the study's model-agreement view, where a Claude row and a Gemini row sit under one axis name and colour is the only thing separating them; it takes the same wrapped `var(--x)` shape the helper returns, because a bare name wrapped twice gives `var(var(--x))` — valid syntax that resolves to nothing and paints an invisible mark.
 
 **The mapping is `−1…1` → `6%…94%`, computed as `50 + score * 44` by `scoreToTrackPercent`.** The 6% inset is not taste: across the full `0…100%` a dot at either pole sits half off the end of the track it is meant to be on.
 
@@ -497,7 +497,7 @@ The ring set collapsed to two. The neutral ring is the mark the caption describe
 
 **The vertex dots are per-axis domain colour, not a single Stone 600.** That is the chart's one added variable, and it is the reason the label ring closed up from `r + 38` to `r + 22`: the old padding was sized for two-line domain-coloured *labels*, and once domain moved onto the dots the labels went to one line of 11px mono.
 
-**A hover tooltip** the pre-delta spec does not mention: a `--surface-1` box on a hairline stroke, carrying the axis's magnitude and the pole it leans toward in 11px mono, pushed outward along the spoke and clamped inside the viewBox so a vertex near the perimeter cannot render its tooltip off the edge. The dots take the hover through a larger transparent hit circle; the visible radius eases over 150ms, which is the selection interval.
+**A hover tooltip** the pre-delta spec does not mention: a `--surface-1` box on a 0.5px `--border-secondary` stroke, carrying the axis's magnitude and the pole it leans toward in 11px mono, pushed outward along the spoke and clamped inside the viewBox so a vertex near the perimeter cannot render its tooltip off the edge. The dots take the hover through a larger transparent hit circle; the visible radius eases over 150ms, which is the selection interval.
 
 **The archetype prototype overlay was dropped.** The pre-delta spec prescribed it here in dashed info-blue; this chart draws no second polygon, and `--info` is vestigial across the whole product. A prototype overlay *is* still drawn — in the archetype card's mini radar, as a dashed `var(--stone-500)` line. Do not go looking for it on this chart.
 
@@ -528,7 +528,7 @@ Items the pre-delta spec prescribed and that the delta settled differently:
 - **Endpoints go below the track**, which is why the old `[82px | fluid | 82px]` pole-label columns are gone rather than resized. Bars align because the scale is one component, not because the labels are boxed.
 - **Tension is a line, not a pill.** `mono-meta` in `--warning-text` reading "Tension detected", in the meta column. The row says only that a tension exists; the callouts above spell it out, and duplicating the narrative in a 210px column would mean setting it twice.
 - **Rows are ruled, not striped.** No alternating surface, no 8px corner.
-- **`items-start`, not centred.** Every real tagline wraps in a 210px column, and centring detaches the axis index from the name it labels by more than a line's worth of offset. A deliberate divergence from a static prototype.
+- **`items-start`, not centred.** Every real tagline wraps in a 210px column, and centring detaches the axis index from the name it labels by 11-15px. A deliberate divergence from a static prototype.
 
 ### The Scoring Breakdown (Expandable)
 
@@ -553,7 +553,7 @@ The formula is the row's own weights against the row's own components, read from
 
 There is no separate share row, and nothing on the results page sits at the bottom of a hero region. The two actions live **inside the archetype panel**, on the same line as the card's own "Learn more" control.
 
-Both take **`Button variant="secondary"`** — a `--border-primary` hairline outline, `--text-secondary`, the `control` label role, and the one shared radius. They are not hand-rolled chips with an 8px corner and a bespoke hover, and they are not filled: the `primary` ink fill is reserved for the page's own call to action, which the results page does not have.
+Both take **`Button variant="secondary"`** — a `--border-primary` hairline outline, `--text-secondary`, the `control` label role, and the one shared radius. They are not hand-rolled chips with an 8px corner and a bespoke hover, and they are not filled: the `primary` ink fill is reserved for assessment actions, and the results page has none left to take.
 
 - **Copy link** writes the current URL to the clipboard and swaps its own label to "Copied!" for two seconds. The label is the entire feedback; there is no toast.
 - **Compare with someone** expands in place into a text field plus a `secondary` Compare and a `tertiary` Cancel. It accepts either a pasted results URL or the bare encoded string, extracting the `r` parameter from the former.
@@ -565,8 +565,8 @@ The pre-delta trio is gone: there is no "Copy image" and no "Download raw data" 
 - **One axis is one `PairedAxisScale`.** A new surface that draws an axis reaches for the primitive and supplies its own row; it does not draw a track.
 - **Respondent A is the filled dot, respondent B the ring.** Any legend, swatch or readout naming them follows that order.
 - **A `role="img"` root makes everything under it presentational.** Every value a chart or scale communicates has to be reachable from the `aria-label` or from an adjacent `sr-only` table — never from the visible text inside it.
-- **Domain colour goes on marks, never on chrome.** Dots, the axis track, the domain rule. Not borders, not panels, not headings outside a domain block.
-- **A disclosure is a `<button aria-expanded>` whose accessible name contains its visible label.** An `aria-label` that replaces the visible text breaks voice control.
+- **Domain colour goes on marks, never on chrome.** Dots, the axis track, the domain rule above a domain block, and the home page's divergence items — all of which are marks, two of which happen to be borders. Not panels, not headings, not a border that is merely dividing something.
+- **A disclosure's accessible name contains its visible label.** An `aria-label` that replaces the visible text breaks voice control.
 - **Corrections belong in the section, not in a note beside it.** Where the delta dropped something the pre-delta spec prescribed — the prototype overlay, the pulse rings, the tension icon, the share trio — this section says it was dropped. A prescription for an absent element reads as authoritative.
 
 ---
@@ -618,7 +618,7 @@ Unselected, nothing yet      Surface 1, hovering Surface 2 and --text-primary
 
 The chosen segment takes the **ink fill** rather than a Stone 100 wash with Stone 600 text. The bar has no per-segment border to carry state, and the ink pair is the fill that inverts correctly on a dark ground — the same tokens the `primary` button names. Dimming is `opacity-60` and deliberately **not** `text-text-label`: that token and `--text-secondary` are both `#6e5a48` in light mode, so a label-coloured segment would render identically to an undimmed one and the de-emphasis would be deleted invisibly.
 
-The mobile list mirrors the forced-choice card exactly — a 1px `rounded-sharp` border per row, `--rule-strong` when chosen, `--border-secondary` with the same opacity and hover treatment otherwise — because those rows have borders to carry state and the bar does not.
+The mobile list mirrors the forced-choice card — a 1px `rounded-sharp` border per row, `--rule-strong` when chosen, `--border-secondary` with the same opacity and hover treatment otherwise — because those rows have borders to carry state and the bar does not. It mirrors it on every property but one: these rows carry `opacity-60` on a bare `transition-colors`, which does not cover opacity, so their dim snaps back where the choice card's eases. That is the shipped state, not the intent.
 
 **A segment shows only the option's label.** The full detail sentence from the question bank appears below the bar once a value is chosen, in `body-s`, over a `border-t` rule rather than on a third surface. Until then the slot holds a `label` reading "Select to see full description". The slot is `aria-live="polite"`, so the detail is announced rather than silently swapped under a screen reader.
 
@@ -697,11 +697,11 @@ Two sibling entry screens share the centred shape without the card, both capped 
 
 ### Quiz Rules
 
-- **State is a border tone, an opacity, or the ink fill — never a new background.** The quiz has already spent both of its surface switches; a third fill is a surface the page does not have.
+- **A *selection* state is a border tone, an opacity, or the ink fill — never a new background.** Hover may take Surface 2; selection may not. The quiz has already spent both of its surface switches; a third fill is a surface the page does not have.
 - **A selection never changes a border's width.** 1px in every state, so a choice cannot reflow the pair under the pointer that made it.
 - **The forward action is the ink `primary` at every step.** Begin, Next, Continue, Confirm budget. That is the rule, and the count of filled buttons on the site is not one (spec decision D1).
 - **A bound is `aria-disabled`, not `disabled`.** A control that leaves the tab order takes the respondent's focus with it.
-- **Mono is the instruction layer; the questions are not.** Prompts, phase labels and the selected marker take a `label` role; question stems and option headlines take `display-s`.
+- **Mono is the instruction layer; the questions are not.** Prompts, phase labels and the selected marker take a `label` role; question stems and option headlines take `display-s`. The budget's instruction line is the deliberate exception: at 85 characters it wraps to two all-caps lines at every width in the `label` role, and it sat in the identical role, size and colour directly above `Points remaining`. It takes sans instead.
 - **A ring on a wrapper names the child it belongs to.** `focus-ring-child` is scoped to a direct `button` child because these cards contain other focusable things.
 
 ---
