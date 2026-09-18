@@ -309,12 +309,17 @@ export function classNameTokenLists(text: string): string[][] {
  * last-one-wins environment would read the desktop branch against the mobile
  * base.
  *
- * Two deliberate false negatives, both in the direction this file already
- * prefers — a missed pair costs a guard one catch, an invented pair gets the
- * guard deleted. An object or array initialiser is never bound: `Button`'s
- * `VARIANTS` holds three mutually-exclusive variants, and binding it would land
- * all three on one element at once. And an unbound name contributes the empty
- * string, so a list assembled through a lookup is read without it.
+ * An object or array initialiser contributes ONE WORLD PER ENTRY rather than
+ * one unit holding all of them. `Button`'s `VARIANTS` holds three
+ * mutually-exclusive variants, and joining them invents an element carrying a
+ * hover from one variant beside a fill from another — the false positive this
+ * file prefers a missed pair to. Per entry, a lookup through the name
+ * (`${BASE} ${VARIANTS[variant]}`) still resolves: to three class lists, each
+ * carrying the shared base.
+ *
+ * The residual false negative is the unbound name — an identifier with no
+ * binding in scope contributes the empty string, so a list assembled from a
+ * value this scan cannot follow is read without that part.
  */
 export function classStringUnits(text: string): { classes: string; at: number }[] {
   const units: { classes: string; at: number }[] = [];
@@ -340,12 +345,19 @@ export function classStringUnits(text: string): { classes: string; at: number }[
     }
 
     const declaration = DECLARATION.exec(statement.text);
-    const worlds = classStrings(declaration ? declaration[2] : statement.text, scope);
+    const initialiser = declaration ? declaration[2] : statement.text;
+    // A collection's entries are ALTERNATIVES, not neighbours: `Button`'s three
+    // variants are one element's three possible class lists, and reading them
+    // as one unit reports a hover over a colour from a different variant. One
+    // world per entry keeps them apart — and keeps them usable, so a
+    // `${BASE} ${VARIANTS[variant]}` elsewhere resolves to three class lists
+    // that each carry the shared base.
+    const collection = /^\s*[{[]/.test(initialiser);
+    const worlds = collection
+      ? collectionEntries(initialiser).flatMap((entry) => classStrings(entry, scope))
+      : classStrings(initialiser, scope);
     for (const classes of worlds) units.push({ classes, at: statement.at });
-    // Read as a unit, but bound only if it is not an object or array: see above.
-    if (declaration && !/^\s*[{[]/.test(declaration[2])) {
-      bindings.push({ name: declaration[1], worlds, at: statement.at });
-    }
+    if (declaration) bindings.push({ name: declaration[1], worlds, at: statement.at });
   }
   return units;
 }
@@ -355,6 +367,41 @@ export function classStringUnits(text: string): { classes: string; at: number }[
  *  as the assignment. */
 const DECLARATION =
   /^\s*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=(?![=>])([\s\S]*)$/;
+
+/**
+ * The entries of an object or array initialiser, split at its own commas.
+ *
+ * The ENTRY, not the literal. `Button`'s `secondary` is two adjacent string
+ * literals joined by `+` across two lines, and splitting per literal would put
+ * that one variant's `hover:` half on a different element from its base half.
+ * Nested brackets and literals are skipped, so a comma inside one is not a
+ * separator.
+ */
+function collectionEntries(text: string): string[] {
+  const open = text.search(/[{[]/);
+  if (open === -1) return [];
+  const body = text.slice(open + 1, Math.max(open + 1, skipBraced(text, open) - 1));
+  const out: string[] = [];
+  let depth = 0;
+  let start = 0;
+  let i = 0;
+  while (i < body.length) {
+    const ch = body[i];
+    if (ch === '"' || ch === "'" || ch === "`") {
+      i = skipLiteral(body, i);
+      continue;
+    }
+    if (ch === "(" || ch === "[" || ch === "{") depth += 1;
+    else if (ch === ")" || ch === "]" || ch === "}") depth -= 1;
+    else if (ch === "," && depth === 0) {
+      out.push(body.slice(start, i));
+      start = i + 1;
+    }
+    i += 1;
+  }
+  out.push(body.slice(start));
+  return out;
+}
 
 /** Statements, split on the semicolons that are not inside a literal. */
 function statements(text: string): { text: string; at: number }[] {

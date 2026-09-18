@@ -970,10 +970,27 @@ function variantsOf(token: string): string[] {
   return prefix ? prefix.slice(0, -1).split(":") : [];
 }
 
-/** An opacity the element takes on in one of its own states. */
+/**
+ * An opacity the element takes on in one of its own states.
+ *
+ * A VARIANT is the obvious spelling and not the only one. The scaled card's
+ * mobile rows carry a bare `opacity-60` that exists only in the `hasSelection`
+ * branch — the same element renders without it in the other two — so the dim
+ * arrives on selection and would snap there just as it snapped on hover. A
+ * rule that required a variant saw the hover half of #163 and not that half.
+ *
+ * `opacity-100` is excluded because it is the undimmed value: it is what a
+ * hover restores, not a state the element dims into.
+ *
+ * Measured against the whole tree, reading a bare `opacity-*` as a state adds
+ * no site that does not already name opacity in its transition list.
+ */
 function isStateOpacity(token: string): boolean {
-  if (!utilityOf(token).startsWith("opacity-")) return false;
-  return variantsOf(token).some((variant) => !STATIC_VARIANT.test(variant));
+  const utility = utilityOf(token);
+  if (!utility.startsWith("opacity-") || utility === "opacity-100") return false;
+  const variants = variantsOf(token);
+  // A viewport or mode variant alone is not a state: nothing eases across it.
+  return variants.length === 0 || variants.some((variant) => !STATIC_VARIANT.test(variant));
 }
 
 const TRANSITION = /^transition(?:-|$)/;
@@ -1029,10 +1046,23 @@ describe("motion names every property it animates (#163)", () => {
     // does not claim to catch it.
     const offenders = scanned.flatMap(({ file, text, units }) =>
       units
-        .filter(({ tokens }) => tokens.some(isStateOpacity))
-        .map(({ at, tokens }) => ({ at, omitted: transitionsOn(tokens).filter(omitsOpacity) }))
-        .filter(({ omitted }) => omitted.length > 0)
-        .map(({ at, omitted }) => `${file}:${lineOf(text, at)} ${omitted.join(" ")}`),
+        .map(({ at, tokens }) => ({
+          at,
+          dim: tokens.find(isStateOpacity),
+          omitted: transitionsOn(tokens).filter(omitsOpacity),
+        }))
+        .filter(({ dim, omitted }) => dim && omitted.length > 0)
+        .map(({ at, dim, omitted }) => {
+          // The line of the DIM, not of the statement that resolved to this
+          // unit. A unit begins just past the previous `;`, which for a class
+          // builder is the line above the branch — a message pointing at the
+          // wrong line is the kind a reader stops trusting. The transition
+          // itself usually lives further up still, in the shared `base`, so
+          // the message names it rather than pointing at it.
+          const dimAt = text.indexOf(dim!, at);
+          const line = lineOf(text, dimAt === -1 ? at : dimAt);
+          return `${file}:${line} ${dim} under ${omitted.join(" ")}`;
+        }),
     );
 
     expect(offenders).toEqual([]);
@@ -1040,24 +1070,28 @@ describe("motion names every property it animates (#163)", () => {
 
   it("reads the class lists that are assembled rather than written", () => {
     // The anti-vacuity anchor. The case above passes trivially if the scan
-    // finds nothing, and it has a specific way to find nothing: four of these
-    // six files build their class lists in a function and hand the element a
-    // call, so a scan that reads `className` alone reports zero units for
-    // exactly the files where #163 lived. Pinned as the file set rather than a
-    // count, so a file that drops out of the scan is named.
+    // finds nothing, and it has a specific way to find nothing: these four
+    // files build their class lists in a function and hand the element a call,
+    // so a scan that reads `className` alone reports zero units for exactly
+    // the files where #163 lived.
+    //
+    // A SUBSET, not the tree's full list. Pinned as an equality, a new and
+    // perfectly correct `hover:opacity-80` anywhere under `src/` would red
+    // this with a diff that says nothing about what is wrong — a guard that
+    // reddens on correct code gets deleted, and the claim here is about these
+    // four files only.
     const carriers = scanned
       .filter(({ units }) => units.some(({ tokens }) => tokens.some(isStateOpacity)))
-      .map(({ file }) => file)
-      .sort();
+      .map(({ file }) => file);
 
-    expect(carriers).toEqual([
-      "src/app/axes/page.tsx",
-      "src/app/questions/page.tsx",
-      "src/components/Button.tsx",
-      "src/components/NavBar.tsx",
-      "src/components/quiz/ForcedChoiceCard.tsx",
-      "src/components/quiz/ScaledQuestionCard.tsx",
-    ]);
+    expect(carriers.sort()).toEqual(
+      expect.arrayContaining([
+        "src/components/Button.tsx",
+        "src/components/NavBar.tsx",
+        "src/components/quiz/ForcedChoiceCard.tsx",
+        "src/components/quiz/ScaledQuestionCard.tsx",
+      ]),
+    );
   });
 
   it("reads a base const together with the branch that spreads it", () => {
