@@ -284,10 +284,114 @@ export function classNameTokenLists(text: string): string[][] {
   return lists;
 }
 
+/**
+ * Class strings that can land on one element AT ONCE, across a whole file —
+ * including the ones no `className` attribute spells out.
+ *
+ * `classNameTokenLists` reads `className` only, and every state-branching class
+ * builder in `src/` is written as a `base` const plus one return per state
+ * (`ForcedChoiceCard`, `ScaledQuestionCard`, `NavBar`, `Button`). Those reach
+ * the element through a call — `className={mobileButtonClasses(v)}` — so a
+ * `className` scan finds an unresolvable expression and reports NOTHING for the
+ * files where a base and its branches most need reading together. That is how
+ * #163 survived: the base named `transition-colors`, a branch sixteen lines
+ * later named `hover:opacity-100`, and no guard could see a list holding both.
+ *
+ * The unit is the semicolon-delimited statement, with one exception: a
+ * statement carrying a `className` is read per attribute instead, because a
+ * component's whole JSX tree is one `return (…);` and reading that as one unit
+ * would merge every element in the subtree onto one imaginary element.
+ *
+ * Identifiers resolve to the NEAREST PRECEDING binding. That is not lexical
+ * scope, but it agrees with it wherever a name is bound before it is used, and
+ * `ScaledQuestionCard` is the file that needs it: its two class builders each
+ * declare their own `base` with a different transition list, and a
+ * last-one-wins environment would read the desktop branch against the mobile
+ * base.
+ *
+ * Two deliberate false negatives, both in the direction this file already
+ * prefers — a missed pair costs a guard one catch, an invented pair gets the
+ * guard deleted. An object or array initialiser is never bound: `Button`'s
+ * `VARIANTS` holds three mutually-exclusive variants, and binding it would land
+ * all three on one element at once. And an unbound name contributes the empty
+ * string, so a list assembled through a lookup is read without it.
+ */
+export function classStringUnits(text: string): { classes: string; at: number }[] {
+  const units: { classes: string; at: number }[] = [];
+  const bindings: { name: string; worlds: string[]; at: number }[] = [];
+
+  for (const statement of statements(text)) {
+    const scope: ClassEnv = {};
+    for (const binding of bindings) {
+      if (binding.at < statement.at) scope[binding.name] = binding.worlds;
+    }
+
+    if (statement.text.includes("className=")) {
+      for (
+        let at = statement.text.indexOf("className=");
+        at !== -1;
+        at = statement.text.indexOf("className=", at + 1)
+      ) {
+        for (const classes of classNameWorlds(statement.text.slice(at), scope)) {
+          units.push({ classes, at: statement.at + at });
+        }
+      }
+      continue;
+    }
+
+    const declaration = DECLARATION.exec(statement.text);
+    const worlds = classStrings(declaration ? declaration[2] : statement.text, scope);
+    for (const classes of worlds) units.push({ classes, at: statement.at });
+    // Read as a unit, but bound only if it is not an object or array: see above.
+    if (declaration && !/^\s*[{[]/.test(declaration[2])) {
+      bindings.push({ name: declaration[1], worlds, at: statement.at });
+    }
+  }
+  return units;
+}
+
+/** A `const`/`let`/`var` declaration, split into its name and its initialiser.
+ *  `=(?![=>])` so an `==` or an arrow inside a type annotation cannot be read
+ *  as the assignment. */
+const DECLARATION =
+  /^\s*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=(?![=>])([\s\S]*)$/;
+
+/** Statements, split on the semicolons that are not inside a literal. */
+function statements(text: string): { text: string; at: number }[] {
+  const out: { text: string; at: number }[] = [];
+  let start = 0;
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '"' || ch === "'" || ch === "`") {
+      i = skipLiteral(text, i);
+      continue;
+    }
+    if (ch === ";") {
+      out.push({ text: text.slice(start, i), at: start });
+      start = i + 1;
+    }
+    i += 1;
+  }
+  out.push({ text: text.slice(start), at: start });
+  return out;
+}
+
 const tokensOf = (value: string): string[] => value.split(/\s+/).filter(Boolean);
 
+/**
+ * Class strings already bound to a name, so an operand that is only an
+ * identifier can contribute the tokens it stands for.
+ *
+ * Empty for every caller that scans a `className` alone, which is why
+ * threading it through changes nothing for them: with no binding in scope the
+ * identifier branch in `classStrings` only advances the cursor past a name it
+ * was already walking one character at a time.
+ */
+export type ClassEnv = Record<string, string[]>;
+
 /** Class-string candidates for the FIRST `className` in `text`, one per branch. */
-function classNameWorlds(text: string): string[] {
+function classNameWorlds(text: string, env: ClassEnv = {}): string[] {
   const at = text.indexOf("className=");
   if (at === -1) return [];
   const start = at + "className=".length;
@@ -296,7 +400,7 @@ function classNameWorlds(text: string): string[] {
     return [text.slice(start + 1, end === -1 ? undefined : end)];
   }
   if (text[start] !== "{") return [];
-  return classStrings(text.slice(start + 1, Math.max(start + 1, skipBraced(text, start) - 1)));
+  return classStrings(text.slice(start + 1, Math.max(start + 1, skipBraced(text, start) - 1)), env);
 }
 
 /** Cap on branch combinations per className, past which branches are dropped. */
@@ -321,10 +425,10 @@ const MAX_WORLDS = 32;
  * `` `text-${size}` `` reads as `text-` and `` `focus-ring${dynamic}` `` reads
  * as `focus-ring`. Resolving that needs evaluation, not scanning.
  */
-function classStrings(expression: string): string[] {
+function classStrings(expression: string, env: ClassEnv = {}): string[] {
   const ternary = splitTernary(expression);
   if (ternary) {
-    return [...classStrings(ternary[0]), ...classStrings(ternary[1])];
+    return [...classStrings(ternary[0], env), ...classStrings(ternary[1], env)];
   }
 
   let worlds = [""];
@@ -344,8 +448,20 @@ function classStrings(expression: string): string[] {
     }
     if (ch === "`") {
       const end = skipLiteral(expression, i);
-      separate(templateStrings(expression.slice(i, end)));
+      separate(templateStrings(expression.slice(i, end), env));
       i = end;
+      continue;
+    }
+    // A bare identifier stands for the classes it was bound to. `${base} …` is
+    // how every state-branching class builder in `src/` is written, and a scan
+    // that reads only the literals sees a branch's own tokens without the
+    // shared base they land beside. `Object.hasOwn`, not a truthiness test: a
+    // variable named `constructor` would otherwise resolve to
+    // `Object.prototype`'s member and be spread as if it were a class list.
+    if (/[A-Za-z_$]/.test(ch)) {
+      const name = /^[\w$]+/.exec(expression.slice(i))![0];
+      if (Object.hasOwn(env, name)) separate(env[name]);
+      i += name.length;
       continue;
     }
     i += 1;
@@ -354,7 +470,7 @@ function classStrings(expression: string): string[] {
 }
 
 /** Class strings a template literal can produce. Its pieces are ADJACENT. */
-function templateStrings(template: string): string[] {
+function templateStrings(template: string, env: ClassEnv = {}): string[] {
   let worlds = [""];
   const adjacent = (pieces: string[]) => {
     worlds = combine(worlds, pieces, (a, b) => a + b);
@@ -374,7 +490,7 @@ function templateStrings(template: string): string[] {
       adjacent([cooked]);
       cooked = "";
       const end = skipBraced(template, i + 1);
-      const inner = classStrings(template.slice(i + 2, Math.max(i + 2, end - 1)));
+      const inner = classStrings(template.slice(i + 2, Math.max(i + 2, end - 1)), env);
       adjacent(inner.length ? inner : [""]);
       i = end;
       continue;

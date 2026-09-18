@@ -648,6 +648,35 @@ describe("ScaledQuestionCard", () => {
     expect(classes(buttons[0])).toContain("opacity-60");
   });
 
+  // #163. The mobile branch carried `transition-colors` while the desktop one
+  // named opacity explicitly, so below 560px the dim SNAPPED back to full
+  // while the border eased over the same 150ms — on every scaled question.
+  // Tailwind's colour set is color/background-color/border-color/fill/stroke
+  // and excludes opacity; the file's own comment says so, and it had been
+  // applied to one of the two branches.
+  //
+  // `color` stays in the list: the mobile rows do change text tone between
+  // states (`text-text-primary` when chosen, `text-text-secondary` when not),
+  // so dropping to the choice card's `[border-color,opacity]` would trade this
+  // snap for a different one.
+  it("eases the mobile rows' dim instead of snapping it", () => {
+    const container = renderScale(2);
+    const mobile = container.querySelector("[data-scale-list]")!;
+
+    for (const button of mobile.querySelectorAll("button")) {
+      const tokens = classes(button);
+      expect(tokens).toContain("transition-[color,border-color,opacity]");
+      expect(tokens).not.toContain("transition-colors");
+    }
+    // The desktop branch animates a fill rather than a border, so its list is
+    // its own — pinned here so a well-meant unification onto one shared base
+    // has to be a deliberate edit rather than a quiet one.
+    const desktop = container.querySelector("[data-scale-segments]")!;
+    for (const button of desktop.querySelectorAll("button")) {
+      expect(classes(button)).toContain("transition-[color,background-color,opacity]");
+    }
+  });
+
   // Not in the plan. Added after a mutation sweep found that swapping the two
   // wrappers' visibility classes, showing both at once, or hiding both, all
   // left the whole suite green. jsdom evaluates no media query, so the class

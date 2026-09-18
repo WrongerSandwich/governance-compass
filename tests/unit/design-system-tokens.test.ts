@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { getDomainMarkVar } from "@/lib/design-tokens";
 import {
   classNameTokenLists,
+  classStringUnits,
   cssBlock,
   cssUtilities,
   sourceFiles,
@@ -938,5 +939,137 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     });
 
     expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * Variants that switch with the viewport or the colour scheme rather than with
+ * the element's own state. Nothing eases across them — the change happens
+ * between renders, not under the pointer — so an opacity that varies only by
+ * one of these is not a transition question.
+ */
+const STATIC_VARIANT = /^(?:sm|md|lg|xl|2xl|dark|print|(?:min|max)-\[[^\]]*\])$/;
+
+/** A class token's utility, with its variants stripped. A colon inside an
+ *  arbitrary value (`bg-[url(a:b)]`) is not a variant separator. */
+function utilityOf(token: string): string {
+  let depth = 0;
+  let last = -1;
+  for (let i = 0; i < token.length; i += 1) {
+    const ch = token[i];
+    if (ch === "[" || ch === "(") depth += 1;
+    else if (ch === "]" || ch === ")") depth -= 1;
+    else if (ch === ":" && depth === 0) last = i;
+  }
+  return token.slice(last + 1);
+}
+
+/** The variants on a class token, outermost first. */
+function variantsOf(token: string): string[] {
+  const prefix = token.slice(0, token.length - utilityOf(token).length);
+  return prefix ? prefix.slice(0, -1).split(":") : [];
+}
+
+/** An opacity the element takes on in one of its own states. */
+function isStateOpacity(token: string): boolean {
+  if (!utilityOf(token).startsWith("opacity-")) return false;
+  return variantsOf(token).some((variant) => !STATIC_VARIANT.test(variant));
+}
+
+const TRANSITION = /^transition(?:-|$)/;
+
+/**
+ * Whether a transition utility leaves opacity out of what it eases.
+ *
+ * `transition-none` is not an omission — it eases nothing, so nothing can fall
+ * out of step with anything. The bare `transition` and `transition-all` both
+ * carry opacity in Tailwind's list.
+ */
+function omitsOpacity(token: string): boolean {
+  const utility = utilityOf(token);
+  if (utility === "transition-none") return false;
+  if (utility === "transition" || utility === "transition-all") return false;
+  const arbitrary = /^transition-\[(.*)\]$/.exec(utility);
+  if (arbitrary) return !arbitrary[1].split(",").includes("opacity");
+  return utility !== "transition-opacity";
+}
+
+describe("motion names every property it animates (#163)", () => {
+  const scanned = sourceFiles(resolve(process.cwd(), "src"), [".tsx"]).map((file) => {
+    const text = stripComments(readFileSync(file, "utf8"));
+    return {
+      file: relative(process.cwd(), file),
+      text,
+      units: classStringUnits(text).map(({ classes, at }) => ({
+        at,
+        tokens: classes.split(/\s+/).filter(Boolean),
+      })),
+    };
+  });
+
+  /** The transition utilities on one element, whatever variants they carry. */
+  const transitionsOn = (tokens: string[]) =>
+    tokens.filter((token) => TRANSITION.test(utilityOf(token)));
+
+  it("eases opacity wherever it eases anything beside it", () => {
+    // Tailwind's `transition-colors` covers color, background-color,
+    // border-color, fill and stroke — and NOT opacity. Pair it with a
+    // `hover:opacity-100` and the dim snaps back the instant the pointer lands
+    // while everything else on the element eases over 150ms. That is what #163
+    // found below 560px on every scaled question, in a file whose OTHER branch
+    // had already been fixed for it and carried the comment explaining why.
+    //
+    // An element with no transition at all is not an offender: nothing eases,
+    // so nothing can fall out of step. The defect is a list that eases some of
+    // what a state changes and not the rest.
+    //
+    // Scoped to opacity rather than to every animatable property, because
+    // opacity is the one Tailwind's named set silently omits. A `transform`
+    // under `transition-colors` is the same class of mistake, and this guard
+    // does not claim to catch it.
+    const offenders = scanned.flatMap(({ file, text, units }) =>
+      units
+        .filter(({ tokens }) => tokens.some(isStateOpacity))
+        .map(({ at, tokens }) => ({ at, omitted: transitionsOn(tokens).filter(omitsOpacity) }))
+        .filter(({ omitted }) => omitted.length > 0)
+        .map(({ at, omitted }) => `${file}:${lineOf(text, at)} ${omitted.join(" ")}`),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("reads the class lists that are assembled rather than written", () => {
+    // The anti-vacuity anchor. The case above passes trivially if the scan
+    // finds nothing, and it has a specific way to find nothing: four of these
+    // six files build their class lists in a function and hand the element a
+    // call, so a scan that reads `className` alone reports zero units for
+    // exactly the files where #163 lived. Pinned as the file set rather than a
+    // count, so a file that drops out of the scan is named.
+    const carriers = scanned
+      .filter(({ units }) => units.some(({ tokens }) => tokens.some(isStateOpacity)))
+      .map(({ file }) => file)
+      .sort();
+
+    expect(carriers).toEqual([
+      "src/app/axes/page.tsx",
+      "src/app/questions/page.tsx",
+      "src/components/Button.tsx",
+      "src/components/NavBar.tsx",
+      "src/components/quiz/ForcedChoiceCard.tsx",
+      "src/components/quiz/ScaledQuestionCard.tsx",
+    ]);
+  });
+
+  it("reads a base const together with the branch that spreads it", () => {
+    // The resolution the guard rests on, pinned on its own. `ForcedChoiceCard`
+    // names its transition in a `base` const and its opacity sixteen lines
+    // later in a branch; the unit that matters is the one holding both.
+    const card = scanned.find(({ file }) => file.endsWith("ForcedChoiceCard.tsx"))!;
+    const dimmed = card.units.filter(({ tokens }) => tokens.includes("hover:opacity-100"));
+
+    expect(dimmed).not.toHaveLength(0);
+    for (const unit of dimmed) {
+      expect(unit.tokens).toContain("transition-[border-color,opacity]");
+    }
   });
 });
