@@ -716,6 +716,62 @@ describe("the spec's token blocks describe tokens that exist", () => {
   });
 });
 
+/** An arbitrary-value transition list, e.g. `transition-[border-color,opacity]`.
+ *  The bare named utilities are deliberately out of it: `transition-colors`
+ *  appears in the spec as the thing NOT to reach for, and matching it would
+ *  make the two sides disagree by construction. */
+const TRANSITION_LIST = /transition-\[[a-z,-]+\]/g;
+
+describe("the spec's transition lists match the ones that ship (#163)", () => {
+  // Every arbitrary transition list in `src/`, and every one the spec names.
+  // Compared BOTH WAYS on purpose: the spec described the scaled card's mobile
+  // rows as snapping "still shipping" for exactly as long as they did, so the
+  // direction that matters most is spec → source. A correction that lands in
+  // the code and not in the prose leaves the document prescribing the defect,
+  // and the document reads as authoritative either way.
+  const shipped = new Set(
+    sourceFiles(resolve(process.cwd(), "src"), [".tsx"]).flatMap(
+      (file) => stripComments(readFileSync(file, "utf8")).match(TRANSITION_LIST) ?? [],
+    ),
+  );
+  const documented = new Set(designSpec.match(TRANSITION_LIST) ?? []);
+
+  it("names, in the spec, every property list the code animates", () => {
+    expect([...shipped].sort()).toEqual([...documented].sort());
+  });
+
+  it("is not vacuous — there are lists on both sides to compare", () => {
+    // Both sets come from one regex over two texts, so an edit that breaks the
+    // pattern empties both and the equality above passes on nothing. Three
+    // lists ship today: the choice card's, the one `Button` shares with the
+    // segmented bar, and the mobile rows'.
+    expect(shipped.size).toBe(3);
+    expect(documented.size).toBe(3);
+  });
+
+  it("attributes the mobile rows' list to the mobile rows", () => {
+    // Set equality alone stays green with all three lists named in one
+    // sentence about the wrong component. The claim is that the spec says
+    // WHICH element carries the list #163 added.
+    present(
+      designSpec,
+      sameLine("mobile", esc("transition-[color,border-color,opacity]")),
+      "no line in the spec attributes the mobile option rows' transition list to them",
+    );
+  });
+
+  it("no longer describes that snap as shipping", () => {
+    // Both sentences that documented the defect are rewritten to the past
+    // tense. Present tense beside a corrected implementation is the drift this
+    // file exists to catch.
+    absent(
+      designSpec,
+      /(?:still shipping|not the intent)/,
+      "the spec still describes the scaled card's dim as snapping in the shipped build",
+    );
+  });
+});
+
 describe("--text-tertiary is retired (phase 5b deferral)", () => {
   it("declares no --text-tertiary in any layer of the sheet", () => {
     // Three declarations to remove: :root, the dark override, and the

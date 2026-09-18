@@ -89,9 +89,17 @@ export function ScaledQuestionCard({
     const isSelected = selectedValue === value;
     const hasSelection = selectedValue !== undefined;
 
-    // The mobile rows do have borders, so they mirror the choice card exactly.
+    // The mobile rows do have borders, so they mirror the choice card's border
+    // states — but not its transition list: these rows also change text tone
+    // between states, which the choice card does not.
+    //
+    // Opacity is named here for the same reason it is named above.
+    // `transition-colors` covers color/background-color/border-color/fill/
+    // stroke and NOT opacity, so the shipped spelling eased this row's border
+    // over 150ms while `hover:opacity-100` snapped the dim back instantly —
+    // on every scaled question below 560px (#163).
     const base =
-      "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-ring";
+      "flex w-full items-center rounded-sharp border px-4 py-3 text-[13px] font-medium transition-[color,border-color,opacity] duration-150 cursor-pointer focus-ring";
 
     if (isSelected) {
       return `${base} border-rule-strong bg-surface-1 text-text-primary`;
