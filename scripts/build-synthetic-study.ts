@@ -24,7 +24,10 @@ import {
   isAxisScoreOutOfBounds,
   findMissingClusterRows,
 } from "./lib/integrity";
-import { selectHomeSamplePair } from "./lib/home-sample";
+import {
+  selectHomeSamplePair,
+  selectHomeSampleTension,
+} from "./lib/home-sample";
 import {
   computeEuclideanDistance,
   computeHistogram,
@@ -825,21 +828,15 @@ function main() {
   // 12b. Home page illustrative pair (design delta, phase 2)
   // --------------------------------------------------------------------------
   const homePair = selectHomeSamplePair(personasSlim);
-  const tensionsFor = (id: string) =>
-    profiles
-      .filter((p) => p.persona_id === id)
-      .flatMap((p) => p.tensions ?? [])
-      .filter((t) => t.level === "strong")
-      // Magnitudes cluster tightly (some differ in the fourth decimal), so the
-      // axis id tiebreak keeps the pick from riding on float noise.
-      .sort((x, y) => y.magnitude - x.magnitude || x.axis - y.axis);
-
-  const strongestTension =
-    tensionsFor(homePair.a.id)[0] ?? tensionsFor(homePair.b.id)[0] ?? null;
+  const strongestTension = selectHomeSampleTension(
+    profiles,
+    homePair.a.id,
+    homePair.b.id,
+  );
   if (!strongestTension) {
     console.error(
       `[BUILD FAIL] home sample: selected pair ${homePair.a.id}/${homePair.b.id} ` +
-        `has no strong tension to show`
+        `has no tension marked strong by every model administration`
     );
     process.exit(1);
   }
@@ -858,6 +855,7 @@ function main() {
     distance: homePair.distance,
     divergent_axis_ids: homePair.divergentAxisIds,
     tension_axis_id: strongestTension.axis,
+    tension_respondent: strongestTension.respondent,
   });
 
   console.log(

@@ -10,6 +10,8 @@
  * Deterministic: candidates are scanned in id order and ties break on id, so
  * a rebuild on unchanged data always yields the same pair.
  */
+import type { TensionLevel } from "../../src/lib/study/types";
+
 export interface SamplePersona {
   id: string;
   averaged_axis_scores: number[];
@@ -23,6 +25,21 @@ export interface HomeSamplePair {
   distance: number;
   /** 1-based axis ids that diverge by >= STRONG, widest gap first. */
   divergentAxisIds: number[];
+}
+
+export interface TensionProfile {
+  persona_id: string;
+  model: string;
+  tensions: readonly {
+    axis: number;
+    magnitude: number;
+    level: TensionLevel;
+  }[];
+}
+
+export interface HomeSampleTension {
+  axis: number;
+  respondent: "a" | "b";
 }
 
 const STRONG = 0.8;
@@ -86,4 +103,58 @@ export function selectHomeSamplePair(personas: SamplePersona[]): HomeSamplePair 
     );
   }
   return best;
+}
+
+function consensusTensions(
+  profiles: readonly TensionProfile[],
+  personaId: string,
+): { axis: number; meanMagnitude: number }[] {
+  const profilesByModel = new Map(
+    profiles
+      .filter((profile) => profile.persona_id === personaId)
+      .map((profile) => [profile.model, profile] as const),
+  );
+  const modelProfiles = [...profilesByModel.values()];
+  if (modelProfiles.length < 2) return [];
+
+  return modelProfiles[0].tensions
+    .filter((tension) => tension.level === "strong")
+    .flatMap((tension) => {
+      const magnitudes = modelProfiles.map(
+        (profile) =>
+          profile.tensions.find(
+            (candidate) =>
+              candidate.axis === tension.axis && candidate.level === "strong",
+          )?.magnitude,
+      );
+      const completeMagnitudes = magnitudes.filter(
+        (magnitude): magnitude is number => magnitude !== undefined,
+      );
+      if (completeMagnitudes.length !== modelProfiles.length) return [];
+
+      return [{
+        axis: tension.axis,
+        meanMagnitude:
+          completeMagnitudes.reduce((sum, magnitude) => sum + magnitude, 0) /
+          completeMagnitudes.length,
+      }];
+    })
+    .sort(
+      (x, y) => y.meanMagnitude - x.meanMagnitude || x.axis - y.axis,
+    );
+}
+
+export function selectHomeSampleTension(
+  profiles: readonly TensionProfile[],
+  respondentAId: string,
+  respondentBId: string,
+): HomeSampleTension | null {
+  for (const [personaId, respondent] of [
+    [respondentAId, "a"],
+    [respondentBId, "b"],
+  ] as const) {
+    const strongest = consensusTensions(profiles, personaId)[0];
+    if (strongest) return { axis: strongest.axis, respondent };
+  }
+  return null;
 }
