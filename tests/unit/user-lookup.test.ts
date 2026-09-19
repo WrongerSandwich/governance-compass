@@ -4,10 +4,6 @@ const findUnique = vi.fn();
 
 vi.mock("@/lib/db", () => ({ db: { user: { findUnique: (args: unknown) => findUnique(args) } } }));
 
-// `pool: "vmForks"` shares one module registry per worker, so a file that ran
-// earlier can leave `@/lib/user-lookup` bound to *its* `@/lib/db` mock. Reset
-// so the import below picks up the mock registered in this file.
-vi.resetModules();
 const { findUserByEmail, normalizeEmail } = await import("@/lib/user-lookup");
 
 describe("normalizeEmail", () => {

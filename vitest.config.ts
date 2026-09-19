@@ -14,7 +14,9 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: [],
-    pool: "vmForks",
+    // Vitest 5 forces `isolate: false` for vmForks, which lets module mocks
+    // leak between files. The forks pool preserves file-level isolation.
+    pool: "forks",
     teardownTimeout: 5000,
     include: ["tests/**/*.test.ts", "scripts/__tests__/**/*.test.ts"],
     watch: false,

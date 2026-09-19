@@ -398,8 +398,7 @@ describe("ForcedChoiceCard", () => {
 describe("QuizFlow chrome", () => {
   // `vi.resetModules()` in the file-level afterEach clears the module cache but
   // NOT the mock registry — a `doMock` factory stays registered for the
-  // worker's lifetime, and `vmForks` shares one registry per worker. The
-  // describe that registers the mock is the one that has to retire it.
+  // rest of this file. The describe that registers the mock owns retiring it.
   afterEach(() => {
     vi.doUnmock("next/navigation");
   });

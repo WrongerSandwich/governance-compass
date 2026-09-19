@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { sourceFiles } from "../helpers/source-files";
@@ -28,20 +28,6 @@ vi.mock("@/lib/last-results", () => ({
 }));
 
 const { default: AccountPage } = await import("@/app/account/page");
-
-// `vmForks` (vitest.config.ts) shares one module registry per worker, and a
-// hoisted `vi.mock` stays registered for the worker's lifetime — not just
-// this file. AccountPage now renders through `@/components/Button`, which
-// itself imports `next/link`; without retiring these mocks, whichever test
-// file runs next in the same worker (e.g. button.test.ts) can receive this
-// file's stubbed `next/link` — one that drops `className` — instead of the
-// real module. This file registered the mocks, so it owns unregistering them.
-afterAll(() => {
-  vi.doUnmock("next-auth/react");
-  vi.doUnmock("next/navigation");
-  vi.doUnmock("next/link");
-  vi.doUnmock("@/lib/last-results");
-});
 
 const views: { root: Root; container: HTMLDivElement }[] = [];
 
@@ -98,10 +84,6 @@ afterEach(() => {
     view.container.remove();
   }
   vi.unstubAllGlobals();
-  // A fresh module graph for whatever imports next, so the eventual
-  // `doUnmock()` calls below actually take effect on re-import rather than
-  // handing back an already-cached module still bound to this file's mocks.
-  vi.resetModules();
 });
 
 async function settle() {
