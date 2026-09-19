@@ -45,12 +45,13 @@ export function buttonClasses(variant: ButtonVariant): string {
 /**
  * Compose variant classes with caller classes.
  *
- * `className` is appended, but appending does NOT make it win — Tailwind's
- * emitted order decides, and the variant utilities land later in the sheet
- * than common ones like `block` or `px-6`. So `className` is only for
- * properties no variant sets: margin, width, position. Anything touching
- * display, padding, or colour needs a variant, not a class. `w-full` is
- * verified conflict-free and is how a caller goes full-width.
+ * `className` is appended, but authoring order does not decide which utility
+ * wins. Tailwind orders utilities by property bucket, then by class name within
+ * that bucket, so a caller may override one variant value and lose to another.
+ * `className` is therefore only for properties no variant sets: margin, width,
+ * and position. Anything touching display, padding, or colour needs a variant,
+ * not a class. `w-full` is verified conflict-free and is how a caller goes
+ * full-width.
  */
 function withVariant(variant: ButtonVariant, className?: string): string {
   return `${buttonClasses(variant)}${className ? ` ${className}` : ""}`;
