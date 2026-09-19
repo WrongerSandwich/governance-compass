@@ -173,9 +173,8 @@ export function CompassPlot({ economic, cultural, primaryArchetypeId }: CompassP
             data-compass-contour
             d={d}
             fill="none"
-            style={{ stroke: 'var(--stone-500)' }}
+            style={{ stroke: 'var(--stone-500)', opacity: 'var(--contour-opacity)' }}
             strokeWidth={0.6}
-            opacity={0.15}
           />
         ))}
 

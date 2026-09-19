@@ -1072,6 +1072,16 @@ describe("CompassPlot", () => {
     expect(container.querySelectorAll("[data-compass-archetype] text")).toHaveLength(12);
   });
 
+  it("steps contour opacity through the theme token", () => {
+    const container = render(createElement(CompassPlot, PLOT));
+    const contours = container.querySelectorAll<SVGPathElement>("[data-compass-contour]");
+
+    expect(contours).toHaveLength(4);
+    for (const contour of contours) {
+      expect(contour.style.opacity).toBe("var(--contour-opacity)");
+    }
+  });
+
   it("drops the decoration the mock is right to cut", () => {
     const container = render(createElement(CompassPlot, PLOT));
     const svg = container.querySelector("svg")!;
