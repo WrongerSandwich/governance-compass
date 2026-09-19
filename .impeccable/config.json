@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "tests/unit/quiz-chrome.test.ts"
+        ],
+        "createdAt": "2026-09-19T13:18:33.463Z",
+        "reason": "Pre-existing test fixture pins an intentional warning alert border; git blame 70a417c predates issue #158."
+      }
+    ]
+  }
+}
