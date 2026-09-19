@@ -77,10 +77,9 @@ class NoopIntersectionObserver {
  * children mounted and merely never flips the wrapper to `opacity: 1`, which
  * no assertion in this repo reads.
  *
- * A plain assignment rather than `vi.stubGlobal`: under `vmForks` each test
- * file gets its own VM context, so this cannot leak into the file that runs
- * next the way a module mock does — but it is an explicit call rather than an
- * import side effect, so a reader can see where it happens.
+ * A plain assignment is safe because every test file runs in an isolated
+ * worker. The explicit call rather than an import side effect also makes it
+ * clear which suites install the stub.
  */
 export function installIntersectionObserverStub(): void {
   globalThis.IntersectionObserver =

@@ -17,10 +17,6 @@ vi.mock("bcryptjs", () => ({
   default: { hash: async (password: string) => `hashed:${password}` },
 }));
 
-// See tests/unit/user-lookup.test.ts: `pool: "vmForks"` shares a module
-// registry per worker, so reset before importing modules that close over the
-// `@/lib/db` mock registered above.
-vi.resetModules();
 const { POST } = await import("@/app/api/auth/signup/route");
 
 function post(body: unknown, ip?: string) {

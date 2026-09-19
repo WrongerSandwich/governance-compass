@@ -1263,8 +1263,7 @@ describe("ResultsView", () => {
 
   /** `CompareInput` calls `useRouter`, which throws outright with no
    *  `AppRouterContext` above it. The context is supplied rather than mocked:
-   *  this suite runs on `vmForks`, where a `vi.mock` of a module as widely
-   *  imported as `next/navigation` leaks into whichever file runs next. */
+   *  this keeps the real `next/navigation` integration in the render. */
   function renderView(props: ResultsViewProps = PROPS) {
     return render(
       createElement(

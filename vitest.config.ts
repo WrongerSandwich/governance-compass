@@ -14,7 +14,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: [],
-    pool: "vmForks",
+    pool: "forks",
     teardownTimeout: 5000,
     include: ["tests/**/*.test.ts", "scripts/__tests__/**/*.test.ts"],
     watch: false,

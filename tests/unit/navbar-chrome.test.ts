@@ -25,8 +25,6 @@ vi.mock("@/lib/last-results", () => ({
 const mounted: { container: HTMLDivElement; root: Root }[] = [];
 
 async function renderNav() {
-  // vmForks shares a module registry per worker, so reset before the dynamic
-  // import to keep these mocks from colliding with other specs.
   vi.resetModules();
   const { NavBar } = await import("@/components/NavBar");
   const container = document.createElement("div");
