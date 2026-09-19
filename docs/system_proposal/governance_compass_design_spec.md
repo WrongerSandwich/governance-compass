@@ -170,7 +170,7 @@ Dark mode is a single `prefers-color-scheme: dark` override on `:root` — the s
 - The primary button inverts rather than darkens, for the reason given above.
 - A data mark drawn through the tokens steps from its 600 tone to its 400: the 600 tones go muddy on a dark ground. This is the entire reason the `--domain-*` and `--mark-primary` tokens exist, and the frozen literals under *Known debt* are the marks that miss the step.
 - The rule pair swaps ends, preserving contrast intent rather than value.
-- Topographic contour lines on the compass are the one thing here that does **not** step. `--contour-opacity` declares both modes — 0.08 light, 0.05 dark — and has no consumer; the plot paints the contours at a fixed opacity instead. See *The Compass Plot*.
+- Topographic contour lines on the compass step their translucency through `--contour-opacity`: 0.08 in light mode and 0.05 in dark mode. See *The Compass Plot*.
 - The Stone ramp does not change, and neither does `--warning`.
 
 ### Color Rules
@@ -424,7 +424,7 @@ The dot is `--text-primary`, not a Stone 900 literal, for the same reason — in
 
 **Archetype positions** are plotted as reference marks, derived from the twelve-axis prototypes through the same super-dimension weights the respondent's own position uses. Each is a small `--text-secondary` dot labelled with the last word of the archetype's name; the primary match draws larger and at higher opacity and always keeps its label, while the rest suppress theirs when they would land within 18 units of a label already placed. Those labels are SVG `fontSize` attributes rather than scale roles — 7.5 units for the primary and 6.5 for the others, which is 7.5 and 6.5 CSS px at the plot's 400px cap.
 
-**Contour lines** survive as the product's one decorative element, protected in `CLAUDE.md` as the cartographic signature: gentle quadratic curves at 0.6px stroke width. They do **not** currently read the token. `--contour-opacity` is declared in both modes (0.08 light, 0.05 dark) and has no consumer; the paths ship at a literal opacity of 0.15 over `var(--stone-500)`, and because the ramp is frozen they do not step with the mode. Recorded as debt rather than described as though the token were wired.
+**Contour lines** survive as the product's one decorative element, protected in `CLAUDE.md` as the cartographic signature: gentle quadratic curves at 0.6px stroke width over `var(--stone-500)`. Their opacity reads `--contour-opacity`, stepping from 0.08 in light mode to 0.05 in dark mode while the Stone ramp remains fixed.
 
 Two pre-delta prescriptions are gone and were not replaced: the concentric pulse rings around the respondent's dot, and the quadrant whisper labels.
 
