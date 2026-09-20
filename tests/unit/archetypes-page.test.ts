@@ -4,40 +4,18 @@
  * `/archetypes` against mock 7c (design delta phase 5).
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import ArchetypesPage from "@/app/archetypes/page";
 import { archetypes, EMERGENCE_LABELS } from "@/data/archetypes";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  mounted.push({ container, root });
-  act(() =>
-    root.render(
-      createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
-    ),
-  );
-  return container;
-}
-
-function classes(el: Element): string[] {
-  return Array.from(el.classList);
-}
-
-afterEach(() => {
-  for (const { container, root } of mounted) {
-    act(() => root.unmount());
-    container.remove();
-  }
-  mounted.length = 0;
+const { cleanup, render } = createRenderHarness({
+  wrap: (element) =>
+    createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
 });
+
+afterEach(cleanup);
 
 describe("/archetypes header block", () => {
   it("caps the header on the reference measure", () => {

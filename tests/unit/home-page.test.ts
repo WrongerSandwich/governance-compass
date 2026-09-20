@@ -2,31 +2,18 @@
  * @vitest-environment jsdom
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import Home from "@/app/page";
 import { axes } from "@/data/axes";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
+const { cleanup, render } = createRenderHarness();
 
 function renderHome() {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(createElement(Home)));
-  mounted.push({ container, root });
-  return container;
+  return render(createElement(Home));
 }
 
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
-  }
-});
+afterEach(cleanup);
 
 describe("home page", () => {
   it("leads with the delta's headline and eyebrow", () => {

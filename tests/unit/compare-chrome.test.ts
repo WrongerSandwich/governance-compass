@@ -8,31 +8,15 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { AlignmentScore } from "@/components/comparison/AlignmentScore";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  mounted.push({ container, root });
-  act(() =>
-    root.render(
-      createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
-    ),
-  );
-  return container;
-}
-
-function classes(el: Element): string[] {
-  return Array.from(el.classList);
-}
+const { cleanup, render } = createRenderHarness({
+  wrap: (element) =>
+    createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
+});
 
 const comparePage = readFileSync(
   resolve(process.cwd(), "src/app/compare/page.tsx"),
@@ -43,13 +27,7 @@ const profileComparePage = readFileSync(
   "utf8",
 );
 
-afterEach(() => {
-  for (const { container, root } of mounted) {
-    act(() => root.unmount());
-    container.remove();
-  }
-  mounted.length = 0;
-});
+afterEach(cleanup);
 
 describe("AlignmentScore", () => {
   it("sets the headline number in the display scale, not a loose literal", () => {

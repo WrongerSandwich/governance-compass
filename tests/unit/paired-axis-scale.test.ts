@@ -2,35 +2,18 @@
  * @vitest-environment jsdom
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import {
   describeGap,
   describePosition,
   PairedAxisScale,
   scoreToTrackPercent,
 } from "@/components/PairedAxisScale";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+const { cleanup, render } = createRenderHarness();
 
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: React.ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(element));
-  mounted.push({ container, root });
-  return container;
-}
-
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
-  }
-});
+afterEach(cleanup);
 
 describe("scoreToTrackPercent", () => {
   it("maps the poles inside the track so a dot never clips its end", () => {

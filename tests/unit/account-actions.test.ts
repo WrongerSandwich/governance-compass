@@ -1,12 +1,10 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
 import { sourceFiles } from "../helpers/source-files";
+import { createRenderHarness } from "../helpers/react-dom";
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const { session } = vi.hoisted(() => ({
   session: { user: { id: "user-1", email: "user@example.com" } },
@@ -29,7 +27,7 @@ vi.mock("@/lib/last-results", () => ({
 
 const { default: AccountPage } = await import("@/app/account/page");
 
-const views: { root: Root; container: HTMLDivElement }[] = [];
+const { cleanup, render: renderElement } = createRenderHarness();
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -40,12 +38,7 @@ function deferred<T>() {
 }
 
 function render() {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(createElement(AccountPage)));
-  views.push({ root, container });
-  return container;
+  return renderElement(createElement(AccountPage));
 }
 
 function change(input: HTMLInputElement, value: string) {
@@ -77,12 +70,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  while (views.length) {
-    const view = views.pop();
-    if (!view) continue;
-    act(() => view.root.unmount());
-    view.container.remove();
-  }
+  cleanup();
   vi.unstubAllGlobals();
 });
 
