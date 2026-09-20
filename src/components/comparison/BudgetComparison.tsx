@@ -50,14 +50,14 @@ export function BudgetComparison({
         <div className="flex items-center gap-1.5">
           <div
             className="h-[6px] w-5 rounded-[3px]"
-            style={{ backgroundColor: "var(--stone-600)", opacity: 0.5 }}
+            style={{ backgroundColor: "var(--mark-primary)", opacity: 0.5 }}
           />
           <span>{labelA}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div
             className="h-[6px] w-5 rounded-[3px]"
-            style={{ backgroundColor: "var(--stone-600)", opacity: 0.25 }}
+            style={{ backgroundColor: "var(--mark-primary)", opacity: 0.25 }}
           />
           <span>{labelB}</span>
         </div>
@@ -92,7 +92,7 @@ export function BudgetComparison({
                   className="h-full rounded-[3px]"
                   style={{
                     width: `${(valueA / maxValue) * 100}%`,
-                    backgroundColor: "var(--stone-600)",
+                    backgroundColor: "var(--mark-primary)",
                     opacity: 0.5,
                   }}
                 />
@@ -112,7 +112,7 @@ export function BudgetComparison({
                   className="h-full rounded-[3px]"
                   style={{
                     width: `${(valueB / maxValue) * 100}%`,
-                    backgroundColor: "var(--stone-600)",
+                    backgroundColor: "var(--mark-primary)",
                     opacity: 0.25,
                   }}
                 />

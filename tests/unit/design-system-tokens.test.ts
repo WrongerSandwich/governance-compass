@@ -878,28 +878,13 @@ describe("phase 5 sweep holds (design delta D20)", () => {
     // beside it — the same reasoning that leaves 900 and 50 unbanned above.
     const MARK_TONE_EXEMPT = new Set(["src/lib/study/budgetColors.ts"]);
 
-    // FOUND BY THIS GUARD, NOT DECIDED BY ANYONE. Widening the case to the
-    // whole sweep — which is what it should be, since the defect is a
-    // spelling and not a section — turns up the same frozen literal at
-    // seventeen sites in four files phase 5 swept. Phase 5's ramp guard
-    // reads classes only, so it never saw them, and this is the first scan
-    // that could. They are listed rather than fixed because phase 5b's remit
-    // is /study and repainting four shipped charts is a visual change that
-    // belongs to its own task; the entry is reported upward as debt.
-    //
-    // Grow these lists, do not weaken the guard. Naming the files keeps the
-    // ban live on the other sixty-five; loosening the pattern would not, and
-    // deleting an entry is how a reader learns the debt was paid.
-    const PHASE_5_INLINE_RAMP = new Set([
-      "src/components/comparison/ComparisonRadar.tsx",
-      "src/components/comparison/BudgetComparison.tsx",
-      "src/components/groups/GroupRadar.tsx",
-      "src/components/groups/GroupScoreBar.tsx",
-    ]);
+    // Issue #155 paid the four-file comparison/groups debt this guard found.
+    // Keep this scan global: the defect is the fixed token spelling, not the
+    // section containing it, and new marks must use a mode-stepping alias.
 
     const offenders = sweptSources().flatMap(({ file, text }) => {
       const rel = relative(process.cwd(), file);
-      if (MARK_TONE_EXEMPT.has(rel) || PHASE_5_INLINE_RAMP.has(rel)) return [];
+      if (MARK_TONE_EXEMPT.has(rel)) return [];
       // Global, so a file with four frozen fills reports four. Every other
       // case in this block reports one site per file, which is survivable
       // when the fix is one edit and misleading when it is twelve.

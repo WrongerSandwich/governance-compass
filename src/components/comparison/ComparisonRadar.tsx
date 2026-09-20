@@ -81,7 +81,7 @@ function ProfileOutline({
         fill={fillStyle ? undefined : "none"}
         fillOpacity={fillStyle?.fillOpacity}
         style={{
-          stroke: "var(--stone-600)",
+          stroke: "var(--mark-primary)",
           ...(fillStyle ? { fill: fillStyle.fill } : {}),
         }}
         {...stroke}
@@ -96,7 +96,7 @@ function ProfileOutline({
           key={ri}
           points={runPoints(run, scores)}
           fill="none"
-          style={{ stroke: "var(--stone-600)" }}
+          style={{ stroke: "var(--mark-primary)" }}
           strokeLinecap="round"
           {...stroke}
         />
@@ -171,7 +171,7 @@ export function ComparisonRadar({
             key={frac}
             points={ringPoints(MAX_RADIUS * frac, TOTAL_AXES, CX, CY)}
             fill="none"
-            style={{ stroke: frac === 0.5 ? 'var(--stone-600)' : 'var(--border-tertiary)' }}
+            style={{ stroke: frac === 0.5 ? 'var(--mark-primary)' : 'var(--border-tertiary)' }}
             strokeWidth={frac === 0.5 ? 0.7 : 0.5}
             strokeDasharray={frac === 0.5 ? "3 3" : undefined}
             opacity={frac === 0.5 ? 0.35 : 0.4}
@@ -203,7 +203,7 @@ export function ComparisonRadar({
           runs={runs}
           scores={scoresA}
           closed={isComplete}
-          fillStyle={{ fill: "var(--stone-600)", fillOpacity: 0.12 }}
+          fillStyle={{ fill: "var(--mark-primary)", fillOpacity: 0.12 }}
         />
 
         {/* Center dot — render before interactive dots */}
@@ -345,13 +345,13 @@ export function ComparisonRadar({
       <div className="flex gap-6 mt-3">
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
-            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--stone-600)" strokeWidth="1.5" />
+            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--mark-primary)" strokeWidth="1.5" />
           </svg>
           {labelA}
         </div>
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
-            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--stone-600)" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.55" />
+            <line x1="0" y1="4" x2="16" y2="4" stroke="var(--mark-primary)" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.55" />
           </svg>
           {labelB}
         </div>

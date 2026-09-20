@@ -61,7 +61,7 @@ export function GroupScoreBar({
                 left: `${left}%`,
                 width: 10,
                 height: 10,
-                border: '2px solid var(--stone-600)',
+                border: '2px solid var(--mark-primary)',
                 backgroundColor: 'var(--surface-1)',
               }}
               title={score.toFixed(2)}
@@ -77,7 +77,7 @@ export function GroupScoreBar({
               left: `${scoreToTrackPercent(average)}%`,
               width: 1.5,
               height: 16,
-              backgroundColor: 'var(--stone-600)',
+              backgroundColor: 'var(--mark-primary)',
               opacity: 0.6,
             }}
             title={`Group avg: ${average.toFixed(2)}`}
