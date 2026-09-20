@@ -7,34 +7,17 @@
  * data happened to say at the time.
  */
 import { describe, it, expect, afterEach } from "vitest";
-import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { MapLegend, type MapLegendProps } from "@/components/study/MapLegend";
+import { createRenderHarness } from "../helpers/react-dom";
 
-// React 19 wants this flag set for act() to be recognized.
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean })
-  .IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: Array<{ root: Root; container: HTMLElement }> = [];
+const { cleanup, render } = createRenderHarness();
 
 function renderLegend(props: MapLegendProps): HTMLElement {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  let root!: Root;
-  act(() => {
-    root = createRoot(container);
-    root.render(createElement(MapLegend, props));
-  });
-  mounted.push({ root, container });
-  return container;
+  return render(createElement(MapLegend, props));
 }
 
-afterEach(() => {
-  for (const { root, container } of mounted.splice(0)) {
-    act(() => root.unmount());
-    container.remove();
-  }
-});
+afterEach(cleanup);
 
 const base = {
   variant: "axis-gradient",

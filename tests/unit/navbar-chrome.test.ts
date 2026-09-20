@@ -5,7 +5,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRenderHarness } from "../helpers/react-dom";
 
 // Mutable knobs the mocked hooks read from at call time. `vi.resetModules()`
 // forces a fresh import (and thus a fresh call into these factories) per
@@ -20,19 +20,12 @@ vi.mock("@/lib/last-results", () => ({
   useLastResults: () => mockResultsHref,
 }));
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
+const { cleanup, render, rerender } = createRenderHarness();
 
 async function renderNav() {
   vi.resetModules();
   const { NavBar } = await import("@/components/NavBar");
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(createElement(NavBar)));
-  mounted.push({ container, root });
-  return container;
+  return render(createElement(NavBar));
 }
 
 function click(target: EventTarget) {
@@ -54,13 +47,7 @@ beforeEach(() => {
   mockResultsHref = null;
 });
 
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
-  }
-});
+afterEach(cleanup);
 
 describe("nav bar chrome", () => {
   it("sets the wordmark in the mono wordmark role", async () => {
@@ -279,7 +266,6 @@ describe("nav bar chrome", () => {
   describe("key={pathname} remount", () => {
     it("remounts (not merely resets) the Research menu when the pathname changes", async () => {
       const container = await renderNav();
-      const { root } = mounted[mounted.length - 1]!;
       const { NavBar } = await import("@/components/NavBar");
 
       const triggerBefore = container.querySelector(
@@ -289,7 +275,7 @@ describe("nav bar chrome", () => {
       expect(container.querySelector("[role='menu']")).not.toBeNull();
 
       mockPathname = "/methodology";
-      act(() => root.render(createElement(NavBar)));
+      rerender(container, createElement(NavBar));
 
       expect(container.querySelector("[role='menu']")).toBeNull();
       const triggerAfter = container.querySelector("button[aria-haspopup='menu']");

@@ -7,8 +7,7 @@
 import { readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { act, createElement } from "react";
 import { ArchetypeCard } from "@/components/results/ArchetypeCard";
 import { AxisBreakdownCard } from "@/components/results/AxisBreakdownCard";
 import { CompassPlot } from "@/components/results/CompassPlot";
@@ -21,42 +20,17 @@ import {
   ROUTER_STUB,
   installIntersectionObserverStub,
 } from "../helpers/client-component-env";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 import { sourceFiles } from "../helpers/source-files";
-
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 // `ResultsView` wraps all six of its sections in `FadeInSection`, which
 // constructs an IntersectionObserver on mount.
 installIntersectionObserverStub();
 
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  // Registered BEFORE rendering, so a component that throws during render
-  // cannot strand its container in document.body with nothing to clean it up.
-  mounted.push({ container, root });
-  act(() => root.render(element));
-  return container;
-}
+const { cleanup, render } = createRenderHarness();
 
 function click(target: EventTarget) {
   act(() => target.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-}
-
-/** Class tokens. `toContain` on a raw className also matches substrings of
- *  other classes — `label` inside `label-tight`, `body-s` inside nothing but
- *  close enough to `body-lead` to matter — which has shipped three bugs in
- *  this migration.
- *
- *  `classList`, not `className.split(...)`: on an SVGElement `className` is a
- *  read-only `SVGAnimatedString` with no `.split`, and TypeScript will not
- *  catch the call because `SVGElement` declares it `any`. This phase renders
- *  four SVG charts. */
-function classes(element: Element): string[] {
-  return [...element.classList];
 }
 
 /** Every source file the results feature owns, as `{ path, text }` with
@@ -129,17 +103,7 @@ function stripComments(text: string): string {
 // hook count should grow only when a real assertion needs a name, not
 // whenever a selector feels awkward.
 
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    try {
-      act(() => entry.root.unmount());
-    } finally {
-      // In a `finally` so a throwing unmount cannot strand THIS container.
-      entry.container.remove();
-    }
-  }
-});
+afterEach(cleanup);
 
 const AXIS = {
   axisId: 3,

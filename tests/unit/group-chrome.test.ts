@@ -6,35 +6,18 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { GroupHeatMap } from "@/components/groups/GroupHeatMap";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  mounted.push({ container, root });
-  act(() => root.render(element));
-  return container;
-}
+const { cleanup, render } = createRenderHarness();
 
 const groupPage = readFileSync(
   resolve(process.cwd(), "src/app/groups/[groupId]/page.tsx"),
   "utf8",
 );
 
-afterEach(() => {
-  for (const { container, root } of mounted) {
-    act(() => root.unmount());
-    container.remove();
-  }
-  mounted.length = 0;
-});
+afterEach(cleanup);
 
 describe("GroupHeatMap", () => {
   const stats = [

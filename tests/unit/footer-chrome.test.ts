@@ -2,30 +2,17 @@
  * @vitest-environment jsdom
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { Footer } from "@/components/Footer";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
+const { cleanup, render } = createRenderHarness();
 
 function renderFooter() {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(createElement(Footer)));
-  mounted.push({ container, root });
-  return container;
+  return render(createElement(Footer));
 }
 
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
-  }
-});
+afterEach(cleanup);
 
 describe("footer chrome", () => {
   it("sets its two groups in the sentence-case mono meta role", () => {

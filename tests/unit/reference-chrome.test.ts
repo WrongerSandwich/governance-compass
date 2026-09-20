@@ -5,8 +5,7 @@
  * header, the spoiler advisory, and the footer CTA that four pages repeat.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { PageHeader, SpoilerNote } from "@/components/PageHeader";
 import { ReferenceCta } from "@/components/ReferenceCta";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
@@ -15,36 +14,14 @@ import MethodologyPage from "@/app/methodology/page";
 import AxesPage from "@/app/axes/page";
 import QuestionsPage from "@/app/questions/page";
 import { DOMAIN_MARK_VARS } from "@/lib/design-tokens";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  mounted.push({ container, root });
-  act(() =>
-    root.render(
-      createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
-    ),
-  );
-  return container;
-}
-
-/** Class tokens of an element, so assertions cannot pass on a substring. */
-function classes(el: Element): string[] {
-  return Array.from(el.classList);
-}
-
-afterEach(() => {
-  for (const { container, root } of mounted) {
-    act(() => root.unmount());
-    container.remove();
-  }
-  mounted.length = 0;
+const { cleanup, render } = createRenderHarness({
+  wrap: (element) =>
+    createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
 });
+
+afterEach(cleanup);
 
 describe("PageHeader", () => {
   it("renders a plain eyebrow when given no href", () => {

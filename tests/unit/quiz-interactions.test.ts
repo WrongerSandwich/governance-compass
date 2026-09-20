@@ -5,35 +5,19 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
 import { AnnotationEditor } from "@/components/annotations/AnnotationEditor";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { ScaledQuestionCard } from "@/components/quiz/ScaledQuestionCard";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: React.ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(element));
-  mounted.push({ container, root });
-  return container;
-}
+const { cleanup, render } = createRenderHarness();
 
 function click(element: Element) {
   act(() => element.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 }
 
 afterEach(() => {
-  while (mounted.length) {
-    const view = mounted.pop();
-    if (!view) continue;
-    act(() => view.root.unmount());
-    view.container.remove();
-  }
+  cleanup();
   vi.unstubAllGlobals();
   sessionStorage.clear();
 });

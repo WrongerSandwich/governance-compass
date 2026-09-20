@@ -7,8 +7,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { act, createElement } from "react";
 import { BudgetSimulator } from "@/components/quiz/BudgetSimulator";
 import { ForcedChoiceCard } from "@/components/quiz/ForcedChoiceCard";
 import { PhaseTransition } from "@/components/quiz/PhaseTransition";
@@ -18,51 +17,12 @@ import { ScaledQuestionCard } from "@/components/quiz/ScaledQuestionCard";
 // QuizFlow — which must stay dynamic, behind the `next/navigation` mock.
 import type { QuizFlowProps } from "@/components/quiz/QuizFlow";
 import { ministries } from "@/data/ministries";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  // Registered BEFORE rendering. A component that throws during render would
-  // otherwise strand its container in document.body with nothing to clean it
-  // up — and Tasks 4 and 7 mount QuizFlow and BudgetSimulator with real
-  // providers, which is exactly where a render-time throw is likely.
-  mounted.push({ container, root });
-  act(() => root.render(element));
-  return container;
-}
-
-/** Class tokens. `toContain` on a raw className also matches substrings of
- *  other classes — `label` inside `label-nav`, `hidden` inside
- *  `min-[560px]:hidden` — which has shipped three bugs in this migration.
- *
- *  `classList`, not `className.split(...)`: on an SVGElement `className` is a
- *  read-only `SVGAnimatedString` with no `.split`, and TypeScript will not
- *  catch the call because `SVGElement` declares it `any`. Task 7 renders a
- *  Lucide icon inside the ministry name row, so an SVG is one
- *  `firstElementChild` away from a test author. */
-function classes(element: Element): string[] {
-  return [...element.classList];
-}
+const { cleanup, render } = createRenderHarness();
 
 afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    try {
-      act(() => entry.root.unmount());
-    } finally {
-      // In a `finally` so a throwing unmount cannot strand THIS container.
-      // The throw still propagates — `finally` without `catch` rethrows — so
-      // the loop does abort and any remaining entries wait for the next
-      // `afterEach`. That drains on entry, so they are cleaned up one test
-      // late rather than never. Verified by forcing a throwing unmount.
-      entry.container.remove();
-    }
-  }
+  cleanup();
   // A fresh module graph for the next dynamic import. This does NOT clear the
   // mock registry: `vi.doMock` stays registered for the worker's lifetime, and
   // resetting modules makes it MORE likely to apply, by forcing the next

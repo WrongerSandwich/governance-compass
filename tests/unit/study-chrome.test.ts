@@ -1,46 +1,20 @@
 /**
  * @vitest-environment jsdom
  */
-import { act, createElement, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { readFileSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { sourceFiles, stripComments } from "../helpers/source-files";
 import { AppRouterContext, ROUTER_STUB } from "../helpers/client-component-env";
+import { classes, createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-/** The repo's mount harness — `@testing-library/react` is a declared dep but
- *  its `@testing-library/dom` peer is not installed, and no other suite here
- *  uses it. Same shape as archetypes-page / compare-chrome. */
-function render(element: ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  mounted.push({ container, root });
-  act(() =>
-    root.render(createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element)),
-  );
-  return container;
-}
-
-afterEach(() => {
-  for (const { container, root } of mounted) {
-    act(() => root.unmount());
-    container.remove();
-  }
-  mounted.length = 0;
+const { cleanup, render } = createRenderHarness({
+  wrap: (element) =>
+    createElement(AppRouterContext.Provider, { value: ROUTER_STUB }, element),
 });
 
-/** Class tokens as an array. `toContain` on a raw className string passes on
- *  substrings — `"label"` matches `label-nav` — which shipped three bugs
- *  before phase 4 wrote this down. */
-function classes(el: Element): string[] {
-  return (el.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
-}
+afterEach(cleanup);
 
 const STUDY_SOURCES = [
   ...sourceFiles(resolve(process.cwd(), "src/app/study")),

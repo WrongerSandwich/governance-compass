@@ -4,11 +4,11 @@
  * Contract coverage for the design delta's three-tier button system.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { act, createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createElement } from "react";
 import { Button, ButtonLink, buttonClasses } from "@/components/Button";
+import { createRenderHarness } from "../helpers/react-dom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+const { cleanup, render } = createRenderHarness();
 
 /**
  * True when `className` appears as a whole class, not as a substring of a
@@ -21,24 +21,7 @@ function hasClass(classes: string, className: string): boolean {
   return classes.split(/\s+/).includes(className);
 }
 
-const mounted: { container: HTMLDivElement; root: Root }[] = [];
-
-function render(element: React.ReactNode) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  act(() => root.render(element));
-  mounted.push({ container, root });
-  return container;
-}
-
-afterEach(() => {
-  while (mounted.length) {
-    const entry = mounted.pop()!;
-    act(() => entry.root.unmount());
-    entry.container.remove();
-  }
-});
+afterEach(cleanup);
 
 describe("buttonClasses", () => {
   it("fills the primary with the invertible ink token, never a raw ramp step", () => {
