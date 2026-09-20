@@ -99,7 +99,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
         {/* Group average polygon */}
         <polygon
           points={points}
-          style={{ fill: 'var(--stone-600)', stroke: 'var(--stone-600)' }}
+          style={{ fill: 'var(--mark-primary)', stroke: 'var(--mark-primary)' }}
           fillOpacity={0.12}
           strokeOpacity={0.55}
           strokeWidth={1.5}
@@ -117,7 +117,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
               cx={x}
               cy={y}
               r={3}
-              style={{ fill: 'var(--stone-600)' }}
+              style={{ fill: 'var(--mark-primary)' }}
             />
           );
         })}
@@ -171,7 +171,7 @@ export function GroupRadar({ data }: GroupRadarProps) {
       <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-2">
         <span
           className="inline-block w-2 h-2 rounded-full"
-          style={{ backgroundColor: 'var(--stone-600)' }}
+          style={{ backgroundColor: 'var(--mark-primary)' }}
         />
         Group average
       </div>
