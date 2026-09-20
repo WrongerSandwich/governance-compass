@@ -16,12 +16,20 @@ const RESEARCH_PATHS = [
 ];
 
 const RESEARCH_ITEMS = [
-  { href: "/methodology", label: "Methodology" },
-  { href: "/study", label: "Synthetic Study" },
-  { href: "/references", label: "References" },
+  {
+    href: "/methodology",
+    label: "Methodology",
+    activePaths: ["/methodology"],
+  },
+  { href: "/study", label: "Synthetic Study", activePaths: ["/study"] },
+  {
+    href: "/references",
+    label: "References",
+    activePaths: ["/references", "/axes", "/questions", "/archetypes"],
+  },
 ] as const;
 
-function matchesAny(pathname: string, paths: string[]): boolean {
+function matchesAny(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(p));
 }
 
@@ -115,12 +123,27 @@ function MobileMenu({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const primaryItem = resultsHref
-    ? { href: resultsHref, activePath: "/results", label: "Results" }
-    : { href: "/quiz", activePath: "/quiz", label: "Quiz" };
-  const items = [
-    primaryItem,
-    ...RESEARCH_ITEMS.map((item) => ({ ...item, activePath: item.href })),
-  ];
+    ? { href: resultsHref, activePaths: ["/results"], label: "Results" }
+    : { href: "/quiz", activePaths: ["/quiz"], label: "Quiz" };
+  const items = [primaryItem, ...RESEARCH_ITEMS];
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 560px)");
+    const handleBreakpointChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) return;
+
+      if (
+        document.activeElement instanceof HTMLElement &&
+        wrapRef.current?.contains(document.activeElement)
+      ) {
+        document.activeElement.blur();
+      }
+      setOpen(false);
+    };
+
+    desktop.addEventListener("change", handleBreakpointChange);
+    return () => desktop.removeEventListener("change", handleBreakpointChange);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -171,7 +194,6 @@ function MobileMenu({
         aria-label={open ? "Close navigation" : "Open navigation"}
         aria-expanded={open}
         aria-controls="mobile-navigation-panel"
-        aria-haspopup="dialog"
         className="flex h-11 w-11 shrink-0 items-center justify-center text-text-primary focus-ring min-[560px]:hidden"
         onClick={() => setOpen((previous) => !previous)}
       >
@@ -184,9 +206,6 @@ function MobileMenu({
         <div
           ref={panelRef}
           id="mobile-navigation-panel"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
           className="absolute inset-x-0 top-full border-b border-border-secondary bg-surface-1"
         >
           <div className="mx-auto flex max-w-shell flex-col px-[18px] py-2">
@@ -196,8 +215,7 @@ function MobileMenu({
                 href={item.href}
                 className="flex min-h-11 items-center border-b border-border-secondary px-1 label-nav text-text-secondary transition-colors duration-150 last:border-b-0 hover:text-text-primary focus-ring"
                 aria-current={
-                  pathname === item.activePath ||
-                  pathname.startsWith(item.activePath + "/")
+                  matchesAny(pathname, item.activePaths)
                     ? "page"
                     : undefined
                 }
@@ -283,11 +301,7 @@ function ResearchMenu({ pathname }: { pathname: string }) {
           className="absolute right-0 top-full mt-1 min-w-[180px] bg-surface-1 border border-border-secondary py-1"
         >
           {RESEARCH_ITEMS.map((item) => {
-            const itemActive =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/") ||
-              (item.href === "/references" &&
-                matchesAny(pathname, ["/axes", "/questions", "/archetypes"]));
+            const itemActive = matchesAny(pathname, item.activePaths);
             return (
               <Link
                 key={item.href}

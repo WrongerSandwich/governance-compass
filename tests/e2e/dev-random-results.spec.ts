@@ -58,7 +58,7 @@ test.describe("DevRandomResults", () => {
     await openNarrowPage(page);
 
     await page.getByRole("button", { name: "Open navigation" }).click();
-    const panel = page.getByRole("dialog", { name: "Navigation menu" });
+    const panel = page.locator("#mobile-navigation-panel");
     const randomResults = page.getByRole("button", { name: "Random results" });
     const [panelBox, buttonBox] = await Promise.all([
       panel.boundingBox(),

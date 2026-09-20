@@ -13,6 +13,7 @@ import { createRenderHarness } from "../helpers/react-dom";
 // values into the mocks.
 let mockPathname = "/";
 let mockResultsHref: string | null = null;
+let breakpointListeners = new Set<(event: MediaQueryListEvent) => void>();
 
 vi.mock("next/navigation", () => ({ usePathname: () => mockPathname }));
 vi.mock("@/lib/last-results", () => ({
@@ -62,6 +63,26 @@ function tab(target: EventTarget, shiftKey = false) {
 beforeEach(() => {
   mockPathname = "/";
   mockResultsHref = null;
+  breakpointListeners = new Set();
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: (
+        _type: string,
+        listener: (event: MediaQueryListEvent) => void,
+      ) => breakpointListeners.add(listener),
+      removeEventListener: (
+        _type: string,
+        listener: (event: MediaQueryListEvent) => void,
+      ) => breakpointListeners.delete(listener),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 });
 
 afterEach(cleanup);
@@ -96,7 +117,7 @@ describe("nav bar chrome", () => {
     expect(trigger).not.toBeNull();
     expect(trigger.getAttribute("aria-label")).toBe("Open navigation");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(trigger.getAttribute("aria-haspopup")).toBeNull();
 
     const classes = trigger.className.split(/\s+/);
     expect(classes).toContain("h-11");
@@ -142,9 +163,9 @@ describe("nav bar chrome", () => {
     expect(trigger.getAttribute("aria-label")).toBe("Close navigation");
     const panel = container.querySelector("#mobile-navigation-panel")!;
     expect(panel).not.toBeNull();
-    expect(panel.getAttribute("role")).toBe("dialog");
-    expect(panel.getAttribute("aria-modal")).toBe("true");
-    expect(panel.getAttribute("aria-label")).toBe("Navigation menu");
+    expect(panel.getAttribute("role")).toBeNull();
+    expect(panel.getAttribute("aria-modal")).toBeNull();
+    expect(panel.getAttribute("aria-label")).toBeNull();
     expect(panel.querySelector("[role='menu']")).toBeNull();
 
     const links = [...panel.querySelectorAll("a")];
@@ -218,6 +239,24 @@ describe("nav bar chrome", () => {
     expect(results.getAttribute("aria-current")).toBe("page");
   });
 
+  it.each(["/axes", "/questions", "/archetypes"])(
+    "marks References current on the related route %s",
+    async (path) => {
+      mockPathname = path;
+      const container = await renderNav();
+      const trigger = container.querySelector(
+        "button[aria-controls='mobile-navigation-panel']",
+      )!;
+
+      click(trigger);
+      const references = container.querySelector(
+        "#mobile-navigation-panel a[href='/references']",
+      )!;
+
+      expect(references.getAttribute("aria-current")).toBe("page");
+    },
+  );
+
   it("closes the mobile panel only on an outside mousedown", async () => {
     const container = await renderNav();
     const trigger = container.querySelector(
@@ -282,6 +321,25 @@ describe("nav bar chrome", () => {
 
     tab(links.at(-1)!);
     expect(document.activeElement).toBe(links[0]);
+  });
+
+  it("closes and releases focus when the desktop breakpoint begins matching", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+    click(trigger);
+    expect(document.activeElement?.textContent?.trim()).toBe("Quiz");
+
+    act(() => {
+      for (const listener of breakpointListeners) {
+        listener({ matches: true } as MediaQueryListEvent);
+      }
+    });
+
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(document.body);
   });
 
   it("remounts the mobile menu closed when the pathname changes", async () => {
