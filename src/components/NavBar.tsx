@@ -15,7 +15,21 @@ const RESEARCH_PATHS = [
   "/archetypes",
 ];
 
-function matchesAny(pathname: string, paths: string[]): boolean {
+const RESEARCH_ITEMS = [
+  {
+    href: "/methodology",
+    label: "Methodology",
+    activePaths: ["/methodology"],
+  },
+  { href: "/study", label: "Synthetic Study", activePaths: ["/study"] },
+  {
+    href: "/references",
+    label: "References",
+    activePaths: ["/references", "/axes", "/questions", "/archetypes"],
+  },
+] as const;
+
+function matchesAny(pathname: string, paths: readonly string[]): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(p));
 }
 
@@ -44,7 +58,7 @@ export function NavBar() {
   return (
     <nav
       aria-label="Main"
-      className="bg-surface-1 border-b border-border-secondary px-[18px] min-[560px]:px-7"
+      className="relative z-[60] bg-surface-1 border-b border-border-secondary px-[18px] min-[560px]:px-7"
     >
       {/* `items-center`, not `items-stretch` as the phase-2 plan wrote it: the
           brand link would then fill the bar's full height and its focus-ring
@@ -63,7 +77,7 @@ export function NavBar() {
             Governance Compass
           </span>
         </Link>
-        <div className="flex items-stretch self-stretch gap-[22px]">
+        <div className="hidden items-stretch self-stretch gap-[22px] min-[560px]:flex">
           {!resultsHref && (
             <Link
               href="/quiz"
@@ -87,8 +101,133 @@ export function NavBar() {
           <ResearchMenu key={pathname} pathname={pathname} />
           {/* Account UI hidden for v1 — re-enable when account features are ready */}
         </div>
+        <MobileMenu
+          key={pathname}
+          pathname={pathname}
+          resultsHref={resultsHref}
+        />
       </div>
     </nav>
+  );
+}
+
+function MobileMenu({
+  pathname,
+  resultsHref,
+}: {
+  pathname: string;
+  resultsHref: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const primaryItem = resultsHref
+    ? { href: resultsHref, activePaths: ["/results"], label: "Results" }
+    : { href: "/quiz", activePaths: ["/quiz"], label: "Quiz" };
+  const items = [primaryItem, ...RESEARCH_ITEMS];
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 560px)");
+    const handleBreakpointChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) return;
+
+      if (
+        document.activeElement instanceof HTMLElement &&
+        wrapRef.current?.contains(document.activeElement)
+      ) {
+        document.activeElement.blur();
+      }
+      setOpen(false);
+    };
+
+    desktop.addEventListener("change", handleBreakpointChange);
+    return () => desktop.removeEventListener("change", handleBreakpointChange);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (event: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const links = panelRef.current?.querySelectorAll<HTMLAnchorElement>("a");
+      if (!links?.length) return;
+      const first = links[0];
+      const last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      panelRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+    }
+  }, [open]);
+
+  return (
+    <div ref={wrapRef} className="flex min-[560px]:hidden">
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={open ? "Close navigation" : "Open navigation"}
+        aria-expanded={open}
+        aria-controls="mobile-navigation-panel"
+        className="flex h-11 w-11 shrink-0 items-center justify-center text-text-primary focus-ring min-[560px]:hidden"
+        onClick={() => setOpen((previous) => !previous)}
+      >
+        <span aria-hidden="true" className="relative block h-3 w-[18px]">
+          <span className="absolute left-0 top-[2px] h-[1.5px] w-full bg-current" />
+          <span className="absolute bottom-[2px] left-0 h-[1.5px] w-full bg-current" />
+        </span>
+      </button>
+      {open && (
+        <div
+          ref={panelRef}
+          id="mobile-navigation-panel"
+          className="absolute inset-x-0 top-full border-b border-border-secondary bg-surface-1"
+        >
+          <div className="mx-auto flex max-w-shell flex-col px-[18px] py-2">
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex min-h-11 items-center border-b border-border-secondary px-1 label-nav text-text-secondary transition-colors duration-150 last:border-b-0 hover:text-text-primary focus-ring"
+                aria-current={
+                  matchesAny(pathname, item.activePaths)
+                    ? "page"
+                    : undefined
+                }
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -132,12 +271,6 @@ function ResearchMenu({ pathname }: { pathname: string }) {
     ? "text-text-primary border-b-2 border-stone-600"
     : "text-text-secondary hover:text-text-primary";
 
-  const ITEMS = [
-    { href: "/methodology", label: "Methodology" },
-    { href: "/study", label: "Synthetic Study" },
-    { href: "/references", label: "References" },
-  ];
-
   return (
     <div ref={wrapRef} className="relative flex">
       <button
@@ -167,12 +300,8 @@ function ResearchMenu({ pathname }: { pathname: string }) {
           aria-label="Research sections"
           className="absolute right-0 top-full mt-1 min-w-[180px] bg-surface-1 border border-border-secondary py-1"
         >
-          {ITEMS.map((item) => {
-            const itemActive =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/") ||
-              (item.href === "/references" &&
-                matchesAny(pathname, ["/axes", "/questions", "/archetypes"]));
+          {RESEARCH_ITEMS.map((item) => {
+            const itemActive = matchesAny(pathname, item.activePaths);
             return (
               <Link
                 key={item.href}
