@@ -44,13 +44,20 @@ export function createRenderHarness({
   }
 
   function cleanup(): void {
+    const errors: unknown[] = [];
     while (mounted.length) {
       const { container, root } = mounted.pop()!;
       try {
         act(() => root.unmount());
+      } catch (error) {
+        errors.push(error);
       } finally {
         container.remove();
       }
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) {
+      throw new AggregateError(errors, "Multiple React roots failed to unmount");
     }
   }
 
