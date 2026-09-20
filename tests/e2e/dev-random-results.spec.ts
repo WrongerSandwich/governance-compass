@@ -53,4 +53,32 @@ test.describe("DevRandomResults", () => {
     expect(atBreakpoint!.x + atBreakpoint!.width).toBeCloseTo(560 - 16, 0);
     expect(atBreakpoint!.y + atBreakpoint!.height).toBeCloseTo(844 - 16, 0);
   });
+
+  test("stays behind the open mobile navigation panel", async ({ page }) => {
+    await openNarrowPage(page);
+
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    const panel = page.getByRole("dialog", { name: "Navigation menu" });
+    const randomResults = page.getByRole("button", { name: "Random results" });
+    const [panelBox, buttonBox] = await Promise.all([
+      panel.boundingBox(),
+      randomResults.boundingBox(),
+    ]);
+
+    expect(panelBox).not.toBeNull();
+    expect(buttonBox).not.toBeNull();
+    const x = buttonBox!.x + buttonBox!.width / 2;
+    const y = buttonBox!.y + buttonBox!.height / 2;
+    expect(x).toBeGreaterThan(panelBox!.x);
+    expect(x).toBeLessThan(panelBox!.x + panelBox!.width);
+    expect(y).toBeGreaterThan(panelBox!.y);
+    expect(y).toBeLessThan(panelBox!.y + panelBox!.height);
+
+    const panelIsTopmost = await page.evaluate(
+      ({ x, y }) =>
+        !!document.elementFromPoint(x, y)?.closest("#mobile-navigation-panel"),
+      { x, y },
+    );
+    expect(panelIsTopmost).toBe(true);
+  });
 });

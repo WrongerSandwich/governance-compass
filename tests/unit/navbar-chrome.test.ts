@@ -29,7 +29,11 @@ async function renderNav() {
 }
 
 function click(target: EventTarget) {
-  act(() => target.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  act(() =>
+    target.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true }),
+    ),
+  );
 }
 
 function mousedown(target: EventTarget) {
@@ -39,6 +43,19 @@ function mousedown(target: EventTarget) {
 function escape(target: EventTarget) {
   act(() =>
     target.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+  );
+}
+
+function tab(target: EventTarget, shiftKey = false) {
+  act(() =>
+    target.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        cancelable: true,
+        key: "Tab",
+        shiftKey,
+      }),
+    ),
   );
 }
 
@@ -68,6 +85,240 @@ describe("nav bar chrome", () => {
     // 52px at mobile, 54px from the breakpoint up (mock 6a vs 5a).
     expect(classes).toContain("h-[52px]");
     expect(classes).toContain("min-[560px]:h-[54px]");
+  });
+
+  it("exposes a 44px mobile menu trigger with its panel relationship", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    expect(trigger).not.toBeNull();
+    expect(trigger.getAttribute("aria-label")).toBe("Open navigation");
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+
+    const classes = trigger.className.split(/\s+/);
+    expect(classes).toContain("h-11");
+    expect(classes).toContain("w-11");
+    expect(classes).toContain("focus-ring");
+    expect(classes).toContain("min-[560px]:hidden");
+
+    const bars = trigger.querySelectorAll("[aria-hidden='true'] > span");
+    expect(bars).toHaveLength(2);
+    for (const bar of bars) {
+      expect(bar.className.split(/\s+/)).toContain("h-[1.5px]");
+    }
+  });
+
+  it("switches from horizontal destinations to the trigger at 560px", async () => {
+    const container = await renderNav();
+    const desktopResearch = container.querySelector(
+      "button[aria-haspopup='menu']",
+    )!;
+    const desktopGroup = desktopResearch.parentElement!.parentElement!;
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    expect(desktopGroup.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(["hidden", "min-[560px]:flex"]),
+    );
+    expect(trigger.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(["flex", "min-[560px]:hidden"]),
+    );
+  });
+
+  it("opens a flat mobile panel with the desktop destinations", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+    click(trigger);
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(trigger.getAttribute("aria-label")).toBe("Close navigation");
+    const panel = container.querySelector("#mobile-navigation-panel")!;
+    expect(panel).not.toBeNull();
+    expect(panel.getAttribute("role")).toBe("dialog");
+    expect(panel.getAttribute("aria-modal")).toBe("true");
+    expect(panel.getAttribute("aria-label")).toBe("Navigation menu");
+    expect(panel.querySelector("[role='menu']")).toBeNull();
+
+    const links = [...panel.querySelectorAll("a")];
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      "Quiz",
+      "Methodology",
+      "Synthetic Study",
+      "References",
+    ]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/quiz",
+      "/methodology",
+      "/study",
+      "/references",
+    ]);
+    for (const link of links) {
+      expect(link.className.split(/\s+/)).toEqual(
+        expect.arrayContaining(["min-h-11", "focus-ring"]),
+      );
+    }
+  });
+
+  it("closes the mobile panel from the same trigger", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    click(trigger);
+    expect(container.querySelector("#mobile-navigation-panel")).not.toBeNull();
+
+    click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+  });
+
+  it("carries the stored Results destination into the mobile panel", async () => {
+    mockResultsHref = "/results?r=ABC123";
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    click(trigger);
+    const panel = container.querySelector("#mobile-navigation-panel")!;
+    const results = [...panel.querySelectorAll("a")].find(
+      (link) => link.textContent?.trim() === "Results",
+    );
+
+    expect(results?.getAttribute("href")).toBe("/results?r=ABC123");
+    expect(
+      [...panel.querySelectorAll("a")].some(
+        (link) => link.textContent?.trim() === "Quiz",
+      ),
+    ).toBe(false);
+  });
+
+  it("marks the stored Results destination current without comparing its query", async () => {
+    mockPathname = "/results";
+    mockResultsHref = "/results?r=ABC123";
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    click(trigger);
+    const results = container.querySelector(
+      "#mobile-navigation-panel a[href='/results?r=ABC123']",
+    )!;
+
+    expect(results.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("closes the mobile panel only on an outside mousedown", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+
+    click(trigger);
+    const panel = container.querySelector("#mobile-navigation-panel")!;
+    mousedown(panel);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    mousedown(document.body);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+  });
+
+  it("moves focus to the first mobile destination when the panel opens", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    ) as HTMLButtonElement;
+
+    trigger.focus();
+    click(trigger);
+
+    const firstLink = container.querySelector(
+      "#mobile-navigation-panel a",
+    ) as HTMLAnchorElement;
+    expect(document.activeElement).toBe(firstLink);
+    expect(firstLink.textContent?.trim()).toBe("Quiz");
+  });
+
+  it("closes the mobile panel on Escape and returns focus to its trigger", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    ) as HTMLButtonElement;
+    click(trigger);
+    expect(document.activeElement?.textContent?.trim()).toBe("Quiz");
+
+    escape(document);
+
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("traps focus within the mobile panel in both directions", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+    click(trigger);
+    const links = [
+      ...container.querySelectorAll<HTMLAnchorElement>(
+        "#mobile-navigation-panel a",
+      ),
+    ];
+
+    expect(document.activeElement).toBe(links[0]);
+    tab(links[0], true);
+    expect(document.activeElement).toBe(links.at(-1));
+
+    tab(links.at(-1)!);
+    expect(document.activeElement).toBe(links[0]);
+  });
+
+  it("remounts the mobile menu closed when the pathname changes", async () => {
+    const container = await renderNav();
+    const { NavBar } = await import("@/components/NavBar");
+    const triggerBefore = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+    click(triggerBefore);
+    expect(container.querySelector("#mobile-navigation-panel")).not.toBeNull();
+
+    mockPathname = "/methodology";
+    rerender(container, createElement(NavBar));
+
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
+    const triggerAfter = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    );
+    expect(triggerAfter).not.toBe(triggerBefore);
+  });
+
+  it("closes the mobile panel when a destination is selected", async () => {
+    const container = await renderNav();
+    const trigger = container.querySelector(
+      "button[aria-controls='mobile-navigation-panel']",
+    )!;
+    click(trigger);
+    const methodology = container.querySelector(
+      "#mobile-navigation-panel a[href='/methodology']",
+    )!;
+
+    methodology.addEventListener("click", (event) => event.preventDefault(), {
+      once: true,
+    });
+    click(methodology);
+
+    expect(container.querySelector("#mobile-navigation-panel")).toBeNull();
   });
 
   it("steps the wordmark down a size on mobile via a sibling role", async () => {
