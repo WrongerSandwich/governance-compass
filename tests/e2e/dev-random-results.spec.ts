@@ -37,4 +37,20 @@ test.describe("DevRandomResults", () => {
     await expect(button).toHaveCSS("font-size", "11px");
     await expect(button).toHaveCSS("border-radius", "2px");
   });
+
+  test("returns to the bottom-right exactly at the 560px breakpoint", async ({ page }) => {
+    await openNarrowPage(page);
+    const widget = page.getByText("Testing", { exact: true }).locator("..");
+
+    await page.setViewportSize({ width: 559, height: 844 });
+    const belowBreakpoint = await widget.boundingBox();
+    expect(belowBreakpoint).not.toBeNull();
+    expect(belowBreakpoint!.y).toBe(69);
+
+    await page.setViewportSize({ width: 560, height: 844 });
+    const atBreakpoint = await widget.boundingBox();
+    expect(atBreakpoint).not.toBeNull();
+    expect(atBreakpoint!.x + atBreakpoint!.width).toBeCloseTo(560 - 16, 0);
+    expect(atBreakpoint!.y + atBreakpoint!.height).toBeCloseTo(844 - 16, 0);
+  });
 });
