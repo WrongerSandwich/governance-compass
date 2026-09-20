@@ -42,7 +42,9 @@ function generateRandomResponses(): QuizResponses {
   return { forcedChoice, scaled, budget };
 }
 
-const btnClass = "rounded-[6px] border border-border-primary bg-surface-1 px-2.5 py-1 text-[10px] text-text-label hover:text-text-secondary transition-colors duration-150";
+const btnClass =
+  "rounded-sharp border border-border-primary bg-surface-1 px-2.5 py-1 " +
+  "mono-meta text-text-label transition-colors duration-150 hover:text-text-secondary";
 
 export function DevRandomResults() {
   const router = useRouter();
@@ -53,8 +55,8 @@ export function DevRandomResults() {
   if (process.env.NEXT_PUBLIC_VERCEL_ENV === "production") return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-1.5">
-      <span className="text-[9px] uppercase tracking-[0.1em] text-text-label opacity-50 font-medium">
+    <div className="fixed right-4 top-[69px] z-50 flex flex-col items-end gap-1.5 min-[560px]:top-auto min-[560px]:bottom-4">
+      <span className="label-nav font-medium text-text-label opacity-50">
         Testing
       </span>
       <div className="flex gap-1.5">
