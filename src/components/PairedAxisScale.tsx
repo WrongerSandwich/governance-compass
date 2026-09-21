@@ -4,8 +4,9 @@ import { DOMAIN_COLORS, getDomainForAxis, getDomainMarkVar } from "@/lib/design-
  * One axis rendered as a scale, for one or two respondents (design delta 05).
  *
  * Renders only the scale — endpoints, track, midline, dots. Callers own the
- * surrounding row, because the home page, the results breakdown, the
- * comparison view and the group view wrap it in different grids.
+ * surrounding row because its six contexts wrap it differently: the home
+ * sample, results breakdown, one-to-one comparison, group view, per-axis
+ * detail page and /study persona modal.
  */
 export interface PairedAxisScaleProps {
   /** 1-12; selects the domain colour. */

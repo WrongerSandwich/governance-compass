@@ -259,25 +259,28 @@
      which NavBar and Footer keep. */
   --container-results: 820px;
 
-  /* Reference column width, from mock 7c. The narrowest of the four: this is
-     the long-prose measure, and 660px holds it near 75 characters at the
-     15px intro size. `/archetypes` runs its zebra band edge-to-edge and
-     re-applies this width to the content inside each row, so the measure
-     survives a full-bleed background. */
+  /* Reference column width, from mock 7c. The narrowest of the five: this is
+     the long-prose measure, and 660px holds the six shipped PageHeader leads
+     near 84 characters at the 15px intro size (the exact measure moves with
+     the platform's system-ui font). `/archetypes` runs its zebra band
+     edge-to-edge and re-applies this width to the content inside each row, so
+     the measure survives a full-bleed background. */
   --container-reference: 660px;
 
   /* Quiz column width. Value-identical to the `max-w-2xl` it replaces —
-     this is a naming change, not a retune. Spelled as a token so the four
+     this is a naming change, not a retune. Spelled as a token so the five
      page measures are all visible in one place and none of them reads as an
      incidental Tailwind size. */
   --container-quiz: 672px;
 
   /* Persona browser width. The only measure in the product wider than the
      chrome shell, and the exception is earned rather than inherited:
-     /study/personas is a two-column data browser with a filter sidebar, and
-     at 1040px it loses a column of the persona grid at every breakpoint
-     above 960px. It replaces an inline `maxWidth: "1200px"` — the last page
-     measure in the codebase spelled as a literal. */
+     /study/personas reserves 244px for its filter sidebar and gap from 960px
+     upward. Keeping the 1200px cap leaves about 462px per card in the
+     two-column band and 297px in the three-column band; a 1040px cap would
+     preserve the column count but narrow every card by roughly 50px. It
+     replaces an inline `maxWidth: "1200px"` — the last page measure in the
+     codebase spelled as a literal. */
   --container-browse: 1200px;
 
   --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
@@ -314,7 +317,8 @@ body {
   to { opacity: var(--petal-opacity); transform: scale(1); }
 }
 
-/* Staggered reveal for results page sections */
+/* Short entrance for the budget consequence and completion text, plus the
+   animated compass mark's centre dot. Results sections use FadeInSection. */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -545,7 +549,7 @@ body {
    `--tw-outline-style: none` on :focus, and since :focus always matches when
    :focus-visible does, `outline-style: var(--tw-outline-style)` resolved to
    `none`. Width and colour applied; the ring never painted. Confirmed in
-   Chromium across all 25 former call sites.
+   Chromium across all 21 former call sites.
 
    Using the `outline` shorthand here sets style explicitly, so it cannot be
    undone by a custom property. This and its scoped sibling `focus-ring-child`
@@ -573,10 +577,11 @@ body {
 
    Scoped to a DIRECT BUTTON child rather than any descendant. The card's prose
    runs through AnnotatedText into GlossaryTerm, whose trigger is a focusable
-   `span[role="button"][tabindex="0"]` carrying no ring of its own — fifteen
-   glossary terms match text in the forced-choice bank. An unscoped
-   `:has(:focus-visible)` would ring the entire card while focus sat on an
-   inline term, pointing the only affordance on screen at the wrong control.
+   `span[role="button"][tabindex="0"]` carrying `focus-ring` — fifteen glossary
+   terms match text in the forced-choice bank. An unscoped
+   `:has(:focus-visible)` would draw a second, larger ring around the entire
+   card while focus sat on an inline term, pointing the stronger affordance at
+   the wrong control.
 
    The spelling this replaces was broken the same way `focus:outline-none` was.
    Tailwind 4.3.3 emits `.focus-within\:outline-none:focus-within` — which sets
