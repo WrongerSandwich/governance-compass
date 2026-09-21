@@ -208,8 +208,36 @@ const ALLOWED_RADII = new Set(["50%", "999px", "var(--radius)"]);
  * redden it on its own explanation, or (worse) be satisfied by it forever.
  */
 const radiusScanFiles = sourceFiles(resolve(process.cwd(), "src"));
+const DEFAULT_RADIUS_SCALE = "(?:xs|sm|md|lg|xl|2xl|3xl|4xl)";
+const BANNED_TAILWIND_RADIUS_CLASS = new RegExp(
+  String.raw`(?:^|[\s"'\x60])(?:[^\s"'\x60]+:)*(?:rounded|rounded-${DEFAULT_RADIUS_SCALE}|rounded-(?:[trblse]{1,2})-${DEFAULT_RADIUS_SCALE})(?![\w-])`,
+  "g",
+);
 
 describe("near-square corners (design delta 02)", () => {
+  it("reserves Tailwind's default panel radii for the one-radius system", () => {
+    // A bare `rounded` compiles to Tailwind's 4px default, while the named
+    // scale creates further unsanctioned panel radii. The namespace lockdown
+    // makes these silently square, so this source guard keeps them from
+    // reaching a build; `rounded-full`, `rounded-none`, and arbitrary values
+    // remain valid exemptions.
+    const offenders = radiusScanFiles.flatMap((file) => {
+      const text = stripComments(readFileSync(file, "utf8"));
+      return [...text.matchAll(BANNED_TAILWIND_RADIUS_CLASS)].map(
+        (match) =>
+          `${relative(process.cwd(), file)}: ${match[0].replace(/^[\s"'\x60]+/, "")} (use rounded-sharp instead)`,
+      );
+    });
+
+    expect(offenders).toEqual([]);
+    const themeBlock = cssBlock(globalsCss, "@theme inline");
+    const namespaceReset = themeBlock.indexOf("--radius-*: initial;");
+    const sharpRadius = themeBlock.indexOf("--radius-sharp:");
+
+    expect(namespaceReset).toBeGreaterThanOrEqual(0);
+    expect(sharpRadius).toBeGreaterThan(namespaceReset);
+  });
+
   it("has retired every 12px and 8px radius class literal from src", () => {
     // Covers the arbitrary-value spelling (rounded-[8px]), Tailwind's default
     // idiomatic names for the same corners (rounded-lg is 0.5rem = 8px,

@@ -248,6 +248,7 @@
   --color-domain-world:    var(--domain-world);
   --color-mark-primary:    var(--mark-primary);
 
+  --radius-*: initial;
   --radius-sharp: var(--radius);
 
   /* Chrome shell width. NavBar and Footer share it, and Phase 2's home

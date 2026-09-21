@@ -231,7 +231,7 @@ export default function AccountPage() {
                         checked={!a.hidden}
                         disabled={pendingVisibilityAxes.has(a.axisId)}
                         onChange={() => toggleVisibility(a.axisId, !a.hidden)}
-                        className="rounded border-border-primary accent-[var(--mark-primary)] focus-ring"
+                        className="rounded-sharp border-border-primary accent-[var(--mark-primary)] focus-ring"
                       />
                     </label>
                   ))}
