@@ -2454,6 +2454,15 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 ## Deferred to later phases
 
+> **Resolved since, under issue #154.** The three layout defects below, the
+> `MapLegend` and compare-tray questions, the five SVG `rx` sites and the
+> `/study` link rings were fixed in the `fix/study-layout-backlog` change;
+> the `rx` premise was also wrong (the attribute form resolves — see the
+> issue's correction). Still open from this section: delta 04 itself, the
+> map's bounding-box focus outline, the modal's pole labels, and the
+> seventeen frozen mark tones (#155). The text below is left as the record
+> it was.
+
 **Three pre-existing layout defects the Task 15 visual walk turned up.** None is this
 phase's doing — each was verified byte-identical at `360bfaf` or measured to a cause the
 phase never touched — and none is fixable within a type-only conversion. They are

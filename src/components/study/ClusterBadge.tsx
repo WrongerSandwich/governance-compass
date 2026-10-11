@@ -23,7 +23,10 @@ export function ClusterBadge({
 
   const inner = (
     <>
-      <span className="font-medium" style={{ fontVariant: "normal" }}>
+      <span
+        className="font-medium"
+        style={{ fontVariant: "normal", whiteSpace: "nowrap" }}
+      >
         {cluster.code}
       </span>
       {showLabel && (
@@ -37,6 +40,7 @@ export function ClusterBadge({
   // for a key, not a phrase. The colour stays inline because it is computed
   // from the cluster. Composed with the caller's class, never overwriting it.
   const chipClass = className ? `body-xs ${className}` : "body-xs";
+  const linkClass = `${chipClass} focus-ring`;
 
   const chipStyle: React.CSSProperties = {
     display: "inline-flex",
@@ -48,7 +52,6 @@ export function ClusterBadge({
     color: `var(${colorVar})`,
     backgroundColor: `color-mix(in srgb, var(${colorVar}) 10%, transparent)`,
     textDecoration: "none",
-    whiteSpace: "nowrap",
   };
 
   if (resolvedHref === null) {
@@ -63,7 +66,7 @@ export function ClusterBadge({
     <Link
       href={resolvedHref}
       style={chipStyle}
-      className={chipClass}
+      className={linkClass}
     >
       {inner}
     </Link>

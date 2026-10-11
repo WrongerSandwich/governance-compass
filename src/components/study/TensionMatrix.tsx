@@ -219,7 +219,7 @@ export function TensionMatrix({
                           height={MODEL_ROW_HEIGHT - 1}
                           fill="var(--warning-text)"
                           fillOpacity={opacity}
-                          rx={1}
+                          rx="var(--radius)"
                           aria-label={`Axis ${axisNum} ${model} cluster ${ci}: ${pct}%`}
                         />
                         {pct >= 30 && (
@@ -270,7 +270,7 @@ export function TensionMatrix({
             y={Math.max(tooltip.y - 26, 4)}
             width={240}
             height={22}
-            rx={2}
+            rx="var(--radius)"
             fill="var(--stone-900)"
             fillOpacity={0.9}
           />

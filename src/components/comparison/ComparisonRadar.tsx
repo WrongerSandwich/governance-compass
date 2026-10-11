@@ -270,7 +270,7 @@ export function ComparisonRadar({
             <g style={{ pointerEvents: "none" }}>
               <rect
                 x={tx - boxW / 2} y={ty - boxH / 2}
-                width={boxW} height={boxH} rx={4}
+                width={boxW} height={boxH} rx="var(--radius)"
                 style={{ fill: "var(--surface-1)", stroke: "var(--border-secondary)" }}
                 strokeWidth={0.5}
               />

@@ -307,6 +307,27 @@ describe("near-square corners (design delta 02)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("spells every SVG corner radius in src as the token", () => {
+    // The sixth spelling, which no sweep covered until issue #154: an `rx`
+    // attribute on an SVG rect. Five sites across three phases' components
+    // carried 1, 2 and 4 as literals. `rx="var(--radius)"` resolves — it is a
+    // geometry property in SVG 2, and presentation attributes parse as CSS —
+    // measured in Chromium 151 and Firefox 153; an engine that did not
+    // resolve it would fall back to `auto`, a square corner, which at a 2px
+    // token is the graceful failure.
+    expect(radiusScanFiles.length).toBeGreaterThan(0);
+
+    const offenders = radiusScanFiles.flatMap((file) => {
+      const text = stripComments(readFileSync(file, "utf8"));
+      return [...text.matchAll(/\brx=(?:\{([^}]*)\}|"([^"]*)")/g)]
+        .map(([, braced, quoted]) => (braced ?? quoted).trim())
+        .filter((value) => !ALLOWED_RADII.has(value))
+        .map((value) => `${relative(process.cwd(), file)}: rx=${value}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   it("spells every unquoted and CSS-syntax radius in src as the token", () => {
     // Two spellings the case above cannot see, both of which /study had: the
     // unquoted numeric form React accepts, and the CSS property inside a

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  estimateMonoLabelWidth,
+  placeOverlayLabels,
+} from "@/lib/study/overlayLabels";
+
 export interface HistogramOverlay {
   value: number;
   label: string;
@@ -20,6 +25,11 @@ export interface HistogramProps {
 }
 
 const PADDING = { top: 16, right: 12, bottom: 40, left: 40 };
+const OVERLAY_FONT_SIZE = 9;
+/** Vertical step between two overlay labels that would otherwise collide. */
+const OVERLAY_ROW_STEP = 11;
+/** Horizontal clearance between a marker line and its label. */
+const OVERLAY_LABEL_INSET = 3;
 
 export function Histogram({
   bins,
@@ -53,6 +63,17 @@ export function Histogram({
   function yToSvg(count: number): number {
     return PADDING.top + plotH - (count / yMax) * plotH;
   }
+
+  // Overlay labels are placed together rather than one at a time: two markers
+  // closer than a label's width share a column, so the second steps down a
+  // row instead of overprinting the first.
+  const overlayPlacements = placeOverlayLabels(
+    (overlays ?? []).map((ov) => ({
+      x: xToSvg(ov.value) + OVERLAY_LABEL_INSET,
+      width: estimateMonoLabelWidth(ov.label, OVERLAY_FONT_SIZE),
+    })),
+    { maxX: PADDING.left + plotW },
+  );
 
   return (
     <svg
@@ -106,6 +127,7 @@ export function Histogram({
       {overlays?.map((ov, i) => {
         const x = xToSvg(ov.value);
         const color = ov.color ?? "var(--text-secondary)";
+        const { row, anchor } = overlayPlacements[i];
         return (
           <g key={i}>
             <line
@@ -119,9 +141,10 @@ export function Histogram({
               strokeDasharray={ov.dashed !== false ? "3 2" : undefined}
             />
             <text
-              x={x + 3}
-              y={PADDING.top + 8}
-              fontSize={9}
+              x={anchor === "start" ? x + OVERLAY_LABEL_INSET : x - OVERLAY_LABEL_INSET}
+              y={PADDING.top + 8 + row * OVERLAY_ROW_STEP}
+              textAnchor={anchor}
+              fontSize={OVERLAY_FONT_SIZE}
               letterSpacing="0.02em"
               style={{
                 fill: color,

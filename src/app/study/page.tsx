@@ -94,7 +94,7 @@ export default function StudyOverviewPage() {
             <a
               href="/data/synthetic_study_v1.json"
               download
-              className="underline underline-offset-4 decoration-dotted decoration-border-secondary hover:text-text-primary hover:decoration-text-secondary transition-colors duration-150"
+              className="underline underline-offset-4 decoration-dotted decoration-border-secondary hover:text-text-primary hover:decoration-text-secondary transition-colors duration-150 focus-ring"
             >
               <span aria-hidden="true">↓</span> Full dataset — {fileSizeLabel}{" "}
               JSON
@@ -124,7 +124,7 @@ export default function StudyOverviewPage() {
                 )}
                 <Link
                   href={link.href}
-                  className="hover:text-text-primary underline underline-offset-4 decoration-border-secondary hover:decoration-text-secondary transition-colors duration-150"
+                  className="hover:text-text-primary underline underline-offset-4 decoration-border-secondary hover:decoration-text-secondary transition-colors duration-150 focus-ring"
                 >
                   {link.title}
                 </Link>
@@ -227,7 +227,7 @@ export default function StudyOverviewPage() {
                 <a
                   href="/data/synthetic_study_v1.json"
                   download
-                  className="text-text-secondary underline underline-offset-2 decoration-border-secondary hover:text-text-primary transition-colors duration-150"
+                  className="text-text-secondary underline underline-offset-2 decoration-border-secondary hover:text-text-primary transition-colors duration-150 focus-ring"
                 >
                   download the dataset ({fileSizeLabel})
                 </a>
@@ -243,7 +243,7 @@ export default function StudyOverviewPage() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="group flex items-baseline gap-5"
+                      className="group flex items-baseline gap-5 focus-ring"
                     >
                       <span className="mono-meta text-text-label tabular-nums font-medium shrink-0">
                         {link.number}

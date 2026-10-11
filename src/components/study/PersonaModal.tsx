@@ -287,7 +287,7 @@ function ModalHeader({
           {n_models === 2 && (
             <a
               href="#modal-raw-responses"
-              className="mono-meta"
+              className="mono-meta focus-ring"
               style={{
                 display: "inline-flex",
                 alignItems: "center",

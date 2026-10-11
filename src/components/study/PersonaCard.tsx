@@ -39,7 +39,7 @@ export function PersonaCard({
     >
       <Link
         href={href}
-        className="persona-entry-link"
+        className="persona-entry-link focus-ring"
         style={{
           display: "block",
           padding: "12px 48px 12px 0",

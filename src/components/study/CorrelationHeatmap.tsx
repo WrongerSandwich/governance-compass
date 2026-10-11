@@ -10,8 +10,51 @@ export interface CorrelationHeatmapProps {
   className?: string;
 }
 
-const LABEL_PAD = 64; // space for rotated bottom labels and left labels
 const FONT_SIZE = 11;
+/** Clearance between a label's end and the grid edge it reads against. */
+const LABEL_GAP = 6;
+/** Breathing room past the extent of the outermost label on each side. */
+const EDGE_PAD = 4;
+/** Mono advance is ~0.6em; the labels add 0.02em of tracking. */
+const CHAR_WIDTH = FONT_SIZE * 0.62;
+const SIN_45 = Math.SQRT1_2;
+
+export interface HeatmapGeometry {
+  /** Width reserved for the right-aligned row labels. */
+  leftPad: number;
+  /** Height above the grid: the first row label is centred on its row. */
+  topPad: number;
+  /** Height reserved for the 45° column labels hanging below the grid. */
+  bottomPad: number;
+  gridSize: number;
+  svgW: number;
+  svgH: number;
+}
+
+/**
+ * Sizes the SVG around its labels rather than around a fixed pad. The shipped
+ * constant reserved 64 units on the top and left and nothing below, so the
+ * column labels — placed 6 units under the grid — fell outside the viewBox
+ * and were clipped away, while the 64 units above the grid sat empty.
+ */
+export function heatmapGeometry(labels: readonly string[], cellSize: number): HeatmapGeometry {
+  const gridSize = labels.length * cellSize;
+  const longest = labels.reduce((max, label) => Math.max(max, label.length), 0) * CHAR_WIDTH;
+  const leftPad = Math.ceil(longest + LABEL_GAP + EDGE_PAD);
+  const topPad = EDGE_PAD;
+  // A label rotated 45° and anchored at its end hangs down and to the left
+  // of the anchor; its vertical extent is the projection of its width plus
+  // its own glyph height.
+  const bottomPad = Math.ceil(LABEL_GAP + (longest + FONT_SIZE) * SIN_45 + EDGE_PAD);
+  return {
+    leftPad,
+    topPad,
+    bottomPad,
+    gridSize,
+    svgW: leftPad + gridSize + EDGE_PAD,
+    svgH: topPad + gridSize + bottomPad,
+  };
+}
 
 /**
  * Map a correlation value [-1,1] to one of the 5 axis-gradient CSS vars.
@@ -34,12 +77,7 @@ export function CorrelationHeatmap({
   ariaLabel,
   className,
 }: CorrelationHeatmapProps) {
-  const n = labels.length;
-  const gridSize = n * cellSize;
-
-  // SVG viewBox: left labels + grid + bottom labels (rotated, need extra height)
-  const svgW = LABEL_PAD + gridSize;
-  const svgH = LABEL_PAD + gridSize;
+  const { leftPad, topPad, gridSize, svgW, svgH } = heatmapGeometry(labels, cellSize);
 
   return (
     <svg
@@ -61,8 +99,8 @@ export function CorrelationHeatmap({
       {labels.map((label, row) => (
         <text
           key={`left-${row}`}
-          x={LABEL_PAD - 6}
-          y={LABEL_PAD + row * cellSize + cellSize / 2}
+          x={leftPad - LABEL_GAP}
+          y={topPad + row * cellSize + cellSize / 2}
           textAnchor="end"
           dominantBaseline="middle"
           fontSize={FONT_SIZE}
@@ -84,7 +122,7 @@ export function CorrelationHeatmap({
           y={0}
           textAnchor="end"
           dominantBaseline="middle"
-          transform={`translate(${LABEL_PAD + col * cellSize + cellSize / 2}, ${LABEL_PAD + gridSize + 6}) rotate(-45)`}
+          transform={`translate(${leftPad + col * cellSize + cellSize / 2}, ${topPad + gridSize + LABEL_GAP}) rotate(-45)`}
           fontSize={FONT_SIZE}
           letterSpacing="0.02em"
           style={{
@@ -102,8 +140,8 @@ export function CorrelationHeatmap({
           // For lower triangle only, skip upper triangle and diagonal
           if (lowerTriangleOnly && col >= row) return null;
 
-          const x = LABEL_PAD + col * cellSize;
-          const y = LABEL_PAD + row * cellSize;
+          const x = leftPad + col * cellSize;
+          const y = topPad + row * cellSize;
           const fill = corrToColor(value);
           const showText = Math.abs(value) >= 0.4;
 
