@@ -553,9 +553,9 @@ body {
    Chromium across all 21 former call sites.
 
    Using the `outline` shorthand here sets style explicitly, so it cannot be
-   undone by a custom property. This and its scoped sibling `focus-ring-child`
-   are the only consumers of `--focus-ring`, which before them was declared and
-   never used.
+   undone by a custom property. This, its scoped sibling `focus-ring-child`
+   and the map's `focus-stroke` are the only consumers of `--focus-ring`,
+   which before them was declared and never used.
    ============================================ */
 
 @utility focus-ring {

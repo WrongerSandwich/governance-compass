@@ -112,10 +112,11 @@ describe("the study section's controls are reachable without a mouse", () => {
 
     expect(stroked.length).toBe(2);
     expect(ringed.length).toBe(0);
-    // And the stroke is the stylesheet's, not the state shim's: a `stroke`
-    // in the `focus` state object would be a second owner of the cue.
-    const focusObjects = map.text.match(/focus: \{[^}]*\}/g) ?? [];
-    expect(focusObjects.length).toBe(2);
-    for (const obj of focusObjects) expect(obj).not.toContain("stroke");
+    // And the stylesheet is the cue's ONLY owner. The first cut kept a fourth
+    // `focus` state in the style shim, driven by a `:focus-visible` snapshot
+    // taken in `onFocus` — dead once the utility drew the stroke, and stale
+    // after a click followed by a key press. Neither spelling may return.
+    expect(map.text).not.toMatch(/\bfocus: *\{/);
+    expect(map.text).not.toContain('matches(":focus-visible")');
   });
 });

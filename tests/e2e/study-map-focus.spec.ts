@@ -20,16 +20,13 @@ test.describe("study map keyboard focus", () => {
       .toBeGreaterThan(0);
 
     // Keyboard, not `locator.focus()`: `:focus-visible` is what the cue hangs
-    // on, and only a real key press is guaranteed to set it.
+    // on, and only a real key press is guaranteed to set it. The loop checks
+    // element identity, not a label string, so a second control carrying the
+    // same accessible name could not satisfy it.
     const first = regions.first();
-    const ariaLabel = await first.getAttribute("aria-label");
     for (let i = 0; i < 80; i += 1) {
       await page.keyboard.press("Tab");
-      const active = await page.evaluate(() => {
-        const el = document.activeElement;
-        return el ? el.getAttribute("aria-label") : null;
-      });
-      if (active === ariaLabel) break;
+      if (await first.evaluate((el) => el === document.activeElement)) break;
     }
     await expect(first).toBeFocused();
 
