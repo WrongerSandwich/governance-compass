@@ -79,8 +79,6 @@ interface GeographyStateStyle {
   default?: React.CSSProperties;
   hover?: React.CSSProperties;
   pressed?: React.CSSProperties;
-  /** Keyboard focus. Not a v3 key — see `StyledGeography` for why it exists. */
-  focus?: React.CSSProperties;
 }
 
 type StyledGeographyProps = Omit<
@@ -98,16 +96,19 @@ type StyledGeographyProps = Omit<
  * `react-simple-maps.d.ts` modelled the v3 prop shape, which kept `tsc` quiet
  * about it. See #110.
  *
- * The `focus` key is this module's own addition, not a v3 one. The two
- * interactive branches need a shape-hugging keyboard cue: an `outline` on an
- * SVG path is drawn around its BOUNDING BOX, so four of the nine regions were
- * clipped by `svg.rsm-svg` and Oceania read as two horizontal rules across the
- * whole map. A `stroke` follows the geometry and is never clipped. It cannot
- * be done in CSS, because every state object sets `stroke` inline and inline
- * beats any stylesheet rule. Focus also no longer resolves to `hover`, which
- * was the pre-fix behaviour and made a keyboard cue indistinguishable from a
- * mouse one; `hovered` still goes true so a non-`:focus-visible` focus (a
- * mouse click) keeps the hover look it always had.
+ * Keyboard focus resolves to `hover` for the FILL, and the focus cue itself —
+ * a 2px `--focus-ring` stroke that follows the geometry — is the
+ * `focus-stroke` utility's, applied by the interactive call sites. Every
+ * state object here sets `stroke` inline (`none`, `--map-border` or
+ * `--map-accent`), and an inline value beats any stylesheet rule that is not
+ * `!important`; that is why the utility declares its stroke `!important`, and
+ * why the stroke is not spelled in any state object. An earlier cut carried a
+ * fourth `focus` state driven by a `matches(":focus-visible")` snapshot taken
+ * in `onFocus`, with `focus-ring` on the path as a backstop; the backstop's
+ * `outline` is drawn around the path's BOUNDING BOX, which is the artefact
+ * issue #154 records, and the snapshot could go stale (a click, then a key
+ * press, flips `:focus-visible` on without a focus event). The stylesheet's
+ * `:focus-visible` is live, so nothing here is load-bearing for the cue.
  */
 function StyledGeography({
   style,
@@ -121,16 +122,13 @@ function StyledGeography({
 }: StyledGeographyProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const [focused, setFocused] = useState(false);
 
   // v3 semantics: one state object wins outright; they are not merged.
   const resolved = pressed
     ? style?.pressed
-    : focused
-      ? style?.focus
-      : hovered
-        ? style?.hover
-        : style?.default;
+    : hovered
+      ? style?.hover
+      : style?.default;
 
   return (
     <Geography
@@ -154,12 +152,10 @@ function StyledGeography({
         onMouseUp?.(event);
       }}
       onFocus={(event) => {
-        setFocused(event.currentTarget.matches(":focus-visible"));
         setHovered(true);
         onFocus?.(event);
       }}
       onBlur={(event) => {
-        setFocused(false);
         setHovered(false);
         setPressed(false);
         onBlur?.(event);
@@ -595,7 +591,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
                       <StyledGeography
                         geography={geo}
-                        className="focus-ring"
+                        className={isInteractive ? "focus-stroke" : undefined}
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
                         aria-pressed={isInteractive ? isSelected : undefined}
@@ -619,12 +615,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                             stroke: "none",
                             strokeWidth: 0,
                           },
-                          focus: {
-                            fill: "transparent",
-                            stroke: "var(--focus-ring)",
-                            strokeWidth: 2,
-                            opacity: isDimmed ? 0.4 : fillOpacity,
-                          },
                         }}
                         onMouseEnter={(e: React.MouseEvent) =>
                           handleMouseEnter(region, e)
@@ -646,7 +636,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   <StyledGeography
                     key={geo.rsmKey}
                     geography={geo}
-                    className="focus-ring"
+                    className={isInteractive ? "focus-stroke" : undefined}
                     tabIndex={isInteractive ? 0 : -1}
                     aria-label={ariaLabel}
                     aria-pressed={isInteractive ? isSelected : undefined}
@@ -669,12 +659,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                         fill: "var(--map-hover)",
                         stroke: "var(--map-accent)",
                         strokeWidth: 1.5,
-                      },
-                      focus: {
-                        fill: "var(--map-hover)",
-                        stroke: "var(--focus-ring)",
-                        strokeWidth: 2,
-                        opacity: isDimmed ? 0.4 : fillOpacity,
                       },
                     }}
                     onMouseEnter={(e: React.MouseEvent) =>

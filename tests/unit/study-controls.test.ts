@@ -99,14 +99,24 @@ describe("the study section's controls are reachable without a mouse", () => {
     expect(suppressions).toBe(12);
     // Pinned to the two interactive branches rather than `toContain`, which
     // one occurrence anywhere would satisfy. Counted per ELEMENT and on class
-    // TOKENS, not on the raw string: the `className="focus-ring"` spelling it
-    // used to count is one of several that put the ring on the path, and the
-    // count would also have been satisfied by the name appearing twice in a
-    // `data-` attribute.
-    const ringed = jsxOpeningTags(map.text, "StyledGeography").filter((tag) =>
-      classTokens(tag).includes("focus-ring"),
-    );
+    // TOKENS, not on the raw string: the `className="…"` spelling it used to
+    // count is one of several that put the cue on the path, and the count
+    // would also have been satisfied by the name appearing twice in a
+    // `data-` attribute. The cue is `focus-stroke`, not `focus-ring`: an
+    // outline on a path is drawn around its bounding box and was clipped on
+    // four of nine regions (#154), so the path takes the stroke utility and
+    // must NOT also take the ring.
+    const tags = jsxOpeningTags(map.text, "StyledGeography");
+    const stroked = tags.filter((tag) => classTokens(tag).includes("focus-stroke"));
+    const ringed = tags.filter((tag) => classTokens(tag).includes("focus-ring"));
 
-    expect(ringed.length).toBe(2);
+    expect(stroked.length).toBe(2);
+    expect(ringed.length).toBe(0);
+    // And the stylesheet is the cue's ONLY owner. The first cut kept a fourth
+    // `focus` state in the style shim, driven by a `:focus-visible` snapshot
+    // taken in `onFocus` — dead once the utility drew the stroke, and stale
+    // after a click followed by a key press. Neither spelling may return.
+    expect(map.text).not.toMatch(/\bfocus: *\{/);
+    expect(map.text).not.toContain('matches(":focus-visible")');
   });
 });

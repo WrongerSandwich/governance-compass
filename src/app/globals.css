@@ -553,9 +553,9 @@ body {
    Chromium across all 21 former call sites.
 
    Using the `outline` shorthand here sets style explicitly, so it cannot be
-   undone by a custom property. This and its scoped sibling `focus-ring-child`
-   are the only consumers of `--focus-ring`, which before them was declared and
-   never used.
+   undone by a custom property. This, its scoped sibling `focus-ring-child`
+   and the map's `focus-stroke` are the only consumers of `--focus-ring`,
+   which before them was declared and never used.
    ============================================ */
 
 @utility focus-ring {
@@ -593,6 +593,24 @@ body {
   &:has(> button:focus-visible) {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
+  }
+}
+
+/* The map's sibling of `focus-ring`. An `outline` on an SVG path is drawn
+   around the path's BOUNDING BOX, not its geometry: four of the nine study
+   regions had that box clipped by the map's own SVG, and Oceania's read as
+   two horizontal rules across the whole map. The cue is therefore a stroke,
+   which follows the shape and is never clipped. `!important` is what makes
+   it a stylesheet rule at all: react-simple-maps sets `stroke` inline for
+   every state, and an inline declaration beats any rule that is not. */
+@utility focus-stroke {
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: none;
+    stroke: var(--focus-ring) !important;
+    stroke-width: 2 !important;
   }
 }
 

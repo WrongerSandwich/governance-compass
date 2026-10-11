@@ -2458,10 +2458,12 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 > `MapLegend` and compare-tray questions, the five SVG `rx` sites and the
 > `/study` link rings were fixed in PR #193 (`fix/study-layout-backlog`);
 > the `rx` premise was also wrong (the attribute form resolves — see the
-> issue's correction). Still open from this section: delta 04 itself, the
-> map's bounding-box focus outline, the modal's pole labels, and the
-> seventeen frozen mark tones (#155). The text below is left as the record
-> it was.
+> issue's correction). The map's bounding-box focus outline went next: the
+> stroke moved into a `focus-stroke` utility (`!important` beats the inline
+> state styles, which is the thing the text below says cannot be done) and
+> `focus-ring` left the path. The seventeen frozen mark tones were #155,
+> closed by PR #179. Still open from this section: delta 04 itself and the
+> modal's pole labels. The text below is left as the record it was.
 
 **Three pre-existing layout defects the Task 15 visual walk turned up.** None is this
 phase's doing — each was verified byte-identical at `360bfaf` or measured to a cause the
