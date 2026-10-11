@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  estimateMonoLabelWidth,
-  placeOverlayLabels,
-} from "@/lib/study/overlayLabels";
+import { estimateMonoLabelWidth } from "@/lib/study/monoLabelWidth";
+import { placeOverlayLabels } from "@/lib/study/overlayLabels";
 
 /**
  * Issue #154: Histogram's mean and median markers on /study/model-agreement
@@ -78,6 +76,44 @@ describe("placeOverlayLabels", () => {
       { row: 0, anchor: "start" },
       { row: 1, anchor: "end" },
     ]);
+  });
+
+  it("applies the inset on the label's own side of its marker", () => {
+    // Review finding on the first cut: the caller offset every marker by +3
+    // before placement, so a flipped label's glyphs (drawn ending 3 left of
+    // the marker) sat 6 units left of where the collision check believed,
+    // and could overprint a same-row neighbour by the width of a glyph.
+    // Markers 134 and 250, labels 50.2 and 61.4 wide, right edge 308.
+    const placed = placeOverlayLabels(
+      [
+        { x: 134, width: 50.2 },
+        { x: 250, width: 61.4 },
+      ],
+      { maxX: 308, gap: 4, inset: 3 },
+    );
+    // A occupies [137, 187.2]; B flips and occupies [185.6, 247] — a
+    // collision once the inset is on the correct side.
+    expect(placed).toEqual([
+      { row: 0, anchor: "start" },
+      { row: 1, anchor: "end" },
+    ]);
+    // And with no inset the same pair clears, which is what the first cut
+    // wrongly concluded for the inset case.
+    expect(
+      placeOverlayLabels(
+        [
+          { x: 134, width: 50.2 },
+          { x: 250, width: 61.4 },
+        ],
+        { maxX: 308, gap: 4 },
+      ).map((p) => p.row),
+    ).toEqual([0, 0]);
+  });
+
+  it("flips on the inset edge, not the bare marker", () => {
+    // 290 + 3 + 10 crosses 300; 290 + 10 alone would not.
+    expect(placeOverlayLabels([{ x: 290, width: 10 }], { maxX: 300, inset: 3 })[0].anchor).toBe("end");
+    expect(placeOverlayLabels([{ x: 290, width: 10 }], { maxX: 300 })[0].anchor).toBe("start");
   });
 
   it("never flips when no right edge is given", () => {

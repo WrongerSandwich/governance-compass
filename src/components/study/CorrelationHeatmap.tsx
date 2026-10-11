@@ -1,5 +1,7 @@
 "use client";
 
+import { estimateMonoLabelWidth } from "@/lib/study/monoLabelWidth";
+
 export interface CorrelationHeatmapProps {
   matrix: number[][];
   labels: string[];
@@ -15,8 +17,6 @@ const FONT_SIZE = 11;
 const LABEL_GAP = 6;
 /** Breathing room past the extent of the outermost label on each side. */
 const EDGE_PAD = 4;
-/** Mono advance is ~0.6em; the labels add 0.02em of tracking. */
-const CHAR_WIDTH = FONT_SIZE * 0.62;
 const SIN_45 = Math.SQRT1_2;
 
 export interface HeatmapGeometry {
@@ -39,7 +39,10 @@ export interface HeatmapGeometry {
  */
 export function heatmapGeometry(labels: readonly string[], cellSize: number): HeatmapGeometry {
   const gridSize = labels.length * cellSize;
-  const longest = labels.reduce((max, label) => Math.max(max, label.length), 0) * CHAR_WIDTH;
+  const longest = labels.reduce(
+    (max, label) => Math.max(max, estimateMonoLabelWidth(label, FONT_SIZE)),
+    0,
+  );
   const leftPad = Math.ceil(longest + LABEL_GAP + EDGE_PAD);
   const topPad = EDGE_PAD;
   // A label rotated 45° and anchored at its end hangs down and to the left

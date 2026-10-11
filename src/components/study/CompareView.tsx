@@ -447,7 +447,7 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
   // Grid column class via media queries
   const gridStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "1fr",
+    gridTemplateColumns: "minmax(0, 1fr)",
     gap: "12px",
   };
 

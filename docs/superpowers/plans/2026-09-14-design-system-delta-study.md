@@ -2456,7 +2456,7 @@ The body should name: the four pages and ~30 components swept; the two accessibi
 
 > **Resolved since, under issue #154.** The three layout defects below, the
 > `MapLegend` and compare-tray questions, the five SVG `rx` sites and the
-> `/study` link rings were fixed in the `fix/study-layout-backlog` change;
+> `/study` link rings were fixed in PR #193 (`fix/study-layout-backlog`);
 > the `rx` premise was also wrong (the attribute form resolves — see the
 > issue's correction). Still open from this section: delta 04 itself, the
 > map's bounding-box focus outline, the modal's pole labels, and the

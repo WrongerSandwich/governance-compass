@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  estimateMonoLabelWidth,
-  placeOverlayLabels,
-} from "@/lib/study/overlayLabels";
+import { estimateMonoLabelWidth } from "@/lib/study/monoLabelWidth";
+import { placeOverlayLabels } from "@/lib/study/overlayLabels";
 
 export interface HistogramOverlay {
   value: number;
@@ -69,10 +67,10 @@ export function Histogram({
   // row instead of overprinting the first.
   const overlayPlacements = placeOverlayLabels(
     (overlays ?? []).map((ov) => ({
-      x: xToSvg(ov.value) + OVERLAY_LABEL_INSET,
+      x: xToSvg(ov.value),
       width: estimateMonoLabelWidth(ov.label, OVERLAY_FONT_SIZE),
     })),
-    { maxX: PADDING.left + plotW },
+    { maxX: PADDING.left + plotW, inset: OVERLAY_LABEL_INSET },
   );
 
   return (

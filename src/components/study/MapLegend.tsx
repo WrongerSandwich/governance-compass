@@ -1,7 +1,7 @@
 "use client";
 
 import type { ClusterId } from "@/lib/study/types";
-import { CLUSTERS } from "@/data/syntheticStudyClusters";
+import { getCluster } from "@/data/syntheticStudyClusters";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -176,8 +176,7 @@ export function MapLegend(props: MapLegendProps) {
         }}
       >
         {clusterIds.map((id) => {
-          const cluster = CLUSTERS.find((c) => c.id === id);
-          if (!cluster) return null;
+          const cluster = getCluster(id);
           const rawLabel = descriptorFn ? descriptorFn(id) : cluster.label;
           const descriptor = rawLabel.replace(/^[Tt]oward\s+/i, "");
           return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { axes } from "@/data/axes";
+import { MONO_LABEL_ADVANCE_EM } from "@/lib/study/monoLabelWidth";
 import {
   polarToCart,
   ringPoints,
@@ -13,15 +14,11 @@ import {
 const DEFAULT_SIZE = 240;
 
 const LABEL_FONT_SIZE = 9;
-/** Advance width of one monospace glyph, in ems. 0.60 is the advance of
- *  every monospace face in the stack — it is what makes them monospace —
- *  and 0.02 is the tracking the label layer adds. Measured against the
- *  rendered chart at 5.583 units per glyph at `fontSize` 9, i.e. 0.6203em.
- *
- *  It is an estimate, and it is used to size a MARGIN rather than to place
- *  anything, so an error shows up as a few units of slack and never as a
- *  cut glyph. */
-const LABEL_ADVANCE_EM = 0.62;
+/** Advance width of one monospace glyph, in ems — the shared estimate the
+ *  heatmap and the histogram's overlay labels size their gutters from. The
+ *  measurement behind it (0.6203em at `fontSize` 9 on this chart) is
+ *  recorded beside the constant. */
+const LABEL_ADVANCE_EM = MONO_LABEL_ADVANCE_EM;
 /** Breathing room past the last glyph's side bearing. */
 const LABEL_EDGE_PAD = 4;
 

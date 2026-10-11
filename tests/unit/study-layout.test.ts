@@ -178,12 +178,20 @@ describe("the compare tray", () => {
     // them plus gaps is 1359px in a 1098px tray, so the fourth panel was
     // clipped identically at 1200 and 1440px.
     const text = read("src/components/study/CompareView.tsx");
-    const rules = [...text.matchAll(/grid-template-columns: *([^;]+);/g)].map(([, v]) => v.trim());
+    // Both spellings: the base single-column rule is a style-object property,
+    // the wider ones are CSS inside the <style> block.
+    const rules = [
+      ...[...text.matchAll(/gridTemplateColumns: *"([^"]+)"/g)].map(([, v]) => v),
+      ...[...text.matchAll(/grid-template-columns: *([^;]+);/g)].map(([, v]) => v.trim()),
+    ];
 
-    expect(rules.length).toBeGreaterThanOrEqual(3);
+    expect(rules.length).toBeGreaterThanOrEqual(4);
     for (const rule of rules) {
-      expect(rule, `${rule} has an auto minimum`).not.toMatch(/repeat\(\d+, *1fr\)/);
       expect(rule).toMatch(/minmax\(0, *1fr\)/);
+      // Nothing but zero-minimum tracks: a bare `1fr` anywhere is an auto
+      // minimum, whether alone, repeated or beside the fixed ones.
+      const bare = rule.replace(/minmax\(0, *1fr\)/g, "");
+      expect(bare, `${rule} has an auto minimum`).not.toMatch(/\b1fr\b/);
     }
   });
 

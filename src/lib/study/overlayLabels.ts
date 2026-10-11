@@ -30,12 +30,13 @@ export interface PlaceOverlayLabelsOptions {
   maxX?: number;
   /** Minimum clear space between two labels on the same row. */
   gap?: number;
-}
-
-/** Estimated width of a mono label at `fontSize`, in the same units. */
-export function estimateMonoLabelWidth(label: string, fontSize: number): number {
-  // Mono advance is ~0.6em; the charts add 0.02em of tracking on top.
-  return label.length * fontSize * 0.62;
+  /**
+   * Clearance between a marker and its label, applied on the label's own
+   * side: a `start` label begins `inset` right of its marker, an `end` label
+   * ends `inset` left of it. Applied here rather than by the caller so the
+   * collision check and the drawn glyphs agree on which side it falls.
+   */
+  inset?: number;
 }
 
 /**
@@ -44,7 +45,7 @@ export function estimateMonoLabelWidth(label: string, fontSize: number): number 
  */
 export function placeOverlayLabels(
   items: readonly OverlayLabelInput[],
-  { maxX, gap = 4 }: PlaceOverlayLabelsOptions = {},
+  { maxX, gap = 4, inset = 0 }: PlaceOverlayLabelsOptions = {},
 ): OverlayLabelPlacement[] {
   const order = items
     .map((item, index) => ({ item, index }))
@@ -55,9 +56,11 @@ export function placeOverlayLabels(
 
   for (const { item, index } of order) {
     const anchor: OverlayLabelPlacement["anchor"] =
-      maxX !== undefined && item.x + item.width > maxX ? "end" : "start";
+      maxX !== undefined && item.x + inset + item.width > maxX ? "end" : "start";
     const span: [number, number] =
-      anchor === "start" ? [item.x, item.x + item.width] : [item.x - item.width, item.x];
+      anchor === "start"
+        ? [item.x + inset, item.x + inset + item.width]
+        : [item.x - inset - item.width, item.x - inset];
 
     let row = rows.findIndex((placed) =>
       placed.every(([a, b]) => span[1] + gap <= a || span[0] >= b + gap),
