@@ -105,7 +105,7 @@ export function CaseStudy({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "30% 35% 35%",
+          gridTemplateColumns: "minmax(0, 30fr) minmax(0, 35fr) minmax(0, 35fr)",
           gap: "24px",
           alignItems: "start",
         }}
@@ -133,7 +133,7 @@ export function CaseStudy({
           </p>
           <Link
             href={viewFullProfileHref}
-            className="body-xs text-mark-primary"
+            className="body-xs text-mark-primary focus-ring"
             style={{
               textDecoration: "underline",
               textDecorationColor: "var(--border-secondary)",

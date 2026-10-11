@@ -169,6 +169,7 @@ function PersonaPanel({
         flexDirection: "column",
         gap: "14px",
         position: "relative",
+        minWidth: 0,
       }}
     >
       {/* Unpin button */}
@@ -446,7 +447,7 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
   // Grid column class via media queries
   const gridStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "1fr",
+    gridTemplateColumns: "minmax(0, 1fr)",
     gap: "12px",
   };
 
@@ -553,15 +554,15 @@ export function CompareView({ pinnedIds, onClose, onUnpin }: CompareViewProps) {
       <style>{`
         @media (min-width: 640px) {
           .compare-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
         }
         @media (min-width: 1024px) {
           .compare-grid[data-count="3"] {
-            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
           }
           .compare-grid[data-count="4"] {
-            grid-template-columns: repeat(4, 1fr) !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
           }
         }
       `}</style>

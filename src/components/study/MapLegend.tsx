@@ -1,7 +1,7 @@
 "use client";
 
 import type { ClusterId } from "@/lib/study/types";
-import { CLUSTERS } from "@/data/syntheticStudyClusters";
+import { getCluster } from "@/data/syntheticStudyClusters";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -157,31 +157,61 @@ export function MapLegend(props: MapLegendProps) {
 
   if (props.variant === "cluster") {
     const { clusterIds, descriptorFn } = props;
+    // Swatch-left rows in as many columns as fit, not six swatch-top columns:
+    // a cluster descriptor is a phrase of up to seven words, and six of them
+    // across a 532px legend left each one an 80px box showing 30-42% of its
+    // text with nothing to recover the rest. Rows let the phrase wrap in
+    // full, and a list rather than `role="img"` lets assistive technology
+    // read it.
     return (
-      <div
-        style={containerStyle}
+      <ul
         aria-label="Cluster color legend"
-        role="img"
+        style={{
+          listStyle: "none",
+          margin: 0,
+          padding: "8px 0",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "6px 16px",
+        }}
       >
         {clusterIds.map((id) => {
-          const cluster = CLUSTERS.find((c) => c.id === id);
-          if (!cluster) return null;
-          const code = cluster.code;
-          // Build short descriptor: up to 4–5 words from label
+          const cluster = getCluster(id);
           const rawLabel = descriptorFn ? descriptorFn(id) : cluster.label;
-          // Strip leading "Toward " and truncate to ~5 words
-          const words = rawLabel.replace(/^[Tt]oward\s+/i, "").split(/\s+/);
-          const shortLabel = words.slice(0, 4).join(" ");
+          const descriptor = rawLabel.replace(/^[Tt]oward\s+/i, "");
           return (
-            <Swatch
+            <li
               key={id}
-              fill={`var(--cluster-${id})`}
-              label={code}
-              sublabel={shortLabel}
-            />
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: "8px",
+                minWidth: 0,
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 16,
+                  height: 10,
+                  borderRadius: "var(--radius)",
+                  background: `var(--cluster-${id})`,
+                  border: "1px solid var(--map-border)",
+                  flexShrink: 0,
+                  alignSelf: "center",
+                }}
+              />
+              <span
+                className="mono-meta text-text-secondary"
+                style={{ flexShrink: 0 }}
+              >
+                {cluster.code}
+              </span>
+              <span className="body-xs text-text-secondary">{descriptor}</span>
+            </li>
           );
         })}
-      </div>
+      </ul>
     );
   }
 

@@ -190,7 +190,7 @@ export function HorizontalBarChart({
                 height={barHeight - 2}
                 fill={defaultColor}
                 fillOpacity={0.75}
-                rx={1}
+                rx="var(--radius)"
                 aria-label={`${row.label}: ${row.value}`}
               />
             )}

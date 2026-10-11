@@ -86,7 +86,7 @@ export function ArchetypeBadgeStudy({
     <Link
       href={`/archetypes#${archetypeId}`}
       style={chipStyle}
-      className={className}
+      className={className ? `focus-ring ${className}` : "focus-ring"}
     >
       {inner}
     </Link>

@@ -199,7 +199,7 @@ export function RadarChart({ axisScores }: RadarChartProps) {
                 y={ty - boxH / 2}
                 width={boxW}
                 height={boxH}
-                rx={2}
+                rx="var(--radius)"
                 style={{ fill: "var(--surface-1)", stroke: "var(--border-secondary)" }}
                 strokeWidth={0.5}
               />

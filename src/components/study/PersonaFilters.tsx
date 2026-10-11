@@ -45,7 +45,7 @@ const CLUSTER_LABELS: Record<ClusterId, string> = {
    there is no spelling of one inside a `style` prop. Each constant keeps only
    what is left of it — layout. */
 const fieldLabelClass = "body-xs text-text-secondary font-medium";
-const fieldControlClass = "body-s text-text-primary";
+const fieldControlClass = "body-s text-text-primary focus-ring";
 const groupLabelClass = "label text-text-label font-medium";
 
 const fieldLabelStyle: CSSProperties = {

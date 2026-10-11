@@ -23,7 +23,7 @@
 >
 > **Known open work,** so this does not read as a description of a finished system:
 >
-> - `/study` has not adopted delta 04 and carries measured layout defects (#154).
+> - `/study` has not adopted delta 04 (#154). The layout defects that ticket also recorded — the heatmap's clipped column labels, the sideways scroll on `/study/model-agreement`, the compare tray's clipped fourth panel, the histogram's overprinting markers and the truncated cluster legend — are fixed; the delta itself is still open.
 > - Frozen Stone 600 mark tones in the comparison and group components hold their value instead of stepping in dark mode (#155).
 > - Bare `rounded` and the radius namespace are unswept (#139).
 > - The mobile nav has no hamburger panel at 390px (#141).
@@ -326,7 +326,9 @@ Two exemptions, named in the guard rather than pattern-matched, because a circle
 
 Use `rounded-sharp` in classes and `var(--radius)` in inline styles. The compass plot's inner frame is neither an exemption nor a client of the token: the 6px corner the pre-delta spec prescribed for it is gone rather than retuned, and the rect ships square.
 
-**Known unswept spellings**, recorded rather than omitted. Bare `rounded` compiles to Tailwind's default 4px and sits off-system next to swept 2px neighbours; it is issue #139, which pairs the sweep with a lockdown of the radius namespace so that an off-system corner becomes unwritable rather than merely discouraged. SVG `rx` attributes are the other spelling — two in `TensionMatrix`, one each in `HorizontalBarChart`, `ComparisonRadar` and `RadarChart`, all small numeric literals — and they are issue #154. At a 2px token, "leave them and say so here" is a legitimate resolution for the `rx` sites; what is not legitimate is a spec that implies they were swept. The backlog records that an `rx="var(--radius)"` attribute does not resolve and needs `style={{ rx: … }}`; measured today in current Chromium and Firefox the attribute form does resolve and paints the corner, so if those sites ever move onto the token, either spelling will do.
+**Known unswept spelling**, recorded rather than omitted. Bare `rounded` compiles to Tailwind's default 4px and sits off-system next to swept 2px neighbours; it is issue #139, which pairs the sweep with a lockdown of the radius namespace so that an off-system corner becomes unwritable rather than merely discouraged.
+
+**SVG corners take the token too.** The five `rx` attributes — two in `TensionMatrix`, one each in `HorizontalBarChart`, `ComparisonRadar` and `RadarChart` — were small numeric literals (1, 2 and 4) until issue #154 and are now `rx="var(--radius)"`, with a guard that reads every `rx` in `src`. The attribute form resolves because SVG 2 made `rx` a geometry property and presentation attributes parse as CSS values; measured in Chromium 151 and Firefox 153, with WebKit unverified. An engine that did not resolve it would treat the attribute as `auto` and draw a square corner, which at a 2px token is the graceful failure rather than a visible one. The decision was made on the merits once the "attribute does not resolve" premise was disproved: one radius means one radius, and a chart corner is not an exemption the way a circle or a pill is.
 
 ### Rules Carry Structure
 
@@ -746,8 +748,8 @@ Two other arbitrary widths exist outside `/study`, each with a single consumer: 
 **Open, measured, not fixed:**
 
 - **The mobile nav has no hamburger panel** (#141). Mock 6a draws one at 390px. What ships at 390px is the compass mark plus two compact mono links — functional, and short of the drawing.
-- **`/study/model-agreement` scrolls sideways** between roughly 641 and 1150px (#154). A case-study grid of `30% 35% 35%` already totals 100%, so its 24px gaps add on top; measured at 768, 960 and 1024, `scrollWidth` exceeds `clientWidth` by 16px and eight paragraphs sit past the edge.
-- **`/study/personas`'s compare tray clips its fourth panel** (#154) — `clientWidth` 1098 against `scrollWidth` 1359, identically at 1200px and 1440px, because the tray does not grow with the viewport. Three pins already clip 27px at 1024px, and four pins is a URL-reachable state.
+
+Two `/study` defects this list carried are fixed and recorded here so the fix is not undone by a later tidy. The case-study grid on `/study/model-agreement` is `minmax(0, 30fr) minmax(0, 35fr) minmax(0, 35fr)`, not `30% 35% 35%`: percentages already total the container, so the two 24px gaps put the third column 48px past it and the page scrolled sideways between ~641 and ~1150px. The compare tray's columns are `minmax(0, 1fr)`, not `1fr`: a bare `1fr` track never shrinks below its content's min-content width, and a nowrap cluster badge made that 297px, so four panels were 1359px wide inside a 1098px tray at every desktop width. `ClusterBadge` now wraps its descriptor and keeps only its code on one line, for the same reason.
 
 ### Responsive Rules
 
@@ -867,7 +869,7 @@ The spelling it replaced — `focus:outline-none` alongside `focus-visible:outli
 
 `focus-ring-child` is the wrapper form — `:has(> button:focus-visible)` — for a card whose focusable element is an `sr-only` button inside it. Both halves of that selector are load-bearing: `:focus-visible` rather than `:focus-within`, and a **direct** `button` child rather than any focusable descendant. *Quiz Phase Theming* carries the argument for each.
 
-Two departures, both documented rather than incidental. `/study`'s links, inputs and selects do not carry `focus-ring`; none of them suppresses its outline either, so they keep the user-agent ring — inconsistent with the site-wide convention rather than inaccessible (#154). And the world map's interactive regions draw a shape-hugging `stroke` on focus **alongside** `focus-ring`, because an `outline` on an SVG path is drawn around its bounding box: four of nine regions had that box clipped by the map's own SVG, and Oceania's read as two horizontal rules across the whole map.
+One departure, documented rather than incidental. The world map's interactive regions draw a shape-hugging `stroke` on focus **alongside** `focus-ring`, because an `outline` on an SVG path is drawn around its bounding box: four of nine regions had that box clipped by the map's own SVG, and Oceania's read as two horizontal rules across the whole map. The class stays as a backstop for the stroke, which is driven by a JavaScript `:focus-visible` check; dropping it is deferred until that shim has proven itself (#154). `/study`'s links, inputs and selects took `focus-ring` under the same issue — they had kept the user-agent ring, consistent in effect but not in spelling with the 56 sites elsewhere — and a guard in the study chrome tests holds the section to it.
 
 ### Contrast
 
