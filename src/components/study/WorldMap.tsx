@@ -98,16 +98,19 @@ type StyledGeographyProps = Omit<
  * `react-simple-maps.d.ts` modelled the v3 prop shape, which kept `tsc` quiet
  * about it. See #110.
  *
- * The `focus` key is this module's own addition, not a v3 one. The two
- * interactive branches need a shape-hugging keyboard cue: an `outline` on an
- * SVG path is drawn around its BOUNDING BOX, so four of the nine regions were
- * clipped by `svg.rsm-svg` and Oceania read as two horizontal rules across the
- * whole map. A `stroke` follows the geometry and is never clipped. It cannot
- * be done in CSS, because every state object sets `stroke` inline and inline
- * beats any stylesheet rule. Focus also no longer resolves to `hover`, which
- * was the pre-fix behaviour and made a keyboard cue indistinguishable from a
- * mouse one; `hovered` still goes true so a non-`:focus-visible` focus (a
- * mouse click) keeps the hover look it always had.
+ * The `focus` key is this module's own addition, not a v3 one. It carries the
+ * FILL a focused region takes; the keyboard cue itself — a 2px
+ * `--focus-ring` stroke that follows the geometry — is drawn by the
+ * `focus-stroke` utility in `globals.css`, which wins over these inline
+ * `stroke` values with `!important`. An earlier cut drew the stroke from this
+ * state object, with `focus-ring` kept on the path as a backstop in case the
+ * `:focus-visible` check below ever regressed; the backstop's `outline` is
+ * drawn around the path's BOUNDING BOX, which is the artefact issue #154
+ * records, so the stylesheet now owns the cue and nothing here is load-
+ * bearing for it. Focus still does not resolve to `hover`, which was the
+ * pre-fix behaviour and made a keyboard cue indistinguishable from a mouse
+ * one; `hovered` still goes true so a non-`:focus-visible` focus (a mouse
+ * click) keeps the hover look it always had.
  */
 function StyledGeography({
   style,
@@ -595,7 +598,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       {/* Hatch overlay layer — transparent fill with hatch pattern on top */}
                       <StyledGeography
                         geography={geo}
-                        className="focus-ring"
+                        className="focus-stroke"
                         tabIndex={isInteractive ? 0 : -1}
                         aria-label={ariaLabel}
                         aria-pressed={isInteractive ? isSelected : undefined}
@@ -621,8 +624,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                           },
                           focus: {
                             fill: "transparent",
-                            stroke: "var(--focus-ring)",
-                            strokeWidth: 2,
                             opacity: isDimmed ? 0.4 : fillOpacity,
                           },
                         }}
@@ -646,7 +647,7 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                   <StyledGeography
                     key={geo.rsmKey}
                     geography={geo}
-                    className="focus-ring"
+                    className="focus-stroke"
                     tabIndex={isInteractive ? 0 : -1}
                     aria-label={ariaLabel}
                     aria-pressed={isInteractive ? isSelected : undefined}
@@ -672,8 +673,6 @@ export function WorldMap({ mode, className = "" }: WorldMapProps) {
                       },
                       focus: {
                         fill: "var(--map-hover)",
-                        stroke: "var(--focus-ring)",
-                        strokeWidth: 2,
                         opacity: isDimmed ? 0.4 : fillOpacity,
                       },
                     }}

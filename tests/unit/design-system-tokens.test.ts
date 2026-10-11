@@ -45,7 +45,7 @@ const utilities = cssUtilities(globalsCss);
 
 // Utilities that are deliberately not typography roles. A new utility must
 // be listed here or in TYPE_SCALE, or the type-scale test fails on it.
-const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child"];
+const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child", "focus-stroke"];
 
 const typographyUtilities = () =>
   utilities.filter(
@@ -377,6 +377,23 @@ describe("focus ring", () => {
     // gone, `focus-ring` and `focus-ring-child` are the only way a ring is drawn
     // anywhere in src, and the claim is now literally true.
     expect(offenders(/focus-visible:outline-/, "focus-ring")).toEqual([]);
+  });
+
+  it("draws the map's focus cue as a stroke that beats the inline state styles", () => {
+    // `focus-stroke` is the path form of `focus-ring`. An outline on an SVG
+    // path is drawn around its bounding box and was clipped on four of nine
+    // study regions (#154), so the cue is a stroke — and it has to be
+    // `!important`, because react-simple-maps sets `stroke` inline for every
+    // state and an inline value beats any stylesheet rule that is not. Both
+    // rules suppress the outline, exactly as `focus-ring` does.
+    const utility = utilities.find((entry) => entry.name === "focus-stroke");
+
+    expect(utility, "focus-stroke utility is missing").toBeDefined();
+    expect(utility!.body).toMatch(/stroke:\s*var\(--focus-ring\)\s*!important/);
+    expect(utility!.body).toMatch(/stroke-width:\s*2\s*!important/);
+    expect(utility!.body).toMatch(/&:focus-visible\s*\{[^}]*outline:\s*none/);
+    expect(utility!.body).toMatch(/&:focus\s*\{[^}]*outline:\s*none/);
+    expect(utility!.body).not.toContain("outline: 2px");
   });
 
   it("paints a real outline off the focus-ring token", () => {

@@ -141,8 +141,8 @@ function typeFloor(): string {
   return `${min}px`;
 }
 
-/** The two `@utility` rules that are not typography roles. */
-const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child"];
+/** The three `@utility` rules that are not typography roles. */
+const NON_TYPOGRAPHY_UTILITIES = ["focus-ring", "focus-ring-child", "focus-stroke"];
 
 /** The handoff bundle the provenance header points readers at. */
 const HANDOFF_ZIP = resolve(process.cwd(), "docs/gov_compass_redesign.zip");

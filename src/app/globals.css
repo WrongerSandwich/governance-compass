@@ -596,6 +596,24 @@ body {
   }
 }
 
+/* The map's sibling of `focus-ring`. An `outline` on an SVG path is drawn
+   around the path's BOUNDING BOX, not its geometry: four of the nine study
+   regions had that box clipped by the map's own SVG, and Oceania's read as
+   two horizontal rules across the whole map. The cue is therefore a stroke,
+   which follows the shape and is never clipped. `!important` is what makes
+   it a stylesheet rule at all: react-simple-maps sets `stroke` inline for
+   every state, and an inline declaration beats any rule that is not. */
+@utility focus-stroke {
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: none;
+    stroke: var(--focus-ring) !important;
+    stroke-width: 2 !important;
+  }
+}
+
 @utility caption-italic {
   font-family: var(--font-serif);
   font-style: italic;
